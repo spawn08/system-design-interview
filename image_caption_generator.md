@@ -283,7 +283,7 @@ def generate_caption(image_features):
 
 ```python
 from fastapi import FastAPI, Request
-from fastapi.response import JSONResponse
+from fastapi.responses import JSONResponse
 import base64
 # Import the functions from above
 from image_processing import preprocess_image
