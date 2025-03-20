@@ -1,4 +1,4 @@
-## Design an image captioning generator.
+## Design a system for generating captions for images
 
 ## 1. REQUIREMENTS GATHERING
 
