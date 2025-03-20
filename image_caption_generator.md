@@ -282,14 +282,16 @@ def generate_caption(image_features):
 **API Endpoint (Simplified Flask example):**
 
 ```python
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, Request
+from fastapi.response import JSONResponse
 import base64
 # Import the functions from above
 from image_processing import preprocess_image
 from caption_generation import generate_caption
 import pika  # For RabbitMQ
+import uvicorn
 
-app = Flask(__name__)
+app = FastAPI(__name__)
 
 # RabbitMQ connection parameters (replace with your actual settings)
 RABBITMQ_HOST = 'localhost'
@@ -307,8 +309,8 @@ def send_to_queue(message):
         print(f"Error sending to queue: {e}")
 
 
-@app.route('/api/v1/caption', methods=['POST'])
-def caption_image():
+@app.post('/api/v1/caption')
+async def caption_image(request: Request):
     """API endpoint for generating image captions."""
     try:
         if 'image' in request.json:
@@ -316,22 +318,22 @@ def caption_image():
         elif 'image_url' in request.json:
             # Fetch image from URL (using requests library, for example)
             # ... (implementation omitted for brevity) ...
-            return jsonify({"status": "error", "message": "Image URL processing not implemented yet."}), 501
+            return JSONResponse({"status": "error", "message": "Image URL processing not implemented yet."}), 501
         else:
-            return jsonify({"status": "error", "message": "No image provided."}), 400
+            return JSONResponse({"status": "error", "message": "No image provided."}), 400
 
         # Send to queue for asynchronous processing
         send_to_queue(image_data)
 
 
-        return jsonify({"status": "success", "message": "Image queued for processing."}), 202 # Accepted
+        return JSONResponse({"status": "success", "message": "Image queued for processing."}), 202 # Accepted
 
     except Exception as e:
         print(f"Error in API endpoint: {e}")
-        return jsonify({"status": "error", "message": "An unexpected error occurred."}), 500
+        return JSONResponse({"status": "error", "message": "An unexpected error occurred."}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    uvicorn.run(host='0.0.0.0', port=5000)
 ```
 
 **Captioning Worker (Consumes from Queue):**
