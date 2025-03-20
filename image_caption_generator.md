@@ -70,22 +70,22 @@ graph LR
     end
     
     subgraph Asynchronous Processing
-        E[Message Queue (Kafka/RabbitMQ)]
+        E[Message Queue - Kafka/RabbitMQ]
     end
 
     subgraph Backend Services
         C[Image Processing Service]
         D[Captioning Service]
-        F[Model Serving (TensorFlow Serving/TorchServe)]
+        F[Model Serving - TensorFlow Serving/TorchServe]
     end
 	
 	 subgraph Data Stores
-		H[Image Storage (S3/GCS)]
-        I[Cache (Redis/Memcached)]
+		H[Image Storage - S3/GCS]
+        I[Cache - Redis/Memcached]
     end
     
     subgraph Monitoring
-        J[Monitoring & Logging (Prometheus/Grafana/CloudWatch)]
+        J[Monitoring & Logging - Prometheus/Grafana/CloudWatch]
     end
 
     A -- Image Upload --> B
