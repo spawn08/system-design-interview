@@ -73,7 +73,7 @@ The system can be broadly divided into two main flows:
 
 **Mermaid.js Diagram:**
 
-```mermaid
+```
 graph LR
     subgraph Client
         User[User/Application]
