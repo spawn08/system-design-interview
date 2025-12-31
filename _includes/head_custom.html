@@ -1,149 +1,515 @@
-<!-- Custom Head Content -->
+<!-- Custom Head Content for Modern System Design Guide -->
 
-<!-- Mermaid JS for diagrams -->
+<!-- Google Fonts for modern typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Mermaid JS for diagrams with HIGH CONTRAST settings -->
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
   mermaid.initialize({
     startOnLoad: true,
-    theme: 'dark',
+    theme: 'base',
     themeVariables: {
-      darkMode: true,
-      background: '#0d1117',
-      primaryColor: '#58a6ff',
-      primaryTextColor: '#c9d1d9',
-      primaryBorderColor: '#30363d',
-      lineColor: '#8b949e',
-      secondaryColor: '#21262d',
-      tertiaryColor: '#161b22'
+      // High contrast colors for readability
+      background: '#1a1b26',
+      primaryColor: '#7aa2f7',
+      primaryTextColor: '#ffffff',
+      primaryBorderColor: '#7aa2f7',
+      secondaryColor: '#2ac3de',
+      secondaryTextColor: '#ffffff',
+      secondaryBorderColor: '#2ac3de',
+      tertiaryColor: '#bb9af7',
+      tertiaryTextColor: '#ffffff',
+      tertiaryBorderColor: '#bb9af7',
+      
+      // Lines and arrows - HIGH CONTRAST
+      lineColor: '#c0caf5',
+      textColor: '#ffffff',
+      
+      // Flowchart specific
+      nodeBorder: '#7aa2f7',
+      nodeTextColor: '#ffffff',
+      mainBkg: '#24283b',
+      clusterBkg: '#1a1b26',
+      clusterBorder: '#414868',
+      
+      // Sequence diagram specific
+      actorBorder: '#7aa2f7',
+      actorBkg: '#24283b',
+      actorTextColor: '#ffffff',
+      actorLineColor: '#c0caf5',
+      signalColor: '#c0caf5',
+      signalTextColor: '#ffffff',
+      labelBoxBkgColor: '#24283b',
+      labelBoxBorderColor: '#7aa2f7',
+      labelTextColor: '#ffffff',
+      loopTextColor: '#ffffff',
+      noteBorderColor: '#e0af68',
+      noteBkgColor: '#1a1b26',
+      noteTextColor: '#ffffff',
+      
+      // Message text
+      messageFontSize: '14px',
+      messageFontWeight: '500',
+      
+      // Fonts
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+      fontSize: '14px'
     },
     flowchart: {
       useMaxWidth: true,
       htmlLabels: true,
       curve: 'basis',
-      padding: 15
+      padding: 20,
+      nodeSpacing: 50,
+      rankSpacing: 50
     },
     sequence: {
       useMaxWidth: true,
       wrap: true,
-      width: 150
+      width: 180,
+      height: 50,
+      boxMargin: 10,
+      boxTextMargin: 5,
+      noteMargin: 10,
+      messageMargin: 35,
+      mirrorActors: true,
+      actorFontSize: '14px',
+      actorFontWeight: '600',
+      noteFontSize: '13px',
+      messageFontSize: '14px'
     }
   });
 </script>
 
 <style>
-  /* Mermaid diagram sizing */
+  /* ========================================
+     MODERN DESIGN SYSTEM
+     ======================================== */
+  
+  :root {
+    --color-bg-primary: #0d1117;
+    --color-bg-secondary: #161b22;
+    --color-bg-tertiary: #21262d;
+    --color-border: #30363d;
+    --color-text-primary: #e6edf3;
+    --color-text-secondary: #8b949e;
+    --color-accent: #58a6ff;
+    --color-accent-emphasis: #1f6feb;
+    --color-success: #3fb950;
+    --color-warning: #d29922;
+    --color-danger: #f85149;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  
+  /* Typography */
+  body, .main-content, .site-nav {
+    font-family: var(--font-sans) !important;
+  }
+  
+  code, pre, .highlight {
+    font-family: var(--font-mono) !important;
+  }
+  
+  /* Hide Just the Docs branding */
+  .site-footer .site-footer-credits,
+  .site-footer a[href*="just-the-docs"],
+  .site-footer-credits {
+    display: none !important;
+  }
+  
+  /* ========================================
+     MERMAID DIAGRAMS - HIGH CONTRAST
+     ======================================== */
+  
   pre.mermaid, 
   .mermaid {
     max-width: 100%;
-    margin: 1.5rem auto;
-    text-align: center;
-    background: transparent !important;
-    border: none !important;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #1a1b26 !important;
+    border: 1px solid #414868;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
   }
   
   .mermaid svg {
     max-width: 100%;
     height: auto;
-    max-height: 400px;
+    max-height: 500px;
   }
   
-  /* Better table styling */
+  /* Force high contrast text in Mermaid */
+  .mermaid text,
+  .mermaid .messageText,
+  .mermaid .loopText,
+  .mermaid .noteText,
+  .mermaid .labelText,
+  .mermaid .actor-line,
+  .mermaid tspan {
+    fill: #ffffff !important;
+    font-weight: 500 !important;
+  }
+  
+  .mermaid .actor {
+    fill: #24283b !important;
+    stroke: #7aa2f7 !important;
+    stroke-width: 2px !important;
+  }
+  
+  .mermaid .actor-box {
+    fill: #24283b !important;
+    stroke: #7aa2f7 !important;
+  }
+  
+  .mermaid line,
+  .mermaid .messageLine0,
+  .mermaid .messageLine1 {
+    stroke: #c0caf5 !important;
+    stroke-width: 1.5px !important;
+  }
+  
+  .mermaid .note {
+    fill: #1a1b26 !important;
+    stroke: #e0af68 !important;
+  }
+  
+  .mermaid .activation0,
+  .mermaid .activation1,
+  .mermaid .activation2 {
+    fill: #414868 !important;
+    stroke: #7aa2f7 !important;
+  }
+  
+  .mermaid marker path {
+    fill: #c0caf5 !important;
+  }
+  
+  .mermaid .node rect,
+  .mermaid .node polygon,
+  .mermaid .node circle,
+  .mermaid .node ellipse {
+    fill: #24283b !important;
+    stroke: #7aa2f7 !important;
+    stroke-width: 2px !important;
+  }
+  
+  .mermaid .edgePath path,
+  .mermaid .flowchart-link {
+    stroke: #c0caf5 !important;
+    stroke-width: 2px !important;
+  }
+  
+  .mermaid .edgeLabel {
+    background-color: #1a1b26 !important;
+    color: #ffffff !important;
+  }
+  
+  .mermaid .edgeLabel rect {
+    fill: #1a1b26 !important;
+  }
+  
+  .mermaid .cluster rect {
+    fill: #1a1b26 !important;
+    stroke: #414868 !important;
+    stroke-width: 1px !important;
+  }
+  
+  .mermaid .cluster text {
+    fill: #c0caf5 !important;
+  }
+  
+  /* ========================================
+     TABLES - MODERN DESIGN
+     ======================================== */
+  
   table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin: 1.5rem 0;
-  }
-  
-  th, td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid #30363d;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
   
   th {
+    background: var(--color-bg-tertiary);
     font-weight: 600;
-    background: rgba(255, 255, 255, 0.05);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
   }
   
-  /* Better code blocks */
-  pre.highlight {
+  td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+  
+  tr:last-child td {
+    border-bottom: none;
+  }
+  
+  tr:hover td {
+    background: rgba(88, 166, 255, 0.04);
+  }
+  
+  /* ========================================
+     CODE BLOCKS - MODERN STYLE
+     ======================================== */
+  
+  pre.highlight,
+  pre {
+    background: var(--color-bg-secondary) !important;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
     max-height: 500px;
-    overflow-y: auto;
-    border-radius: 8px;
-    padding: 1rem;
+    box-shadow: var(--shadow-sm);
   }
   
-  /* Section headers */
+  code {
+    font-size: 0.875rem;
+    padding: 0.2em 0.4em;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    color: #f0883e;
+  }
+  
+  pre code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+  }
+  
+  /* ========================================
+     SECTION HEADERS
+     ======================================== */
+  
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  
   h2 {
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #30363d;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+    font-weight: 600;
+    letter-spacing: -0.25px;
   }
   
   h2:first-of-type {
     border-top: none;
     padding-top: 0;
+    margin-top: 2rem;
   }
   
-  /* Callouts/Blockquotes */
+  h3 {
+    margin-top: 2rem;
+    font-weight: 600;
+  }
+  
+  /* ========================================
+     CALLOUTS / BLOCKQUOTES
+     ======================================== */
+  
   blockquote {
-    border-left: 4px solid #58a6ff;
+    position: relative;
+    border: none;
+    border-left: 4px solid var(--color-accent);
     padding: 1rem 1.5rem;
     margin: 1.5rem 0;
-    background: rgba(88, 166, 255, 0.1);
-    border-radius: 0 8px 8px 0;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.08) 0%, rgba(88, 166, 255, 0.02) 100%);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    box-shadow: var(--shadow-sm);
   }
   
-  /* TOC Details */
+  blockquote p {
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+  
+  blockquote strong {
+    color: var(--color-accent);
+  }
+  
+  /* ========================================
+     TOC / DETAILS
+     ======================================== */
+  
   details {
-    margin: 1rem 0;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 8px;
-    border: 1px solid #30363d;
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
   }
   
   details summary {
     cursor: pointer;
     font-weight: 600;
+    color: var(--color-text-primary);
+    padding: 0.5rem;
+    margin: -0.5rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
+  }
+  
+  details summary:hover {
+    background: var(--color-bg-tertiary);
   }
   
   details[open] summary {
     margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #30363d;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
   }
   
-  /* Horizontal rules */
-  hr {
-    border: none;
-    height: 1px;
-    background: #30363d;
-    margin: 2rem 0;
-  }
+  /* ========================================
+     LABELS / BADGES
+     ======================================== */
   
-  /* Labels */
   .label {
-    display: inline-block;
-    padding: 0.2em 0.6em;
-    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25em 0.75em;
+    font-size: 0.7rem;
     font-weight: 600;
-    border-radius: 6px;
+    border-radius: 20px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
   
   .label-green {
-    background: rgba(63, 185, 80, 0.2);
+    background: rgba(63, 185, 80, 0.15);
     color: #3fb950;
+    border: 1px solid rgba(63, 185, 80, 0.4);
   }
   
   .label-blue {
-    background: rgba(88, 166, 255, 0.2);
+    background: rgba(88, 166, 255, 0.15);
     color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.4);
   }
   
   .label-purple {
-    background: rgba(163, 113, 247, 0.2);
+    background: rgba(163, 113, 247, 0.15);
     color: #a371f7;
+    border: 1px solid rgba(163, 113, 247, 0.4);
+  }
+  
+  /* ========================================
+     HORIZONTAL RULES
+     ======================================== */
+  
+  hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+    margin: 2.5rem 0;
+  }
+  
+  /* ========================================
+     LINKS
+     ======================================== */
+  
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  
+  a:hover {
+    color: #79c0ff;
+    text-decoration: underline;
+  }
+  
+  /* ========================================
+     NAVIGATION IMPROVEMENTS
+     ======================================== */
+  
+  .nav-list-item {
+    margin: 0.125rem 0;
+  }
+  
+  .nav-list-link {
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+  
+  .nav-list-link:hover {
+    background: var(--color-bg-tertiary);
+  }
+  
+  .nav-list-link.active {
+    background: rgba(88, 166, 255, 0.1);
+    color: var(--color-accent);
+  }
+  
+  /* ========================================
+     FOOTER - CUSTOM
+     ======================================== */
+  
+  .site-footer {
+    border-top: 1px solid var(--color-border);
+    padding-top: 2rem;
+    margin-top: 4rem;
+  }
+  
+  /* ========================================
+     SCROLLBAR STYLING
+     ======================================== */
+  
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+  }
+  
+  /* ========================================
+     SMOOTH ANIMATIONS
+     ======================================== */
+  
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  .main-content {
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>

@@ -4,7 +4,7 @@ description: A comprehensive guide to system design interviews for Software Engi
 baseurl: "/system-design-interview"
 url: "https://spawn08.github.io"
 
-# Theme - using remote theme for GitHub Pages compatibility
+# Theme
 remote_theme: just-the-docs/just-the-docs@v0.8.2
 
 # Theme settings
@@ -22,18 +22,21 @@ heading_anchors: true
 
 # Back to top link
 back_to_top: true
-back_to_top_text: "Back to top"
+back_to_top_text: "↑ Back to top"
 
-# Footer
-footer_content: "Made with ♥ for the engineering community. Licensed under MIT."
+# Footer - Custom (no Just the Docs mention)
+footer_content: "Built for engineers preparing for system design interviews"
 
 # Aux links (top right)
 aux_links:
-  "GitHub":
+  "⭐ GitHub":
     - "https://github.com/spawn08/system-design-interview"
 aux_links_new_tab: true
 
-# Mermaid diagrams - enable with proper configuration
+# Enable copy code button
+enable_copy_code_button: true
+
+# Mermaid diagrams
 mermaid:
   version: "10.6.0"
 
@@ -68,6 +71,8 @@ exclude:
   - .git/
   - .github/
   - README.md
+  - LICENSE
+  - "*.gemspec"
 
 # Compress HTML
 compress_html:
@@ -77,3 +82,16 @@ compress_html:
   startings: []
   blanklines: false
   profile: false
+
+# Last edit timestamp
+last_edit_timestamp: true
+last_edit_time_format: "%b %e %Y at %I:%M %p"
+
+# Heading anchor links
+heading_anchors: true
+
+# External navigation links styling
+nav_external_links:
+  - title: GitHub
+    url: https://github.com/spawn08/system-design-interview
+    hide_icon: false

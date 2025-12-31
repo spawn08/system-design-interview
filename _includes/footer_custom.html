@@ -1,0 +1,45 @@
+<!-- Custom Footer - Clean, no Just the Docs branding -->
+<style>
+  .custom-footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: #8b949e;
+    font-size: 0.875rem;
+  }
+  
+  .custom-footer a {
+    color: #58a6ff;
+  }
+  
+  .custom-footer .footer-links {
+    margin-bottom: 1rem;
+  }
+  
+  .custom-footer .footer-links a {
+    margin: 0 1rem;
+    color: #8b949e;
+    transition: color 0.15s ease;
+  }
+  
+  .custom-footer .footer-links a:hover {
+    color: #58a6ff;
+  }
+  
+  /* Hide the default Just the Docs footer content */
+  .site-footer p:has(a[href*="just-the-docs"]),
+  .site-footer a[href*="just-the-docs"],
+  p:contains("Just the Docs") {
+    display: none !important;
+  }
+</style>
+
+<div class="custom-footer">
+  <div class="footer-links">
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank">GitHub</a>
+    <a href="{{ '/' | relative_url }}">Home</a>
+    <a href="{{ '/basics/' | relative_url }}">Fundamentals</a>
+  </div>
+  <p>Built for engineers preparing for system design interviews</p>
+  <p style="font-size: 0.75rem; opacity: 0.7;">Made with ♥ by the community</p>
+</div>
+
