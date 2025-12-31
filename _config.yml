@@ -1,20 +1,20 @@
 # Site settings
 title: System Design Interview Guide
 description: A comprehensive guide to system design interviews for Software Engineers and ML/GenAI roles
-baseurl: "" # subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site
+baseurl: "/system-design-interview"
+url: "https://spawn08.github.io"
 
-# Theme
-remote_theme: just-the-docs/just-the-docs
+# Theme - using remote theme for GitHub Pages compatibility
+remote_theme: just-the-docs/just-the-docs@v0.8.2
 
 # Theme settings
 color_scheme: dark
 search_enabled: true
-search.heading_level: 3
-search.previews: 3
-search.preview_words_before: 5
-search.preview_words_after: 10
-search.tokenizer_separator: /[\s/]+/
+search:
+  heading_level: 3
+  previews: 3
+  preview_words_before: 5
+  preview_words_after: 10
 
 # Navigation
 nav_sort: case_insensitive
@@ -33,11 +33,12 @@ aux_links:
     - "https://github.com/spawn08/system-design-interview"
 aux_links_new_tab: true
 
-# Mermaid support
+# Mermaid diagrams - enable with proper configuration
 mermaid:
   version: "10.6.0"
 
-# Callouts
+# Callouts configuration
+callouts_level: quiet
 callouts:
   warning:
     title: Warning
@@ -52,10 +53,11 @@ callouts:
     title: Important
     color: red
 
-# Plugins
+# Plugins required for GitHub Pages
 plugins:
   - jekyll-remote-theme
   - jekyll-seo-tag
+  - jekyll-include-cache
 
 # Exclude from processing
 exclude:
@@ -65,4 +67,13 @@ exclude:
   - vendor/
   - .git/
   - .github/
+  - README.md
 
+# Compress HTML
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  startings: []
+  blanklines: false
+  profile: false

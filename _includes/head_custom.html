@@ -1,0 +1,149 @@
+<!-- Custom Head Content -->
+
+<!-- Mermaid JS for diagrams -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0d1117',
+      primaryColor: '#58a6ff',
+      primaryTextColor: '#c9d1d9',
+      primaryBorderColor: '#30363d',
+      lineColor: '#8b949e',
+      secondaryColor: '#21262d',
+      tertiaryColor: '#161b22'
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+      padding: 15
+    },
+    sequence: {
+      useMaxWidth: true,
+      wrap: true,
+      width: 150
+    }
+  });
+</script>
+
+<style>
+  /* Mermaid diagram sizing */
+  pre.mermaid, 
+  .mermaid {
+    max-width: 100%;
+    margin: 1.5rem auto;
+    text-align: center;
+    background: transparent !important;
+    border: none !important;
+  }
+  
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+  }
+  
+  /* Better table styling */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+  }
+  
+  th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #30363d;
+  }
+  
+  th {
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Better code blocks */
+  pre.highlight {
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  
+  /* Section headers */
+  h2 {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #30363d;
+  }
+  
+  h2:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+  
+  /* Callouts/Blockquotes */
+  blockquote {
+    border-left: 4px solid #58a6ff;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    background: rgba(88, 166, 255, 0.1);
+    border-radius: 0 8px 8px 0;
+  }
+  
+  /* TOC Details */
+  details {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid #30363d;
+  }
+  
+  details summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  details[open] summary {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #30363d;
+  }
+  
+  /* Horizontal rules */
+  hr {
+    border: none;
+    height: 1px;
+    background: #30363d;
+    margin: 2rem 0;
+  }
+  
+  /* Labels */
+  .label {
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  
+  .label-green {
+    background: rgba(63, 185, 80, 0.2);
+    color: #3fb950;
+  }
+  
+  .label-blue {
+    background: rgba(88, 166, 255, 0.2);
+    color: #58a6ff;
+  }
+  
+  .label-purple {
+    background: rgba(163, 113, 247, 0.2);
+    color: #a371f7;
+  }
+</style>
