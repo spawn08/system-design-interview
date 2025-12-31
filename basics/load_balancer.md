@@ -17,596 +17,863 @@ nav_order: 1
 
 ---
 
-## 🎯 What is Load Balancing?
+## What is Load Balancing?
 
-Imagine you're at a busy grocery store. If there's only one checkout lane open, the line gets incredibly long. But if you open multiple lanes and direct customers to the shortest line, everyone gets served faster.
+Load balancing is the process of distributing incoming network traffic across multiple servers so that no single server bears too much load. Think of it like checkout lines at a grocery store—instead of everyone crowding into one line, customers are directed to different registers to reduce wait times.
 
-**Load balancing works the same way for web traffic.**
+### Why Load Balancing Matters
 
-A load balancer is a critical component in distributed systems that sits in front of your servers and distributes incoming network traffic across multiple backend servers (or other resources). This ensures no single server is overwhelmed, which improves:
+Without load balancing, a single server must handle all requests. This creates several problems:
 
-- **Application responsiveness** - Faster response times
-- **Availability** - No single point of failure
-- **Scalability** - Easy to add more capacity
+1. **Single point of failure:** If that server goes down, your entire application is offline
+2. **Scalability ceiling:** One server can only handle so many requests per second
+3. **Poor resource utilization:** During low traffic, you waste capacity; during high traffic, you crash
+
+**Example:**
+
+Imagine your website gets 10,000 requests per second. A single server can handle 2,000 requests per second before response times degrade.
+
+Without load balancing:
+- 8,000 requests queue up → slow responses → users leave
+
+With load balancing across 6 servers:
+- Each server handles ~1,700 requests → fast responses → happy users
+- If one server crashes, 5 remain → degraded but operational
+
+### How Load Balancing Works
 
 ```mermaid
-flowchart LR
+flowchart TD
     Users[Users] --> LB[Load Balancer]
     LB --> S1[Server 1]
     LB --> S2[Server 2]
     LB --> S3[Server 3]
+    S1 --> DB[(Database)]
+    S2 --> DB
+    S3 --> DB
 ```
+
+1. **User sends request** to your domain (e.g., api.example.com)
+2. **DNS resolves** to the load balancer's IP address
+3. **Load balancer receives** the request
+4. **Load balancer selects** a backend server using its algorithm
+5. **Request is forwarded** to the selected server
+6. **Server processes** the request and returns a response
+7. **Load balancer forwards** the response to the user
+
+From the user's perspective, they're talking to a single endpoint. They don't know (or care) about the multiple servers behind it.
 
 ---
 
-## Why Load Balancing is Essential
+## Types of Load Balancers
 
-Load balancing is a core component of any high-traffic, highly available system. Here's why every production system needs it:
+Load balancers come in different forms, each with distinct trade-offs.
 
-| Benefit | Detailed Explanation |
-|---------|---------------------|
-| **High Availability** | Distributes load across multiple servers, preventing single points of failure. If one server goes down, the load balancer automatically routes traffic to healthy servers, ensuring continuous service. |
-| **Scalability** | Enables horizontal scaling by simply adding more servers as traffic increases. No need to upgrade to more powerful (and expensive) hardware. |
-| **Performance** | Prevents any single server from becoming a bottleneck by distributing requests evenly. This keeps response times low even under heavy load. |
-| **Resource Optimization** | Maximizes the utilization of all available servers rather than overloading some while others sit idle. |
-| **Maintenance Flexibility** | Allows for rolling updates and maintenance without downtime. Take servers out of rotation one at a time while others handle the traffic. |
-| **Geographic Distribution** | Can route users to the nearest data center, reducing latency for global applications. |
+### Hardware vs Software Load Balancers
 
-{: .tip }
-> Load balancing appears in almost every system design interview. You should know at least 3-4 algorithms, when to use each, and their trade-offs.
+**Hardware Load Balancers:**
 
----
+Dedicated physical appliances purpose-built for load balancing.
 
-## How Load Balancing Works
+| Aspect | Details |
+|--------|---------|
+| **Examples** | F5 BIG-IP, Citrix ADC, A10 Networks |
+| **Performance** | Extremely high (millions of connections) |
+| **Features** | SSL acceleration, DDoS protection, WAF |
+| **Cost** | $15,000 - $500,000+ |
+| **Deployment** | Physical rack-mounted devices |
 
-### High-Level Flow
+**When to use:** Large enterprises with massive traffic, strict performance requirements, and budget for specialized hardware.
 
-Here's what happens when a client makes a request to a load-balanced system:
+**Software Load Balancers:**
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant LB as Load Balancer
-    participant Server
-    
-    Client->>LB: 1. HTTP Request
-    Note over LB: 2. Apply algorithm to select server
-    LB->>Server: 3. Forward request
-    Server->>Server: 4. Process request
-    Server->>LB: 5. Return response
-    LB->>Client: 6. Forward response
+Applications running on commodity servers.
+
+| Aspect | Details |
+|--------|---------|
+| **Examples** | Nginx, HAProxy, Traefik, Envoy |
+| **Performance** | Very high (100,000s connections) |
+| **Features** | Highly configurable, scriptable |
+| **Cost** | Free (open source) or modest licensing |
+| **Deployment** | Any Linux server, container, VM |
+
+**When to use:** Most modern applications. Flexible, cost-effective, and easily managed with infrastructure-as-code.
+
+### Layer 4 vs Layer 7 Load Balancing
+
+These refer to layers in the OSI networking model.
+
+**Layer 4 (Transport Layer) Load Balancing:**
+
+Operates at the TCP/UDP level. Makes routing decisions based on:
+- Source/destination IP addresses
+- Source/destination ports
+- Protocol (TCP/UDP)
+
+```
+User Request: 
+  Source IP: 203.0.113.50
+  Dest IP: 198.51.100.10 (Load Balancer)
+  Dest Port: 443
+
+L4 Decision: Forward to Server 2 (based on IP hash)
 ```
 
-### Step-by-Step Breakdown
+**Characteristics:**
+- Very fast (minimal packet inspection)
+- No application awareness
+- Can't route based on URL, headers, or content
+- Preserves end-to-end encryption
 
-1. **Client Request**: A client (web browser, mobile app, API consumer) sends a request to a publicly accessible IP address or domain name (e.g., `api.example.com`).
+**When to use:** TCP services, database connections, any non-HTTP protocol, or when you need maximum performance.
 
-2. **Load Balancer Interception**: The DNS resolves to the load balancer's IP address. The load balancer receives the request first, not the actual application servers.
+**Layer 7 (Application Layer) Load Balancing:**
 
-3. **Server Selection**: The load balancer uses a pre-configured algorithm (Round Robin, Least Connections, etc.) to select an appropriate backend server. This decision considers:
-   - Current server load
-   - Server health status
-   - Session affinity requirements
-   - Geographic location
+Operates at the HTTP/HTTPS level. Makes routing decisions based on:
+- URL paths
+- HTTP headers
+- Cookies
+- Request content
+- HTTP methods
 
-4. **Request Forwarding**: The load balancer forwards the original request to the chosen server. It may also:
-   - Add headers (like `X-Forwarded-For` with client IP)
-   - Terminate SSL/TLS encryption
-   - Modify the request path
+```
+User Request:
+  GET /api/users/123 HTTP/1.1
+  Host: api.example.com
+  Authorization: Bearer eyJhbGciOiJIUzI1...
+  Cookie: session=abc123
 
-5. **Server Processing**: The backend server processes the request normally, unaware that a load balancer is involved.
+L7 Decision: Route to API server pool (based on path /api/*)
+```
 
-6. **Response Delivery**: The server sends its response back to the load balancer, which forwards it to the original client. The client typically has no idea which specific server handled their request.
+**Characteristics:**
+- Can inspect and modify requests/responses
+- Supports content-based routing
+- SSL termination (decrypts traffic, then re-encrypts or sends plain HTTP to backend)
+- Higher latency than L4 (more processing)
+
+**When to use:** Web applications, APIs, when you need URL-based routing, SSL termination, or request manipulation.
+
+**Comparison:**
+
+| Feature | Layer 4 | Layer 7 |
+|---------|---------|---------|
+| Speed | Faster | Slower |
+| Intelligence | Basic | Rich |
+| SSL visibility | No (pass-through) | Yes (terminates) |
+| URL routing | No | Yes |
+| Header inspection | No | Yes |
+| Protocol support | Any TCP/UDP | HTTP/HTTPS primarily |
+| Use case | Database, TCP services | Web apps, APIs |
+
+### Cloud Load Balancers
+
+Major cloud providers offer managed load balancing services:
+
+**AWS:**
+- **ALB (Application Load Balancer):** Layer 7, HTTP/HTTPS, WebSocket
+- **NLB (Network Load Balancer):** Layer 4, ultra-low latency, millions of requests/sec
+- **CLB (Classic Load Balancer):** Legacy, both L4 and L7
+
+**GCP:**
+- **Cloud Load Balancing:** Global, anycast-based, auto-scaling
+- **HTTP(S) Load Balancing:** Layer 7, global distribution
+- **TCP/UDP Load Balancing:** Layer 4
+
+**Azure:**
+- **Azure Load Balancer:** Layer 4
+- **Application Gateway:** Layer 7, WAF integration
+
+**Benefits of cloud load balancers:**
+- No infrastructure to manage
+- Auto-scaling
+- Built-in health checks
+- Global distribution
+- Pay-per-use pricing
 
 ---
 
 ## Load Balancing Algorithms
 
-Different algorithms are suited for different use cases. Here's a comprehensive breakdown:
+How does a load balancer decide which server should handle each request? Various algorithms exist, each suited to different scenarios.
 
-### 1. Round Robin
+### Round Robin
 
-**How it works:** Distributes requests sequentially to each server in a circular order. Server 1, then Server 2, then Server 3, then back to Server 1, and so on.
+The simplest algorithm. Requests are distributed to servers in sequential, rotating order.
 
 ```
 Request 1 → Server A
 Request 2 → Server B
 Request 3 → Server C
-Request 4 → Server A (cycle repeats)
+Request 4 → Server A (back to start)
 Request 5 → Server B
 ...
 ```
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Simple to implement and understand. Fair distribution if all servers have similar capabilities. No state to maintain. |
-| **Cons** | Doesn't consider actual server load or capacity. A heavily loaded server receives the same number of requests as a lightly loaded one. Not suitable if servers have different processing power. |
-| **Best For** | Simple applications with relatively uniform server resources. Good starting point when server capacities are roughly equal. Stateless applications. |
-| **Avoid When** | Servers have different specs. Requests have vastly different processing times. |
+**Implementation:**
 
----
+```python
+class RoundRobinBalancer:
+    def __init__(self, servers):
+        self.servers = servers
+        self.current = 0
+    
+    def get_server(self):
+        server = self.servers[self.current]
+        self.current = (self.current + 1) % len(self.servers)
+        return server
 
-### 2. Weighted Round Robin
+balancer = RoundRobinBalancer(['server1', 'server2', 'server3'])
+for i in range(6):
+    print(f"Request {i+1} → {balancer.get_server()}")
+# Request 1 → server1
+# Request 2 → server2
+# Request 3 → server3
+# Request 4 → server1
+# ...
+```
 
-**How it works:** Similar to Round Robin, but each server is assigned a weight based on its capacity. Servers with higher weights receive proportionally more requests.
+**Advantages:**
+- Simple to implement and understand
+- No state beyond a counter
+- Fair distribution when servers are equal
+
+**Disadvantages:**
+- Doesn't account for server capacity differences
+- Doesn't consider current server load
+- Long-running requests can cause imbalance
+
+**When to use:** Servers are identical in capacity, and requests are roughly equal in cost.
+
+### Weighted Round Robin
+
+Like round robin, but servers have weights reflecting their capacity.
 
 ```
-Configuration:
-  Server A: weight = 3 (more powerful)
-  Server B: weight = 1 (less powerful)
+Servers:
+  Server A: weight 3 (powerful)
+  Server B: weight 2 (medium)
+  Server C: weight 1 (small)
 
-Distribution:
-  Requests 1, 2, 3 → Server A
+Distribution over 6 requests:
+  Request 1 → Server A
+  Request 2 → Server A
+  Request 3 → Server A
   Request 4 → Server B
-  Requests 5, 6, 7 → Server A
-  Request 8 → Server B
-  ...
+  Request 5 → Server B
+  Request 6 → Server C
 ```
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Accounts for differences in server capacity. Still relatively simple to implement. Good for heterogeneous server environments. |
-| **Cons** | Weights are typically static and don't adapt to real-time conditions. Can still lead to uneven distribution if load fluctuates significantly. Requires manual configuration of weights. |
-| **Best For** | Environments with servers of different processing capabilities. Gradually introducing new servers (start with low weight). Cost optimization (use cheaper servers for some traffic). |
-| **Avoid When** | Server performance varies dynamically. You need real-time adaptation. |
+**Implementation:**
 
----
+```python
+class WeightedRoundRobinBalancer:
+    def __init__(self, servers_weights):
+        # servers_weights: [('server1', 3), ('server2', 2), ('server3', 1)]
+        self.servers = []
+        for server, weight in servers_weights:
+            self.servers.extend([server] * weight)
+        self.current = 0
+    
+    def get_server(self):
+        server = self.servers[self.current]
+        self.current = (self.current + 1) % len(self.servers)
+        return server
+```
 
-### 3. Least Connections
+**When to use:** Servers have different capacities (e.g., mixed instance types in cloud).
 
-**How it works:** Directs each new request to the server with the fewest active connections at that moment. The load balancer tracks the connection count for each server.
+### Least Connections
+
+Route to the server with the fewest active connections.
 
 ```
 Current state:
-  Server A: 10 active connections
-  Server B: 3 active connections   ← NEW REQUEST GOES HERE
-  Server C: 7 active connections
+  Server A: 45 active connections
+  Server B: 12 active connections
+  Server C: 28 active connections
 
-After routing:
-  Server A: 10 connections
-  Server B: 4 connections
-  Server C: 7 connections
+New request → Server B (fewest connections)
 ```
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Dynamically adapts to actual server load. Provides more even distribution than Round Robin in most real-world scenarios. Excellent for long-lived connections. |
-| **Cons** | Requires tracking active connections for each server (slight overhead). Can be less effective if connections have significantly different durations. A server with few long-lived connections might appear underutilized. |
-| **Best For** | Applications where request processing times vary significantly. Dynamic environments where load fluctuates. WebSocket connections or other long-lived connections. |
-| **Avoid When** | All requests are identical and quick. Connection tracking overhead is a concern. |
+**How it works:**
 
----
-
-### 4. Weighted Least Connections
-
-**How it works:** Combines Least Connections with server weights. Routes requests to the server with the lowest ratio of `(active connections / weight)`.
-
-```
-Configuration:
-  Server A: weight = 3, connections = 9  → ratio = 3.0
-  Server B: weight = 1, connections = 2  → ratio = 2.0 ← LOWEST
-  Server C: weight = 2, connections = 6  → ratio = 3.0
-
-New request goes to Server B (lowest ratio)
+```python
+class LeastConnectionsBalancer:
+    def __init__(self, servers):
+        self.servers = {server: 0 for server in servers}
+    
+    def get_server(self):
+        # Find server with minimum connections
+        server = min(self.servers, key=self.servers.get)
+        self.servers[server] += 1
+        return server
+    
+    def release_connection(self, server):
+        self.servers[server] -= 1
 ```
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Best of both worlds: considers both capacity and current load. Provides the most refined distribution. Maximizes resource utilization across heterogeneous servers. |
-| **Cons** | More complex to implement. Requires accurate weight configuration. Higher computational overhead for calculating ratios. |
-| **Best For** | Heterogeneous server environments with fluctuating loads. Production systems requiring optimal resource utilization. Enterprise applications with mixed hardware. |
-| **Avoid When** | Simplicity is more important than optimization. All servers are identical. |
+**Advantages:**
+- Accounts for request duration differences
+- Naturally balances load over time
+- Good for long-lived connections (WebSocket, gRPC streaming)
 
----
+**Disadvantages:**
+- Requires tracking connection counts
+- New servers get flooded with requests (0 connections)
+- Connection count isn't always correlated with load
 
-### 5. IP Hash
+**When to use:** Requests have varying processing times, long-lived connections, or when server response times differ.
 
-**How it works:** Calculates a hash based on the client's IP address (and sometimes port). This hash determines which server handles the request. The same client IP is consistently routed to the same server.
+### Weighted Least Connections
 
-```
-hash("192.168.1.100") % 3 = 1 → Always routes to Server B
-hash("192.168.1.101") % 3 = 2 → Always routes to Server C
-hash("192.168.1.102") % 3 = 0 → Always routes to Server A
-```
-
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Provides session persistence (sticky sessions) without explicit session management. Simple implementation. Client always reaches the same server (cache benefits). |
-| **Cons** | Can lead to uneven distribution if some clients generate much more traffic (e.g., clients behind corporate proxy). Adding or removing servers changes the hash mapping, breaking existing sessions. |
-| **Best For** | Applications requiring session persistence. Stateful applications where data is cached on the server. Gaming servers or real-time applications. |
-| **Avoid When** | Many users behind NAT/proxy (all appear as same IP). You need to frequently add/remove servers. |
-
----
-
-### 6. Least Response Time
-
-**How it works:** Routes traffic to the server with the fastest current response time. The load balancer continuously monitors response times from each server.
-
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Prioritizes performance by selecting the most responsive server. Adapts well to fluctuating server conditions. Great for latency-sensitive applications. |
-| **Cons** | Requires constant monitoring of response times (overhead). Can be susceptible to short-term fluctuations. May cause "flapping" between servers. |
-| **Best For** | Performance-critical applications. Real-time systems where latency matters. Financial trading platforms. |
-| **Avoid When** | Monitoring overhead is a concern. Response times are consistently similar. |
-
----
-
-### 7. URL Hash
-
-**How it works:** Uses the requested URL (or a portion of it) to calculate the hash, similar to IP Hash. Different URLs are consistently routed to different servers.
+Combines least connections with server capacity weights.
 
 ```
-hash("/api/users") % 3 = 0 → Server A
-hash("/api/products") % 3 = 1 → Server B
-hash("/api/orders") % 3 = 2 → Server C
+Formula: effective_load = connections / weight
+
+Server A: 30 connections, weight 3 → effective_load = 10
+Server B: 15 connections, weight 2 → effective_load = 7.5
+Server C: 6 connections, weight 1  → effective_load = 6
+
+New request → Server C (lowest effective load)
 ```
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Excellent for caching scenarios. Same content always served from the same server (cache hit ratio increases). Good for content-based routing. |
-| **Cons** | Can lead to uneven distribution if some URLs are much more popular. Adding/removing servers causes cache invalidation. |
-| **Best For** | CDN and caching servers. Content-based routing. API gateways with different backend services. |
-| **Avoid When** | Traffic patterns are unpredictable. You need even distribution regardless of URL. |
+**When to use:** Mixed server capacities with varying request durations.
 
----
+### IP Hash
 
-### 8. Random
+Hash the client's IP address to determine the server. Same client always goes to the same server.
 
-**How it works:** Selects a server completely at random for each request.
+```python
+import hashlib
 
-| Aspect | Details |
-|--------|---------|
-| **Pros** | Extremely simple implementation. Stateless (no tracking needed). Can be surprisingly effective with large numbers of requests. |
-| **Cons** | Distribution can be very uneven, especially with fewer requests. No guarantee of fair distribution. |
-| **Best For** | Testing and development environments. Systems with very high request volumes (law of large numbers). |
-| **Avoid When** | You need predictable distribution. Production systems with moderate traffic. |
+class IPHashBalancer:
+    def __init__(self, servers):
+        self.servers = servers
+    
+    def get_server(self, client_ip):
+        # Create a hash of the IP address
+        hash_value = int(hashlib.md5(client_ip.encode()).hexdigest(), 16)
+        # Map to server index
+        server_index = hash_value % len(self.servers)
+        return self.servers[server_index]
 
----
+balancer = IPHashBalancer(['server1', 'server2', 'server3'])
+print(balancer.get_server('192.168.1.100'))  # Always same server
+print(balancer.get_server('192.168.1.100'))  # Same result
+```
 
-## Algorithm Comparison Summary
+**Advantages:**
+- Provides session affinity without cookies
+- Good for caching (same user hits same cache)
+- Simple and stateless (no session tracking)
 
-| Algorithm | Complexity | Statefulness | Dynamic Adaptation | Best Use Case |
-|-----------|------------|--------------|-------------------|---------------|
-| **Round Robin** | Low | Stateless | None | Equal servers, simple setup |
-| **Weighted Round Robin** | Low | Stateless | None | Different server capacities |
-| **Least Connections** | Medium | Stateful | High | Varying request times |
-| **Weighted Least Conn.** | Medium | Stateful | High | Mixed hardware + varying load |
-| **IP Hash** | Low | Stateless | None | Session persistence needed |
-| **Least Response Time** | High | Stateful | High | Latency-critical applications |
-| **URL Hash** | Low | Stateless | None | Caching, CDN scenarios |
-| **Random** | Very Low | Stateless | None | Testing, high-volume systems |
+**Disadvantages:**
+- Uneven distribution if client IP distribution is skewed
+- Adding/removing servers reshuffles most clients
+- NAT can cause many users to share one IP
 
----
+**When to use:** When you need sticky sessions without application-level support.
 
-## Hardware vs. Software Load Balancers
+### Consistent Hashing
 
-### Hardware Load Balancers
+Advanced hashing that minimizes redistribution when servers change.
 
-Dedicated physical appliances designed specifically for load balancing. They use specialized hardware (ASICs) for maximum performance.
+**The problem with regular hashing:**
 
-**Examples:** F5 BIG-IP, Citrix ADC, A10 Networks
+With 3 servers and hash % 3:
+```
+Hash 100 → Server 1 (100 % 3 = 1)
+Hash 101 → Server 2 (101 % 3 = 2)
+Hash 102 → Server 0 (102 % 3 = 0)
+```
 
-| Pros | Cons |
-|------|------|
-| Extremely high performance and throughput | Very expensive ($10,000 - $100,000+) |
-| Advanced features (DDoS protection, WAF) | Less flexible and harder to modify |
-| SSL offloading with dedicated crypto chips | Physical hardware = data center dependency |
-| Enterprise support and SLAs | Single point of failure (unless HA pair) |
-| Very low latency | Scaling requires buying more hardware |
+Add a 4th server (hash % 4):
+```
+Hash 100 → Server 0 (100 % 4 = 0)  ← Changed!
+Hash 101 → Server 1 (101 % 4 = 1)  ← Changed!
+Hash 102 → Server 2 (102 % 4 = 2)  ← Same
+```
 
-### Software Load Balancers
+Almost everything moves!
 
-Software applications that run on commodity servers (physical or virtual).
+**Consistent hashing solution:**
 
-**Examples:** HAProxy, Nginx, Traefik, Envoy, AWS ALB/NLB, Google Cloud Load Balancer
-
-| Pros | Cons |
-|------|------|
-| Cost-effective (often free/open source) | Performance may be lower for extreme loads |
-| Highly flexible and configurable | Requires server resources (CPU, memory) |
-| Easy to deploy and update | May need tuning for optimal performance |
-| Cloud-native, works with containers | |
-| Scales horizontally | |
-
-### Popular Software Load Balancers
-
-| Load Balancer | Best For | Key Features |
-|---------------|----------|--------------|
-| **Nginx** | Web apps, HTTP/HTTPS | Easy config, reverse proxy, web server combo |
-| **HAProxy** | High-performance TCP/HTTP | Battle-tested, very fast, rich health checks |
-| **Traefik** | Kubernetes, Docker | Auto-discovery, native container support |
-| **Envoy** | Service mesh | Modern, gRPC support, observability |
-| **AWS ALB** | AWS deployments | Managed, auto-scaling, path-based routing |
-| **AWS NLB** | Ultra-low latency | TCP/UDP, millions of requests/sec |
-
-{: .note }
-> In system design interviews, assume software load balancers unless there's a specific need for hardware. Most cloud-native systems use managed software load balancers.
-
----
-
-## Session Management: Sticky Sessions
-
-### The Problem
-
-Some applications store user-specific data in server memory:
-- Shopping cart contents
-- Authentication/login state
-- Multi-step form progress
-- Cached user preferences
-
-If a user's requests are load balanced to different servers, this in-memory data is lost!
+Place servers on a virtual ring (0 to 2^32). Hash each request to a point on the ring, then walk clockwise to find the first server.
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant LB as Load Balancer
-    participant S1 as Server 1
-    participant S2 as Server 2
-    
-    User->>LB: Login request
-    LB->>S1: Route to Server 1
-    S1->>S1: Store session in memory
-    S1->>User: Login success
-    
-    User->>LB: Add to cart
-    LB->>S2: Route to Server 2
-    S2->>S2: No session found!
-    S2->>User: Error: Not logged in
+flowchart LR
+    subgraph Ring [Consistent Hash Ring]
+        direction TB
+        A[Server A] --- B[Server B]
+        B --- C[Server C]
+        C --- A
+    end
+    R1[Request 1] -.-> A
+    R2[Request 2] -.-> B
+    R3[Request 3] -.-> C
 ```
 
-### The Solution: Sticky Sessions
+Adding a new server only affects keys between it and its predecessor.
 
-Sticky sessions (also called session affinity) ensure all requests from a particular client are directed to the same server for the duration of their session.
+**Virtual nodes:**
 
-**Implementation Methods:**
+To improve distribution, each physical server gets multiple positions on the ring.
 
-1. **IP Hash** - Route based on client IP (as described above)
-2. **Cookie-Based** - Load balancer inserts a cookie identifying the assigned server
-3. **URL Parameter** - Server ID embedded in URLs (less common)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant LB as Load Balancer
-    participant S1 as Server 1
+```python
+class ConsistentHashBalancer:
+    def __init__(self, servers, replicas=100):
+        self.ring = {}
+        self.sorted_keys = []
+        
+        for server in servers:
+            for i in range(replicas):
+                key = self._hash(f"{server}:{i}")
+                self.ring[key] = server
+                self.sorted_keys.append(key)
+        
+        self.sorted_keys.sort()
     
-    User->>LB: First request
-    LB->>S1: Route to Server 1
-    S1->>LB: Response + Set-Cookie: server=S1
-    LB->>User: Response with cookie
+    def _hash(self, key):
+        return int(hashlib.md5(key.encode()).hexdigest(), 16)
     
-    User->>LB: Second request + Cookie: server=S1
-    LB->>S1: Route to same Server 1
-    S1->>User: Session data intact!
+    def get_server(self, request_key):
+        if not self.ring:
+            return None
+        
+        hash_val = self._hash(request_key)
+        
+        # Find first server with hash >= request hash
+        for key in self.sorted_keys:
+            if key >= hash_val:
+                return self.ring[key]
+        
+        # Wrap around to first server
+        return self.ring[self.sorted_keys[0]]
 ```
 
-### Trade-offs of Sticky Sessions
+**When to use:** Distributed caches, CDNs, any system where data is partitioned and you want to minimize reshuffling.
 
-| Pros | Cons |
-|------|------|
-| Simple to implement | Uneven load distribution |
-| Works with in-memory sessions | If server fails, sessions are lost |
-| No infrastructure changes needed | Harder to scale dynamically |
-| Lower latency (no session lookup) | Complicates rolling deployments |
+### Least Response Time
 
-### Better Alternatives to Sticky Sessions
+Route to the server with the fastest recent response time.
 
-For scalable production systems, consider these alternatives:
+```
+Recent average response times:
+  Server A: 45ms
+  Server B: 12ms  ← Fastest, gets the request
+  Server C: 28ms
+```
 
-| Alternative | How It Works | Pros | Cons |
-|-------------|--------------|------|------|
-| **Centralized Session Store** | Store sessions in Redis/Memcached, accessible by all servers | Scalable, fault-tolerant | Additional infrastructure, network latency |
-| **Session Replication** | Copy session data across all servers | Any server can handle any request | High memory usage, sync overhead |
-| **Stateless Design (JWT)** | Store session data in encrypted tokens (client-side) | Infinitely scalable, no server state | Token size, can't invalidate easily |
-| **Database Sessions** | Store sessions in database | Simple, persistent | Database load, latency |
+**Implementation approach:**
+- Track response times using exponential moving average
+- Optionally combine with connection count
 
-{: .tip }
-> In interviews, mention that sticky sessions work but explain why stateless architectures (using JWT or centralized session stores) scale better.
+**When to use:** Backend servers have varying loads or capabilities, and you want to optimize user experience.
+
+### Random
+
+Randomly select a server for each request.
+
+```python
+import random
+
+class RandomBalancer:
+    def __init__(self, servers):
+        self.servers = servers
+    
+    def get_server(self):
+        return random.choice(self.servers)
+```
+
+**Advantages:**
+- Extremely simple
+- No state to maintain
+- Statistically even distribution over time
+
+**Disadvantages:**
+- Short-term imbalances possible
+- No consideration of server health or load
+
+**When to use:** Simple systems, testing, or when other algorithms add unneeded complexity.
+
+### Resource Based (Adaptive)
+
+Query servers for their current resource usage and route to the least loaded.
+
+```
+Server health responses:
+  Server A: CPU 80%, Memory 70% → Score: 150
+  Server B: CPU 20%, Memory 30% → Score: 50  ← Best
+  Server C: CPU 50%, Memory 60% → Score: 110
+```
+
+**Advantages:**
+- Most accurate load balancing
+- Adapts to real-time conditions
+
+**Disadvantages:**
+- Requires health endpoint on each server
+- Added latency for health checks
+- More complex implementation
 
 ---
 
 ## Health Checks
 
-Load balancers must know if backend servers are healthy. Health checks continuously monitor server status and automatically remove unhealthy servers from the pool.
+A load balancer must know which servers are healthy. Sending traffic to a crashed server means failed requests.
 
-### Types of Health Checks
+### Passive Health Checks
 
-| Type | How It Works | Best For |
-|------|--------------|----------|
-| **TCP** | Attempt to open a TCP connection on the specified port | Basic availability check |
-| **HTTP/HTTPS** | Send HTTP request, check for specific status code (200 OK) | Web applications |
-| **HTTP Content** | Check response body for specific content/pattern | Application-level health |
-| **gRPC** | Use gRPC health checking protocol | gRPC services |
-| **Custom Script** | Execute a custom script to check health | Complex dependencies |
+Monitor real traffic for failures.
 
-### Health Check Configuration
+```
+Server A: 
+  Last 100 requests: 3 failures (3% error rate) → HEALTHY
+  
+Server B:
+  Last 100 requests: 47 failures (47% error rate) → UNHEALTHY
+```
 
-```yaml
-# Example HAProxy health check configuration
-backend web_servers
-    option httpchk GET /health HTTP/1.1
-    http-check expect status 200
+**Pros:** No extra traffic, real-world accuracy
+**Cons:** Failures affect users, slow detection for low-traffic servers
+
+### Active Health Checks
+
+Periodically send probe requests to each server.
+
+```
+Every 5 seconds:
+  GET /health → Server A (200 OK, 15ms) ✓
+  GET /health → Server B (Connection refused) ✗
+  GET /health → Server C (200 OK, 23ms) ✓
+```
+
+**Typical health check configuration:**
+
+```nginx
+# Nginx upstream health check
+upstream backend {
+    server server1.example.com:8080;
+    server server2.example.com:8080;
+    server server3.example.com:8080;
     
-    server web1 192.168.1.10:8080 check inter 5s fall 3 rise 2
-    server web2 192.168.1.11:8080 check inter 5s fall 3 rise 2
-    server web3 192.168.1.12:8080 check inter 5s fall 3 rise 2
+    health_check interval=5s fails=3 passes=2;
+}
 ```
 
-**Key Parameters:**
+- **interval:** How often to check (5 seconds)
+- **fails:** How many failures before marking unhealthy (3)
+- **passes:** How many successes to mark healthy again (2)
 
-| Parameter | Description | Typical Value |
-|-----------|-------------|---------------|
-| **Interval** | How often to perform health check | 5-30 seconds |
-| **Timeout** | How long to wait for response | 2-10 seconds |
-| **Fall Threshold** | Consecutive failures before marking unhealthy | 2-5 |
-| **Rise Threshold** | Consecutive successes before marking healthy | 2-3 |
+### Health Check Endpoints
 
-### What Happens During Server Failure
+Your application should expose a health endpoint:
 
-```mermaid
-flowchart TD
-    A[Server Health Check] --> B{Check Passed?}
-    B -->|Yes| C[Server stays in pool]
-    B -->|No| D[Increment failure count]
-    D --> E{Failures >= Threshold?}
-    E -->|No| A
-    E -->|Yes| F[Mark server UNHEALTHY]
-    F --> G[Remove from rotation]
-    G --> H[Continue health checks]
-    H --> I{Check Passed?}
-    I -->|No| H
-    I -->|Yes| J[Increment success count]
-    J --> K{Successes >= Threshold?}
-    K -->|No| H
-    K -->|Yes| L[Mark server HEALTHY]
-    L --> M[Add back to pool]
+```python
+@app.route('/health')
+def health_check():
+    checks = {
+        'database': check_database(),
+        'redis': check_redis(),
+        'disk_space': check_disk_space(),
+    }
+    
+    all_healthy = all(checks.values())
+    
+    return jsonify({
+        'status': 'healthy' if all_healthy else 'unhealthy',
+        'checks': checks
+    }), 200 if all_healthy else 503
 ```
 
-### Best Practices for Health Checks
+**Types of health checks:**
 
-1. **Use application-level checks** - Don't just check if port is open; verify the application is working
-2. **Check dependencies** - Include database/cache connectivity in health endpoint
-3. **Keep health endpoints light** - Don't do expensive operations
-4. **Use appropriate intervals** - Balance between quick detection and overhead
-5. **Implement graceful degradation** - Return partial health status if some features are down
+| Type | What it checks | When to use |
+|------|----------------|-------------|
+| **Liveness** | Is the process running? | Container orchestration (restart) |
+| **Readiness** | Can the process handle traffic? | Load balancer (route traffic) |
+| **Startup** | Has the process finished starting? | Slow-starting apps |
+
+### Graceful Degradation
+
+When a server is failing, transition gradually:
+
+1. **Draining:** Stop sending new connections, let existing ones complete
+2. **Removal:** After timeout, forcibly remove from pool
+3. **Recovery:** When healthy again, gradually add back (slow start)
+
+**Slow start:**
+
+Don't flood a recovering server with traffic. Gradually increase its share.
+
+```
+Time 0: Server B back online → weight 1
+Time 30s: → weight 2
+Time 60s: → weight 4
+Time 90s: → full weight
+```
 
 ---
 
-## Layer 4 vs. Layer 7 Load Balancing
+## Sticky Sessions (Session Affinity)
 
-Load balancers operate at different layers of the OSI model:
+Sometimes you need the same user to reach the same server consistently.
 
-### Layer 4 (Transport Layer)
+### Why Sticky Sessions?
 
-Makes routing decisions based on TCP/UDP information (IP addresses and ports). Does not inspect packet contents.
+**Scenario:** User logs in, session stored in server memory.
 
-| Aspect | Details |
-|--------|---------|
-| **Speed** | Very fast (minimal processing) |
-| **Visibility** | IP address, port numbers only |
-| **SSL** | Cannot terminate (passes through) |
-| **Use Cases** | TCP load balancing, gaming, real-time apps |
-| **Examples** | AWS NLB, HAProxy (TCP mode) |
+```
+Request 1: Login → Server A (creates session in memory)
+Request 2: Dashboard → Server B (no session found!) → Login page
+```
 
-### Layer 7 (Application Layer)
+The user is unexpectedly logged out because their session is on Server A, but the load balancer sent them to Server B.
 
-Makes routing decisions based on application-level data (HTTP headers, URL path, cookies, etc.).
+### Implementing Sticky Sessions
 
-| Aspect | Details |
-|--------|---------|
-| **Speed** | Slower (must parse application data) |
-| **Visibility** | Full request/response content |
-| **SSL** | Can terminate and decrypt |
-| **Use Cases** | HTTP routing, API gateways, content switching |
-| **Examples** | AWS ALB, Nginx, HAProxy (HTTP mode) |
+**Method 1: Cookie-based (Application Layer)**
 
-### Comparison
+Load balancer sets a cookie identifying the server:
 
-| Feature | Layer 4 | Layer 7 |
-|---------|---------|---------|
-| **Performance** | Higher (less processing) | Lower (content inspection) |
-| **Routing decisions** | IP + Port only | URL, headers, cookies, content |
-| **SSL termination** | No | Yes |
-| **Connection pooling** | No | Yes |
-| **WebSocket support** | Pass-through | Full support |
-| **Caching** | No | Possible |
-| **Cost** | Lower | Higher |
+```http
+Set-Cookie: SERVERID=server-a; Path=/
+```
+
+Subsequent requests include this cookie:
+
+```http
+Cookie: SERVERID=server-a
+```
+
+Load balancer reads the cookie and routes to Server A.
+
+**Method 2: IP Hash (Network Layer)**
+
+As described earlier, hash the client IP to always reach the same server.
+
+**Method 3: Application Session ID**
+
+Use an existing session ID cookie:
+
+```http
+Cookie: SESSION=abc123xyz
+```
+
+Load balancer hashes SESSION to determine server.
+
+### Problems with Sticky Sessions
+
+**1. Uneven load distribution:**
+
+If some users are more active than others, their server gets overloaded.
+
+**2. Failover complexity:**
+
+If Server A crashes, all sticky sessions are lost. Users must re-authenticate.
+
+**3. Scaling difficulties:**
+
+Adding servers doesn't help users stuck on overloaded servers.
+
+### Better Alternative: Externalized Session State
+
+Instead of server-local sessions, store sessions in a shared store:
+
+```mermaid
+flowchart TD
+    User[User] --> LB[Load Balancer]
+    LB --> S1[Server 1]
+    LB --> S2[Server 2]
+    LB --> S3[Server 3]
+    S1 --> Redis[(Redis/Session Store)]
+    S2 --> Redis
+    S3 --> Redis
+```
+
+**Implementation:**
+
+```python
+import redis
+import json
+
+session_store = redis.Redis(host='redis', port=6379)
+
+def get_session(session_id):
+    data = session_store.get(f"session:{session_id}")
+    return json.loads(data) if data else None
+
+def set_session(session_id, data, ttl=3600):
+    session_store.setex(f"session:{session_id}", ttl, json.dumps(data))
+```
+
+**Advantages:**
+- Any server can handle any request
+- Session survives server crashes
+- Easy horizontal scaling
+
+---
+
+## SSL/TLS Termination
+
+HTTPS requires encryption/decryption, which is CPU-intensive. Where should this happen?
+
+### SSL Termination at Load Balancer
+
+Load balancer handles HTTPS. Backend servers receive plain HTTP.
+
+```
+User → [HTTPS] → Load Balancer → [HTTP] → Backend Servers
+```
+
+**Advantages:**
+- Offloads CPU from application servers
+- Simplifies certificate management (one place)
+- Enables L7 features (URL routing, header inspection)
+
+**Disadvantages:**
+- Traffic between LB and backends is unencrypted
+- Must trust internal network
+
+### SSL Passthrough
+
+Load balancer passes encrypted traffic directly to backends.
+
+```
+User → [HTTPS] → Load Balancer → [HTTPS] → Backend Servers
+```
+
+**Advantages:**
+- End-to-end encryption
+- Backend handles its own certificate
+- No visibility of traffic at LB (security)
+
+**Disadvantages:**
+- Only L4 load balancing possible
+- Each backend needs certificate management
+- Higher backend CPU usage
+
+### SSL Re-encryption (End-to-End)
+
+Load balancer terminates user SSL, then creates new SSL connection to backend.
+
+```
+User → [HTTPS] → Load Balancer → [HTTPS (internal)] → Backend Servers
+```
+
+**Advantages:**
+- End-to-end encryption
+- L7 features available at LB
+- Can use different certs (public vs internal CA)
+
+**Disadvantages:**
+- Double encryption overhead
+- More complex certificate management
+
+### Which to Choose?
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Internal services, trusted network | SSL Termination |
+| Compliance requirements (PCI, HIPAA) | SSL Re-encryption |
+| Maximum performance, basic routing | SSL Passthrough |
+| General web applications | SSL Termination |
 
 ---
 
 ## Global Server Load Balancing (GSLB)
 
-For applications with global presence, GSLB distributes traffic across multiple data centers worldwide.
+Traditional load balancers work within a single data center. GSLB distributes traffic globally across multiple data centers.
+
+### How GSLB Works
 
 ```mermaid
 flowchart TD
-    User[User Request] --> DNS[DNS Lookup]
-    DNS --> GSLB[GSLB / Global DNS]
-    GSLB --> |US User| US[US Data Center]
-    GSLB --> |EU User| EU[EU Data Center]
-    GSLB --> |Asia User| Asia[Asia Data Center]
+    User[User in Tokyo] --> DNS[DNS Query: api.example.com]
+    DNS --> GSLB[GSLB/GeoDNS]
+    GSLB --> DC1[Tokyo DC: 52.0.0.1]
+    GSLB --> DC2[Frankfurt DC: 18.0.0.1]
+    GSLB --> DC3[Virginia DC: 35.0.0.1]
+    GSLB -.->|Returns Tokyo IP| User
+    User --> TokyoLB[Tokyo Load Balancer]
+    TokyoLB --> Servers[Tokyo Servers]
 ```
 
-### GSLB Methods
+1. User queries DNS for api.example.com
+2. GSLB (acting as DNS) considers:
+   - User's geographic location
+   - Data center health
+   - Data center load
+   - Network latency
+3. Returns IP of the optimal data center
+4. User connects to nearest/best data center
 
-| Method | How It Works | Best For |
-|--------|--------------|----------|
-| **Geographic** | Route to nearest data center | Latency reduction |
-| **Latency-based** | Route based on measured latency | Performance optimization |
-| **Failover** | Route to backup if primary is down | Disaster recovery |
-| **Weighted** | Distribute percentage to each DC | Gradual migrations |
+### GSLB Routing Strategies
+
+**Geographic routing:**
+Route users to the nearest data center.
+- User in Japan → Tokyo DC
+- User in Germany → Frankfurt DC
+
+**Performance-based routing:**
+Route based on measured latency.
+- Continuously probe latency from each DC
+- Route to lowest latency option
+
+**Failover routing:**
+Primary data center unless it fails.
+- Normal: Everyone → Primary DC
+- Primary down: Everyone → Secondary DC
+
+**Load-based routing:**
+Distribute based on current capacity.
+- If Tokyo is overloaded, send some traffic to Virginia
+
+### CDN Integration
+
+CDNs like Cloudflare, AWS CloudFront, and Akamai combine GSLB with edge caching:
+
+```
+User Request → Edge Location (cache hit) → Response
+                            ↓ (cache miss)
+                      Origin Server
+```
+
+**Benefits:**
+- Static content served from edge (fast)
+- Only dynamic requests reach origin
+- DDoS protection at edge
+- Global availability
 
 ---
 
 ## Interview Tips
 
-{: .warning }
-> Don't just name algorithms. Explain **when** you'd use each one and why.
+### What Interviewers Look For
+
+1. **Understanding of trade-offs:** No algorithm is universally best
+2. **Awareness of failure modes:** What happens when things break?
+3. **Scalability thinking:** How does this work at 10x, 100x scale?
+4. **Practical experience:** Real-world considerations
 
 ### Common Interview Questions
 
-1. **"How would you handle a server going down?"**
-   - Health checks detect failure
-   - Load balancer removes from pool
-   - Traffic automatically redistributed
-   - Alerting system notifies team
+**Q: "How would you design load balancing for a social media site?"**
 
-2. **"What if users need session persistence?"**
-   - Start with sticky sessions (simple)
-   - Recommend Redis for production scale
-   - Discuss trade-offs of each approach
+*Good answer:*
+> "I'd use a multi-tier approach. At the edge, a CDN like Cloudflare handles static content and provides global distribution. For API traffic, I'd use an L7 load balancer like AWS ALB with path-based routing—`/api/v1/users` goes to the user service, `/api/v1/posts` to the post service. Within each service, I'd use least connections algorithm since request durations vary. Health checks every 5 seconds with automatic removal after 3 failures. For session management, I'd externalize sessions to Redis instead of using sticky sessions, allowing any server to handle any user."
 
-3. **"How do you prevent overloading a single server?"**
-   - Use Least Connections algorithm
-   - Implement rate limiting
-   - Configure connection limits
-   - Horizontal scaling with auto-scaling groups
+**Q: "What happens when a backend server crashes?"**
 
-4. **"Layer 4 or Layer 7 for your system?"**
-   - Layer 7 for HTTP-based applications (most common)
-   - Layer 4 for non-HTTP protocols or extreme performance needs
+*Good answer:*
+> "The load balancer detects failure through health checks—either active probes failing or passive detection of connection errors. It marks the server unhealthy and stops sending new traffic. Existing connections may fail, so clients should implement retry logic with exponential backoff. Once the server recovers and passes health checks, it's gradually reintroduced with slow-start to avoid overloading it. The system should also alert operators and potentially auto-replace the instance if using auto-scaling."
 
-### Strong Answer Structure
+**Q: "Why would you choose L4 over L7 load balancing?"**
 
-1. **State your choice** - Name the algorithm/approach
-2. **Justify it** - Explain why it fits this use case
-3. **Acknowledge trade-offs** - Show you understand limitations
-4. **Mention alternatives** - Demonstrate breadth of knowledge
-
-**Example Answer:**
-> "For this e-commerce system, I'd use **Least Connections** because checkout requests have varying processing times - some are quick product views, others are slow payment processing. Round Robin might overload a server stuck on long checkout sessions. The trade-off is we need to track connection state, but that's minimal overhead. For session persistence, I'd use **Redis** rather than sticky sessions so we can scale horizontally without session loss."
-
----
-
-## Quick Reference
-
-```
-ALGORITHMS
-├── Round Robin        → Equal servers, simple setup
-├── Weighted RR        → Different server capacities
-├── Least Connections  → Varying request durations
-├── Weighted Least C.  → Best of both worlds
-├── IP Hash            → Session persistence
-├── Least Response     → Latency-critical apps
-├── URL Hash           → Caching scenarios
-└── Random             → Testing, high volume
-
-HEALTH CHECKS
-├── TCP         → Port open check
-├── HTTP        → Status code check
-├── Content     → Response body check
-└── Custom      → Script-based check
-
-SESSION HANDLING
-├── Sticky Sessions    → Simple, less scalable
-├── Redis/Memcached    → Centralized, scalable
-├── JWT Tokens         → Stateless, most scalable
-└── Session Replication → High memory usage
-
-LAYERS
-├── Layer 4 → TCP/UDP, fastest, less features
-└── Layer 7 → HTTP, slower, content-aware routing
-```
+*Good answer:*
+> "I'd choose L4 for non-HTTP protocols like databases, custom TCP services, or when I need SSL passthrough. L4 is also faster—less processing per packet—so for ultra-high-throughput scenarios or when I don't need URL-based routing, L4 makes sense. For most web applications though, I'd use L7 because it enables intelligent routing, SSL termination, header manipulation, and better visibility into traffic patterns."
 
 ---
 
@@ -614,10 +881,14 @@ LAYERS
 
 | Concept | Key Takeaway |
 |---------|--------------|
-| **Purpose** | Distribute traffic across servers for availability and performance |
-| **Algorithms** | Choose based on server similarity, request patterns, and session needs |
-| **Default Choice** | Least Connections is often a safe starting point |
-| **Sessions** | Prefer stateless (JWT) or centralized stores (Redis) over sticky sessions |
-| **Health Checks** | Use application-level checks, not just port checks |
-| **Layer 4 vs 7** | Use Layer 7 for HTTP apps, Layer 4 for performance-critical non-HTTP |
-| **Scaling** | Load balancing enables horizontal scaling - just add more servers |
+| **Purpose** | Distribute traffic, improve availability, enable scaling |
+| **Hardware vs Software** | Software is flexible and cost-effective for most cases |
+| **L4 vs L7** | L4 for speed and non-HTTP; L7 for intelligent routing |
+| **Round Robin** | Simple, equal distribution, good for identical servers |
+| **Least Connections** | Good for varying request durations |
+| **IP Hash** | Session affinity without cookies |
+| **Consistent Hashing** | Minimizes redistribution when servers change |
+| **Health Checks** | Essential for reliability; use both active and passive |
+| **Sticky Sessions** | Avoid if possible; use external session store |
+| **SSL Termination** | Offload at LB for most cases |
+| **GSLB** | Global distribution across data centers |
