@@ -5,58 +5,81 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Mermaid JS for diagrams with HIGH CONTRAST settings -->
+<!-- Mermaid JS for diagrams with MAXIMUM CONTRAST -->
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({
+  
+  const config = {
     startOnLoad: true,
-    theme: 'base',
+    theme: 'dark',
     themeVariables: {
-      // High contrast colors for readability
-      background: '#1a1b26',
-      primaryColor: '#7aa2f7',
-      primaryTextColor: '#ffffff',
-      primaryBorderColor: '#7aa2f7',
-      secondaryColor: '#2ac3de',
-      secondaryTextColor: '#ffffff',
-      secondaryBorderColor: '#2ac3de',
-      tertiaryColor: '#bb9af7',
-      tertiaryTextColor: '#ffffff',
-      tertiaryBorderColor: '#bb9af7',
+      // Background colors
+      background: '#0d1117',
+      mainBkg: '#1f2937',
+      secondBkg: '#1f2937',
       
-      // Lines and arrows - HIGH CONTRAST
-      lineColor: '#c0caf5',
+      // PRIMARY - All text WHITE
+      primaryColor: '#3b82f6',
+      primaryTextColor: '#ffffff',
+      primaryBorderColor: '#3b82f6',
+      
+      // SECONDARY
+      secondaryColor: '#10b981',
+      secondaryTextColor: '#ffffff',
+      secondaryBorderColor: '#10b981',
+      
+      // TERTIARY
+      tertiaryColor: '#8b5cf6',
+      tertiaryTextColor: '#ffffff',
+      tertiaryBorderColor: '#8b5cf6',
+      
+      // LINE COLORS - Bright for visibility
+      lineColor: '#60a5fa',
+      
+      // TEXT - ALL WHITE
       textColor: '#ffffff',
       
-      // Flowchart specific
-      nodeBorder: '#7aa2f7',
+      // Node styling
+      nodeBorder: '#3b82f6',
       nodeTextColor: '#ffffff',
-      mainBkg: '#24283b',
-      clusterBkg: '#1a1b26',
-      clusterBorder: '#414868',
       
-      // Sequence diagram specific
-      actorBorder: '#7aa2f7',
-      actorBkg: '#24283b',
-      actorTextColor: '#ffffff',
-      actorLineColor: '#c0caf5',
-      signalColor: '#c0caf5',
-      signalTextColor: '#ffffff',
-      labelBoxBkgColor: '#24283b',
-      labelBoxBorderColor: '#7aa2f7',
-      labelTextColor: '#ffffff',
-      loopTextColor: '#ffffff',
-      noteBorderColor: '#e0af68',
-      noteBkgColor: '#1a1b26',
-      noteTextColor: '#ffffff',
+      // Cluster/Subgraph
+      clusterBkg: '#111827',
+      clusterBorder: '#374151',
       
-      // Message text
-      messageFontSize: '14px',
-      messageFontWeight: '500',
+      // CRITICAL: Edge/Arrow label text
+      edgeLabelBackground: '#1f2937',
       
       // Fonts
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-      fontSize: '14px'
+      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontSize: '14px',
+      
+      // Flowchart specific
+      labelBackground: '#1f2937',
+      
+      // Sequence diagram - ALL WHITE TEXT
+      actorBorder: '#3b82f6',
+      actorBkg: '#1f2937',
+      actorTextColor: '#ffffff',
+      actorLineColor: '#60a5fa',
+      
+      signalColor: '#60a5fa',
+      signalTextColor: '#ffffff',
+      
+      labelBoxBkgColor: '#1f2937',
+      labelBoxBorderColor: '#3b82f6',
+      labelTextColor: '#ffffff',
+      
+      loopTextColor: '#ffffff',
+      
+      noteBorderColor: '#f59e0b',
+      noteBkgColor: '#1f2937',
+      noteTextColor: '#ffffff',
+      
+      activationBorderColor: '#3b82f6',
+      activationBkgColor: '#374151',
+      
+      sequenceNumberColor: '#ffffff'
     },
     flowchart: {
       useMaxWidth: true,
@@ -64,230 +87,304 @@
       curve: 'basis',
       padding: 20,
       nodeSpacing: 50,
-      rankSpacing: 50
+      rankSpacing: 60,
+      diagramPadding: 20
     },
     sequence: {
       useMaxWidth: true,
       wrap: true,
-      width: 180,
-      height: 50,
+      width: 200,
+      height: 60,
       boxMargin: 10,
-      boxTextMargin: 5,
-      noteMargin: 10,
-      messageMargin: 35,
+      boxTextMargin: 8,
+      noteMargin: 15,
+      messageMargin: 40,
       mirrorActors: true,
-      actorFontSize: '14px',
-      actorFontWeight: '600',
-      noteFontSize: '13px',
-      messageFontSize: '14px'
+      bottomMarginAdj: 10,
+      actorFontSize: 14,
+      actorFontWeight: 600,
+      noteFontSize: 13,
+      noteFontWeight: 400,
+      messageFontSize: 14,
+      messageFontWeight: 500
     }
-  });
+  };
+  
+  mermaid.initialize(config);
 </script>
 
 <style>
-  /* ========================================
-     MODERN DESIGN SYSTEM
-     ======================================== */
+  /* =============================================
+     DESIGN SYSTEM VARIABLES
+     ============================================= */
   
   :root {
-    --color-bg-primary: #0d1117;
-    --color-bg-secondary: #161b22;
-    --color-bg-tertiary: #21262d;
-    --color-border: #30363d;
-    --color-text-primary: #e6edf3;
-    --color-text-secondary: #8b949e;
-    --color-accent: #58a6ff;
-    --color-accent-emphasis: #1f6feb;
-    --color-success: #3fb950;
-    --color-warning: #d29922;
-    --color-danger: #f85149;
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-card: #1f2937;
+    --border-color: #30363d;
+    --border-light: #374151;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-yellow: #d29922;
+    --accent-red: #f85149;
+    --accent-purple: #a371f7;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   }
-  
+
   /* Typography */
   body, .main-content, .site-nav {
     font-family: var(--font-sans) !important;
+    color: var(--text-primary);
   }
   
   code, pre, .highlight {
     font-family: var(--font-mono) !important;
   }
-  
+
   /* Hide Just the Docs branding */
-  .site-footer .site-footer-credits,
   .site-footer a[href*="just-the-docs"],
-  .site-footer-credits {
+  .site-footer-credits,
+  a[href*="just-the-docs"] {
     display: none !important;
   }
+
+  /* =============================================
+     MERMAID DIAGRAMS - MAXIMUM VISIBILITY
+     ============================================= */
   
-  /* ========================================
-     MERMAID DIAGRAMS - HIGH CONTRAST
-     ======================================== */
-  
-  pre.mermaid, 
+  pre.mermaid,
   .mermaid {
     max-width: 100%;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background: #1a1b26 !important;
-    border: 1px solid #414868;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: linear-gradient(145deg, #111827 0%, #0d1117 100%) !important;
+    border: 1px solid #374151;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow);
+    overflow-x: auto;
   }
   
   .mermaid svg {
     max-width: 100%;
     height: auto;
-    max-height: 500px;
+    min-height: 200px;
   }
+
+  /* =============================================
+     FORCE ALL MERMAID TEXT TO BE WHITE/VISIBLE
+     ============================================= */
   
-  /* Force high contrast text in Mermaid */
+  /* ALL text elements */
   .mermaid text,
+  .mermaid tspan,
+  .mermaid .label,
+  .mermaid .labelText,
+  .mermaid .label text,
+  .mermaid .edgeLabel text,
+  .mermaid .edgeLabel tspan,
+  .mermaid .edgeLabel span,
+  .mermaid .edgePath text,
   .mermaid .messageText,
   .mermaid .loopText,
+  .mermaid .loopText tspan,
   .mermaid .noteText,
-  .mermaid .labelText,
-  .mermaid .actor-line,
-  .mermaid tspan {
+  .mermaid .actor text,
+  .mermaid .actor tspan,
+  .mermaid g text,
+  .mermaid g tspan {
     fill: #ffffff !important;
+    color: #ffffff !important;
     font-weight: 500 !important;
+    font-size: 14px !important;
   }
   
-  .mermaid .actor {
-    fill: #24283b !important;
-    stroke: #7aa2f7 !important;
+  /* Edge labels (arrow text) - THE CRITICAL FIX */
+  .mermaid .edgeLabel {
+    background-color: #1f2937 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  .mermaid .edgeLabel rect,
+  .mermaid .labelBkg {
+    fill: #1f2937 !important;
+    stroke: none !important;
+  }
+  
+  .mermaid .edgeLabel span,
+  .mermaid .edgeLabel p {
+    color: #ffffff !important;
+    background: transparent !important;
+  }
+  
+  /* Flowchart edge labels */
+  .mermaid .flowchart-link + .edgeLabel text,
+  .mermaid [class*="edge"] text {
+    fill: #ffffff !important;
+  }
+
+  /* Sequence diagram message text */
+  .mermaid .messageLine0,
+  .mermaid .messageLine1 {
+    stroke: #60a5fa !important;
     stroke-width: 2px !important;
   }
   
-  .mermaid .actor-box {
-    fill: #24283b !important;
-    stroke: #7aa2f7 !important;
+  .mermaid .messageText {
+    fill: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+
+  /* Actor boxes */
+  .mermaid .actor {
+    fill: #1f2937 !important;
+    stroke: #3b82f6 !important;
+    stroke-width: 2px !important;
   }
   
-  .mermaid line,
-  .mermaid .messageLine0,
-  .mermaid .messageLine1 {
-    stroke: #c0caf5 !important;
-    stroke-width: 1.5px !important;
+  .mermaid .actor-line {
+    stroke: #60a5fa !important;
+    stroke-width: 1px !important;
   }
-  
+
+  /* Notes */
   .mermaid .note {
-    fill: #1a1b26 !important;
-    stroke: #e0af68 !important;
+    fill: #1f2937 !important;
+    stroke: #f59e0b !important;
+    stroke-width: 2px !important;
   }
   
+  .mermaid .noteText {
+    fill: #ffffff !important;
+  }
+
+  /* Activation boxes */
   .mermaid .activation0,
   .mermaid .activation1,
   .mermaid .activation2 {
-    fill: #414868 !important;
-    stroke: #7aa2f7 !important;
+    fill: #374151 !important;
+    stroke: #3b82f6 !important;
+  }
+
+  /* Lines and arrows */
+  .mermaid line,
+  .mermaid path.path,
+  .mermaid .flowchart-link {
+    stroke: #60a5fa !important;
+    stroke-width: 2px !important;
   }
   
   .mermaid marker path {
-    fill: #c0caf5 !important;
+    fill: #60a5fa !important;
   }
-  
+
+  /* Nodes */
   .mermaid .node rect,
   .mermaid .node polygon,
   .mermaid .node circle,
-  .mermaid .node ellipse {
-    fill: #24283b !important;
-    stroke: #7aa2f7 !important;
+  .mermaid .node ellipse,
+  .mermaid .node path {
+    fill: #1f2937 !important;
+    stroke: #3b82f6 !important;
     stroke-width: 2px !important;
   }
   
-  .mermaid .edgePath path,
-  .mermaid .flowchart-link {
-    stroke: #c0caf5 !important;
-    stroke-width: 2px !important;
-  }
-  
-  .mermaid .edgeLabel {
-    background-color: #1a1b26 !important;
+  .mermaid .node .label {
     color: #ffffff !important;
   }
-  
-  .mermaid .edgeLabel rect {
-    fill: #1a1b26 !important;
-  }
-  
+
+  /* Clusters/Subgraphs */
   .mermaid .cluster rect {
-    fill: #1a1b26 !important;
-    stroke: #414868 !important;
+    fill: #111827 !important;
+    stroke: #374151 !important;
     stroke-width: 1px !important;
+    rx: 8px !important;
   }
   
-  .mermaid .cluster text {
-    fill: #c0caf5 !important;
+  .mermaid .cluster text,
+  .mermaid .cluster tspan {
+    fill: #9ca3af !important;
+    font-weight: 600 !important;
   }
-  
-  /* ========================================
-     TABLES - MODERN DESIGN
-     ======================================== */
+
+  /* Loop boxes in sequence diagrams */
+  .mermaid .loopLine {
+    stroke: #374151 !important;
+  }
+
+  /* =============================================
+     TABLES - MODERN CARD STYLE
+     ============================================= */
   
   table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin: 1.5rem 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
   }
   
   th {
-    background: var(--color-bg-tertiary);
+    background: var(--bg-tertiary);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    color: var(--color-text-secondary);
-    padding: 0.875rem 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    padding: 1rem 1.25rem;
     text-align: left;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
   }
   
   td {
-    padding: 0.875rem 1rem;
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-text-primary);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    line-height: 1.6;
   }
   
   tr:last-child td {
     border-bottom: none;
   }
   
-  tr:hover td {
-    background: rgba(88, 166, 255, 0.04);
+  tbody tr:hover td {
+    background: rgba(59, 130, 246, 0.05);
   }
+
+  /* =============================================
+     CODE BLOCKS
+     ============================================= */
   
-  /* ========================================
-     CODE BLOCKS - MODERN STYLE
-     ======================================== */
-  
-  pre.highlight,
-  pre {
-    background: var(--color-bg-secondary) !important;
-    border: 1px solid var(--color-border);
+  pre.highlight, pre {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     overflow-x: auto;
     max-height: 500px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
+    line-height: 1.7;
   }
   
   code {
     font-size: 0.875rem;
-    padding: 0.2em 0.4em;
-    background: var(--color-bg-tertiary);
+    padding: 0.25em 0.5em;
+    background: var(--bg-tertiary);
     border-radius: var(--radius-sm);
     color: #f0883e;
   }
@@ -296,23 +393,25 @@
     padding: 0;
     background: transparent;
     color: inherit;
+    font-size: 0.875rem;
   }
+
+  /* =============================================
+     HEADERS
+     ============================================= */
   
-  /* ========================================
-     SECTION HEADERS
-     ======================================== */
-  
-  h1 {
-    font-weight: 700;
-    letter-spacing: -0.5px;
+  h1 { 
+    font-weight: 700; 
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
   }
   
   h2 {
-    margin-top: 3rem;
+    margin-top: 3.5rem;
     padding-top: 2rem;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--border-color);
     font-weight: 600;
-    letter-spacing: -0.25px;
+    letter-spacing: -0.01em;
   }
   
   h2:first-of-type {
@@ -322,75 +421,83 @@
   }
   
   h3 {
-    margin-top: 2rem;
+    margin-top: 2.5rem;
     font-weight: 600;
+    color: var(--text-primary);
   }
   
-  /* ========================================
-     CALLOUTS / BLOCKQUOTES
-     ======================================== */
+  h4 {
+    margin-top: 2rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* =============================================
+     CALLOUTS
+     ============================================= */
   
   blockquote {
     position: relative;
     border: none;
-    border-left: 4px solid var(--color-accent);
-    padding: 1rem 1.5rem;
-    margin: 1.5rem 0;
-    background: linear-gradient(135deg, rgba(88, 166, 255, 0.08) 0%, rgba(88, 166, 255, 0.02) 100%);
+    border-left: 4px solid var(--accent-blue);
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 100%);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
   }
   
   blockquote p {
     margin: 0;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
   }
   
   blockquote strong {
-    color: var(--color-accent);
+    color: var(--accent-blue);
   }
-  
-  /* ========================================
-     TOC / DETAILS
-     ======================================== */
+
+  /* =============================================
+     TOC
+     ============================================= */
   
   details {
-    margin: 1.5rem 0;
-    padding: 1rem 1.25rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
   }
   
   details summary {
     cursor: pointer;
     font-weight: 600;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
     padding: 0.5rem;
     margin: -0.5rem;
     border-radius: var(--radius-sm);
-    transition: background 0.15s ease;
+    transition: all 0.2s ease;
   }
   
   details summary:hover {
-    background: var(--color-bg-tertiary);
+    background: var(--bg-tertiary);
   }
   
   details[open] summary {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
   }
-  
-  /* ========================================
-     LABELS / BADGES
-     ======================================== */
+
+  /* =============================================
+     LABELS
+     ============================================= */
   
   .label {
     display: inline-flex;
     align-items: center;
-    padding: 0.25em 0.75em;
+    padding: 0.3em 0.8em;
     font-size: 0.7rem;
     font-weight: 600;
     border-radius: 20px;
@@ -400,116 +507,61 @@
   
   .label-green {
     background: rgba(63, 185, 80, 0.15);
-    color: #3fb950;
-    border: 1px solid rgba(63, 185, 80, 0.4);
+    color: var(--accent-green);
+    border: 1px solid rgba(63, 185, 80, 0.3);
   }
   
   .label-blue {
     background: rgba(88, 166, 255, 0.15);
-    color: #58a6ff;
-    border: 1px solid rgba(88, 166, 255, 0.4);
+    color: var(--accent-blue);
+    border: 1px solid rgba(88, 166, 255, 0.3);
   }
   
   .label-purple {
     background: rgba(163, 113, 247, 0.15);
-    color: #a371f7;
-    border: 1px solid rgba(163, 113, 247, 0.4);
+    color: var(--accent-purple);
+    border: 1px solid rgba(163, 113, 247, 0.3);
   }
-  
-  /* ========================================
-     HORIZONTAL RULES
-     ======================================== */
+
+  /* =============================================
+     MISC
+     ============================================= */
   
   hr {
     border: none;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
-    margin: 2.5rem 0;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    margin: 3rem 0;
   }
   
-  /* ========================================
-     LINKS
-     ======================================== */
-  
   a {
-    color: var(--color-accent);
+    color: var(--accent-blue);
     text-decoration: none;
-    transition: color 0.15s ease;
+    transition: all 0.15s ease;
   }
   
   a:hover {
     color: #79c0ff;
     text-decoration: underline;
   }
-  
-  /* ========================================
-     NAVIGATION IMPROVEMENTS
-     ======================================== */
-  
-  .nav-list-item {
-    margin: 0.125rem 0;
-  }
-  
-  .nav-list-link {
-    border-radius: var(--radius-sm);
-    transition: all 0.15s ease;
-  }
-  
-  .nav-list-link:hover {
-    background: var(--color-bg-tertiary);
-  }
-  
-  .nav-list-link.active {
-    background: rgba(88, 166, 255, 0.1);
-    color: var(--color-accent);
-  }
-  
-  /* ========================================
-     FOOTER - CUSTOM
-     ======================================== */
-  
-  .site-footer {
-    border-top: 1px solid var(--color-border);
-    padding-top: 2rem;
-    margin-top: 4rem;
-  }
-  
-  /* ========================================
-     SCROLLBAR STYLING
-     ======================================== */
-  
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--color-bg-secondary);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #484f58;
-  }
-  
-  /* ========================================
-     SMOOTH ANIMATIONS
-     ======================================== */
-  
-  * {
-    scroll-behavior: smooth;
-  }
-  
-  .main-content {
-    animation: fadeIn 0.3s ease;
-  }
-  
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+  ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+  /* Animation */
+  .main-content { animation: fadeIn 0.3s ease; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 2rem;
+    margin-top: 4rem;
   }
 </style>
