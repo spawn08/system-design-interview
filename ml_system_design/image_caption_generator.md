@@ -1,490 +1,591 @@
-## Design a system for generating captions for images
+---
+layout: default
+title: Image Caption Generator
+parent: ML System Design
+nav_order: 1
+---
 
-## 1. REQUIREMENTS GATHERING
+# Design an Image Caption Generator
+{: .no_toc }
 
-**Clarifying Questions:**
+<details open markdown="block">
+  <summary>Table of Contents</summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
 
-*   **What is the primary use case?** (e.g., Social media, accessibility for visually impaired, image indexing/search, content creation)  This helps prioritize features and performance characteristics.
-*   **What types of images will the system handle?** (e.g., General photos, specific domains like medical images or satellite imagery) This influences model selection and training data.
-*   **What languages should the captions be generated in?** (Initially, we'll focus on English, but multilingual support is a consideration.)
-*   **What is the desired quality of the captions?** (e.g., Basic descriptive captions, creative/humorous captions, highly detailed and accurate captions) This dictates model complexity and evaluation metrics.
-*   **Are there any latency requirements?** (e.g., Real-time captioning, near real-time, batch processing) This impacts the system's architecture and deployment.
-*   **What is the expected scale (images per second/day)?**  This determines our scalability needs.
-*   **Are there any cost constraints?** (This will affect choices of infrastructure, models, and services.)
-*  **What level of user customization is needed?** Can users influence caption style or content?
+---
+
+## 🎯 What We're Building
+
+An image caption generator automatically describes the content of an image in natural language.
+
+**Input:** An image of a cat sitting on a couch
+
+**Output:** "A fluffy orange cat resting on a gray sofa"
+
+**Real-world applications:**
+- **Accessibility** - Screen readers for visually impaired users
+- **Social media** - Auto-suggest captions for posts
+- **Search** - Index images by their content
+- **Content moderation** - Understand what's in an image
+
+---
+
+## 🧠 ML Concepts Primer
+
+{: .note }
+> If you're not from an ML background, here's what you need to know for this design.
+
+### How Image Captioning Works
+
+```mermaid
+flowchart LR
+    Image[🖼️ Image] --> CNN[CNN Encoder]
+    CNN --> Features[Image Features]
+    Features --> RNN[RNN/Transformer Decoder]
+    RNN --> Caption["A cat on a couch"]
+```
+
+| Component | What It Does | Analogy |
+|-----------|--------------|---------|
+| **CNN (Encoder)** | Extracts features from the image | "Sees" the image - identifies objects, colors, spatial relationships |
+| **RNN/Transformer (Decoder)** | Generates text word by word | "Writes" the caption based on what the CNN saw |
+| **Attention** | Focuses on relevant image parts per word | When writing "cat", focuses on the cat region |
+
+### Key Terms
+
+| Term | Meaning |
+|------|---------|
+| **Inference** | Using a trained model to make predictions |
+| **Latency** | Time from request to response |
+| **Batch processing** | Process multiple images at once |
+| **Model serving** | Deploying models to handle requests |
+| **Feature extraction** | Converting raw data into useful representations |
+
+---
+
+## 📝 Step 1: Clarify Requirements
+
+### Questions to Ask
+
+| Question | Why It Matters |
+|----------|----------------|
+| What's the use case? | Determines quality vs speed trade-off |
+| What types of images? | General photos vs specific domain (medical, satellite) |
+| Latency requirements? | Real-time vs batch processing |
+| Expected scale? | Infrastructure sizing |
+| Languages needed? | Model complexity |
+
+### Our Assumptions
 
 **Functional Requirements:**
 
-*   The system should accept an image as input.
-*   The system should generate one or more descriptive captions for the image in English.
-*   The system should provide a confidence score for each generated caption (optional, but good for filtering).
-*   The system should offer an API for external applications to access the captioning service.
+| Feature | Priority |
+|---------|----------|
+| Accept image input (upload or URL) | Must have |
+| Generate descriptive caption | Must have |
+| Return confidence score | Nice to have |
+| Multiple caption suggestions | Nice to have |
+| API access | Must have |
 
 **Non-Functional Requirements:**
 
-*   **Scalability:**  The system should be able to handle a large volume of images (let's aim for 100 images per second initially, with the ability to scale to 10,000+ images per second).
-*   **Performance:**  Captions should be generated with low latency (target: under 1 second per image for near real-time use).
-*   **Reliability:** The system should be highly available (target: 99.9% uptime).
-*   **Maintainability:** The system should be designed for easy maintenance, updates, and model retraining.
-*   **Security:**  The API should be secured to prevent unauthorized access.
+| Requirement | Target |
+|-------------|--------|
+| **Latency** | < 1 second per image |
+| **Throughput** | 100 images/sec, scalable to 10,000+ |
+| **Availability** | 99.9% uptime |
+| **Quality** | High BLEU/CIDEr scores |
 
-**Constraints:**
+---
 
-*   We will use a cloud-based infrastructure (e.g., AWS, GCP, or Azure) for scalability and managed services.
-*   We will leverage pre-trained models where possible to reduce development time and training costs.
-*   We will prioritize open-source tools and libraries, but may consider commercial services if necessary.
+## 📊 Step 2: Back-of-Envelope Estimation
 
-**Key Metrics:**
+```
+Assumptions:
+- 100 images per second (peak)
+- Average image size: 500 KB
+- Model inference time: 200ms
+- GPU can process 10 images in parallel (batching)
 
-*   **Images per second (throughput):** 100 initially, scaling to 10,000+.
-*   **Latency:** < 1 second per image.
-*   **Availability:** 99.9% uptime.
-*   **Caption Quality:** Evaluated using metrics like BLEU, METEOR, CIDEr, and human evaluation.
-*   **Cost:**  Minimize operational costs while meeting performance requirements.
+Compute:
+- 100 images/sec ÷ 10 batch = 10 batches/sec
+- Each batch needs 200ms = 5 batches can run concurrently
+- Need ~2 GPUs for 100 img/sec
 
-## 2. SYSTEM ARCHITECTURE
+At 10,000 images/sec:
+- Need ~200 GPUs (or optimize with better batching)
 
-**High-Level Architecture:**
-
-The system consists of the following main components:
-
-1.  **API Gateway:**  Handles incoming requests, authentication, and routing.
-2.  **Image Processing Service:**  Preprocesses images (resizing, normalization) before sending them to the model.
-3.  **Captioning Service:**  Contains the core image captioning model and logic.
-4.  **Model Serving Infrastructure:**  Manages the deployment and scaling of the captioning model.
-5.  **Image Storage:**  Stores uploaded images (optional, if we need to persist images).
-6.  **Cache:** Caches frequently accessed captions to reduce latency and model load.
-7. **Queue:** Decouples the API from caption generation, enabling asynchronous processing.
-8.  **Monitoring & Logging:** Tracks system performance, errors, and usage.
-
-**Mermaid.js Diagram:**
-
-```code
-graph LR
-    subgraph Client
-        A[User/Application]
-    end
-
-    subgraph API Layer
-        B(API Gateway)
-    end
-    
-    subgraph Asynchronous Processing
-        E[Message Queue - Kafka/RabbitMQ]
-    end
-
-    subgraph Backend Services
-        C[Image Processing Service]
-        D[Captioning Service]
-        F[Model Serving - TensorFlow Serving/TorchServe]
-    end
-	
-	 subgraph Data Stores
-		H[Image Storage - S3/GCS]
-        I[Cache - Redis/Memcached]
-    end
-    
-    subgraph Monitoring
-        J[Monitoring & Logging - Prometheus/Grafana/CloudWatch]
-    end
-
-    A -- Image Upload --> B
-    B -- Request --> E
-    E -- Image Data --> C
-    C -- Processed Image --> F
-    F -- Image Features --> D
-    D -- Generate Caption --> F
-    F -- Caption --> E
-    E -- Caption --> B
-    B -- Caption Response --> A
-    B -- Store Image --> H
-	B -- Cache Request --> I
-	I -- Cache Response --> B
-    C,D,F,H,I -.-> J
+Storage:
+- If caching captions: 100 img/sec × 1 KB × 86,400 sec = 8.6 GB/day
 ```
 
-## 3. COMPONENT SELECTION & JUSTIFICATION
+---
 
-*   **API Gateway (AWS API Gateway / Kong / Apigee):**
-    *   **Why:** Provides a managed service for handling API requests, authentication, rate limiting, and routing.  Scales automatically.
-    *   **Alternatives:**  Building a custom API gateway (e.g., using Nginx + custom code).
-    *   **Trade-offs:** Managed services are easier to set up and maintain but may have vendor lock-in and potentially higher costs.  Custom solutions offer more flexibility but require more development and operational effort.
+## 🏗️ Step 3: High-Level Architecture
 
-*   **Image Processing Service (Python with OpenCV/PIL):**
-    *   **Why:** OpenCV and PIL are widely used libraries for image manipulation.  Python provides a good balance of performance and ease of development.
-    *   **Alternatives:**  Using a serverless function (e.g., AWS Lambda) for image processing, or a dedicated image processing service (e.g., ImageMagick).
-    *   **Trade-offs:**  Using a dedicated service provides more control over resources, while serverless functions can be more cost-effective for low/variable workloads.
+```mermaid
+flowchart TB
+    subgraph Clients [Clients]
+        Web[🌐 Web App]
+        Mobile[📱 Mobile]
+        API[🔌 API Clients]
+    end
+    
+    subgraph Gateway [API Layer]
+        LB[Load Balancer]
+        APIGw[API Gateway]
+    end
+    
+    subgraph Processing [Processing Layer]
+        ImgProc[Image Processor]
+        Queue[Message Queue]
+        ModelSvc[Model Service]
+    end
+    
+    subgraph ML [ML Infrastructure]
+        Triton[Model Server<br/>Triton/TorchServe]
+        GPU[GPU Cluster]
+    end
+    
+    subgraph Data [Data Layer]
+        Cache[(Redis Cache)]
+        Storage[(S3/GCS Storage)]
+    end
+    
+    subgraph Monitor [Monitoring]
+        Metrics[Prometheus/Grafana]
+        Logs[ELK Stack]
+    end
+    
+    Web --> LB
+    Mobile --> LB
+    API --> LB
+    LB --> APIGw
+    
+    APIGw --> ImgProc
+    ImgProc --> Queue
+    ImgProc --> Storage
+    
+    Queue --> ModelSvc
+    ModelSvc --> Triton
+    Triton --> GPU
+    
+    APIGw --> Cache
+    ModelSvc --> Cache
+    
+    Triton --> Metrics
+    ModelSvc --> Logs
+```
 
-*   **Captioning Service (Python with TensorFlow/PyTorch):**
-    *   **Why:** These are the dominant frameworks for deep learning, with extensive community support and pre-trained models available.
-    *   **Alternatives:**  Using a less popular deep learning framework, or a rule-based system (not suitable for high-quality captioning).
-    *   **Trade-offs:**  TensorFlow and PyTorch are well-established and have good performance, but they have a steeper learning curve than some simpler alternatives.
+### Request Flow
 
-*   **Model Serving Infrastructure (TensorFlow Serving / TorchServe / Triton Inference Server):**
-    *   **Why:**  These tools are designed for deploying and serving deep learning models efficiently.  They handle model loading, versioning, and scaling.
-    *   **Alternatives:**  Building a custom model serving solution (e.g., using Flask or FastAPI).
-    *   **Trade-offs:**  Dedicated serving solutions provide optimized performance and features like model versioning, but they add complexity to the deployment process.  Custom solutions offer more control but require more development effort.
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Cache as Redis
+    participant Queue as Message Queue
+    participant Worker as Caption Worker
+    participant Model as Model Server
+    
+    Client->>API: POST /caption (image)
+    API->>API: Compute image hash
+    API->>Cache: Check for cached caption
+    
+    alt Cache Hit
+        Cache-->>API: Return cached caption
+        API-->>Client: Return caption (fast!)
+    else Cache Miss
+        API->>Queue: Enqueue image
+        API-->>Client: 202 Accepted + job_id
+        
+        Queue->>Worker: Process image
+        Worker->>Worker: Preprocess image
+        Worker->>Model: Send to model
+        Model-->>Worker: Generated caption
+        Worker->>Cache: Store result
+    end
+    
+    Client->>API: GET /caption/{job_id}
+    API->>Cache: Fetch result
+    Cache-->>API: Caption
+    API-->>Client: Return caption
+```
 
-*   **Image Storage (AWS S3 / Google Cloud Storage / Azure Blob Storage):**
-    *   **Why:**  These cloud object storage services are highly scalable, durable, and cost-effective.
-    *   **Alternatives:** Using a traditional file system or a database to store images (not recommended for large-scale image storage).
-    *   **Trade-offs:** Cloud storage services provide excellent scalability and durability, but they introduce latency for retrieving images (which can be mitigated with caching).
+---
 
-*   **Cache (Redis / Memcached):**
-    *   **Why:**  In-memory caching significantly reduces latency and model load by storing frequently accessed captions.
-    *   **Alternatives:** Using a database for caching (less efficient) or not using a cache (higher latency).
-    *   **Trade-offs:** Redis offers more features (data structures, persistence) than Memcached, but Memcached is simpler and may be sufficient for basic caching needs.
+## 🔧 Step 4: Component Design
 
-*   **Queue (Kafka / RabbitMQ / SQS):**
-    *   **Why:** Decouples the API from the captioning service, allowing for asynchronous processing and improved resilience.
-    *   **Alternatives:** Direct synchronous calls (can lead to blocking and performance issues under heavy load).
-    *   **Trade-offs:**  Kafka is a high-throughput, distributed message streaming platform, while RabbitMQ is a more traditional message broker.  SQS is a managed queue service from AWS.  Kafka is best for high-volume scenarios, RabbitMQ is good for general-purpose messaging, and SQS is a simple, managed option. We will start with RabbitMQ for its balance of simplicity, performance and good integration, and switch to Kafka if the scale warrants it.
+### Image Preprocessing
 
-*   **Monitoring & Logging (Prometheus/Grafana / CloudWatch / ELK Stack):**
-    *   **Why:**  Essential for tracking system performance, detecting errors, and understanding usage patterns.
-    *   **Alternatives:** Using basic logging and manual monitoring (not sufficient for a production system).
-    *   **Trade-offs:**  Prometheus/Grafana is a popular open-source monitoring stack.  CloudWatch is a managed service from AWS. The ELK stack (Elasticsearch, Logstash, Kibana) is a powerful logging and analytics solution.
-
-## 4. DATABASE DESIGN
-
-We'll use a combination of storage solutions:
-
-*   **Image Storage (S3/GCS):**  We'll store the raw image files in cloud storage.  No specific schema is needed here, as it's just a blob store. We'll use the image's unique ID (e.g., a UUID) as the key in the storage.
-
-*   **Cache (Redis):** We'll store key-value pairs where the key is a hash of the image (e.g., SHA256) and the value is the generated caption (or a list of captions).  No formal schema is needed for a key-value store.
-
-*   **(Optional) Metadata Database (PostgreSQL):** If we need to store additional metadata about the images (e.g., upload timestamp, user information, tags), we can use a relational database like PostgreSQL.
-
-    ```sql
-    -- Table for image metadata (optional)
-    CREATE TABLE images (
-        image_id UUID PRIMARY KEY,
-        user_id UUID, -- If we have user accounts
-        upload_timestamp TIMESTAMP WITH TIME ZONE,
-        file_path VARCHAR(255), -- Path to the image in S3/GCS
-        -- Other metadata fields
-    );
-
-    -- Table for captions (optional, if storing captions persistently)
-    CREATE TABLE captions (
-        caption_id UUID PRIMARY KEY,
-        image_id UUID REFERENCES images(image_id),
-        caption_text TEXT,
-        confidence_score FLOAT,
-        generation_timestamp TIMESTAMP WITH TIME ZONE
-    );
-    ```
-
-## 5. API DESIGN
-
-*   **Endpoint:** `/api/v1/caption`
-*   **Method:** `POST`
-*   **Request Body:**
-    ```json
-    {
-        "image": "base64_encoded_image_data", // OR
-        "image_url": "https://example.com/image.jpg"
-    }
-    ```
-*   **Response Body (Success - 200 OK):**
-    ```json
-    {
-        "status": "success",
-        "captions": [
-            {
-                "text": "A cat sitting on a mat.",
-                "confidence": 0.95
-            },
-            {
-                "text": "A furry feline resting on a rug.",
-                "confidence": 0.82
-            }
-        ]
-    }
-    ```
-*   **Response Body (Error - 400 Bad Request):**
-    ```json
-    {
-        "status": "error",
-        "message": "Invalid image format."
-    }
-    ```
-*   **Response Body (Error - 500 Internal Server Error):**
-    ```json
-    {
-        "status": "error",
-        "message": "An unexpected error occurred."
-    }
-    ```
-
-*   **Authentication/Authorization:** API Key based authentication. Each request should include an `X-API-Key` header.
-
-## 6. LOW-LEVEL IMPLEMENTATION
-
-**Image Processing (Python with OpenCV):**
+Before the model can process an image, we need to standardize it:
 
 ```python
 import cv2
 import numpy as np
 
-def preprocess_image(image_data, target_size=(224, 224)):
-    """Preprocesses an image for the captioning model.
-
-    Args:
-        image_data: Image data (bytes).
-        target_size: Desired image size (width, height).
-
-    Returns:
-        Preprocessed image as a NumPy array.
-    """
-    try:
-        # Decode image data
-        nparr = np.frombuffer(image_data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        # Resize image
+def preprocess_image(image_bytes, target_size=(224, 224)):
+    """Prepare image for model inference."""
+    
+    # Decode image
+    img_array = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    
+    # Resize to model's expected input
         img = cv2.resize(img, target_size)
 
-        # Normalize pixel values (example for a model trained on ImageNet)
+    # Convert BGR to RGB
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    # Normalize (ImageNet stats)
         img = img.astype(np.float32) / 255.0
-        img = (img - [0.485, 0.456, 0.406]) / [0.229, 0.224, 0.225] # Imagenet mean/std
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    img = (img - mean) / std
 
         return img
-
-    except Exception as e:
-        print(f"Error preprocessing image: {e}")  # Log the error
-        return None
 ```
 
-**Caption Generation (Simplified Python with a hypothetical pre-trained model):**
+### Model Serving Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **TensorFlow Serving** | Google-backed, TF models | TensorFlow only |
+| **TorchServe** | PyTorch native | Newer, less mature |
+| **Triton Inference Server** | Multi-framework, optimized | More complex |
+| **Custom Flask/FastAPI** | Full control | More work, less optimized |
+
+**Recommendation:** Use **Triton** for production - it handles batching, model versioning, and GPU optimization.
+
+### Model Architecture
+
+```mermaid
+flowchart LR
+    subgraph Encoder [Image Encoder]
+        Image[Image] --> CNN[ResNet-50<br/>or ViT]
+        CNN --> Features[Feature Vector<br/>2048-dim]
+    end
+    
+    subgraph Decoder [Caption Decoder]
+        Features --> Attention[Attention<br/>Layer]
+        Attention --> LSTM[LSTM/Transformer]
+        LSTM --> Words[Word by Word]
+    end
+    
+    Words --> Caption["A cat sitting<br/>on a sofa"]
+```
+
+**Modern approaches:**
+- **BLIP** - Bootstrapping Language-Image Pre-training
+- **CLIP + GPT** - Combine vision and language models
+- **Flamingo** - Few-shot multimodal learning
+
+---
+
+## ⚡ Step 5: Optimization Strategies
+
+### 1. Caching
+
+Hash the image content and cache results:
 
 ```python
-import hypothetical_captioning_model  # Placeholder for a real model
+import hashlib
 
-def generate_caption(image_features):
-    """Generates a caption for the given image features.
+def get_image_hash(image_bytes):
+    return hashlib.sha256(image_bytes).hexdigest()
 
-    Args:
-        image_features: Image features extracted by the model.
-
-    Returns:
-        A generated caption (string).
-    """
-    try:
-        model = hypothetical_captioning_model.load_model("path/to/model")
-        caption = model.predict(image_features)
+def get_or_generate_caption(image_bytes):
+    image_hash = get_image_hash(image_bytes)
+    
+    # Check cache first
+    cached = redis.get(f"caption:{image_hash}")
+    if cached:
+        return cached
+    
+    # Generate caption
+    caption = model.generate(image_bytes)
+    
+    # Cache for 24 hours
+    redis.setex(f"caption:{image_hash}", 86400, caption)
+    
         return caption
-    except Exception as e:
-        print(f"Error generating caption: {e}") # Log the error
-        return "Error generating caption."
 ```
 
-**API Endpoint (Simplified Flask example):**
+### 2. Batching
+
+Process multiple images together for GPU efficiency:
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-import base64
-# Import the functions from above
-from image_processing import preprocess_image
-from caption_generation import generate_caption
-import pika  # For RabbitMQ
-import uvicorn
-
-app = FastAPI(__name__)
-
-# RabbitMQ connection parameters (replace with your actual settings)
-RABBITMQ_HOST = 'localhost'
-RABBITMQ_QUEUE = 'image_caption_queue'
-
-def send_to_queue(message):
-    """Sends a message to the RabbitMQ queue."""
-    try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_HOST))
-        channel = connection.channel()
-        channel.queue_declare(queue=RABBITMQ_QUEUE)
-        channel.basic_publish(exchange='', routing_key=RABBITMQ_QUEUE, body=message)
-        connection.close()
-    except Exception as e:
-        print(f"Error sending to queue: {e}")
-
-
-@app.post('/api/v1/caption')
-async def caption_image(request: Request):
-    """API endpoint for generating image captions."""
-    try:
-        if 'image' in request.json:
-            image_data = base64.b64decode(request.json['image'])
-        elif 'image_url' in request.json:
-            # Fetch image from URL (using requests library, for example)
-            # ... (implementation omitted for brevity) ...
-            return JSONResponse({"status": "error", "message": "Image URL processing not implemented yet."}), 501
-        else:
-            return JSONResponse({"status": "error", "message": "No image provided."}), 400
-
-        # Send to queue for asynchronous processing
-        send_to_queue(image_data)
-
-
-        return JSONResponse({"status": "success", "message": "Image queued for processing."}), 202 # Accepted
-
-    except Exception as e:
-        print(f"Error in API endpoint: {e}")
-        return JSONResponse({"status": "error", "message": "An unexpected error occurred."}), 500
-
-if __name__ == '__main__':
-    uvicorn.run(host='0.0.0.0', port=5000)
+class BatchProcessor:
+    def __init__(self, batch_size=16, max_wait_ms=100):
+        self.batch_size = batch_size
+        self.max_wait_ms = max_wait_ms
+        self.queue = []
+    
+    def add_request(self, image):
+        self.queue.append(image)
+        
+        if len(self.queue) >= self.batch_size:
+            return self.process_batch()
+        
+        # Or if max wait time exceeded
+        # return self.process_batch()
+    
+    def process_batch(self):
+        batch = self.queue[:self.batch_size]
+        self.queue = self.queue[self.batch_size:]
+        
+        # Process all at once on GPU
+        captions = model.generate_batch(batch)
+        return captions
 ```
 
-**Captioning Worker (Consumes from Queue):**
-```python
-import pika
-import base64
-import json
-from image_processing import preprocess_image
-from caption_generation import generate_caption
-import hypothetical_captioning_model
+### 3. Model Optimization
 
-RABBITMQ_HOST = 'localhost'
-RABBITMQ_QUEUE = 'image_caption_queue'
+| Technique | Speedup | Quality Impact |
+|-----------|---------|----------------|
+| **Quantization** (INT8) | 2-4x | Minimal |
+| **Distillation** | 3-10x | Some loss |
+| **Pruning** | 2-3x | Minimal |
+| **TensorRT** | 2-5x | None |
 
-def callback(ch, method, properties, body):
-    """Callback function for processing messages from the queue."""
-    try:
-        image_data = body
-        processed_image = preprocess_image(image_data)
-        if processed_image is not None:
-          image_features = hypothetical_captioning_model.extract_features(processed_image) # Assume feature extraction
-          caption = generate_caption(image_features)
-          print(f"Generated caption: {caption}")
-          # Store caption in cache, database, etc.
-        else:
-            print("Image preprocessing failed.")
+### 4. Async Processing
 
-    except Exception as e:
-        print(f"Error processing message: {e}")
+For non-real-time use cases, use a job queue:
 
-    ch.basic_ack(delivery_tag=method.delivery_tag) # Acknowledge message
-
-
-def main():
-    """Main function for the captioning worker."""
-    connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_HOST))
-    channel = connection.channel()
-    channel.queue_declare(queue=RABBITMQ_QUEUE)
-    channel.basic_consume(queue=RABBITMQ_QUEUE, on_message_callback=callback)
-    print('Waiting for messages...')
-    channel.start_consuming()
-
-if __name__ == '__main__':
-    main()
+```mermaid
+flowchart LR
+    Request[API Request] --> Queue[Job Queue]
+    Queue --> Worker1[Worker 1]
+    Queue --> Worker2[Worker 2]
+    Queue --> Worker3[Worker 3]
+    Worker1 --> Results[(Results Store)]
+    Worker2 --> Results
+    Worker3 --> Results
 ```
-## 7. QUEUE SOLUTION
 
-*   **Technology:** RabbitMQ (initially), with Kafka as a future scaling option.
-*   **Partitioning:**  The queue itself doesn't require explicit partitioning in the initial RabbitMQ setup.  With Kafka, we would partition the topic based on image ID (or a hash of the ID) to distribute the load across multiple consumers.
-*   **Consumer Groups:**  We'll have a single consumer group for the captioning service.  Multiple instances of the captioning worker will be part of this group, ensuring that each image is processed only once.
-*   **Delivery Guarantees:**  We'll use message acknowledgments (`basic_ack` in RabbitMQ) to ensure "at-least-once" delivery.  If a worker fails to process an image, the message will be redelivered.  We can implement idempotency checks (e.g., using a unique image ID) to handle duplicate processing if necessary.
+---
 
-## 8. AI MODEL INTEGRATION
+## 📊 Step 6: Model Training & Updates
 
-*   **Model Architecture:**  We'll use a combination of a Convolutional Neural Network (CNN) for image feature extraction and a Recurrent Neural Network (RNN) with an attention mechanism for caption generation.  A good starting point is a pre-trained CNN like InceptionV3 or ResNet-50, combined with an LSTM or GRU-based RNN decoder.  We'll likely use a Transformer-based model (e.g., a smaller version of GPT or a specialized image captioning Transformer) for better performance.
-*  **Justification**: CNNs are excellent at extracting spatial features from images. RNNs, particularly LSTMs and GRUs, are well-suited for sequence generation tasks like captioning. Attention mechanisms allow the RNN to focus on relevant parts of the image when generating each word. Transformers have become state-of-the-art for many NLP tasks and offer advantages in parallelization and long-range dependencies.
-*   **Training:**
-    *   We'll start with a pre-trained CNN (e.g., on ImageNet) and fine-tune it on a large image captioning dataset like COCO Captions or Flickr30k.
-    *   The RNN decoder will be trained from scratch, using the pre-trained CNN features as input.
-    *   We'll use teacher forcing during training, where the ground truth captions are fed as input to the decoder at each time step.
-    *   We'll use appropriate optimization algorithms (e.g., Adam) and loss functions (e.g., cross-entropy).
+### Training Pipeline
 
-*   **Inference:**
-    *   The image is passed through the pre-trained and fine-tuned CNN to extract features.
-    *   The extracted features are fed into the RNN decoder, which generates the caption word by word.
-    *   We can use beam search during decoding to generate multiple candidate captions and select the best one based on a scoring function (e.g., likelihood).
+```mermaid
+flowchart LR
+    Data[Training Data<br/>COCO, Flickr30k] --> Preprocess[Data<br/>Preprocessing]
+    Preprocess --> Train[Model<br/>Training]
+    Train --> Evaluate[Evaluation<br/>BLEU, CIDEr]
+    Evaluate --> Deploy{Good?}
+    Deploy -->|Yes| Prod[Production]
+    Deploy -->|No| Train
+```
 
-*   **Monitoring:**
-    *   We'll continuously monitor the quality of generated captions using metrics like BLEU, METEOR, CIDEr, and SPICE.
-    *   We'll also track human evaluations to assess the overall quality and fluency of the captions.
+### Evaluation Metrics
 
-*   **Update Strategies:**
-    *   We'll periodically retrain the model with new data to improve its performance and adapt to changing image distributions.
-    *   We can use techniques like online learning or incremental learning to update the model more frequently without requiring a full retraining.
-    *   We'll implement A/B testing to compare different model versions and ensure that updates improve caption quality.
+| Metric | What It Measures |
+|--------|------------------|
+| **BLEU** | N-gram overlap with reference |
+| **METEOR** | Synonym-aware matching |
+| **CIDEr** | Consensus with human captions |
+| **Human Eval** | Actual human ratings |
 
-## 9. SCALING STRATEGY
+### A/B Testing New Models
 
-*   **Moderate Scale (100 images/second):**
-    *   Multiple instances of the Image Processing Service and Captioning Service, running behind a load balancer.
-    *   A moderately sized Redis cache.
-    *   A RabbitMQ cluster for handling the message queue.
+```mermaid
+flowchart LR
+    Traffic[Traffic] --> Split{90/10 Split}
+    Split -->|90%| ModelA[Model v1.0]
+    Split -->|10%| ModelB[Model v1.1]
+    ModelA --> Metrics[Compare Metrics]
+    ModelB --> Metrics
+```
 
-*   **High Scale (10,000+ images/second):**
+---
 
-    *   **Horizontal Scaling:**
-        *   Increase the number of instances of the Image Processing Service and Captioning Service.
-        *   Use auto-scaling groups (e.g., AWS Auto Scaling) to automatically adjust the number of instances based on load.
-        *   Scale out the RabbitMQ cluster (or switch to Kafka).
-        *   Increase the size of the Redis cache (or use a distributed cache like Redis Cluster).
+## 📈 Step 7: Scaling Strategy
 
-    *   **Vertical Scaling:**
-        *   Use more powerful instances (e.g., with more CPU, memory, and GPUs) for the Captioning Service and Model Serving Infrastructure.
-        *   Increase the resources allocated to the database (if used for metadata).
+### Horizontal Scaling
 
-    *   **Data Partitioning/Sharding:**
-        *   If using a database for metadata, consider sharding the database based on image ID or user ID.
+| Component | How to Scale |
+|-----------|--------------|
+| **API Gateway** | Add instances behind load balancer |
+| **Message Queue** | Add partitions, brokers |
+| **Workers** | Add more consumer instances |
+| **Model Servers** | Add more GPU instances |
 
-    *   **Caching:**
-        *   Implement a multi-level caching strategy:
-            *   Browser caching (for static assets).
-            *   CDN caching (for images and captions).
-            *   Redis caching (for frequently accessed captions).
-        *   Use cache invalidation techniques (e.g., time-to-live, explicit invalidation) to ensure data consistency.
+### GPU Scaling
 
-## 10. FAILURE HANDLING
+```
+100 images/sec:   2 GPUs
+1,000 images/sec: 20 GPUs  
+10,000 images/sec: 200 GPUs (or optimize!)
+```
 
-*   **Potential Failure Points:**
-    *   API Gateway failure.
-    *   Image Processing Service failure.
-    *   Captioning Service failure.
-    *   Model Serving Infrastructure failure.
-    *   Database failure.
-    *   Queue failure.
-    *   Network issues.
+**Cost optimization:**
+- Use spot/preemptible instances for batch jobs
+- Auto-scale based on queue depth
+- Use smaller models for simple images
 
-*   **Redundancy and Failover:**
-    *   Use multiple availability zones (in a cloud environment) to ensure redundancy.
-    *   Use load balancers to distribute traffic across multiple instances of each service.
-    *   Implement health checks for each service and automatically remove unhealthy instances from the load balancer.
-    *   Use a highly available database cluster (e.g., with replication and failover).
-    *   Use a clustered message queue (e.g., RabbitMQ cluster or Kafka).
+### Multi-Region Deployment
 
-*   **Data Durability:**
-    *   Store images in a durable object storage service (e.g., S3/GCS).
-    *   Use database replication to ensure data durability.
-    *   Implement regular backups of the database.
+```mermaid
+flowchart TB
+    subgraph US [US Region]
+        LBUS[Load Balancer]
+        APIUS[API + Model]
+    end
+    
+    subgraph EU [EU Region]
+        LBEU[Load Balancer]
+        APIEU[API + Model]
+    end
+    
+    subgraph Asia [Asia Region]
+        LBAs[Load Balancer]
+        APIAs[API + Model]
+    end
+    
+    DNS[Global DNS] --> LBUS
+    DNS --> LBEU
+    DNS --> LBAs
+```
 
-*   **Disaster Recovery:**
-    *   Implement a disaster recovery plan that includes replicating data and infrastructure to a different region.
-    *   Regularly test the disaster recovery plan to ensure it works as expected.
+---
 
-*   **Graceful Degradation:** If parts of the system fail, degrade functionality gracefully. For example, if the captioning service is unavailable, return a generic caption or an error message indicating that captioning is temporarily unavailable.
+## 🛡️ Step 8: Monitoring & Reliability
 
-## 11. BOTTLENECKS & MITIGATIONS
+### Key Metrics to Track
 
-*   **Bottleneck: Image Processing:**
-    *   **Mitigation:** Optimize image processing code (e.g., use efficient libraries, parallelize operations).  Use a faster image processing library or hardware acceleration (e.g., GPUs).
+| Category | Metrics |
+|----------|---------|
+| **Latency** | P50, P95, P99 response times |
+| **Throughput** | Images processed per second |
+| **Quality** | Average confidence score, user feedback |
+| **Errors** | Failed requests, model errors |
+| **Resources** | GPU utilization, memory, queue depth |
 
-*   **Bottleneck: Model Inference:**
-    *   **Mitigation:** Optimize the model for inference (e.g., use quantization, pruning, or knowledge distillation). Use a faster model serving framework (e.g., Triton Inference Server).  Use GPUs for inference. Batch inference requests.
+### Model Monitoring
 
-*   **Bottleneck: Network Latency:**
-    *   **Mitigation:** Use a CDN to cache images and captions closer to users.  Optimize network communication between services (e.g., use efficient protocols, minimize data transfer).
+```mermaid
+flowchart LR
+    Predictions[Model Predictions] --> Monitor[Monitor]
+    Monitor --> Drift{Drift Detected?}
+    Drift -->|Yes| Alert[Alert Team]
+    Drift -->|Yes| Retrain[Trigger Retraining]
+    Drift -->|No| Continue[Continue]
+```
 
-*   **Bottleneck: Queue Throughput:**
-    *    **Mitigation**: Switch to Kafka. Increase the number of partitions and consumers.
+**What to monitor:**
+- **Data drift** - Input images look different than training data
+- **Model degradation** - Quality scores declining
+- **Latency spikes** - Model becoming slow
 
-*   **Bottleneck: Database (if used for metadata):**
-    *   **Mitigation:** Optimize database queries.  Use appropriate indexes.  Scale the database vertically or horizontally.  Implement caching.
+### Failure Handling
 
-*   **Monitoring:**  Use comprehensive monitoring and logging to identify bottlenecks in real-time. Set up alerts for key metrics (e.g., latency, error rate, queue length). Regularly profile the system to identify performance issues.
+| Failure | Impact | Recovery |
+|---------|--------|----------|
+| **API crash** | Request failures | Load balancer routes elsewhere |
+| **Model server crash** | Caption failures | Queue buffers, workers retry |
+| **GPU failure** | Reduced capacity | Auto-scaling adds capacity |
+| **Bad model update** | Poor quality | Rollback to previous version |
 
-This detailed design provides a robust and scalable solution for an image captioning generator. It considers various aspects, from model selection and API design to scaling, failure handling, and performance optimization. The design is flexible and can be adapted to different use cases and requirements. Remember to iteratively test and refine the system based on real-world usage and performance data.
+---
+
+## 🔐 Step 9: Security & Privacy
+
+| Concern | Solution |
+|---------|----------|
+| **API abuse** | Rate limiting, API keys |
+| **Malicious images** | Content filtering, size limits |
+| **Data privacy** | Don't store images longer than needed |
+| **Model theft** | Don't expose model internals |
+
+---
+
+## 📋 Interview Checklist
+
+- [ ] Clarified use case and requirements
+- [ ] Explained ML pipeline (encoder → decoder)
+- [ ] Drew system architecture
+- [ ] Discussed preprocessing steps
+- [ ] Covered model serving options
+- [ ] Explained optimization strategies (caching, batching)
+- [ ] Addressed scaling approach
+- [ ] Mentioned monitoring and drift detection
+- [ ] Discussed failure handling
+
+---
+
+## 🎤 Sample Interview Dialogue
+
+> **Interviewer:** "Design an image captioning system."
+>
+> **You:** "Interesting! Let me clarify a few things. What's the primary use case - accessibility, search, or social media? And what latency is acceptable?"
+>
+> **Interviewer:** "It's for a social media app. Users upload photos and we suggest captions. Should be fast - under 2 seconds."
+>
+> **You:** "Got it, so we need near real-time inference. Let me walk through the architecture. We'll have an encoder-decoder model, probably based on a pre-trained vision transformer..."
+
+---
+
+## API Reference
+
+### Generate Caption
+
+```http
+POST /api/v1/caption
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+
+image: <binary image data>
+```
+
+**Response (Sync - if fast enough):**
+```json
+{
+    "status": "success",
+    "captions": [
+        {
+            "text": "A fluffy orange cat resting on a gray sofa",
+            "confidence": 0.92
+        },
+        {
+            "text": "An orange tabby cat sleeping on a couch",
+            "confidence": 0.85
+        }
+    ]
+}
+```
+
+**Response (Async):**
+```json
+{
+    "status": "processing",
+    "job_id": "abc123",
+    "estimated_time_seconds": 2
+}
+```
+
+### Get Caption Result
+
+```http
+GET /api/v1/caption/{job_id}
+```
+
+---
+
+## Summary
+
+| Component | Choice | Why |
+|-----------|--------|-----|
+| **Model** | BLIP or ViT + GPT | State-of-the-art quality |
+| **Serving** | Triton | Multi-framework, optimized |
+| **Queue** | Kafka/RabbitMQ | Decouple API from inference |
+| **Cache** | Redis | Fast lookup by image hash |
+| **Storage** | S3/GCS | Scalable image storage |
+
+{: .tip }
+> ML system design is as much about the infrastructure as the model. Practice drawing the full pipeline, not just the model architecture!

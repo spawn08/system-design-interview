@@ -1,189 +1,310 @@
-## Load Balancing: A Comprehensive Explanation
+---
+layout: default
+title: Load Balancing
+parent: Fundamentals
+nav_order: 1
+---
 
-Load balancing is a critical technique in distributed systems for distributing incoming network traffic across multiple servers (or other resources) to ensure no single server is overwhelmed. This improves application responsiveness, increases availability, and facilitates scaling. It's a core component of any high-traffic, highly available system.
+# Load Balancing
+{: .no_toc }
 
-**Why Load Balancing is Essential:**
+<details open markdown="block">
+  <summary>Table of Contents</summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
 
-*   **High Availability:** Distributes load, preventing single points of failure. If one server goes down, others can handle the traffic.
-*   **Scalability:** Enables horizontal scaling by adding more servers as traffic increases.
-*   **Performance:** Improves response times by preventing any one server from becoming a bottleneck.
-*   **Resource Utilization:**  Optimizes resource utilization by evenly distributing the load.
-*   **Maintenance:**  Allows for rolling updates and maintenance without downtime by taking servers out of rotation.
+---
 
-**How Load Balancing Works (High-Level):**
+## 🎯 What is Load Balancing?
 
-1.  **Client Request:** A client (e.g., a web browser) sends a request to a publicly accessible IP address or domain name.
-2.  **Load Balancer Interception:** The load balancer, positioned in front of the servers, intercepts this request.
-3.  **Server Selection:** The load balancer uses a pre-defined algorithm to select an appropriate backend server to handle the request.
-4.  **Request Forwarding:** The load balancer forwards the request to the chosen server.
-5.  **Server Response:** The server processes the request and sends a response back to the load balancer.
-6.  **Response Delivery:** The load balancer forwards the response back to the client.  The client is typically unaware that the request was handled by a load balancer.
+Imagine you're at a busy grocery store. If there's only one checkout lane open, the line gets incredibly long. But if you open multiple lanes and direct customers to the shortest line, everyone gets served faster.
 
-## Types of Load Balancing Algorithms
+**Load balancing works the same way for web traffic.**
 
-Here's a breakdown of common load balancing algorithms, including their pros, cons, and use cases:
+A load balancer sits in front of your servers and distributes incoming requests across multiple servers. This prevents any single server from becoming overwhelmed.
 
-**1. Round Robin:**
+```mermaid
+flowchart LR
+    Users([👤 Users]) --> LB[Load Balancer]
+    LB --> S1[Server 1]
+    LB --> S2[Server 2]
+    LB --> S3[Server 3]
+```
 
-*   **How it works:**  Distributes requests sequentially to each server in a circular order.  Server 1, then Server 2, then Server 3, then back to Server 1, and so on.
-*   **Pros:**
-    *   Simple to implement and understand.
-    *   Fair distribution if all servers have similar capabilities.
-*   **Cons:**
-    *   Doesn't consider server load or capacity. A heavily loaded server will receive the same number of requests as a lightly loaded one.
-    *   Not suitable if servers have different processing power.
-*   **Use Cases:**
-    *   Simple applications with relatively uniform server resources.
-    *   Good as a starting point when server capacities are roughly equal.
+---
 
-**2. Weighted Round Robin:**
+## Why Load Balancing Matters
 
-*   **How it works:** Similar to Round Robin, but each server is assigned a weight. Servers with higher weights receive more requests.  For example, if Server A has a weight of 2 and Server B has a weight of 1, Server A will receive twice as many requests.
-*   **Pros:**
-    *   Accounts for differences in server capacity.
-    *   Still relatively simple to implement.
-*   **Cons:**
-    *   Doesn't dynamically adjust based on real-time server load. The weights are typically static.
-    *   Can still lead to uneven distribution if server load fluctuates significantly.
-*   **Use Cases:**
-    *   Environments where servers have different processing capabilities.
-    *   When you need to gradually introduce new servers into a cluster.
+| Benefit | What It Means |
+|---------|---------------|
+| **High Availability** | If one server crashes, others keep working. No downtime! |
+| **Scalability** | Need more capacity? Just add more servers. |
+| **Performance** | No single server gets overloaded, so responses stay fast. |
+| **Maintenance** | Update servers one at a time without taking your app offline. |
 
-**3. Least Connections:**
+{: .tip }
+> Load balancing appears in almost every system design interview. Know at least 3-4 algorithms and when to use each.
 
-*   **How it works:**  Directs traffic to the server with the fewest active connections at the time of the request.
-*   **Pros:**
-    *   Dynamically adapts to server load.
-    *   Generally provides a more even distribution than Round Robin.
-*   **Cons:**
-    *   Requires tracking the number of active connections for each server.
-    *   Can be less effective if connections have significantly different durations (e.g., some connections are short-lived, while others are long-lived). A server with a few long-lived connections might be underutilized.
-*   **Use Cases:**
-    *   Applications where connection durations are relatively consistent.
-    *   Good for dynamic environments where server load fluctuates.
+---
 
-**4. Weighted Least Connections:**
+## How It Works (Step by Step)
 
-*   **How it works:** Combines Least Connections with server weights.  The server with the lowest ratio of (active connections / weight) receives the request.
-*   **Pros:**
-    *   Accounts for both server capacity and current load.
-    *   Provides a more refined distribution than either Least Connections or Weighted Round Robin alone.
-*   **Cons:**
-    *   More complex to implement than simpler algorithms.
-    *   Requires accurate weight configuration.
-*   **Use Cases:**
-    *   Heterogeneous server environments with fluctuating loads.
-    *   Best for maximizing resource utilization and minimizing response times.
+```mermaid
+sequenceDiagram
+    participant Client
+    participant LB as Load Balancer
+    participant Server
+    
+    Client->>LB: 1. Request
+    LB->>LB: 2. Select server
+    LB->>Server: 3. Forward request
+    Server->>LB: 4. Response
+    LB->>Client: 5. Return response
+```
 
-**5. IP Hash:**
+1. **Client Request** - User's browser sends a request to your domain
+2. **Interception** - The load balancer receives the request first
+3. **Server Selection** - Algorithm picks the best server
+4. **Forwarding** - Request goes to the chosen server
+5. **Response** - Server responds, load balancer forwards it back
 
-*   **How it works:**  Calculates a hash based on the client's IP address (and sometimes port).  This hash is used to determine which server will handle the request.  The same client IP address will consistently be routed to the same server (as long as the server is available).
-*   **Pros:**
-    *   Provides session persistence (sticky sessions) without requiring explicit session management.
-    *   Simple to implement.
-*   **Cons:**
-    *   Can lead to uneven distribution if a small number of clients generate a large proportion of the traffic (e.g., clients behind a proxy server).
-    *   Adding or removing servers can change the mapping, breaking existing sessions.
-*   **Use Cases:**
-    *   Applications that require session persistence.
-    *   Situations where maintaining client-server affinity is important.
+The client never knows multiple servers exist!
 
-**6. Least Response Time:**
+---
 
-*   **How It Works:**  The load balancer directs traffic to the server with the fastest current response time.
-*   **Pros:**  Prioritizes performance by selecting the most responsive server.  Adapts well to fluctuating server conditions.
-*   **Cons:**  Requires constant monitoring of server response times.  Can be susceptible to short-term fluctuations in response time.
-*   **Use Cases:**  Performance-critical applications where minimizing latency is the top priority.
+## Load Balancing Algorithms
 
-**7. URL Hash:**
+### 1. Round Robin
 
-*   **How It Works:** Similar to IP Hash, but uses the requested URL (or a portion of it) to calculate the hash. This allows different URLs to be routed to different servers.
-*   **Pros:** Useful for caching scenarios where you want specific content to be consistently served from the same server.
-*    **Cons:** Can lead to uneven distribution. Adding/removing servers can reshuffle mappings.
-*   **Use Cases:** Content Delivery Networks (CDNs), caching servers.
+The simplest approach: distribute requests in order.
 
-**8. Random:**
+```
+Request 1 → Server A
+Request 2 → Server B
+Request 3 → Server C
+Request 4 → Server A (starts over)
+```
 
-*   **How it works:** Selects a server at random.
-* **Pros:** Extremely simple.
-* **Cons:** Can be very uneven, especially for smaller numbers of requests.
-* **Use Cases:** Rarely used in production, but can be useful for testing or specific scenarios where true randomness is desired.
+| Pros | Cons |
+|------|------|
+| Dead simple to implement | Ignores server load/capacity |
+| Fair if servers are equal | Bad if servers have different specs |
 
-**Summary Table:**
+**Use when:** All servers are identical and requests are roughly equal.
 
-| Algorithm             | Description                                                            | Pros                                                                              | Cons                                                                                                  | Use Cases                                                               |
-| --------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Round Robin           | Distributes requests sequentially.                                       | Simple, fair if servers are equal.                                                 | Doesn't consider server load or capacity.                                                         | Simple applications, uniform server resources.                          |
-| Weighted Round Robin  | Round Robin with server weights.                                      | Accounts for server capacity differences.                                        | Static weights, doesn't dynamically adjust.                                                      | Servers with different processing capabilities.                            |
-| Least Connections     | Sends requests to the server with the fewest active connections.           | Dynamically adapts to server load.                                                 | Can be less effective with varying connection durations.                                              | Applications with consistent connection durations.                       |
-| Weighted Least Conn. | Least Connections with server weights.                                  | Accounts for both server capacity and load.                                        | More complex implementation, requires accurate weights.                                             | Heterogeneous servers, fluctuating loads.                               |
-| IP Hash               | Uses client IP to determine the server (sticky sessions).                  | Provides session persistence.                                                      | Uneven distribution with proxies, adding/removing servers breaks sessions.                        | Applications requiring session persistence.                              |
-| Least Response Time   | Sends to the fastest server.                                              | Prioritizes performance.                                                        | Requires constant response time monitoring, susceptible to short-term fluctuations.                | Performance-critical apps.                                                |
-| URL Hash              | Uses requested URL to determine server.                                 | Useful for caching.                                                               | Can be uneven; adding/removing servers can be disruptive.                                       | CDNs, Caching servers.                                                  |
-| Random                | Selects a server randomly.                                                  | Very simple                                                                           |  Can be very uneven in practice.                                                              | Testing, very specific scenarios where true randomness is needed          |
+---
+
+### 2. Weighted Round Robin
+
+Like Round Robin, but some servers get more traffic.
+
+```
+Server A (weight: 3) → Gets 3x the requests
+Server B (weight: 1) → Gets 1x the requests
+```
+
+| Pros | Cons |
+|------|------|
+| Handles different server sizes | Weights are static |
+| Still simple | Doesn't adapt to real-time load |
+
+**Use when:** You have servers with different capacities (e.g., mixing old and new hardware).
+
+---
+
+### 3. Least Connections
+
+Send requests to the server with the fewest active connections.
+
+```
+Server A: 10 connections → skip
+Server B: 3 connections  → PICK THIS ONE ✓
+Server C: 7 connections  → skip
+```
+
+| Pros | Cons |
+|------|------|
+| Adapts to real-time load | Needs connection tracking |
+| Handles varying request durations | Long-lived connections can skew it |
+
+**Use when:** Requests have varying processing times. Great for dynamic workloads.
+
+---
+
+### 4. IP Hash (Sticky Sessions)
+
+Hash the client's IP address to determine their server. Same client always goes to the same server.
+
+```
+hash("192.168.1.100") % 3 = 1 → Always Server B
+```
+
+| Pros | Cons |
+|------|------|
+| Session persistence built-in | Clients behind proxies cause hot spots |
+| No session replication needed | Adding servers breaks existing mappings |
+
+**Use when:** Your app stores session data locally and can't share it between servers.
+
+---
+
+### 5. Least Response Time
+
+Pick the server responding fastest right now.
+
+| Pros | Cons |
+|------|------|
+| Optimizes for speed | Requires constant monitoring |
+| Adapts to server health | Short-term blips cause flapping |
+
+**Use when:** Latency is your top priority (e.g., real-time applications).
+
+---
+
+## Quick Comparison Table
+
+| Algorithm | Best For | Avoids |
+|-----------|----------|--------|
+| **Round Robin** | Equal servers, simple setup | Complex logic |
+| **Weighted Round Robin** | Mixed hardware | Real-time adaptation |
+| **Least Connections** | Varying request times | Ignoring current load |
+| **IP Hash** | Session persistence | Session replication |
+| **Least Response Time** | Latency-critical apps | Slow servers |
+
+---
 
 ## Hardware vs. Software Load Balancers
 
-*   **Hardware Load Balancers:**
-    *   Dedicated physical appliances designed specifically for load balancing.
-    *   Often use specialized hardware (ASICs) for high performance and throughput.
-    *   Typically offer advanced features like SSL offloading, intrusion detection, and web application firewalls.
-    *   **Pros:** High performance, reliability, security features.
-    *   **Cons:**  Expensive, less flexible, can be a single point of failure (unless configured in a high-availability pair).
-    *   **Examples:**  F5 BIG-IP, Citrix ADC, A10 Networks.
+### Hardware Load Balancers
 
-*   **Software Load Balancers:**
-    *   Software applications that run on standard servers (often virtual machines).
-    *   Can be deployed on-premises or in the cloud.
-    *   **Pros:**  Cost-effective, flexible, scalable, easy to deploy and manage.
-    *   **Cons:**  Performance may be lower than dedicated hardware appliances, especially for very high traffic volumes.
-    *   **Examples:**  HAProxy, Nginx, Apache (with mod_proxy_balancer), Traefik, Envoy, cloud-provided load balancers (AWS ELB, Azure Load Balancer, GCP Load Balancer).
+Physical appliances (F5, Citrix ADC) with dedicated chips.
 
-**Choosing Between Hardware and Software:**
+| Pros | Cons |
+|------|------|
+| Extremely fast | Very expensive ($10K+) |
+| Advanced security features | Less flexible |
+| SSL offloading | Can be a single point of failure |
 
-*   **High-Traffic, Performance-Critical Applications:** Hardware load balancers are often preferred for their superior performance and dedicated hardware.
-*   **Cost-Sensitive Environments, Cloud Deployments:** Software load balancers are a good choice for their flexibility, scalability, and lower cost.
-*   **Hybrid Environments:**  A combination of hardware and software load balancers can be used, with hardware load balancers at the edge and software load balancers within the application tiers.
+### Software Load Balancers
 
-## Session Management: Sticky Sessions
+Applications running on regular servers (Nginx, HAProxy, cloud LBs).
 
-*   **Problem:**  Some applications require that all requests from a particular client be directed to the same server for the duration of a session (e.g., shopping carts, user authentication).
-*   **Solution: Sticky Sessions (Session Affinity):**
-    *   The load balancer maintains a mapping between a client and a specific server.
-    *   Methods for achieving sticky sessions:
-        *   **IP Hash:**  (As described above).
-        *   **Cookie-Based:** The load balancer inserts a cookie into the client's browser, identifying the assigned server.  Subsequent requests with that cookie are routed to the same server.
-        *   **URL Rewriting:**  (Less common) The server ID is embedded in the URL.
+| Pros | Cons |
+|------|------|
+| Cost-effective | May need tuning for extreme loads |
+| Highly flexible | Run on shared resources |
+| Easy to scale | |
 
-*   **Pros:**
-    *   Ensures session data consistency.
-    *   Simple to implement with some load balancing algorithms (e.g., IP Hash).
+**Popular options:**
+- **Nginx** - Great for HTTP, easy config
+- **HAProxy** - High performance, TCP/HTTP
+- **AWS ALB/NLB** - Managed, auto-scaling
+- **Traefik** - Great for containers/Kubernetes
 
-*   **Cons:**
-    *   Can lead to uneven distribution if some sessions are much longer or more active than others.
-    *   If a server goes down, sessions associated with that server are lost (unless session replication is implemented).
-    *   Can complicate scaling (adding or removing servers).
+{: .note }
+> In interviews, most systems use software load balancers. Hardware is mainly for very high-traffic edge cases.
 
-*   **Alternatives to Sticky Sessions:**
-    *   **Session Replication:**  Session data is replicated across all servers, so any server can handle any client's requests.  More complex to implement but provides better fault tolerance.
-    *   **Centralized Session Store:**  Session data is stored in a central location (e.g., a database or cache) accessible to all servers.
+---
+
+## Sticky Sessions (Session Affinity)
+
+### The Problem
+
+Some apps store user data in memory:
+- Shopping cart contents
+- Login state
+- Form progress
+
+If requests bounce between servers, this data is lost!
+
+### The Solution
+
+**Sticky sessions** ensure the same user always hits the same server.
+
+**Methods:**
+1. **IP Hash** - Route by client IP
+2. **Cookie-based** - LB sets a cookie with server ID
+3. **URL rewriting** - Embed server ID in URLs (rare)
+
+### The Trade-off
+
+| Pros | Cons |
+|------|------|
+| Session data stays intact | Uneven load distribution |
+| Simple to implement | Server failure = lost sessions |
+
+### Better Alternatives
+
+Instead of sticky sessions, consider:
+
+1. **Centralized Session Store** - Store sessions in Redis/Memcached
+2. **Session Replication** - Copy sessions across all servers
+3. **Stateless Design** - Use JWTs, store data client-side
+
+{: .tip }
+> In interviews, mention that sticky sessions are a valid solution but explain why stateless designs scale better.
+
+---
 
 ## Health Checks
 
-*   **Purpose:**  Load balancers need to know if a backend server is healthy and able to handle requests.  Health checks are used to periodically monitor the status of each server.
-*   **Types of Health Checks:**
-    *   **Passive:**  The load balancer monitors the success or failure of requests to determine server health.
-    *   **Active:** The load balancer sends periodic requests (e.g., HTTP GET requests to a specific endpoint) to each server to check its status.  Common health check types include:
-        *   **TCP Connect:** Checks if the server is listening on a specific port.
-        *   **HTTP:** Sends an HTTP request and checks for a specific response code (e.g., 200 OK) or content.
-        *   **Custom:**  Executes a custom script or command on the server to check its health.
+Load balancers need to know if servers are alive. Health checks test this continuously.
 
-*   **Configuration:**
-    *   **Interval:** How often the health check is performed.
-    *   **Timeout:** How long to wait for a response before considering the server unhealthy.
-    *   **Thresholds:**  How many consecutive failures are required to mark a server as unhealthy, and how many consecutive successes are required to mark it as healthy again.
+### Types
 
-*   **Benefits:**
-    *   Automatic removal of unhealthy servers from the load balancing pool.
-    *   Improved application availability and resilience.
-    *   Prevents requests from being sent to failing servers.
+| Type | How It Works |
+|------|--------------|
+| **TCP** | Can we connect to the port? |
+| **HTTP** | Does `/health` return 200 OK? |
+| **Custom** | Run a script, check dependencies |
+
+### Configuration
+
+```yaml
+health_check:
+  interval: 10s        # Check every 10 seconds
+  timeout: 5s          # Wait 5 seconds for response
+  unhealthy_threshold: 3   # 3 failures = mark unhealthy
+  healthy_threshold: 2     # 2 successes = mark healthy again
+```
+
+### What Happens When a Server Fails?
+
+1. Health check fails 3 times
+2. Load balancer marks server "unhealthy"
+3. No new requests sent to that server
+4. Other servers absorb the traffic
+5. When server recovers, it's added back
+
+---
+
+## Interview Tips
+
+{: .warning }
+> Don't just name algorithms. Explain **when** you'd use each one.
+
+**Common questions:**
+- "How would you handle a server going down?"
+- "What if users need session persistence?"
+- "How do you prevent overloading a single server?"
+
+**Strong answer structure:**
+1. State the algorithm you'd use
+2. Explain why it fits this use case
+3. Acknowledge trade-offs
+4. Mention alternatives considered
+
+**Example:**
+> "I'd use Least Connections because our API requests have varying durations. Round Robin might overload a server stuck on long requests. The trade-off is we need to track connections, but that's minimal overhead."
+
+---
+
+## Summary
+
+- **Load balancing** distributes traffic across servers
+- Choose algorithm based on your needs (session persistence, performance, simplicity)
+- **Least Connections** is often a safe default
+- Use **health checks** to automatically remove failing servers
+- Consider **stateless design** over sticky sessions for better scalability
