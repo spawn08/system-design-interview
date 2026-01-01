@@ -9,9 +9,48 @@
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // 1. Find all Jekyll code blocks marked as mermaid
+    const mermaidBlocks = document.querySelectorAll('.language-mermaid');
+    
+    // 2. Convert them to div.mermaid for the library to detect
+    mermaidBlocks.forEach(function(block) {
+        // Capture the raw graph definition text
+        const graphDefinition = block.textContent;
+        
+        // Create the new div expected by Mermaid
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = graphDefinition;
+        
+        // Handle Jekyll's HTML structure (often wrapped in pre/divs)
+        let target = block;
+        
+        // If it's a <code> inside <pre>, target the <pre>
+        if (block.tagName === 'CODE' && block.parentNode.tagName === 'PRE') {
+            target = block.parentNode;
+        }
+        
+        // If wrapped in div.highlight (standard Jekyll output), target that
+        if (target.parentNode && target.parentNode.classList.contains('highlight')) {
+            target = target.parentNode;
+        }
+        
+        // If wrapped in div.highlighter-rouge, target that (top level)
+        if (target.parentNode && target.parentNode.classList.contains('highlighter-rouge')) {
+            target = target.parentNode;
+        }
+        
+        // Replace the code block with the mermaid div
+        if (target.parentNode) {
+            target.parentNode.replaceChild(div, target);
+        }
+    });
+
+    // 3. Initialize Mermaid with High Contrast Theme
     mermaid.initialize({
       startOnLoad: true,
       theme: 'base',
+      securityLevel: 'loose',
       themeVariables: {
         // Dark background
         background: '#0d1117',
@@ -483,7 +522,7 @@
     padding: 1.25rem 1.5rem;
     margin: 2rem 0;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 100%);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-radius: 0 $radius-md $radius-md 0;
     box-shadow: var(--shadow);
   }
   
