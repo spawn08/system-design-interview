@@ -11,73 +11,73 @@
   
   const config = {
     startOnLoad: true,
-    theme: 'dark',
+    theme: 'base',
     themeVariables: {
-      // Background colors
+      // Dark background
       background: '#0d1117',
-      mainBkg: '#1f2937',
-      secondBkg: '#1f2937',
+      mainBkg: '#1e293b',
+      secondBkg: '#1e293b',
       
-      // PRIMARY - All text WHITE
+      // PRIMARY - Bright colors with WHITE text
       primaryColor: '#3b82f6',
       primaryTextColor: '#ffffff',
-      primaryBorderColor: '#3b82f6',
+      primaryBorderColor: '#60a5fa',
       
       // SECONDARY
       secondaryColor: '#10b981',
       secondaryTextColor: '#ffffff',
-      secondaryBorderColor: '#10b981',
+      secondaryBorderColor: '#34d399',
       
       // TERTIARY
       tertiaryColor: '#8b5cf6',
       tertiaryTextColor: '#ffffff',
-      tertiaryBorderColor: '#8b5cf6',
+      tertiaryBorderColor: '#a78bfa',
       
-      // LINE COLORS - Bright for visibility
-      lineColor: '#60a5fa',
+      // LINE COLORS - BRIGHT CYAN for maximum visibility
+      lineColor: '#22d3ee',
       
       // TEXT - ALL WHITE
       textColor: '#ffffff',
       
       // Node styling
-      nodeBorder: '#3b82f6',
+      nodeBorder: '#60a5fa',
       nodeTextColor: '#ffffff',
       
       // Cluster/Subgraph
-      clusterBkg: '#111827',
-      clusterBorder: '#374151',
+      clusterBkg: '#0f172a',
+      clusterBorder: '#475569',
       
-      // CRITICAL: Edge/Arrow label text
-      edgeLabelBackground: '#1f2937',
+      // CRITICAL: Edge/Arrow label - WHITE on dark background
+      edgeLabelBackground: '#334155',
       
       // Fonts
       fontFamily: 'Inter, -apple-system, sans-serif',
       fontSize: '14px',
       
       // Flowchart specific
-      labelBackground: '#1f2937',
+      labelBackground: '#334155',
       
       // Sequence diagram - ALL WHITE TEXT
-      actorBorder: '#3b82f6',
-      actorBkg: '#1f2937',
+      actorBorder: '#60a5fa',
+      actorBkg: '#1e293b',
       actorTextColor: '#ffffff',
-      actorLineColor: '#60a5fa',
+      actorLineColor: '#22d3ee',
       
-      signalColor: '#60a5fa',
+      signalColor: '#22d3ee',
       signalTextColor: '#ffffff',
       
-      labelBoxBkgColor: '#1f2937',
-      labelBoxBorderColor: '#3b82f6',
+      labelBoxBkgColor: '#334155',
+      labelBoxBorderColor: '#60a5fa',
       labelTextColor: '#ffffff',
       
       loopTextColor: '#ffffff',
       
-      noteBorderColor: '#f59e0b',
-      noteBkgColor: '#1f2937',
+      noteBorderColor: '#fbbf24',
+      noteBkgColor: '#1e293b',
       noteTextColor: '#ffffff',
       
-      activationBorderColor: '#3b82f6',
-      activationBkgColor: '#374151',
+      activationBorderColor: '#60a5fa',
+      activationBkgColor: '#334155',
       
       sequenceNumberColor: '#ffffff'
     },
@@ -133,6 +133,7 @@
     --accent-yellow: #d29922;
     --accent-red: #f85149;
     --accent-purple: #a371f7;
+    --accent-cyan: #22d3ee;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     --radius-sm: 6px;
@@ -159,7 +160,7 @@
   }
 
   /* =============================================
-     MERMAID DIAGRAMS - MAXIMUM VISIBILITY
+     MERMAID DIAGRAMS - ULTRA HIGH CONTRAST
      ============================================= */
   
   pre.mermaid,
@@ -167,8 +168,8 @@
     max-width: 100%;
     margin: 2rem 0;
     padding: 2rem;
-    background: linear-gradient(145deg, #111827 0%, #0d1117 100%) !important;
-    border: 1px solid #374151;
+    background: linear-gradient(145deg, #0f172a 0%, #020617 100%) !important;
+    border: 2px solid #334155;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
     overflow-x: auto;
@@ -181,18 +182,26 @@
   }
 
   /* =============================================
-     FORCE ALL MERMAID TEXT TO BE WHITE/VISIBLE
+     FORCE ALL MERMAID TEXT TO BE BRIGHT WHITE
      ============================================= */
   
-  /* ALL text elements */
+  /* ALL text elements - nuclear option */
   .mermaid text,
   .mermaid tspan,
+  .mermaid span,
+  .mermaid p,
   .mermaid .label,
   .mermaid .labelText,
   .mermaid .label text,
+  .mermaid .label tspan,
+  .mermaid .edgeLabel,
   .mermaid .edgeLabel text,
   .mermaid .edgeLabel tspan,
   .mermaid .edgeLabel span,
+  .mermaid .edgeLabel p,
+  .mermaid .edgeLabel foreignObject,
+  .mermaid .edgeLabel foreignObject div,
+  .mermaid .edgeLabel foreignObject span,
   .mermaid .edgePath text,
   .mermaid .messageText,
   .mermaid .loopText,
@@ -201,67 +210,80 @@
   .mermaid .actor text,
   .mermaid .actor tspan,
   .mermaid g text,
-  .mermaid g tspan {
+  .mermaid g tspan,
+  .mermaid g span,
+  .mermaid foreignObject,
+  .mermaid foreignObject div,
+  .mermaid foreignObject span,
+  .mermaid foreignObject p {
     fill: #ffffff !important;
     color: #ffffff !important;
-    font-weight: 500 !important;
-    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    font-family: 'Inter', sans-serif !important;
   }
   
   /* Edge labels (arrow text) - THE CRITICAL FIX */
   .mermaid .edgeLabel {
-    background-color: #1f2937 !important;
-    padding: 4px 8px !important;
-    border-radius: 4px !important;
+    background-color: #334155 !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    border: 1px solid #475569 !important;
   }
   
   .mermaid .edgeLabel rect,
-  .mermaid .labelBkg {
-    fill: #1f2937 !important;
-    stroke: none !important;
+  .mermaid .labelBkg,
+  .mermaid .edgeLabel .label-container {
+    fill: #334155 !important;
+    stroke: #475569 !important;
+    rx: 6 !important;
+    ry: 6 !important;
   }
   
   .mermaid .edgeLabel span,
-  .mermaid .edgeLabel p {
+  .mermaid .edgeLabel p,
+  .mermaid .edgeLabel div {
     color: #ffffff !important;
     background: transparent !important;
+    font-weight: 600 !important;
   }
   
-  /* Flowchart edge labels */
+  /* Flowchart edge labels - direct targeting */
   .mermaid .flowchart-link + .edgeLabel text,
-  .mermaid [class*="edge"] text {
+  .mermaid [class*="edge"] text,
+  .mermaid [class*="Edge"] text {
     fill: #ffffff !important;
   }
 
   /* Sequence diagram message text */
   .mermaid .messageLine0,
   .mermaid .messageLine1 {
-    stroke: #60a5fa !important;
+    stroke: #22d3ee !important;
     stroke-width: 2px !important;
   }
   
   .mermaid .messageText {
     fill: #ffffff !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
   }
 
   /* Actor boxes */
   .mermaid .actor {
-    fill: #1f2937 !important;
-    stroke: #3b82f6 !important;
+    fill: #1e293b !important;
+    stroke: #60a5fa !important;
     stroke-width: 2px !important;
   }
   
   .mermaid .actor-line {
-    stroke: #60a5fa !important;
+    stroke: #22d3ee !important;
     stroke-width: 1px !important;
   }
 
   /* Notes */
   .mermaid .note {
-    fill: #1f2937 !important;
-    stroke: #f59e0b !important;
+    fill: #1e293b !important;
+    stroke: #fbbf24 !important;
     stroke-width: 2px !important;
   }
   
@@ -273,30 +295,36 @@
   .mermaid .activation0,
   .mermaid .activation1,
   .mermaid .activation2 {
-    fill: #374151 !important;
-    stroke: #3b82f6 !important;
+    fill: #334155 !important;
+    stroke: #60a5fa !important;
   }
 
-  /* Lines and arrows */
+  /* Lines and arrows - BRIGHT CYAN */
   .mermaid line,
   .mermaid path.path,
-  .mermaid .flowchart-link {
-    stroke: #60a5fa !important;
+  .mermaid .flowchart-link,
+  .mermaid .edge-pattern-solid,
+  .mermaid .relation {
+    stroke: #22d3ee !important;
     stroke-width: 2px !important;
   }
   
-  .mermaid marker path {
-    fill: #60a5fa !important;
+  .mermaid marker path,
+  .mermaid marker polygon,
+  .mermaid #arrowhead path,
+  .mermaid defs marker path {
+    fill: #22d3ee !important;
+    stroke: #22d3ee !important;
   }
 
-  /* Nodes */
+  /* Nodes - Blue accent */
   .mermaid .node rect,
   .mermaid .node polygon,
   .mermaid .node circle,
   .mermaid .node ellipse,
   .mermaid .node path {
-    fill: #1f2937 !important;
-    stroke: #3b82f6 !important;
+    fill: #1e293b !important;
+    stroke: #60a5fa !important;
     stroke-width: 2px !important;
   }
   
@@ -306,21 +334,33 @@
 
   /* Clusters/Subgraphs */
   .mermaid .cluster rect {
-    fill: #111827 !important;
-    stroke: #374151 !important;
-    stroke-width: 1px !important;
-    rx: 8px !important;
+    fill: #0f172a !important;
+    stroke: #475569 !important;
+    stroke-width: 2px !important;
+    rx: 10px !important;
   }
   
   .mermaid .cluster text,
   .mermaid .cluster tspan {
-    fill: #9ca3af !important;
-    font-weight: 600 !important;
+    fill: #94a3b8 !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
   }
 
   /* Loop boxes in sequence diagrams */
   .mermaid .loopLine {
-    stroke: #374151 !important;
+    stroke: #475569 !important;
+    stroke-width: 2px !important;
+  }
+  
+  /* Alt/Opt/Loop labels */
+  .mermaid .labelBox {
+    fill: #334155 !important;
+    stroke: #60a5fa !important;
+  }
+  
+  .mermaid .labelBox text {
+    fill: #ffffff !important;
   }
 
   /* =============================================
@@ -521,6 +561,12 @@
     background: rgba(163, 113, 247, 0.15);
     color: var(--accent-purple);
     border: 1px solid rgba(163, 113, 247, 0.3);
+  }
+  
+  .label-yellow {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
   }
 
   /* =============================================

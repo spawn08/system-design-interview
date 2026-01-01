@@ -36,10 +36,6 @@ aux_links_new_tab: true
 # Enable copy code button
 enable_copy_code_button: true
 
-# Mermaid diagrams
-mermaid:
-  version: "10.6.0"
-
 # Callouts configuration
 callouts_level: quiet
 callouts:

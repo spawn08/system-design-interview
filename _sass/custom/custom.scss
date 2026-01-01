@@ -16,6 +16,7 @@ $accent-blue: #58a6ff;
 $accent-green: #3fb950;
 $accent-yellow: #d29922;
 $accent-purple: #a371f7;
+$accent-cyan: #22d3ee;
 
 // Typography
 $font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -42,7 +43,7 @@ p:has(a[href*="just-the-docs"]) {
 }
 
 // =============================================
-// MERMAID DIAGRAMS - HIGH CONTRAST
+// MERMAID DIAGRAMS - ULTRA HIGH CONTRAST
 // =============================================
 
 pre.mermaid,
@@ -50,8 +51,8 @@ pre.mermaid,
   max-width: 100%;
   margin: 2rem 0;
   padding: 2rem;
-  background: linear-gradient(145deg, #111827 0%, #0d1117 100%) !important;
-  border: 1px solid #374151;
+  background: linear-gradient(145deg, #0f172a 0%, #020617 100%) !important;
+  border: 2px solid #334155;
   border-radius: $radius-lg;
   box-shadow: $shadow;
   overflow-x: auto;
@@ -62,75 +63,98 @@ pre.mermaid,
     min-height: 200px;
   }
   
-  // Force ALL text white
-  text, tspan, .label, .labelText, .edgeLabel text,
-  .messageText, .loopText, .noteText, .actor text {
+  // Force ALL text bright white - nuclear option
+  text, tspan, span, p, div,
+  .label, .labelText, 
+  .edgeLabel, .edgeLabel text, .edgeLabel tspan, .edgeLabel span,
+  .messageText, .loopText, .noteText, 
+  .actor text, g text, g tspan,
+  foreignObject, foreignObject div, foreignObject span, foreignObject p {
     fill: #ffffff !important;
     color: #ffffff !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
   }
   
-  // Edge labels
+  // Edge labels - super visible
   .edgeLabel {
-    background-color: #1f2937 !important;
-    padding: 4px 8px !important;
-    border-radius: 4px !important;
+    background-color: #334155 !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    border: 1px solid #475569 !important;
     
-    rect {
-      fill: #1f2937 !important;
+    rect, .labelBkg {
+      fill: #334155 !important;
+      stroke: #475569 !important;
     }
     
-    span, p {
+    span, p, div {
       color: #ffffff !important;
+      background: transparent !important;
     }
   }
   
   // Actors
   .actor {
-    fill: #1f2937 !important;
-    stroke: #3b82f6 !important;
-    stroke-width: 2px !important;
-  }
-  
-  // Lines
-  line, .messageLine0, .messageLine1, path.path, .flowchart-link {
+    fill: #1e293b !important;
     stroke: #60a5fa !important;
     stroke-width: 2px !important;
   }
   
-  marker path {
-    fill: #60a5fa !important;
+  // Lines - BRIGHT CYAN
+  line, .messageLine0, .messageLine1, path.path, .flowchart-link, .relation {
+    stroke: $accent-cyan !important;
+    stroke-width: 2px !important;
+  }
+  
+  marker path, marker polygon, #arrowhead path {
+    fill: $accent-cyan !important;
+    stroke: $accent-cyan !important;
   }
   
   // Nodes
-  .node rect, .node polygon, .node circle {
-    fill: #1f2937 !important;
-    stroke: #3b82f6 !important;
+  .node rect, .node polygon, .node circle, .node ellipse {
+    fill: #1e293b !important;
+    stroke: #60a5fa !important;
     stroke-width: 2px !important;
   }
   
   // Clusters
   .cluster rect {
-    fill: #111827 !important;
-    stroke: #374151 !important;
-    rx: 8px !important;
+    fill: #0f172a !important;
+    stroke: #475569 !important;
+    stroke-width: 2px !important;
+    rx: 10px !important;
   }
   
   .cluster text {
-    fill: #9ca3af !important;
-    font-weight: 600 !important;
+    fill: #94a3b8 !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
   }
   
   // Notes
   .note {
-    fill: #1f2937 !important;
-    stroke: #f59e0b !important;
+    fill: #1e293b !important;
+    stroke: #fbbf24 !important;
+    stroke-width: 2px !important;
   }
   
   // Activations
   .activation0, .activation1, .activation2 {
-    fill: #374151 !important;
-    stroke: #3b82f6 !important;
+    fill: #334155 !important;
+    stroke: #60a5fa !important;
+  }
+  
+  // Loop boxes
+  .loopLine {
+    stroke: #475569 !important;
+    stroke-width: 2px !important;
+  }
+  
+  .labelBox {
+    fill: #334155 !important;
+    stroke: #60a5fa !important;
   }
 }
 
@@ -326,6 +350,12 @@ details {
     background: rgba($accent-purple, 0.15);
     color: $accent-purple;
     border: 1px solid rgba($accent-purple, 0.3);
+  }
+  
+  &.label-yellow {
+    background: rgba($accent-yellow, 0.15);
+    color: $accent-yellow;
+    border: 1px solid rgba($accent-yellow, 0.3);
   }
 }
 

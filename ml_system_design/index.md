@@ -32,7 +32,7 @@ ML system design interviews focus on the **full ML lifecycle**, not just the mod
 
 ## Available Designs
 
-### [Image Caption Generator](image_caption_generator.md)
+### [Image Caption Generator]({{ site.baseurl }}/ml_system_design/image_caption_generator)
 {: .d-inline-block }
 
 Computer Vision
@@ -46,7 +46,7 @@ Design a system that generates descriptive captions for images using deep learni
 
 ---
 
-### [Recommendation System](recommendation_system.md)
+### [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system)
 {: .d-inline-block }
 
 Personalization
@@ -60,7 +60,7 @@ Design a recommendation system for e-commerce or content platforms like Netflix/
 
 ---
 
-### [Real-time Fraud Detection](fraud_detection.md)
+### [Real-time Fraud Detection]({{ site.baseurl }}/ml_system_design/fraud_detection)
 {: .d-inline-block }
 
 Low-latency ML
@@ -74,7 +74,7 @@ Design a system that detects fraudulent transactions in real-time (<100ms).
 
 ---
 
-### [Image Search System](image_search.md)
+### [Image Search System]({{ site.baseurl }}/ml_system_design/image_search)
 {: .d-inline-block }
 
 Vector Search
