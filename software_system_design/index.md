@@ -33,7 +33,7 @@ Each example follows a consistent structure that mirrors what interviewers expec
 
 ## Available Designs
 
-### [URL Shortener (TinyURL)](url_shortening.md)
+### [URL Shortener (TinyURL)]({{ site.baseurl }}/software_system_design/url_shortening)
 {: .d-inline-block }
 
 Classic
@@ -47,7 +47,7 @@ Design a service that converts long URLs into short, shareable links.
 
 ---
 
-### [Voting System](voting-system-design.md)
+### [Voting System]({{ site.baseurl }}/software_system_design/voting-system-design)
 {: .d-inline-block }
 
 Real-world
@@ -61,7 +61,7 @@ Design a scalable platform for creating and participating in polls/elections.
 
 ---
 
-### [Rate Limiter](rate_limiter.md)
+### [Rate Limiter]({{ site.baseurl }}/software_system_design/rate_limiter)
 {: .d-inline-block }
 
 Essential
@@ -75,7 +75,7 @@ Design a distributed rate limiter to protect APIs from abuse.
 
 ---
 
-### [Web Crawler](web_crawler.md)
+### [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler)
 {: .d-inline-block }
 
 Complex
@@ -89,7 +89,7 @@ Design a web crawler to index the internet at scale.
 
 ---
 
-### [Notification System](notification_system.md)
+### [Notification System]({{ site.baseurl }}/software_system_design/notification_system)
 {: .d-inline-block }
 
 Multi-channel

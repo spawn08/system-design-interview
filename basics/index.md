@@ -30,11 +30,11 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 
 | Topic | Description | Difficulty |
 |-------|-------------|------------|
-| [Load Balancing](load_balancer.md) | Distribute requests across multiple servers | ⭐ Beginner |
-| [Caching](caching.md) | Store data for faster access | ⭐ Beginner |
-| [Databases](databases.md) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
-| [Networking](networking.md) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
-| [Concurrency](concurrency.md) | Threads, locks, async patterns | ⭐⭐ Intermediate |
+| [Load Balancing]({{ site.baseurl }}/basics/load_balancer) | Distribute requests across multiple servers | ⭐ Beginner |
+| [Caching]({{ site.baseurl }}/basics/caching) | Store data for faster access | ⭐ Beginner |
+| [Databases]({{ site.baseurl }}/basics/databases) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
+| [Networking]({{ site.baseurl }}/basics/networking) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
+| [Concurrency]({{ site.baseurl }}/basics/concurrency) | Threads, locks, async patterns | ⭐⭐ Intermediate |
 
 ---
 
@@ -106,6 +106,6 @@ CONCURRENCY
 
 After mastering these fundamentals:
 
-1. **Apply them** in [System Design Examples](../software_system_design/)
-2. **See ML-specific patterns** in [ML System Design](../ml_system_design/)
+1. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/)
+2. **See ML-specific patterns** in [ML System Design]({{ site.baseurl }}/ml_system_design/)
 3. **Practice** drawing architectures using these building blocks
