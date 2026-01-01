@@ -5,112 +5,111 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Mermaid JS for diagrams with MAXIMUM CONTRAST -->
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-  
-  const config = {
-    startOnLoad: true,
-    theme: 'base',
-    themeVariables: {
-      // Dark background
-      background: '#0d1117',
-      mainBkg: '#1e293b',
-      secondBkg: '#1e293b',
-      
-      // PRIMARY - Bright colors with WHITE text
-      primaryColor: '#3b82f6',
-      primaryTextColor: '#ffffff',
-      primaryBorderColor: '#60a5fa',
-      
-      // SECONDARY
-      secondaryColor: '#10b981',
-      secondaryTextColor: '#ffffff',
-      secondaryBorderColor: '#34d399',
-      
-      // TERTIARY
-      tertiaryColor: '#8b5cf6',
-      tertiaryTextColor: '#ffffff',
-      tertiaryBorderColor: '#a78bfa',
-      
-      // LINE COLORS - BRIGHT CYAN for maximum visibility
-      lineColor: '#22d3ee',
-      
-      // TEXT - ALL WHITE
-      textColor: '#ffffff',
-      
-      // Node styling
-      nodeBorder: '#60a5fa',
-      nodeTextColor: '#ffffff',
-      
-      // Cluster/Subgraph
-      clusterBkg: '#0f172a',
-      clusterBorder: '#475569',
-      
-      // CRITICAL: Edge/Arrow label - WHITE on dark background
-      edgeLabelBackground: '#334155',
-      
-      // Fonts
-      fontFamily: 'Inter, -apple-system, sans-serif',
-      fontSize: '14px',
-      
-      // Flowchart specific
-      labelBackground: '#334155',
-      
-      // Sequence diagram - ALL WHITE TEXT
-      actorBorder: '#60a5fa',
-      actorBkg: '#1e293b',
-      actorTextColor: '#ffffff',
-      actorLineColor: '#22d3ee',
-      
-      signalColor: '#22d3ee',
-      signalTextColor: '#ffffff',
-      
-      labelBoxBkgColor: '#334155',
-      labelBoxBorderColor: '#60a5fa',
-      labelTextColor: '#ffffff',
-      
-      loopTextColor: '#ffffff',
-      
-      noteBorderColor: '#fbbf24',
-      noteBkgColor: '#1e293b',
-      noteTextColor: '#ffffff',
-      
-      activationBorderColor: '#60a5fa',
-      activationBkgColor: '#334155',
-      
-      sequenceNumberColor: '#ffffff'
-    },
-    flowchart: {
-      useMaxWidth: true,
-      htmlLabels: true,
-      curve: 'basis',
-      padding: 20,
-      nodeSpacing: 50,
-      rankSpacing: 60,
-      diagramPadding: 20
-    },
-    sequence: {
-      useMaxWidth: true,
-      wrap: true,
-      width: 200,
-      height: 60,
-      boxMargin: 10,
-      boxTextMargin: 8,
-      noteMargin: 15,
-      messageMargin: 40,
-      mirrorActors: true,
-      bottomMarginAdj: 10,
-      actorFontSize: 14,
-      actorFontWeight: 600,
-      noteFontSize: 13,
-      noteFontWeight: 400,
-      messageFontSize: 14,
-      messageFontWeight: 500
-    }
-  };
-  
-  mermaid.initialize(config);
+<!-- Mermaid JS for diagrams -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        // Dark background
+        background: '#0d1117',
+        mainBkg: '#1e293b',
+        secondBkg: '#1e293b',
+        
+        // PRIMARY - Bright colors with WHITE text
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#ffffff',
+        primaryBorderColor: '#60a5fa',
+        
+        // SECONDARY
+        secondaryColor: '#10b981',
+        secondaryTextColor: '#ffffff',
+        secondaryBorderColor: '#34d399',
+        
+        // TERTIARY
+        tertiaryColor: '#8b5cf6',
+        tertiaryTextColor: '#ffffff',
+        tertiaryBorderColor: '#a78bfa',
+        
+        // LINE COLORS - BRIGHT CYAN for maximum visibility
+        lineColor: '#22d3ee',
+        
+        // TEXT - ALL WHITE
+        textColor: '#ffffff',
+        
+        // Node styling
+        nodeBorder: '#60a5fa',
+        nodeTextColor: '#ffffff',
+        
+        // Cluster/Subgraph
+        clusterBkg: '#0f172a',
+        clusterBorder: '#475569',
+        
+        // CRITICAL: Edge/Arrow label - WHITE on dark background
+        edgeLabelBackground: '#334155',
+        
+        // Fonts
+        fontFamily: 'Inter, -apple-system, sans-serif',
+        fontSize: '14px',
+        
+        // Flowchart specific
+        labelBackground: '#334155',
+        
+        // Sequence diagram - ALL WHITE TEXT
+        actorBorder: '#60a5fa',
+        actorBkg: '#1e293b',
+        actorTextColor: '#ffffff',
+        actorLineColor: '#22d3ee',
+        
+        signalColor: '#22d3ee',
+        signalTextColor: '#ffffff',
+        
+        labelBoxBkgColor: '#334155',
+        labelBoxBorderColor: '#60a5fa',
+        labelTextColor: '#ffffff',
+        
+        loopTextColor: '#ffffff',
+        
+        noteBorderColor: '#fbbf24',
+        noteBkgColor: '#1e293b',
+        noteTextColor: '#ffffff',
+        
+        activationBorderColor: '#60a5fa',
+        activationBkgColor: '#334155',
+        
+        sequenceNumberColor: '#ffffff'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis',
+        padding: 20,
+        nodeSpacing: 50,
+        rankSpacing: 60,
+        diagramPadding: 20
+      },
+      sequence: {
+        useMaxWidth: true,
+        wrap: true,
+        width: 200,
+        height: 60,
+        boxMargin: 10,
+        boxTextMargin: 8,
+        noteMargin: 15,
+        messageMargin: 40,
+        mirrorActors: true,
+        bottomMarginAdj: 10,
+        actorFontSize: 14,
+        actorFontWeight: 600,
+        noteFontSize: 13,
+        noteFontWeight: 400,
+        messageFontSize: 14,
+        messageFontWeight: 500
+      }
+    });
+  });
 </script>
 
 <style>
@@ -163,6 +162,7 @@
      MERMAID DIAGRAMS - ULTRA HIGH CONTRAST
      ============================================= */
   
+  .language-mermaid,
   pre.mermaid,
   .mermaid {
     max-width: 100%;
@@ -410,7 +410,7 @@
      CODE BLOCKS
      ============================================= */
   
-  pre.highlight, pre {
+  pre.highlight, pre:not(.mermaid) {
     background: var(--bg-secondary) !important;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
