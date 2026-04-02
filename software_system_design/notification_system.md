@@ -88,7 +88,59 @@ A notification system delivers messages to users across multiple channels: push 
 
 ---
 
-## Step 2: Notification Types and Priorities
+## Step 2: Back-of-Envelope Estimation
+
+### Scale Assumptions
+
+```
+- 500 million registered users
+- 100 million DAU
+- Average user receives 5 notifications/day
+- Notification types: push (60%), email (25%), SMS (10%), in-app (5%)
+- Peak multiplier: 5x (flash sales, breaking news)
+```
+
+### Traffic Estimation
+
+```
+Daily notifications   = 100M × 5 = 500 million/day
+Average throughput     = 500M / 86,400 ≈ 5,800 notifications/sec
+Peak throughput        = 5,800 × 5 = 29,000 notifications/sec
+
+By channel (avg):
+  Push:    5,800 × 0.60 = 3,480/sec
+  Email:   5,800 × 0.25 = 1,450/sec
+  SMS:     5,800 × 0.10 = 580/sec
+  In-app:  5,800 × 0.05 = 290/sec
+```
+
+### Storage Estimation
+
+```
+Per notification record: ~500 bytes (recipient, channel, content, status, timestamps)
+Daily storage    = 500M × 500 bytes = 250 GB/day
+Monthly storage  = 250 GB × 30 = 7.5 TB/month
+Yearly (with 90-day retention) = 22.5 TB active
+
+Template storage: ~10,000 templates × 5 KB = 50 MB (negligible)
+User preferences: 500M users × 200 bytes = 100 GB
+```
+
+### Provider Rate Limits
+
+| Provider | Rate Limit | Our Peak Demand | Instances Needed |
+|----------|-----------|----------------|-----------------|
+| FCM (Push) | 500 msg/sec per connection | 3,480/sec peak | 7 connections |
+| APNS | 5,000 msg/sec per connection | ~1,740/sec peak | 1 connection |
+| SES (Email) | 500 emails/sec (default) | 1,450/sec peak | 3 accounts or limit increase |
+| Twilio (SMS) | 100 msg/sec | 580/sec peak | 6 accounts or upgrade |
+
+{: .note }
+> Provider rate limits often become the bottleneck, not your infrastructure. Size your connection pools and account partitions to handle peak load with headroom.
+
+---
+
+## Step 3: Notification Types and Priorities
 
 ### Notification Categories
 
@@ -130,7 +182,7 @@ flowchart LR
 
 ---
 
-## Step 3: High-Level Architecture
+## Step 4: High-Level Architecture
 
 ### System Overview
 
@@ -247,7 +299,7 @@ sequenceDiagram
 
 ---
 
-## Step 4: Component Deep Dive
+## Step 5: Component Deep Dive
 
 ### 4.1 Notification API
 
@@ -542,7 +594,7 @@ class NotificationRouter:
 
 ---
 
-## Step 5: Channel Implementations
+## Step 6: Channel Implementations
 
 ### 5.1 Push Notifications (iOS/Android)
 
@@ -802,7 +854,7 @@ class InAppNotificationManager:
 
 ---
 
-## Step 6: Reliability and Delivery Guarantees
+## Step 7: Reliability and Delivery Guarantees
 
 ### Retry Strategies
 
@@ -914,7 +966,7 @@ flowchart LR
 
 ---
 
-## Step 7: Rate Limiting and Throttling
+## Step 8: Rate Limiting and Throttling
 
 Prevent notification fatigue and respect provider limits.
 
@@ -1041,7 +1093,7 @@ class ProviderRateLimiter:
 
 ---
 
-## Step 8: Analytics and Tracking
+## Step 9: Analytics and Tracking
 
 ### Delivery Tracking
 
@@ -1133,7 +1185,7 @@ async def track_click(notification_id: str, url: str):
 
 ---
 
-## Step 9: Scaling Strategies
+## Step 10: Scaling Strategies
 
 ### Horizontal Scaling
 
@@ -1233,7 +1285,275 @@ class BatchNotificationSender:
 
 ---
 
-## Step 10: Monitoring
+## Step 11: Multi-Language Implementations
+
+### Java: Notification Service Core
+
+```java
+import java.util.concurrent.*;
+
+public class NotificationService {
+
+    public enum Channel { PUSH, EMAIL, SMS, IN_APP }
+    public enum Priority { CRITICAL, HIGH, NORMAL, LOW }
+
+    public record NotificationRequest(
+        String userId,
+        String templateId,
+        Map<String, String> params,
+        Channel channel,
+        Priority priority,
+        String idempotencyKey
+    ) {}
+
+    public record NotificationResult(
+        String notificationId,
+        boolean accepted,
+        String message
+    ) {}
+
+    private final Map<Channel, NotificationSender> senders;
+    private final TemplateEngine templateEngine;
+    private final UserPreferencesService preferences;
+    private final IdempotencyStore idempotencyStore;
+    private final Map<Priority, BlockingQueue<NotificationRequest>> priorityQueues;
+
+    public NotificationService(Map<Channel, NotificationSender> senders,
+                                TemplateEngine templateEngine,
+                                UserPreferencesService preferences,
+                                IdempotencyStore idempotencyStore) {
+        this.senders = senders;
+        this.templateEngine = templateEngine;
+        this.preferences = preferences;
+        this.idempotencyStore = idempotencyStore;
+
+        this.priorityQueues = new ConcurrentHashMap<>();
+        for (Priority p : Priority.values()) {
+            priorityQueues.put(p, new LinkedBlockingQueue<>(10_000));
+        }
+    }
+
+    public NotificationResult send(NotificationRequest request) {
+        String notifId = generateId();
+
+        // idempotency check
+        if (idempotencyStore.exists(request.idempotencyKey())) {
+            return new NotificationResult(notifId, false, "Duplicate request");
+        }
+        idempotencyStore.store(request.idempotencyKey(), notifId);
+
+        // check user preferences
+        if (!preferences.isChannelEnabled(request.userId(), request.channel())) {
+            return new NotificationResult(notifId, false, "Channel disabled by user");
+        }
+
+        // enqueue by priority
+        boolean enqueued = priorityQueues.get(request.priority()).offer(request);
+        if (!enqueued) {
+            return new NotificationResult(notifId, false, "Queue full, try again");
+        }
+
+        return new NotificationResult(notifId, true, "Queued for delivery");
+    }
+
+    public void startWorkers(int numWorkers) {
+        ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
+        for (int i = 0; i < numWorkers; i++) {
+            executor.submit(this::processLoop);
+        }
+    }
+
+    private void processLoop() {
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                // drain CRITICAL first, then HIGH, NORMAL, LOW
+                NotificationRequest req = null;
+                for (Priority p : Priority.values()) {
+                    req = priorityQueues.get(p).poll(50, TimeUnit.MILLISECONDS);
+                    if (req != null) break;
+                }
+                if (req == null) continue;
+
+                String content = templateEngine.render(req.templateId(), req.params());
+                NotificationSender sender = senders.get(req.channel());
+                sender.send(req.userId(), content);
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                // log error, send to DLQ for retry
+            }
+        }
+    }
+
+    private String generateId() {
+        return java.util.UUID.randomUUID().toString();
+    }
+}
+
+public interface NotificationSender {
+    void send(String userId, String content) throws Exception;
+}
+```
+
+### Go: Notification Dispatcher with Priority Channels
+
+```go
+package notification
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Channel string
+
+const (
+	ChannelPush  Channel = "push"
+	ChannelEmail Channel = "email"
+	ChannelSMS   Channel = "sms"
+	ChannelInApp Channel = "in_app"
+)
+
+type Priority int
+
+const (
+	PriorityCritical Priority = iota
+	PriorityHigh
+	PriorityNormal
+	PriorityLow
+)
+
+type Request struct {
+	ID             string
+	UserID         string
+	TemplateID     string
+	Params         map[string]string
+	Channel        Channel
+	Priority       Priority
+	IdempotencyKey string
+}
+
+type Result struct {
+	NotificationID string
+	Accepted       bool
+	Message        string
+}
+
+type Sender interface {
+	Send(ctx context.Context, userID, content string) error
+}
+
+type Dispatcher struct {
+	senders       map[Channel]Sender
+	templates     TemplateEngine
+	preferences   PreferencesService
+	idempotency   IdempotencyStore
+	queues        map[Priority]chan *Request
+	workerCount   int
+}
+
+func NewDispatcher(senders map[Channel]Sender, templates TemplateEngine,
+	prefs PreferencesService, idemp IdempotencyStore, workerCount int) *Dispatcher {
+	d := &Dispatcher{
+		senders:     senders,
+		templates:   templates,
+		preferences: prefs,
+		idempotency: idemp,
+		workerCount: workerCount,
+		queues:      make(map[Priority]chan *Request),
+	}
+	for _, p := range []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow} {
+		d.queues[p] = make(chan *Request, 10000)
+	}
+	return d
+}
+
+func (d *Dispatcher) Submit(req *Request) Result {
+	req.ID = uuid.New().String()
+
+	if d.idempotency.Exists(req.IdempotencyKey) {
+		return Result{req.ID, false, "duplicate request"}
+	}
+	d.idempotency.Store(req.IdempotencyKey, req.ID)
+
+	if !d.preferences.IsEnabled(req.UserID, req.Channel) {
+		return Result{req.ID, false, "channel disabled by user"}
+	}
+
+	select {
+	case d.queues[req.Priority] <- req:
+		return Result{req.ID, true, "queued for delivery"}
+	default:
+		return Result{req.ID, false, "queue full"}
+	}
+}
+
+func (d *Dispatcher) Start(ctx context.Context) {
+	var wg sync.WaitGroup
+	for i := 0; i < d.workerCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			d.worker(ctx)
+		}()
+	}
+	wg.Wait()
+}
+
+func (d *Dispatcher) worker(ctx context.Context) {
+	priorities := []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		var req *Request
+		for _, p := range priorities {
+			select {
+			case req = <-d.queues[p]:
+			default:
+				continue
+			}
+			break
+		}
+
+		if req == nil {
+			time.Sleep(50 * time.Millisecond)
+			continue
+		}
+
+		content, err := d.templates.Render(req.TemplateID, req.Params)
+		if err != nil {
+			log.Printf("Template render error for %s: %v", req.ID, err)
+			continue
+		}
+
+		sender, ok := d.senders[req.Channel]
+		if !ok {
+			log.Printf("No sender for channel %s", req.Channel)
+			continue
+		}
+
+		if err := sender.Send(ctx, req.UserID, content); err != nil {
+			log.Printf("Send failed for %s via %s: %v", req.ID, req.Channel, err)
+			// send to DLQ for retry
+		}
+	}
+}
+```
+
+---
+
+## Step 12: Monitoring
 
 ### Key Metrics
 
