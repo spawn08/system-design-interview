@@ -215,3 +215,157 @@ These questions are categorized and cover a range of difficulty levels.  Remembe
 *   **Practice:** The more you practice, the better you'll become.
 
 Good luck with your interviews!
+
+---
+
+## VI. GitHub Pages Deployment
+
+This guide is published as a static site using Jekyll and GitHub Pages. Below are the setup and deployment instructions.
+
+### Live Site
+
+**URL:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
+
+### Technology Stack
+
+| Component | Technology |
+|-----------|-----------|
+| **Static Site Generator** | Jekyll 4.3+ |
+| **Theme** | [Just the Docs v0.8.2](https://just-the-docs.com/) |
+| **Color Scheme** | Dark |
+| **Diagrams** | Mermaid.js (client-side rendering) |
+| **CI/CD** | GitHub Actions |
+| **Hosting** | GitHub Pages |
+
+### Prerequisites
+
+- Ruby 3.1+
+- Bundler (`gem install bundler`)
+- Git
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/spawn08/system-design-interview.git
+cd system-design-interview
+
+# Install dependencies
+bundle install
+
+# Serve locally with live reload
+bundle exec jekyll serve --livereload
+
+# Site will be available at http://localhost:4000/system-design-interview/
+```
+
+### Project Structure
+
+```
+system-design-interview/
+├── .github/workflows/
+│   └── deploy.yml              # GitHub Actions CI/CD pipeline
+├── _includes/
+│   ├── footer_custom.html      # Custom footer
+│   └── head_custom.html        # Fonts, Mermaid.js, custom styles
+├── _sass/custom/
+│   └── custom.scss             # Theme overrides and custom styles
+├── basics/                     # Essential System Design Topics (10 topics)
+│   ├── index.md
+│   ├── load_balancer.md
+│   ├── caching.md
+│   ├── databases.md
+│   ├── networking.md
+│   ├── concurrency.md
+│   ├── distributed_systems.md
+│   ├── api_design.md
+│   ├── security.md
+│   ├── scalability.md
+│   └── estimation.md
+├── software_system_design/     # Classic System Design Problems
+│   ├── index.md
+│   ├── url_shortening.md
+│   ├── rate_limiter.md
+│   ├── web_crawler.md
+│   ├── notification_system.md
+│   └── voting-system-design.md
+├── ml_system_design/           # ML System Design
+│   ├── index.md
+│   ├── recommendation_system.md
+│   ├── fraud_detection.md
+│   ├── image_search.md
+│   └── image_caption_generator.md
+├── _config.yml                 # Jekyll site configuration
+├── Gemfile                     # Ruby dependencies
+├── index.md                    # Home page
+└── README.md                   # This file
+```
+
+### Deployment Pipeline
+
+The site is automatically deployed via GitHub Actions on every push to `main`:
+
+1. **Trigger:** Push to `main` branch or manual workflow dispatch
+2. **Build:** GitHub Actions checks out the code, sets up Ruby 3.1, installs dependencies via Bundler, and builds the Jekyll site
+3. **Deploy:** The built site is uploaded as a GitHub Pages artifact and deployed to the `github-pages` environment
+
+#### GitHub Actions Workflow (`.github/workflows/deploy.yml`)
+
+The pipeline uses the following actions:
+- `actions/checkout@v4` — checks out repository
+- `ruby/setup-ruby@v1` — installs Ruby with bundler caching
+- `actions/configure-pages@v4` — configures GitHub Pages
+- `actions/upload-pages-artifact@v3` — uploads the built `_site` directory
+- `actions/deploy-pages@v4` — deploys to GitHub Pages
+
+#### Required GitHub Repository Settings
+
+1. Go to **Settings → Pages**
+2. Under **Build and deployment**, select **GitHub Actions** as the source
+3. Ensure the repository has **Pages** enabled under **Settings → Pages**
+4. The workflow requires these permissions (already configured in `deploy.yml`):
+   - `contents: read`
+   - `pages: write`
+   - `id-token: write`
+
+### Adding New Content
+
+1. Create a new `.md` file in the appropriate directory (`basics/`, `software_system_design/`, or `ml_system_design/`)
+2. Add the Jekyll front matter:
+   ```yaml
+   ---
+   layout: default
+   title: Your Topic Title
+   parent: Fundamentals    # or "System Design Examples" or "ML System Design"
+   nav_order: N            # determines position in navigation
+   ---
+   ```
+3. Use Mermaid for diagrams (rendered client-side):
+   ````markdown
+   ```mermaid
+   flowchart TD
+       A[Start] --> B[End]
+   ```
+   ````
+4. Use Just the Docs callouts for emphasis:
+   ```markdown
+   {: .note }
+   > This is a note callout.
+
+   {: .tip }
+   > This is a tip callout.
+
+   {: .warning }
+   > This is a warning callout.
+   ```
+5. Commit and push to `main` — the site will auto-deploy in ~2 minutes
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Build fails on GitHub | Check the Actions tab for error logs; usually a Gemfile or front matter issue |
+| Mermaid diagrams not rendering | Ensure `head_custom.html` includes the Mermaid CDN script |
+| Navigation order wrong | Adjust `nav_order` in the page's front matter |
+| Page not appearing | Verify `parent` in front matter matches the parent page's `title` exactly |
+| Local serve fails | Run `bundle update` to update gems, ensure Ruby 3.1+ |

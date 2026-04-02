@@ -45,6 +45,11 @@ Start here if you're new to system design. Learn the building blocks that appear
 - [**Databases**]({{ site.baseurl }}/basics/databases) - SQL vs NoSQL, ACID, CAP theorem
 - [**Networking**]({{ site.baseurl }}/basics/networking) - TCP/UDP, HTTP, DNS, WebSockets
 - [**Concurrency**]({{ site.baseurl }}/basics/concurrency) - Threads, locks, async patterns
+- [**Distributed Systems**]({{ site.baseurl }}/basics/distributed_systems) - CAP, consensus, message queues, DHTs
+- [**API Design**]({{ site.baseurl }}/basics/api_design) - REST, GraphQL, versioning, authentication
+- [**Security**]({{ site.baseurl }}/basics/security) - Encryption, hashing, TLS, common vulnerabilities
+- [**Scalability & Reliability**]({{ site.baseurl }}/basics/scalability) - Scaling, availability, disaster recovery
+- [**Estimation & Planning**]({{ site.baseurl }}/basics/estimation) - Back-of-the-envelope calculations
 
 ### [System Design Examples]({{ site.baseurl }}/software_system_design/)
 Step-by-step walkthroughs of classic interview questions.
@@ -111,9 +116,13 @@ Every system design interview touches on these concepts:
 | **Load Balancing** | Round robin, least connections, health checks |
 | **Caching** | Redis/Memcached, cache invalidation, TTL |
 | **Databases** | SQL vs NoSQL, sharding, replication |
-| **Message Queues** | Kafka, RabbitMQ, async processing |
-| **API Design** | REST, rate limiting, authentication |
-| **Scaling** | Horizontal vs vertical, auto-scaling |
+| **Networking** | TCP/UDP, HTTP/gRPC, DNS, WebSockets |
+| **Concurrency** | Threads, locks, deadlocks, async patterns |
+| **Distributed Systems** | CAP theorem, Raft/Paxos, consistent hashing |
+| **API Design** | REST, GraphQL, versioning, rate limiting, JWT/OAuth |
+| **Security** | TLS, encryption, hashing, input validation |
+| **Scalability** | Horizontal vs vertical, auto-scaling, circuit breakers |
+| **Estimation** | QPS, storage, bandwidth, capacity planning |
 
 ---
 
@@ -121,7 +130,7 @@ Every system design interview touches on these concepts:
 
 | Section | Topics | Difficulty |
 |---------|--------|------------|
-| **Fundamentals** | 5 core topics | ⭐⭐ Beginner-Intermediate |
+| **Fundamentals** | 10 essential topics | ⭐⭐ Beginner-Advanced |
 | **System Design** | 5 classic problems | ⭐⭐⭐ Intermediate-Hard |
 | **ML System Design** | 4 ML systems | ⭐⭐⭐⭐ Hard |
 

@@ -23,6 +23,11 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 - **Databases** persist your data reliably and at scale
 - **Networking** enables communication between services
 - **Concurrency** handles multiple operations simultaneously
+- **Distributed Systems** coordinate work across multiple machines
+- **API Design** defines how services communicate clearly and reliably
+- **Security** protects data and systems from threats
+- **Scalability & Reliability** ensures systems handle growth and failures
+- **Estimation** sizes infrastructure before building
 
 ---
 
@@ -35,6 +40,11 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 | [Databases]({{ site.baseurl }}/basics/databases) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
 | [Networking]({{ site.baseurl }}/basics/networking) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
 | [Concurrency]({{ site.baseurl }}/basics/concurrency) | Threads, locks, async patterns | ⭐⭐ Intermediate |
+| [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems) | CAP, consensus, DHTs, message queues | ⭐⭐⭐ Advanced |
+| [API Design]({{ site.baseurl }}/basics/api_design) | REST, GraphQL, versioning, rate limiting | ⭐⭐ Intermediate |
+| [Security]({{ site.baseurl }}/basics/security) | Encryption, hashing, TLS, vulnerabilities | ⭐⭐ Intermediate |
+| [Scalability & Reliability]({{ site.baseurl }}/basics/scalability) | Scaling, availability, disaster recovery | ⭐⭐⭐ Advanced |
+| [Estimation & Planning]({{ site.baseurl }}/basics/estimation) | Back-of-the-envelope calculations | ⭐⭐ Intermediate |
 
 ---
 
@@ -85,6 +95,36 @@ CONCURRENCY
 ├── Mutex/Lock       → Exclusive access to resource
 ├── Thread Pool      → Reuse threads, bound resources
 └── Async I/O        → Single thread, many I/O operations
+
+DISTRIBUTED SYSTEMS
+├── CAP Theorem      → Consistency vs Availability vs Partition Tolerance
+├── Consensus        → Raft (understandable), Paxos (foundational)
+├── Consistent Hash  → Minimal key remapping on node changes
+└── Message Queues   → Kafka (log), RabbitMQ (broker), SQS (managed)
+
+API DESIGN
+├── REST             → Resource-oriented, HTTP semantics
+├── GraphQL          → Client-specified queries, single endpoint
+├── Versioning       → URI path (v1/v2), header, query param
+└── Auth             → JWT (stateless), OAuth (delegated), API keys
+
+SECURITY
+├── Encryption       → AES (symmetric), RSA/ECDSA (asymmetric)
+├── Hashing          → bcrypt/Argon2 (passwords), SHA-256 (integrity)
+├── TLS              → Encrypt in transit, certificate chain
+└── Input Validation → Parameterized queries, sanitization
+
+SCALABILITY & RELIABILITY
+├── Horizontal Scale → Stateless services + load balancer
+├── Redundancy       → Active-active, active-passive
+├── Circuit Breaker  → Stop cascading failures
+└── Monitoring       → Latency, traffic, errors, saturation
+
+ESTIMATION
+├── Traffic          → DAU × actions/user ÷ 86,400 = QPS
+├── Storage          → writes/day × size × 365 × replication
+├── Bandwidth        → QPS × response_size
+└── Rule of thumb    → 1M req/day ≈ 12 QPS
 ```
 
 ---
@@ -93,12 +133,16 @@ CONCURRENCY
 
 | When They Ask About... | Think About... |
 |------------------------|----------------|
-| **Handling traffic** | Load balancing, horizontal scaling |
+| **Handling traffic** | Load balancing, horizontal scaling, auto-scaling |
 | **Making it fast** | Caching, CDN, read replicas |
-| **Storing data** | SQL vs NoSQL, consistency needs |
-| **Real-time features** | WebSockets, message queues |
-| **Handling failures** | Replication, health checks, retries |
+| **Storing data** | SQL vs NoSQL, consistency needs, sharding |
+| **Real-time features** | WebSockets, message queues, pub/sub |
+| **Handling failures** | Replication, circuit breakers, retries, failover |
 | **Concurrent access** | Locks, optimistic concurrency, idempotency |
+| **Multiple services** | Consensus protocols, leader election, DHTs |
+| **API design** | REST vs GraphQL vs gRPC, versioning, pagination |
+| **Protecting data** | TLS, encryption at rest, input validation, auth |
+| **How big should it be?** | Back-of-envelope estimation, capacity planning |
 
 ---
 
