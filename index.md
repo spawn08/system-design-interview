@@ -51,6 +51,15 @@ Start here if you're new to system design. Learn the building blocks that appear
 - [**Scalability & Reliability**]({{ site.baseurl }}/basics/scalability) - Scaling, availability, disaster recovery
 - [**Estimation & Planning**]({{ site.baseurl }}/basics/estimation) - Back-of-the-envelope calculations
 
+### [Advanced Topics]({{ site.baseurl }}/advanced/)
+Deep dives for Senior and Staff-level interviews — the systems behind the systems.
+
+- [**Message Queues & Streaming**]({{ site.baseurl }}/advanced/message_queues) - Kafka, RabbitMQ, Flink, event-driven patterns
+- [**Search Systems**]({{ site.baseurl }}/advanced/search_systems) - Inverted indexes, Elasticsearch, BM25, autocomplete
+- [**Data Warehousing & Lakes**]({{ site.baseurl }}/advanced/data_warehousing) - ETL, star schema, Spark, lakehouse architecture
+- [**Microservices Architecture**]({{ site.baseurl }}/advanced/microservices) - Service discovery, API gateways, Docker, Kubernetes
+- [**Consistency Patterns**]({{ site.baseurl }}/advanced/consistency_patterns) - CRDTs, sagas, transactional outbox, quorum
+
 ### [System Design Examples]({{ site.baseurl }}/software_system_design/)
 Step-by-step walkthroughs of classic interview questions.
 
@@ -131,6 +140,7 @@ Every system design interview touches on these concepts:
 | Section | Topics | Difficulty |
 |---------|--------|------------|
 | **Fundamentals** | 10 essential topics | ⭐⭐ Beginner-Advanced |
+| **Advanced Topics** | 5 deep-dive topics | ⭐⭐⭐ Advanced-Expert |
 | **System Design** | 5 classic problems | ⭐⭐⭐ Intermediate-Hard |
 | **ML System Design** | 4 ML systems | ⭐⭐⭐⭐ Hard |
 

@@ -282,6 +282,13 @@ system-design-interview/
 │   ├── security.md
 │   ├── scalability.md
 │   └── estimation.md
+├── advanced/                   # Advanced Topics (Senior/Staff level)
+│   ├── index.md
+│   ├── message_queues.md
+│   ├── search_systems.md
+│   ├── data_warehousing.md
+│   ├── microservices.md
+│   └── consistency_patterns.md
 ├── software_system_design/     # Classic System Design Problems
 │   ├── index.md
 │   ├── url_shortening.md
