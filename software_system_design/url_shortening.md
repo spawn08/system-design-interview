@@ -1131,7 +1131,222 @@ If short codes are sequential (`1`, `2`, `3`...), attackers can enumerate all UR
 
 ---
 
-## Step 12: Monitoring and Alerting
+## Step 12: Multi-Language Implementations
+
+### Java: URL Shortening Service
+
+```java
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.util.Optional;
+
+public class UrlShortenerService {
+
+    private static final String BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private static final int SHORT_CODE_LENGTH = 7;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private final UrlRepository urlRepository;
+    private final CacheService cache;
+    private final SnowflakeIdGenerator idGenerator;
+
+    public UrlShortenerService(UrlRepository urlRepository, CacheService cache,
+                                SnowflakeIdGenerator idGenerator) {
+        this.urlRepository = urlRepository;
+        this.cache = cache;
+        this.idGenerator = idGenerator;
+    }
+
+    public record ShortenedUrl(String shortCode, String longUrl, Instant createdAt, Instant expiresAt) {}
+
+    public ShortenedUrl shorten(String longUrl, String userId, Instant expiresAt) {
+        // check if URL already shortened
+        Optional<ShortenedUrl> existing = urlRepository.findByLongUrl(longUrl);
+        if (existing.isPresent()) return existing.get();
+
+        // generate short code via Snowflake ID → Base62
+        long id = idGenerator.nextId();
+        String shortCode = toBase62(id);
+
+        ShortenedUrl result = new ShortenedUrl(shortCode, longUrl, Instant.now(), expiresAt);
+        urlRepository.save(result, userId);
+        cache.put("url:" + shortCode, longUrl, expiresAt);
+
+        return result;
+    }
+
+    public Optional<String> resolve(String shortCode) {
+        // check cache first
+        String cached = cache.get("url:" + shortCode);
+        if (cached != null) return Optional.of(cached);
+
+        // cache miss → query database
+        Optional<ShortenedUrl> fromDb = urlRepository.findByShortCode(shortCode);
+        fromDb.ifPresent(url -> cache.put("url:" + shortCode, url.longUrl(), url.expiresAt()));
+
+        return fromDb.map(ShortenedUrl::longUrl);
+    }
+
+    private String toBase62(long value) {
+        StringBuilder sb = new StringBuilder();
+        value = Math.abs(value);
+        while (sb.length() < SHORT_CODE_LENGTH) {
+            sb.append(BASE62.charAt((int) (value % 62)));
+            value /= 62;
+        }
+        return sb.reverse().toString();
+    }
+}
+```
+
+### Java: Redirect Controller
+
+```java
+@RestController
+public class RedirectController {
+    private final UrlShortenerService service;
+    private final AnalyticsPublisher analytics;
+
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<Void> redirect(@PathVariable String shortCode,
+                                          HttpServletRequest request) {
+        return service.resolve(shortCode)
+            .map(longUrl -> {
+                analytics.publishClickEvent(shortCode, request.getRemoteAddr(),
+                    request.getHeader("User-Agent"), Instant.now());
+                return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", longUrl)
+                    .header("Cache-Control", "private, max-age=90")
+                    .<Void>build();
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/api/v1/shorten")
+    public ResponseEntity<Map<String, String>> shorten(@RequestBody ShortenRequest req) {
+        var result = service.shorten(req.url(), req.userId(), req.expiresAt());
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+            "short_url", "https://short.ly/" + result.shortCode(),
+            "short_code", result.shortCode(),
+            "expires_at", result.expiresAt().toString()
+        ));
+    }
+}
+```
+
+### Go: URL Shortener Service
+
+```go
+package shortener
+
+import (
+	"context"
+	"crypto/rand"
+	"fmt"
+	"math/big"
+	"time"
+)
+
+const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+const codeLength = 7
+
+type ShortenedURL struct {
+	ShortCode string
+	LongURL   string
+	UserID    string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type URLRepository interface {
+	FindByShortCode(ctx context.Context, code string) (*ShortenedURL, error)
+	FindByLongURL(ctx context.Context, longURL string) (*ShortenedURL, error)
+	Save(ctx context.Context, url *ShortenedURL) error
+}
+
+type Cache interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key, value string, ttl time.Duration) error
+}
+
+type Service struct {
+	repo  URLRepository
+	cache Cache
+}
+
+func NewService(repo URLRepository, cache Cache) *Service {
+	return &Service{repo: repo, cache: cache}
+}
+
+func (s *Service) Shorten(ctx context.Context, longURL, userID string,
+	expiresAt time.Time) (*ShortenedURL, error) {
+
+	// check if already shortened
+	existing, err := s.repo.FindByLongURL(ctx, longURL)
+	if err == nil && existing != nil {
+		return existing, nil
+	}
+
+	code, err := generateBase62Code(codeLength)
+	if err != nil {
+		return nil, fmt.Errorf("generating code: %w", err)
+	}
+
+	url := &ShortenedURL{
+		ShortCode: code,
+		LongURL:   longURL,
+		UserID:    userID,
+		CreatedAt: time.Now(),
+		ExpiresAt: expiresAt,
+	}
+
+	if err := s.repo.Save(ctx, url); err != nil {
+		return nil, fmt.Errorf("saving URL: %w", err)
+	}
+
+	ttl := time.Until(expiresAt)
+	_ = s.cache.Set(ctx, "url:"+code, longURL, ttl)
+
+	return url, nil
+}
+
+func (s *Service) Resolve(ctx context.Context, shortCode string) (string, error) {
+	// cache first
+	if cached, err := s.cache.Get(ctx, "url:"+shortCode); err == nil && cached != "" {
+		return cached, nil
+	}
+
+	url, err := s.repo.FindByShortCode(ctx, shortCode)
+	if err != nil {
+		return "", err
+	}
+	if url == nil {
+		return "", fmt.Errorf("short code not found: %s", shortCode)
+	}
+
+	ttl := time.Until(url.ExpiresAt)
+	_ = s.cache.Set(ctx, "url:"+shortCode, url.LongURL, ttl)
+
+	return url.LongURL, nil
+}
+
+func generateBase62Code(length int) (string, error) {
+	result := make([]byte, length)
+	max := big.NewInt(int64(len(base62Chars)))
+	for i := range result {
+		n, err := rand.Int(rand.Reader, max)
+		if err != nil {
+			return "", err
+		}
+		result[i] = base62Chars[n.Int64()]
+	}
+	return string(result), nil
+}
+```
+
+---
+
+## Step 13: Monitoring and Alerting
 
 ### Key Metrics
 
