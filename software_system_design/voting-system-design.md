@@ -1016,7 +1016,207 @@ async def validate_vote_request(request: Request, user: User):
 
 ---
 
-## Step 11: Monitoring and Observability
+## Step 11: Multi-Language Implementations
+
+### Java: Vote Service with Idempotency
+
+```java
+import java.time.Instant;
+import java.util.UUID;
+
+public class VoteService {
+
+    public record VoteRequest(String pollId, String optionId, String userId, String idempotencyKey) {}
+    public record VoteResult(String voteId, boolean accepted, String message) {}
+
+    private final VoteRepository voteRepository;
+    private final RedisTemplate<String, String> redis;
+    private final KafkaTemplate<String, VoteEvent> kafka;
+
+    public VoteService(VoteRepository voteRepository, RedisTemplate<String, String> redis,
+                        KafkaTemplate<String, VoteEvent> kafka) {
+        this.voteRepository = voteRepository;
+        this.redis = redis;
+        this.kafka = kafka;
+    }
+
+    public VoteResult castVote(VoteRequest request) {
+        String voteId = UUID.randomUUID().toString();
+
+        // Layer 1: Redis deduplication (fast path)
+        String dedupeKey = "vote:" + request.pollId() + ":" + request.userId();
+        Boolean isNew = redis.opsForValue().setIfAbsent(dedupeKey, voteId);
+        if (Boolean.FALSE.equals(isNew)) {
+            return new VoteResult(voteId, false, "Duplicate vote detected (cache)");
+        }
+
+        // Layer 2: Idempotency check
+        if (voteRepository.existsByIdempotencyKey(request.idempotencyKey())) {
+            return new VoteResult(voteId, false, "Duplicate vote detected (idempotency)");
+        }
+
+        // Layer 3: Database unique constraint (final safety net)
+        try {
+            Vote vote = new Vote(voteId, request.pollId(), request.optionId(),
+                request.userId(), request.idempotencyKey(), Instant.now());
+            voteRepository.save(vote);
+        } catch (DuplicateKeyException e) {
+            return new VoteResult(voteId, false, "Duplicate vote detected (database)");
+        }
+
+        // Publish to Kafka for async result aggregation
+        kafka.send("votes", request.pollId(),
+            new VoteEvent(voteId, request.pollId(), request.optionId(), Instant.now()));
+
+        // Increment Redis counter for real-time results
+        redis.opsForHash().increment("poll:" + request.pollId() + ":results",
+            request.optionId(), 1);
+
+        return new VoteResult(voteId, true, "Vote recorded");
+    }
+}
+
+/**
+ * Kafka consumer that aggregates votes and reconciles with the database.
+ */
+public class VoteAggregationConsumer {
+    
+    @KafkaListener(topics = "votes", groupId = "vote-aggregator")
+    public void onVoteEvent(VoteEvent event) {
+        // periodic reconciliation between Redis counters and DB counts
+        // runs less frequently, ensures eventual consistency
+        long dbCount = voteRepository.countByPollIdAndOptionId(
+            event.pollId(), event.optionId());
+        long redisCount = Long.parseLong(
+            redis.opsForHash().get("poll:" + event.pollId() + ":results",
+                event.optionId()).toString());
+
+        if (Math.abs(dbCount - redisCount) > 10) {
+            redis.opsForHash().put("poll:" + event.pollId() + ":results",
+                event.optionId(), String.valueOf(dbCount));
+        }
+    }
+}
+```
+
+### Go: Voting Service with Three-Layer Deduplication
+
+```go
+package voting
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
+)
+
+type VoteRequest struct {
+	PollID         string
+	OptionID       string
+	UserID         string
+	IdempotencyKey string
+}
+
+type VoteResult struct {
+	VoteID   string
+	Accepted bool
+	Message  string
+}
+
+type VoteRepository interface {
+	Save(ctx context.Context, vote *Vote) error
+	ExistsByIdempotencyKey(ctx context.Context, key string) (bool, error)
+	CountByPollAndOption(ctx context.Context, pollID, optionID string) (int64, error)
+}
+
+type Vote struct {
+	ID             string
+	PollID         string
+	OptionID       string
+	UserID         string
+	IdempotencyKey string
+	CreatedAt      time.Time
+}
+
+type VoteService struct {
+	repo   VoteRepository
+	redis  *redis.Client
+	events chan<- VoteEvent
+}
+
+type VoteEvent struct {
+	VoteID   string `json:"vote_id"`
+	PollID   string `json:"poll_id"`
+	OptionID string `json:"option_id"`
+}
+
+func NewVoteService(repo VoteRepository, redisClient *redis.Client,
+	events chan<- VoteEvent) *VoteService {
+	return &VoteService{repo: repo, redis: redisClient, events: events}
+}
+
+func (s *VoteService) CastVote(ctx context.Context, req VoteRequest) VoteResult {
+	voteID := uuid.New().String()
+
+	// Layer 1: Redis deduplication
+	dedupeKey := fmt.Sprintf("vote:%s:%s", req.PollID, req.UserID)
+	set, err := s.redis.SetNX(ctx, dedupeKey, voteID, 24*time.Hour).Result()
+	if err != nil || !set {
+		return VoteResult{voteID, false, "Duplicate vote (cache)"}
+	}
+
+	// Layer 2: Idempotency check
+	exists, _ := s.repo.ExistsByIdempotencyKey(ctx, req.IdempotencyKey)
+	if exists {
+		return VoteResult{voteID, false, "Duplicate vote (idempotency)"}
+	}
+
+	// Layer 3: Database save with unique constraint
+	vote := &Vote{
+		ID:             voteID,
+		PollID:         req.PollID,
+		OptionID:       req.OptionID,
+		UserID:         req.UserID,
+		IdempotencyKey: req.IdempotencyKey,
+		CreatedAt:      time.Now(),
+	}
+	if err := s.repo.Save(ctx, vote); err != nil {
+		return VoteResult{voteID, false, "Duplicate vote (database)"}
+	}
+
+	// Update real-time counter in Redis
+	resultsKey := fmt.Sprintf("poll:%s:results", req.PollID)
+	s.redis.HIncrBy(ctx, resultsKey, req.OptionID, 1)
+
+	// Publish event for async processing
+	s.events <- VoteEvent{VoteID: voteID, PollID: req.PollID, OptionID: req.OptionID}
+
+	return VoteResult{voteID, true, "Vote recorded"}
+}
+
+func (s *VoteService) GetResults(ctx context.Context, pollID string) (map[string]int64, error) {
+	resultsKey := fmt.Sprintf("poll:%s:results", pollID)
+	results, err := s.redis.HGetAll(ctx, resultsKey).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make(map[string]int64)
+	for optionID, countStr := range results {
+		var count int64
+		fmt.Sscanf(countStr, "%d", &count)
+		counts[optionID] = count
+	}
+	return counts, nil
+}
+```
+
+---
+
+## Step 12: Monitoring and Observability
 
 ### Key Metrics
 
