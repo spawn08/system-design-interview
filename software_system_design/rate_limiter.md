@@ -88,7 +88,67 @@ A rate limiter controls how many requests a client can make to an API within a g
 
 ---
 
-## Step 2: Rate Limiting Algorithms
+## Step 2: Back-of-Envelope Estimation
+
+Before choosing an algorithm or architecture, estimate the scale to understand memory, bandwidth, and infrastructure needs.
+
+### Assumptions
+
+```
+- 10 million unique API clients (identified by API key)
+- Average client makes 500 requests/day
+- Rate limit: 100 requests per minute per client
+- Rate limit check must be < 1ms latency
+```
+
+### Traffic Estimation
+
+```
+Total requests/day  = 10M × 500 = 5 billion requests/day
+Average QPS         = 5B / 86,400 ≈ 58,000 QPS
+Peak QPS (3x)       = ~175,000 QPS
+```
+
+### Memory Estimation (Token Bucket)
+
+```
+Per-client state:
+  - Client ID (key): ~50 bytes (API key hash)
+  - Tokens remaining: 8 bytes (double)
+  - Last refill timestamp: 8 bytes (long)
+  - Total per client: ~66 bytes → round to 100 bytes (with overhead)
+
+Total memory for all clients:
+  10M × 100 bytes = 1 GB
+
+Active clients (20% at peak):
+  2M × 100 bytes = 200 MB → fits in a single Redis instance
+```
+
+### Memory Estimation (Sliding Window Log)
+
+```
+Per-request entry: ~20 bytes (timestamp + overhead)
+Worst case: each client at max rate = 100 entries/minute
+Active clients: 2M × 100 × 20 bytes = 4 GB → requires Redis cluster
+```
+
+### Infrastructure Decision
+
+| Metric | Value | Implication |
+|--------|-------|-------------|
+| Peak QPS | 175K | Single Redis handles 100K+; may need 2-3 nodes |
+| Memory (token bucket) | ~200 MB active | Single Redis instance is sufficient |
+| Memory (sliding window) | ~4 GB active | Redis cluster or sharding needed |
+| Latency target | < 1ms | Redis in-memory is well within target |
+| Availability | 99.99% | Redis Sentinel or Cluster for failover |
+
+{: .tip }
+> Token bucket is clearly more memory-efficient. This estimation helps justify the algorithm choice — not just on correctness but on infrastructure cost.
+
+---
+
+## Step 3: Rate Limiting Algorithms
 
 There are several algorithms for rate limiting, each with different characteristics.
 
@@ -498,7 +558,7 @@ class SlidingWindowCounter:
 
 ---
 
-## Step 3: High-Level Architecture
+## Step 4: High-Level Architecture
 
 For a distributed system, we need a centralized store for rate limit state.
 
@@ -592,7 +652,7 @@ sequenceDiagram
 
 ---
 
-## Step 4: Distributed Rate Limiting with Redis
+## Step 5: Distributed Rate Limiting with Redis
 
 For a distributed system, we need atomic operations. Redis provides these.
 
@@ -743,7 +803,7 @@ Thread 2: [GET and SET atomically] → 101, rejected
 
 ---
 
-## Step 5: Handling Distributed Challenges
+## Step 6: Handling Distributed Challenges
 
 ### Challenge 1: Race Conditions
 
@@ -836,7 +896,7 @@ redis.expire(key, window_size * 2)
 
 ---
 
-## Step 6: HTTP Response Headers
+## Step 7: HTTP Response Headers
 
 Communicate rate limit status to clients via headers:
 
@@ -895,7 +955,7 @@ def get_client_id(request: Request) -> str:
 
 ---
 
-## Step 7: Advanced Features
+## Step 8: Advanced Features
 
 ### Multiple Rate Limit Rules
 
@@ -986,7 +1046,245 @@ async def rate_limit_with_cost(request: Request):
 
 ---
 
-## Step 8: Scaling Considerations
+## Step 9: Multi-Language Implementations
+
+### Java: Token Bucket Rate Limiter with Redis
+
+```java
+import redis.clients.jedis.JedisPooled;
+import java.util.List;
+
+public class RedisTokenBucketLimiter {
+    private final JedisPooled jedis;
+    private final String luaScript;
+    private String scriptSha;
+
+    public RedisTokenBucketLimiter(JedisPooled jedis) {
+        this.jedis = jedis;
+        this.luaScript = """
+            local key = KEYS[1]
+            local capacity = tonumber(ARGV[1])
+            local refill_rate = tonumber(ARGV[2])
+            local now = tonumber(ARGV[3])
+            local requested = tonumber(ARGV[4])
+            
+            local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
+            local tokens = tonumber(bucket[1]) or capacity
+            local last_refill = tonumber(bucket[2]) or now
+            
+            local elapsed = now - last_refill
+            tokens = math.min(capacity, tokens + elapsed * refill_rate)
+            
+            local allowed = 0
+            if tokens >= requested then
+                tokens = tokens - requested
+                allowed = 1
+            end
+            
+            redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
+            redis.call('EXPIRE', key, math.ceil(capacity / refill_rate) * 2)
+            
+            return {allowed, math.floor(tokens)}
+            """;
+        this.scriptSha = jedis.scriptLoad(luaScript);
+    }
+
+    public record RateLimitResult(boolean allowed, int remainingTokens) {}
+
+    public RateLimitResult isAllowed(String clientId, int capacity, double refillRate) {
+        String key = "ratelimit:" + clientId;
+        double now = System.currentTimeMillis() / 1000.0;
+
+        Object result = jedis.evalsha(scriptSha,
+            List.of(key),
+            List.of(
+                String.valueOf(capacity),
+                String.valueOf(refillRate),
+                String.valueOf(now),
+                "1"
+            ));
+
+        @SuppressWarnings("unchecked")
+        List<Long> values = (List<Long>) result;
+        return new RateLimitResult(values.get(0) == 1, values.get(1).intValue());
+    }
+}
+```
+
+### Java: Rate Limiting Servlet Filter
+
+```java
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import java.io.IOException;
+
+public class RateLimitFilter implements Filter {
+    private final RedisTokenBucketLimiter limiter;
+    private final int capacity;
+    private final double refillRate;
+
+    public RateLimitFilter(RedisTokenBucketLimiter limiter, int capacity, double refillRate) {
+        this.limiter = limiter;
+        this.capacity = capacity;
+        this.refillRate = refillRate;
+    }
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest httpReq = (HttpServletRequest) req;
+        HttpServletResponse httpResp = (HttpServletResponse) resp;
+
+        String clientId = resolveClientId(httpReq);
+        var result = limiter.isAllowed(clientId, capacity, refillRate);
+
+        httpResp.setHeader("X-RateLimit-Limit", String.valueOf(capacity));
+        httpResp.setHeader("X-RateLimit-Remaining", String.valueOf(result.remainingTokens()));
+
+        if (!result.allowed()) {
+            httpResp.setStatus(429);
+            httpResp.setHeader("Retry-After", String.valueOf((int) (1.0 / refillRate)));
+            httpResp.getWriter().write("""
+                {"error": "rate_limit_exceeded", "message": "Too many requests"}""");
+            return;
+        }
+        chain.doFilter(req, resp);
+    }
+
+    private String resolveClientId(HttpServletRequest req) {
+        String apiKey = req.getHeader("X-API-Key");
+        if (apiKey != null) return "api:" + apiKey;
+        String userId = req.getHeader("X-User-Id");
+        if (userId != null) return "user:" + userId;
+        return "ip:" + req.getRemoteAddr();
+    }
+}
+```
+
+### Go: Token Bucket Rate Limiter with Redis
+
+```go
+package ratelimit
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+)
+
+var tokenBucketScript = redis.NewScript(`
+local key = KEYS[1]
+local capacity = tonumber(ARGV[1])
+local refill_rate = tonumber(ARGV[2])
+local now = tonumber(ARGV[3])
+local requested = tonumber(ARGV[4])
+
+local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
+local tokens = tonumber(bucket[1]) or capacity
+local last_refill = tonumber(bucket[2]) or now
+
+local elapsed = now - last_refill
+tokens = math.min(capacity, tokens + elapsed * refill_rate)
+
+local allowed = 0
+if tokens >= requested then
+    tokens = tokens - requested
+    allowed = 1
+end
+
+redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
+redis.call('EXPIRE', key, math.ceil(capacity / refill_rate) * 2)
+
+return {allowed, math.floor(tokens)}
+`)
+
+type RateLimiter struct {
+	client     *redis.Client
+	capacity   int
+	refillRate float64
+}
+
+type Result struct {
+	Allowed   bool
+	Remaining int
+}
+
+func NewRateLimiter(client *redis.Client, capacity int, refillRate float64) *RateLimiter {
+	return &RateLimiter{client: client, capacity: capacity, refillRate: refillRate}
+}
+
+func (rl *RateLimiter) IsAllowed(ctx context.Context, clientID string) (Result, error) {
+	key := fmt.Sprintf("ratelimit:%s", clientID)
+	now := float64(time.Now().UnixMilli()) / 1000.0
+
+	vals, err := tokenBucketScript.Run(ctx, rl.client, []string{key},
+		rl.capacity, rl.refillRate, now, 1).Int64Slice()
+	if err != nil {
+		return Result{Allowed: true, Remaining: rl.capacity}, err // fail open
+	}
+
+	return Result{
+		Allowed:   vals[0] == 1,
+		Remaining: int(vals[1]),
+	}, nil
+}
+```
+
+### Go: HTTP Middleware
+
+```go
+package ratelimit
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+)
+
+func Middleware(limiter *RateLimiter) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			clientID := resolveClientID(r)
+			result, err := limiter.IsAllowed(r.Context(), clientID)
+			if err != nil {
+				next.ServeHTTP(w, r) // fail open on Redis error
+				return
+			}
+
+			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limiter.capacity))
+			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(result.Remaining))
+
+			if !result.Allowed {
+				w.Header().Set("Retry-After", "60")
+				w.WriteHeader(http.StatusTooManyRequests)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error":   "rate_limit_exceeded",
+					"message": "Too many requests",
+				})
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func resolveClientID(r *http.Request) string {
+	if key := r.Header.Get("X-API-Key"); key != "" {
+		return "api:" + key
+	}
+	if uid := r.Header.Get("X-User-Id"); uid != "" {
+		return "user:" + uid
+	}
+	return "ip:" + r.RemoteAddr
+}
+```
+
+---
+
+## Step 10: Scaling Considerations
 
 ### Redis Cluster for High Availability
 
