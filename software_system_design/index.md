@@ -1,7 +1,7 @@
 ---
 layout: default
 title: System Design Examples
-nav_order: 3
+nav_order: 5
 has_children: true
 permalink: /software_system_design/
 ---

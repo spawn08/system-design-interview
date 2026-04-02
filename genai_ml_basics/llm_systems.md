@@ -1,9 +1,9 @@
 ---
 layout: default
 title: Large Language Models
-parent: ML System Design
-nav_order: 8
-permalink: /ml_system_design/llm_systems
+parent: GenAI/ML Fundamentals
+nav_order: 4
+permalink: /genai_ml_basics/llm_systems
 ---
 
 # Large Language Model Systems

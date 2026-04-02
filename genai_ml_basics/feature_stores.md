@@ -1,9 +1,9 @@
 ---
 layout: default
 title: Feature Stores
-parent: ML System Design
-nav_order: 6
-permalink: /ml_system_design/feature_stores
+parent: GenAI/ML Fundamentals
+nav_order: 2
+permalink: /genai_ml_basics/feature_stores
 ---
 
 # Feature Store Design

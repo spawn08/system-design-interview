@@ -1,9 +1,9 @@
 ---
 layout: default
 title: Model Serving
-parent: ML System Design
-nav_order: 5
-permalink: /ml_system_design/model_serving
+parent: GenAI/ML Fundamentals
+nav_order: 1
+permalink: /genai_ml_basics/model_serving
 ---
 
 # Model Serving Infrastructure

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: ML System Design
-nav_order: 4
+nav_order: 6
 has_children: true
 permalink: /ml_system_design/
 ---
@@ -88,77 +88,8 @@ Design a visual search system for finding similar images or searching by text de
 
 ---
 
-## GenAI/ML Infrastructure Topics
-
-### [Model Serving]({{ site.baseurl }}/ml_system_design/model_serving)
-{: .d-inline-block }
-
-Infrastructure
-{: .label .label-red }
-
-Design production model serving — REST/batch inference, versioning, A/B testing, drift detection, and GPU auto-scaling.
-
-**Key concepts:** TorchServe, Triton, dynamic batching, canary deployments, ONNX quantization, model registry
-
-**Difficulty:** ⭐⭐⭐ Medium-Hard
-
----
-
-### [Feature Stores]({{ site.baseurl }}/ml_system_design/feature_stores)
-{: .d-inline-block }
-
-Data Platform
-{: .label .label-green }
-
-Design a centralized feature management platform for training and serving consistency.
-
-**Key concepts:** Train-serve skew, point-in-time joins, online/offline stores, Feast, feature versioning, stream materialization
-
-**Difficulty:** ⭐⭐⭐ Medium-Hard
-
----
-
-### [Data Pipelines for ML]({{ site.baseurl }}/ml_system_design/data_pipelines)
-{: .d-inline-block }
-
-Data Engineering
-{: .label .label-yellow }
-
-Design end-to-end data pipelines for ML training — ingestion, transformation, validation, and orchestration.
-
-**Key concepts:** Medallion architecture, Airflow DAGs, Kubeflow, data validation, dataset versioning, pipeline monitoring
-
-**Difficulty:** ⭐⭐⭐ Medium-Hard
-
----
-
-### [Large Language Models]({{ site.baseurl }}/ml_system_design/llm_systems)
-{: .d-inline-block }
-
-GenAI
-{: .label .label-purple }
-
-Design production LLM systems — RAG, prompt engineering, fine-tuning, vector databases, and serving at scale.
-
-**Key concepts:** RAG pipeline, chunking, vector DBs (Pinecone, Qdrant), LoRA fine-tuning, vLLM, guardrails, LLM evaluation
-
-**Difficulty:** ⭐⭐⭐⭐ Hard
-
----
-
-### [Distributed Training]({{ site.baseurl }}/ml_system_design/distributed_training)
-{: .d-inline-block }
-
-Training Infrastructure
-{: .label .label-red }
-
-Design training infrastructure that scales deep learning across hundreds of GPUs.
-
-**Key concepts:** Data parallelism (DDP), ZeRO, tensor parallelism, pipeline parallelism, DeepSpeed, mixed precision, fault tolerance
-
-**Difficulty:** ⭐⭐⭐⭐ Hard
-
----
+{: .note }
+> Looking for **Model Serving, Feature Stores, Data Pipelines, LLMs, or Distributed Training?** These foundational topics now live in the dedicated [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) section — master those building blocks first, then apply them here.
 
 ## Coming Soon
 
@@ -213,46 +144,30 @@ MODEL SERVING
 ├── Online Inference   → Real-time predictions, low latency
 ├── Model Versioning   → Track and rollback model versions
 ├── Dynamic Batching   → Group requests for GPU efficiency
-├── Canary / Shadow    → Test new models safely before full rollout
-└── A/B Testing        → Statistical comparison of model variants
+└── Shadow Mode        → Test new models without affecting users
 
-LLM SYSTEMS
-├── RAG Pipeline       → Retrieve context + generate grounded answers
-├── Prompt Engineering → Zero-shot, few-shot, chain-of-thought
-├── Fine-tuning (LoRA) → Adapt base models to domain tasks
-├── Vector Databases   → Pinecone, Qdrant, Weaviate for similarity search
-├── Guardrails         → PII detection, prompt injection, toxicity filtering
-└── LLM Evaluation     → Groundedness, relevance, factuality
-
-DISTRIBUTED TRAINING
-├── Data Parallelism   → DDP: same model, different data shards
-├── ZeRO Optimization  → Partition optimizer/gradients/params across GPUs
-├── Tensor Parallelism → Split layers across GPUs (intra-node)
-├── Pipeline Parallel  → Split sequential stages across nodes
-├── Mixed Precision    → BF16/FP16 for compute, FP32 master weights
-└── Fault Tolerance    → Checkpointing, signal handling, auto-resume
+RETRIEVAL & RANKING
+├── Two-Stage Pipeline → Retrieval (fast, broad) + Ranking (accurate)
+├── Vector Indexes     → FAISS, HNSW, IVF for ANN search
+├── Feature Stores     → Consistent features for training/serving
+└── Re-ranking         → Apply business rules, diversity
 
 FEATURE ENGINEERING
 ├── Real-time Features → Computed on request (velocity, session)
 ├── Batch Features     → Precomputed (user history, aggregates)
-├── Feature Store      → Feast, Tecton for train-serve consistency
-├── Point-in-Time Join → Prevent label leakage in training data
+├── Feature Store      → Feast, Tecton for consistency
 └── Embeddings         → Dense representations from neural nets
 
-DATA PIPELINES
-├── Medallion Arch     → Bronze (raw) → Silver (clean) → Gold (features)
-├── Orchestration      → Airflow, Kubeflow for DAG scheduling
-├── Data Validation    → Schema, volume, distribution checks
-├── Data Versioning    → Reproducible training with dataset lineage
-└── Pipeline Monitoring → Freshness, volume, validation pass rate
-
 MONITORING
-├── Data Drift         → Input distribution changes (KS test, PSI)
+├── Data Drift         → Input distribution changes
 ├── Concept Drift      → Relationship between input/output changes
 ├── Model Degradation  → Performance decline over time
 ├── Latency Metrics    → P50, P95, P99 response times
 └── Business Metrics   → CTR, conversion, revenue impact
 ```
+
+{: .tip }
+> For deep dives on Model Serving, Feature Stores, Data Pipelines, LLMs, and Distributed Training, see the [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) section.
 
 ---
 
@@ -262,17 +177,14 @@ As you study these designs, look for patterns that repeat:
 
 | Pattern | Where You'll See It |
 |---------|---------------------|
-| **Two-stage retrieval+ranking** | Recommendations, Search, Fraud Detection, RAG |
-| **Vector embeddings** | Image Search, Recommendations, LLM/RAG |
-| **Feature stores** | Fraud Detection, Recommendations, Feature Store Design |
-| **Dynamic batching** | Image Captioning, Model Serving, LLM Serving |
-| **A/B testing** | All ML systems, Model Serving (canary) |
+| **Two-stage retrieval+ranking** | Recommendations, Search, Fraud Detection |
+| **Vector embeddings** | Image Search, Recommendations |
+| **Feature stores** | Fraud Detection, Recommendations |
+| **Dynamic batching** | Image Captioning, all GPU-based serving |
+| **A/B testing** | All ML systems |
 | **Ensemble models** | Fraud Detection, Recommendations |
-| **Rules + ML hybrid** | Fraud Detection, Guardrails (LLM) |
-| **Real-time aggregations** | Fraud Detection, Feature Store (streaming), Recommendations |
-| **Distributed training** | LLM pre-training, Distributed Training |
-| **Prompt engineering** | LLM Systems, RAG |
-| **Data validation** | Data Pipelines, Feature Store |
+| **Rules + ML hybrid** | Fraud Detection, Content Moderation |
+| **Real-time aggregations** | Fraud Detection (velocity), Recommendations (session) |
 
 {: .note }
 > Master these patterns and you can apply them to any new ML system design problem.
@@ -281,24 +193,12 @@ As you study these designs, look for patterns that repeat:
 
 ## Quick Reference: System Comparison
 
-### ML Application Systems
-
 | System | Latency | Key Challenge | Primary Metric |
 |--------|---------|---------------|----------------|
 | **Image Captioning** | ~500ms | Model optimization | BLEU, CIDEr |
 | **Recommendations** | <100ms | Cold start, scale | CTR, Conversion |
 | **Fraud Detection** | <100ms | Class imbalance | Precision-Recall |
 | **Image Search** | <200ms | Index at scale | Recall@K, Latency |
-| **LLM Chatbot (RAG)** | <500ms TTFT | Hallucination, cost | Groundedness, Relevance |
-
-### ML Infrastructure Systems
-
-| System | Focus | Key Challenge | Success Metric |
-|--------|-------|---------------|----------------|
-| **Model Serving** | Inference | Latency, GPU utilization | P99 latency, throughput |
-| **Feature Store** | Feature mgmt | Train-serve skew | Consistency, freshness |
-| **Data Pipelines** | Data quality | Validation, lineage | Data freshness, coverage |
-| **Distributed Training** | Training | Scaling efficiency | GPU utilization, time-to-train |
 
 ---
 

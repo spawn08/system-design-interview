@@ -289,6 +289,13 @@ system-design-interview/
 │   ├── data_warehousing.md
 │   ├── microservices.md
 │   └── consistency_patterns.md
+├── genai_ml_basics/            # GenAI/ML Fundamentals (building blocks)
+│   ├── index.md
+│   ├── model_serving.md
+│   ├── feature_stores.md
+│   ├── data_pipelines.md
+│   ├── llm_systems.md
+│   └── distributed_training.md
 ├── software_system_design/     # Classic System Design Problems
 │   ├── index.md
 │   ├── url_shortening.md
@@ -337,13 +344,13 @@ The pipeline uses the following actions:
 
 ### Adding New Content
 
-1. Create a new `.md` file in the appropriate directory (`basics/`, `software_system_design/`, or `ml_system_design/`)
+1. Create a new `.md` file in the appropriate directory (`basics/`, `advanced/`, `genai_ml_basics/`, `software_system_design/`, or `ml_system_design/`)
 2. Add the Jekyll front matter:
    ```yaml
    ---
    layout: default
    title: Your Topic Title
-   parent: Fundamentals    # or "System Design Examples" or "ML System Design"
+   parent: Fundamentals    # or "Advanced Topics", "GenAI/ML Fundamentals", "System Design Examples", "ML System Design"
    nav_order: N            # determines position in navigation
    ---
    ```

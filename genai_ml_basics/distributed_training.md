@@ -1,9 +1,9 @@
 ---
 layout: default
 title: Distributed Training
-parent: ML System Design
-nav_order: 9
-permalink: /ml_system_design/distributed_training
+parent: GenAI/ML Fundamentals
+nav_order: 5
+permalink: /genai_ml_basics/distributed_training
 ---
 
 # Distributed Training

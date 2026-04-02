@@ -77,14 +77,14 @@ Specialized designs for machine learning and AI systems.
 - [**Fraud Detection**]({{ site.baseurl }}/ml_system_design/fraud_detection) - Real-time ML for transactions
 - [**Image Search**]({{ site.baseurl }}/ml_system_design/image_search) - Visual search with embeddings
 
-### [GenAI/ML Infrastructure]({{ site.baseurl }}/ml_system_design/)
-Core infrastructure topics for ML and GenAI system design interviews.
+### [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/)
+Core building blocks for ML and GenAI system design — master these before tackling full ML designs.
 
-- [**Model Serving**]({{ site.baseurl }}/ml_system_design/model_serving) - Inference APIs, versioning, A/B testing, drift detection
-- [**Feature Stores**]({{ site.baseurl }}/ml_system_design/feature_stores) - Train-serve consistency, point-in-time joins, Feast
-- [**Data Pipelines for ML**]({{ site.baseurl }}/ml_system_design/data_pipelines) - Ingestion, validation, Airflow orchestration
-- [**Large Language Models**]({{ site.baseurl }}/ml_system_design/llm_systems) - RAG, prompt engineering, fine-tuning, vector DBs
-- [**Distributed Training**]({{ site.baseurl }}/ml_system_design/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
+- [**Model Serving**]({{ site.baseurl }}/genai_ml_basics/model_serving) - Inference APIs, versioning, A/B testing, drift detection
+- [**Feature Stores**]({{ site.baseurl }}/genai_ml_basics/feature_stores) - Train-serve consistency, point-in-time joins, Feast
+- [**Data Pipelines for ML**]({{ site.baseurl }}/genai_ml_basics/data_pipelines) - Ingestion, validation, Airflow orchestration
+- [**Large Language Models**]({{ site.baseurl }}/genai_ml_basics/llm_systems) - RAG, prompt engineering, fine-tuning, vector DBs
+- [**Distributed Training**]({{ site.baseurl }}/genai_ml_basics/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
 
 ---
 
@@ -150,9 +150,9 @@ Every system design interview touches on these concepts:
 |---------|--------|------------|
 | **Fundamentals** | 10 essential topics | ⭐⭐ Beginner-Advanced |
 | **Advanced Topics** | 5 deep-dive topics | ⭐⭐⭐ Advanced-Expert |
+| **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | ⭐⭐⭐ Medium-Hard |
 | **System Design** | 5 classic problems | ⭐⭐⭐ Intermediate-Hard |
 | **ML System Design** | 4 ML systems | ⭐⭐⭐⭐ Hard |
-| **GenAI/ML Infrastructure** | 5 infrastructure topics | ⭐⭐⭐⭐ Hard |
 
 ---
 

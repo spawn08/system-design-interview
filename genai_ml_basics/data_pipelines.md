@@ -1,9 +1,9 @@
 ---
 layout: default
 title: Data Pipelines for ML
-parent: ML System Design
-nav_order: 7
-permalink: /ml_system_design/data_pipelines
+parent: GenAI/ML Fundamentals
+nav_order: 3
+permalink: /genai_ml_basics/data_pipelines
 ---
 
 # Data Pipelines for ML
