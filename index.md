@@ -77,6 +77,15 @@ Specialized designs for machine learning and AI systems.
 - [**Fraud Detection**]({{ site.baseurl }}/ml_system_design/fraud_detection) - Real-time ML for transactions
 - [**Image Search**]({{ site.baseurl }}/ml_system_design/image_search) - Visual search with embeddings
 
+### [GenAI/ML Infrastructure]({{ site.baseurl }}/ml_system_design/)
+Core infrastructure topics for ML and GenAI system design interviews.
+
+- [**Model Serving**]({{ site.baseurl }}/ml_system_design/model_serving) - Inference APIs, versioning, A/B testing, drift detection
+- [**Feature Stores**]({{ site.baseurl }}/ml_system_design/feature_stores) - Train-serve consistency, point-in-time joins, Feast
+- [**Data Pipelines for ML**]({{ site.baseurl }}/ml_system_design/data_pipelines) - Ingestion, validation, Airflow orchestration
+- [**Large Language Models**]({{ site.baseurl }}/ml_system_design/llm_systems) - RAG, prompt engineering, fine-tuning, vector DBs
+- [**Distributed Training**]({{ site.baseurl }}/ml_system_design/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
+
 ---
 
 ## 🚀 How to Use This Guide
@@ -143,6 +152,7 @@ Every system design interview touches on these concepts:
 | **Advanced Topics** | 5 deep-dive topics | ⭐⭐⭐ Advanced-Expert |
 | **System Design** | 5 classic problems | ⭐⭐⭐ Intermediate-Hard |
 | **ML System Design** | 4 ML systems | ⭐⭐⭐⭐ Hard |
+| **GenAI/ML Infrastructure** | 5 infrastructure topics | ⭐⭐⭐⭐ Hard |
 
 ---
 
