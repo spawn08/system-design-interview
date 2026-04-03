@@ -29,6 +29,7 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | [Data Warehousing & Data Lakes]({{ site.baseurl }}/advanced/data_warehousing) | ETL, star schema, Hadoop, Spark, lakehouse | ⭐⭐⭐ Advanced |
 | [Microservices Architecture]({{ site.baseurl }}/advanced/microservices) | Service discovery, API gateways, Docker, Kubernetes | ⭐⭐⭐ Advanced |
 | [Consistency Patterns]({{ site.baseurl }}/advanced/consistency_patterns) | Strong, eventual, causal consistency, CRDTs, sagas | ⭐⭐⭐⭐ Expert |
+| [Object Storage & CDN]({{ site.baseurl }}/advanced/object_storage_cdn) | S3-style storage, edge caching, presigned URLs, streaming | ⭐⭐⭐ Advanced |
 
 ---
 
@@ -41,6 +42,7 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | "How do you handle analytics at scale?" | Data Warehousing & Data Lakes |
 | "How do you decompose a monolith?" | Microservices Architecture |
 | "How do you keep data consistent across services?" | Consistency Patterns |
+| "How do you serve images/video globally?" | Object Storage & CDN |
 
 ---
 
@@ -91,4 +93,10 @@ CONSISTENCY PATTERNS
 ├── Causal        → Vector clocks, session guarantees
 ├── CRDTs         → Conflict-free replicated data types
 └── Sagas         → Distributed transactions via compensation
+
+OBJECT STORAGE & CDN
+├── Object store  → Buckets, keys, multipart, lifecycle tiers
+├── CDN           → Edge cache, TTL, purge, origin pull
+├── Access        → Presigned URLs, OAC, bucket policies, CORS
+└── Patterns      → Static assets, HLS/DASH, API cache at edge
 ```
