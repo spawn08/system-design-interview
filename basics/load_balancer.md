@@ -2,7 +2,7 @@
 layout: default
 title: Load Balancing
 parent: Fundamentals
-nav_order: 1
+nav_order: 6
 ---
 
 # Load Balancing
@@ -892,3 +892,14 @@ User Request → Edge Location (cache hit) → Response
 | **Sticky Sessions** | Avoid if possible; use external session store |
 | **SSL Termination** | Offload at LB for most cases |
 | **GSLB** | Global distribution across data centers |
+
+---
+
+## Further Reading
+
+- [NGINX Load Balancing Documentation](https://docs.nginx.com/nginx/admin-guide/load-balancer/)
+- [HAProxy Configuration Manual](https://www.haproxy.com/documentation/)
+- [AWS Elastic Load Balancing](https://aws.amazon.com/elasticloadbalancing/)
+- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapter 6: Partitioning
+- [Google SRE Book — Load Balancing at the Frontend](https://sre.google/sre-book/load-balancing-frontend/)
+- [Consistent Hashing and Random Trees](https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf) — the original Karger et al. paper

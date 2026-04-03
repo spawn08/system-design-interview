@@ -270,7 +270,9 @@ Let's dive deep into each component.
 
 ---
 
-## Step 4: Short Code Generation
+## Step 4: Deep Dive
+
+### 4.1 Short Code Generation
 
 This is the heart of the system. How do we create unique, short, URL-safe codes?
 
@@ -502,7 +504,7 @@ def deobfuscate_id(obfuscated: int) -> int:
 
 ---
 
-## Step 5: Database Design
+### 4.2 Database Design
 
 ### Schema Design
 
@@ -594,7 +596,7 @@ def shorten_url(long_url: str, user_id: str, deduplicate: bool = True) -> str:
 
 ---
 
-## Step 6: Caching Strategy
+### 4.3 Caching Strategy
 
 With a 100:1 read-to-write ratio, caching is essential. Most URLs follow the 80/20 rule: 20% of URLs get 80% of traffic.
 
@@ -696,7 +698,7 @@ This easily fits in a single Redis instance. For larger scale, use Redis Cluster
 
 ---
 
-## Step 7: Redirect Flow Deep Dive
+### 4.4 Redirect Flow Deep Dive
 
 The redirect is the most critical path. It must be fast and reliable.
 
@@ -793,7 +795,7 @@ async def log_click(short_code: str, ip: str, user_agent: str, referrer: str):
 
 ---
 
-## Step 8: Analytics System
+### 4.5 Analytics System
 
 Analytics must not slow down redirects. Process them asynchronously.
 
@@ -906,7 +908,9 @@ ORDER BY day;
 
 ---
 
-## Step 9: Scaling Strategies
+## Step 5: Scaling & Production
+
+### 5.1 Scaling Strategies
 
 ### Scaling the Read Path (Redirects)
 
@@ -963,7 +967,7 @@ flowchart TD
 
 ---
 
-## Step 10: High Availability and Fault Tolerance
+### 5.2 High Availability and Fault Tolerance
 
 ### Failure Scenarios
 
@@ -1043,7 +1047,7 @@ def get_with_early_refresh(short_code: str) -> str:
 
 ---
 
-## Step 11: Security Considerations
+### 5.3 Security Considerations
 
 ### URL Validation
 
@@ -1131,7 +1135,7 @@ If short codes are sequential (`1`, `2`, `3`...), attackers can enumerate all UR
 
 ---
 
-## Step 12: Multi-Language Implementations
+### 5.4 Multi-Language Implementations
 
 ### Java: URL Shortening Service
 
@@ -1346,7 +1350,7 @@ func generateBase62Code(length int) (string, error) {
 
 ---
 
-## Step 13: Monitoring and Alerting
+### 5.5 Monitoring and Alerting
 
 ### Key Metrics
 

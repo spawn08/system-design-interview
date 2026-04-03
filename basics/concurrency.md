@@ -2,7 +2,7 @@
 layout: default
 title: Concurrency
 parent: Fundamentals
-nav_order: 5
+nav_order: 8
 ---
 
 # Concurrency
@@ -1066,3 +1066,14 @@ If each request spends 90% waiting for I/O:
 | **Thread Pool** | Reuse threads, limit concurrency |
 | **Async/Await** | Single thread, non-blocking I/O, scales to 10,000s |
 | **Distributed Locks** | Coordinate across servers (Redis, ZooKeeper) |
+
+---
+
+## Further Reading
+
+- *Java Concurrency in Practice* by Brian Goetz — the definitive reference for JVM concurrency
+- [The Little Book of Semaphores](https://greenteapress.com/wp/semaphores/) by Allen Downey — free concurrency textbook
+- [Python asyncio Documentation](https://docs.python.org/3/library/asyncio.html)
+- [Go Concurrency Patterns](https://go.dev/blog/pipelines) — goroutines, channels, and pipeline patterns
+- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapter 8: The Trouble with Distributed Systems
+- [Martin Fowler: LMAX Architecture](https://martinfowler.com/articles/lmax.html) — single-threaded high-performance design

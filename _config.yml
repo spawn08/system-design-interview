@@ -83,9 +83,6 @@ compress_html:
 last_edit_timestamp: true
 last_edit_time_format: "%b %e %Y at %I:%M %p"
 
-# Heading anchor links
-heading_anchors: true
-
 # External navigation links styling
 nav_external_links:
   - title: GitHub

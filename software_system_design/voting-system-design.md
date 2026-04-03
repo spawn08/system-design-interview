@@ -233,7 +233,9 @@ Benefits:
 
 ---
 
-## Step 4: The Core Challenge - Preventing Duplicate Votes
+## Step 4: Deep Dive
+
+### 4.1 The Core Challenge - Preventing Duplicate Votes
 
 This is the most critical part of the design. A user must never be able to vote twice on the same poll.
 
@@ -401,7 +403,7 @@ except UniqueViolationError:
 
 ---
 
-## Step 5: Database Design
+### 4.2 Database Design
 
 ### Schema Design
 
@@ -538,7 +540,7 @@ async def increment_vote_count(poll_id: str, option_id: str):
 
 ---
 
-## Step 6: Real-Time Results with Redis
+### 4.3 Real-Time Results with Redis
 
 For polls that show live results, we need sub-second updates.
 
@@ -662,7 +664,7 @@ async def on_vote_processed(poll_id: str, option_id: str):
 
 ---
 
-## Step 7: Message Queue Design with Kafka
+### 4.4 Message Queue Design with Kafka
 
 ### Why Kafka?
 
@@ -765,7 +767,9 @@ async def process_with_retry(message):
 
 ---
 
-## Step 8: Scaling Strategies
+## Step 5: Scaling & Production
+
+### 5.1 Scaling Strategies
 
 ### Scaling Components
 
@@ -844,7 +848,7 @@ def get_shard(poll_id: str) -> str:
 
 ---
 
-## Step 9: Failure Handling
+### 5.2 Failure Handling
 
 ### Failure Modes and Recovery
 
@@ -922,7 +926,7 @@ async def reconcile_vote_counts():
 
 ---
 
-## Step 10: Security Considerations
+### 5.3 Security Considerations
 
 ### Authentication and Authorization
 
@@ -1016,7 +1020,7 @@ async def validate_vote_request(request: Request, user: User):
 
 ---
 
-## Step 11: Multi-Language Implementations
+### 5.4 Multi-Language Implementations
 
 ### Java: Vote Service with Idempotency
 
@@ -1216,7 +1220,7 @@ func (s *VoteService) GetResults(ctx context.Context, pollID string) (map[string
 
 ---
 
-## Step 12: Monitoring and Observability
+### 5.5 Monitoring and Observability
 
 ### Key Metrics
 

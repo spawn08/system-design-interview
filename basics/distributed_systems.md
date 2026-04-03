@@ -2,7 +2,7 @@
 layout: default
 title: Distributed Systems
 parent: Fundamentals
-nav_order: 6
+nav_order: 11
 ---
 
 # Distributed Systems Concepts
@@ -51,6 +51,9 @@ Peter Deutsch and James Gosling identified assumptions that developers incorrect
 ---
 
 ## CAP Theorem
+
+{: .note }
+> CAP theorem is also covered from a database perspective in [Databases]({{ site.baseurl }}/basics/databases). This section focuses on the distributed systems angle.
 
 The CAP theorem, proposed by Eric Brewer in 2000 and proven by Seth Gilbert and Nancy Lynch in 2002, states that a distributed data store can provide at most **two out of three** guarantees simultaneously:
 

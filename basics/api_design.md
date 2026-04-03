@@ -36,6 +36,9 @@ Interviewers assess your API design skills because:
 
 ## RESTful API Design
 
+{: .note }
+> REST fundamentals and HTTP protocol details are also covered in [Networking]({{ site.baseurl }}/basics/networking). This section focuses on API design patterns and best practices.
+
 REST (Representational State Transfer) is the dominant architectural style for web APIs. Defined by Roy Fielding in his 2000 dissertation, REST uses HTTP semantics to create intuitive, resource-oriented interfaces.
 
 ### REST Principles

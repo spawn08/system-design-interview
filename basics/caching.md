@@ -2,7 +2,7 @@
 layout: default
 title: Caching
 parent: Fundamentals
-nav_order: 2
+nav_order: 5
 ---
 
 # Caching
@@ -1190,3 +1190,14 @@ Hit Ratio = Cache Hits / (Cache Hits + Cache Misses)
 | **Invalidation** | TTL, explicit delete, event-driven—this is the hard part |
 | **Problems** | Stale data, stampedes, race conditions—know the solutions |
 | **Monitoring** | Hit ratio is king—aim for 90%+ |
+
+---
+
+## Further Reading
+
+- [Redis Documentation](https://redis.io/docs/) — the definitive guide to Redis data structures and commands
+- [Memcached Wiki](https://github.com/memcached/memcached/wiki) — architecture and usage patterns
+- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapter 5: Replication (cache consistency context)
+- [Facebook's Scaling Memcache](https://research.facebook.com/publications/scaling-memcache-at-facebook/) — production caching at scale
+- [AWS ElastiCache Best Practices](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/BestPractices.html)
+- [Cache Stampede Prevention Techniques](https://en.wikipedia.org/wiki/Cache_stampede) — probabilistic early expiration and locking

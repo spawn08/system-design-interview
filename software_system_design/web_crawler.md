@@ -259,7 +259,7 @@ sequenceDiagram
 
 ## Step 4: Component Deep Dive
 
-### 3.1 URL Frontier
+### 4.1 URL Frontier
 
 The frontier manages the queue of URLs to crawl. It's not a simple FIFO queue—it must handle:
 - **Prioritization:** Important pages first
@@ -364,7 +364,7 @@ class URLFrontier:
         return None
 ```
 
-### 3.2 Politeness and robots.txt
+### 4.2 Politeness and robots.txt
 
 **robots.txt** tells crawlers what they can/can't access:
 
@@ -440,7 +440,7 @@ class RobotsCache:
         return 1.0  # Default 1 second
 ```
 
-### 3.3 Fetcher
+### 4.3 Fetcher
 
 The fetcher downloads web pages. It must handle:
 - **Concurrent connections:** Maximize throughput
@@ -535,7 +535,7 @@ class AsyncFetcher:
         return any(ct in content_type for ct in allowed)
 ```
 
-### 3.4 Parser
+### 4.4 Parser
 
 The parser extracts information from HTML:
 - **Links:** For further crawling
@@ -658,7 +658,7 @@ class HTMLParser:
         return metadata
 ```
 
-### 3.5 Deduplication
+### 4.5 Deduplication
 
 Avoid crawling the same content twice:
 - **URL deduplication:** Same URL seen before
@@ -772,7 +772,7 @@ class ContentDeduplicator:
         return bin(a ^ b).count('1')
 ```
 
-### 3.6 DNS Resolution
+### 4.6 DNS Resolution
 
 DNS resolution can be a bottleneck. Cache results:
 

@@ -140,7 +140,9 @@ User preferences: 500M users × 200 bytes = 100 GB
 
 ---
 
-## Step 3: Notification Types and Priorities
+## Step 3: High-Level Design
+
+### 3.1 Notification Types and Priorities
 
 ### Notification Categories
 
@@ -182,7 +184,7 @@ flowchart LR
 
 ---
 
-## Step 4: High-Level Architecture
+### 3.2 Architecture Overview
 
 ### System Overview
 
@@ -299,9 +301,9 @@ sequenceDiagram
 
 ---
 
-## Step 5: Component Deep Dive
+## Step 4: Deep Dive
 
-### 4.1 Notification API
+### 5.1 Notification API
 
 ```python
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -379,7 +381,7 @@ async def send_notification(
     )
 ```
 
-### 4.2 User Preferences
+### 5.2 User Preferences
 
 Store and enforce user notification preferences:
 
@@ -468,7 +470,7 @@ class PreferencesStore:
         return True, "allowed"
 ```
 
-### 4.3 Template System
+### 5.3 Template System
 
 Templates separate content from delivery logic:
 
@@ -536,7 +538,7 @@ ORDER_SHIPPED_TEMPLATE = {
 }
 ```
 
-### 4.4 Channel Router
+### 5.4 Channel Router
 
 Route notifications to appropriate queues:
 
@@ -594,7 +596,7 @@ class NotificationRouter:
 
 ---
 
-## Step 6: Channel Implementations
+### 4.5 Channel Implementations
 
 ### 5.1 Push Notifications (iOS/Android)
 
@@ -854,7 +856,7 @@ class InAppNotificationManager:
 
 ---
 
-## Step 7: Reliability and Delivery Guarantees
+### 4.6 Reliability and Delivery Guarantees
 
 ### Retry Strategies
 
@@ -966,7 +968,7 @@ flowchart LR
 
 ---
 
-## Step 8: Rate Limiting and Throttling
+### 4.7 Rate Limiting and Throttling
 
 Prevent notification fatigue and respect provider limits.
 
@@ -1093,7 +1095,7 @@ class ProviderRateLimiter:
 
 ---
 
-## Step 9: Analytics and Tracking
+### 4.8 Analytics and Tracking
 
 ### Delivery Tracking
 
@@ -1185,7 +1187,9 @@ async def track_click(notification_id: str, url: str):
 
 ---
 
-## Step 10: Scaling Strategies
+## Step 5: Scaling & Production
+
+### 5.1 Scaling Strategies
 
 ### Horizontal Scaling
 
@@ -1285,7 +1289,7 @@ class BatchNotificationSender:
 
 ---
 
-## Step 11: Multi-Language Implementations
+### 5.2 Multi-Language Implementations
 
 ### Java: Notification Service Core
 
@@ -1553,7 +1557,7 @@ func (d *Dispatcher) worker(ctx context.Context) {
 
 ---
 
-## Step 12: Monitoring
+### 5.3 Monitoring
 
 ### Key Metrics
 

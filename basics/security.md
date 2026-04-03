@@ -2,7 +2,7 @@
 layout: default
 title: Security
 parent: Fundamentals
-nav_order: 8
+nav_order: 9
 ---
 
 # Security
@@ -347,6 +347,9 @@ public class IntegrityVerifier {
 ---
 
 ## TLS/SSL
+
+{: .note }
+> TLS is also introduced in [Networking]({{ site.baseurl }}/basics/networking) in the context of HTTPS. This section covers the cryptographic details and certificate management.
 
 TLS (Transport Layer Security) encrypts data in transit between client and server. SSL is its deprecated predecessor—when someone says "SSL" today, they almost always mean TLS.
 

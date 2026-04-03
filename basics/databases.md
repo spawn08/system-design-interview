@@ -2,7 +2,7 @@
 layout: default
 title: Databases
 parent: Fundamentals
-nav_order: 3
+nav_order: 4
 ---
 
 # Databases
@@ -943,3 +943,17 @@ flowchart TD
 | **Sharding** | Split data for write scaling, but adds complexity |
 | **Indexing** | B-Trees for range queries, Hash for equality, careful with over-indexing |
 | **Transactions** | ACID guarantees, pessimistic vs optimistic locking |
+
+---
+
+## Further Reading
+
+- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapters 2, 3, 5, 6, 7
+- [Use The Index, Luke](https://use-the-index-luke.com/) — SQL indexing and tuning guide
+- [Amazon DynamoDB Developer Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/)
+- [CockroachDB Architecture Overview](https://www.cockroachlabs.com/docs/stable/architecture/overview.html) — distributed SQL internals
+- [MongoDB Manual](https://www.mongodb.com/docs/manual/) — document database patterns
+- [CAP Theorem Revisited](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) — Eric Brewer's 2012 reflection
+
+{: .note }
+> For deeper coverage of CAP theorem and consistency models, see also [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems).

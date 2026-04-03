@@ -2,7 +2,7 @@
 layout: default
 title: Estimation & Planning
 parent: Fundamentals
-nav_order: 10
+nav_order: 2
 ---
 
 # Estimation and Capacity Planning

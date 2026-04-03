@@ -148,7 +148,9 @@ Active clients: 2M × 100 × 20 bytes = 4 GB → requires Redis cluster
 
 ---
 
-## Step 3: Rate Limiting Algorithms
+## Step 3: High-Level Design
+
+### 3.1 Rate Limiting Algorithms
 
 There are several algorithms for rate limiting, each with different characteristics.
 
@@ -558,7 +560,7 @@ class SlidingWindowCounter:
 
 ---
 
-## Step 4: High-Level Architecture
+### 3.2 System Architecture
 
 For a distributed system, we need a centralized store for rate limit state.
 
@@ -652,7 +654,9 @@ sequenceDiagram
 
 ---
 
-## Step 5: Distributed Rate Limiting with Redis
+## Step 4: Deep Dive
+
+### 4.1 Distributed Rate Limiting with Redis
 
 For a distributed system, we need atomic operations. Redis provides these.
 
@@ -803,7 +807,7 @@ Thread 2: [GET and SET atomically] → 101, rejected
 
 ---
 
-## Step 6: Handling Distributed Challenges
+### 4.2 Handling Distributed Challenges
 
 ### Challenge 1: Race Conditions
 
@@ -896,7 +900,7 @@ redis.expire(key, window_size * 2)
 
 ---
 
-## Step 7: HTTP Response Headers
+### 4.3 HTTP Response Headers
 
 Communicate rate limit status to clients via headers:
 
@@ -955,7 +959,7 @@ def get_client_id(request: Request) -> str:
 
 ---
 
-## Step 8: Advanced Features
+### 4.4 Advanced Features
 
 ### Multiple Rate Limit Rules
 
@@ -1046,7 +1050,7 @@ async def rate_limit_with_cost(request: Request):
 
 ---
 
-## Step 9: Multi-Language Implementations
+### 4.5 Multi-Language Implementations
 
 ### Java: Token Bucket Rate Limiter with Redis
 
@@ -1284,7 +1288,7 @@ func resolveClientID(r *http.Request) string {
 
 ---
 
-## Step 10: Scaling Considerations
+## Step 5: Scaling & Production
 
 ### Redis Cluster for High Availability
 

@@ -2,7 +2,7 @@
 layout: default
 title: Networking
 parent: Fundamentals
-nav_order: 4
+nav_order: 3
 ---
 
 # Networking
@@ -928,3 +928,17 @@ Server responds with what's allowed. If allowed, browser sends actual request.
 | **SSE** | Simple one-way server push. Good for notifications. |
 | **Proxies** | Forward (client-side), Reverse (server-side). |
 | **Load Balancers** | Distribute traffic, health checks, L4 vs L7. |
+
+---
+
+## Further Reading
+
+- [HTTP/2 Explained](https://http2-explained.haxx.se/) — Daniel Stenberg's guide to HTTP/2
+- [High Performance Browser Networking](https://hpbn.co/) by Ilya Grigorik — free online book
+- [gRPC Documentation](https://grpc.io/docs/) — protocol buffers and service definitions
+- *Computer Networking: A Top-Down Approach* by Kurose & Ross
+- [RFC 6455: The WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
+- [Cloudflare Learning Center](https://www.cloudflare.com/learning/) — DNS, CDN, TLS explained clearly
+
+{: .note }
+> For deeper coverage of REST API design, versioning, and authentication, see also [API Design]({{ site.baseurl }}/basics/api_design). For TLS and encryption details, see [Security]({{ site.baseurl }}/basics/security).

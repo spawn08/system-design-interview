@@ -2,7 +2,7 @@
 layout: default
 title: Scalability & Reliability
 parent: Fundamentals
-nav_order: 9
+nav_order: 10
 ---
 
 # Scalability, Availability, and Reliability
