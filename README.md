@@ -1,5 +1,32 @@
 # System Design Interview Preparation Guide
 
+[![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
+
+A comprehensive, interview-ready guide covering **35+ system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples.
+
+**Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
+
+### Code Language Conventions
+
+| Section | Primary Languages | Rationale |
+|---------|-------------------|-----------|
+| **Essential Topics** (`basics/`) | Java | Core CS concepts with Java idioms |
+| **Software System Design** (`software_system_design/`) | Java, Python, Go | Multi-language production examples |
+| **ML System Design** (`ml_system_design/`) | Python | ML ecosystem standard |
+| **GenAI/ML Fundamentals** (`genai_ml_basics/`) | Python | ML/AI ecosystem standard |
+| **Advanced Topics** (`advanced/`) | Java, Go, Python | Infrastructure-focused examples |
+
+### Coverage Summary
+
+| Section | Topics | Status |
+|---------|--------|--------|
+| Essential System Design | 10 | Complete |
+| Advanced Topics | 5 | Complete |
+| GenAI/ML Fundamentals | 5 | Complete |
+| Software System Design | 9 | Complete |
+| ML System Design | 6 | Complete |
+| **Total** | **35** | **All complete** |
+
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
 ## I. Essential System Design Topics
@@ -296,19 +323,25 @@ system-design-interview/
 │   ├── data_pipelines.md
 │   ├── llm_systems.md
 │   └── distributed_training.md
-├── software_system_design/     # Classic System Design Problems
+├── software_system_design/     # Classic System Design Problems (9 designs)
 │   ├── index.md
 │   ├── url_shortening.md
 │   ├── rate_limiter.md
 │   ├── web_crawler.md
 │   ├── notification_system.md
-│   └── voting-system-design.md
-├── ml_system_design/           # ML System Design
+│   ├── voting-system-design.md
+│   ├── chat_system.md
+│   ├── news_feed.md
+│   ├── search_autocomplete.md
+│   └── distributed_cache.md
+├── ml_system_design/           # ML System Design (6 designs)
 │   ├── index.md
 │   ├── recommendation_system.md
 │   ├── fraud_detection.md
 │   ├── image_search.md
-│   └── image_caption_generator.md
+│   ├── image_caption_generator.md
+│   ├── search_ranking.md
+│   └── realtime_personalization.md
 ├── _config.yml                 # Jekyll site configuration
 ├── Gemfile                     # Ruby dependencies
 ├── index.md                    # Home page
@@ -383,3 +416,39 @@ The pipeline uses the following actions:
 | Navigation order wrong | Adjust `nav_order` in the page's front matter |
 | Page not appearing | Verify `parent` in front matter matches the parent page's `title` exactly |
 | Local serve fails | Run `bundle update` to update gems, ensure Ruby 3.1+ |
+| Pages 404 after deploy | Verify `baseurl` in `_config.yml` matches your repo name |
+| CSS/styles broken locally | Run `bundle exec jekyll clean` then rebuild |
+
+### Content Style Guide
+
+Each system design topic follows a consistent interview-ready structure:
+
+**Software System Design pages** include:
+1. **What We're Building** — problem statement with real-world scale
+2. **Step 1: Requirements** — functional/non-functional requirements tables, API design
+3. **Step 2: Estimation** — back-of-envelope calculations
+4. **Step 3: High-Level Design** — Mermaid architecture diagram
+5. **Step 4: Deep Dive** — 6-10 subsections with code in Java, Python, and Go
+6. **Step 5: Scaling & Production** — failure handling, monitoring, trade-offs
+7. **Interview Tips** — common follow-up questions
+
+**ML System Design pages** include:
+1. **What We're Building** — problem statement with business impact
+2. **ML Concepts Primer** — key ML concepts needed for the design
+3. **Step 1: Requirements** — functional/non-functional + metrics (online and offline)
+4. **Step 2: Estimation** — QPS, storage, model inference budget
+5. **Step 3: High-Level Design** — online + offline pipeline diagrams
+6. **Step 4: Deep Dive** — 8-10 subsections with Python code examples
+7. **Step 5: Scaling & Production** — failure handling, privacy, monitoring
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-topic`
+3. Add your topic following the structure above
+4. Test locally with `bundle exec jekyll serve`
+5. Submit a pull request
+
+### License
+
+This project is open source and available for educational purposes.

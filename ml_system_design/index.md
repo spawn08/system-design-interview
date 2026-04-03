@@ -88,13 +88,36 @@ Design a visual search system for finding similar images or searching by text de
 
 ---
 
+### [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking)
+{: .d-inline-block }
+
+Information Retrieval
+{: .label .label-green }
+
+Design an ML-powered search ranking system (learning-to-rank, retrieval + ranking + re-ranking).
+
+**Key concepts:** BM25, dense retrieval, hybrid fusion, LambdaMART, cross-encoder re-ranking, position bias, NDCG, serving at scale
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization)
+{: .d-inline-block }
+
+Session-Based ML
+{: .label .label-purple }
+
+Design a real-time personalization system that adapts to user behavior within a session.
+
+**Key concepts:** Session models (GRU4Rec, SASRec), contextual bandits (Thompson Sampling, LinUCB), real-time feature engineering, multi-task ranking (MMoE), exploration vs exploitation, drift detection
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
 {: .note }
 > Looking for **Model Serving, Feature Stores, Data Pipelines, LLMs, or Distributed Training?** These foundational topics now live in the dedicated [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) section — master those building blocks first, then apply them here.
-
-## Coming Soon
-
-- **Search Ranking** - ML-powered search results with learning-to-rank
-- **Real-time Personalization** - Session-based recommendations
 
 ---
 
@@ -184,7 +207,9 @@ As you study these designs, look for patterns that repeat:
 | **A/B testing** | All ML systems |
 | **Ensemble models** | Fraud Detection, Recommendations |
 | **Rules + ML hybrid** | Fraud Detection, Content Moderation |
-| **Real-time aggregations** | Fraud Detection (velocity), Recommendations (session) |
+| **Real-time aggregations** | Fraud Detection (velocity), Recommendations (session), Personalization |
+| **Session modeling** | Real-time Personalization, Recommendations |
+| **Multi-armed bandits** | Real-time Personalization, A/B Testing |
 
 {: .note }
 > Master these patterns and you can apply them to any new ML system design problem.
@@ -199,6 +224,8 @@ As you study these designs, look for patterns that repeat:
 | **Recommendations** | <100ms | Cold start, scale | CTR, Conversion |
 | **Fraud Detection** | <100ms | Class imbalance | Precision-Recall |
 | **Image Search** | <200ms | Index at scale | Recall@K, Latency |
+| **Search Ranking** | <200ms | Retrieval + rank budgets | NDCG@K, CTR |
+| **Real-time Personalization** | <50ms | Session modeling, cold start | CTR, Session Depth |
 
 ---
 

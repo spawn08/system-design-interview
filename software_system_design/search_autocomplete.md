@@ -1,0 +1,1539 @@
+---
+layout: default
+title: Search Autocomplete
+parent: System Design Examples
+nav_order: 8
+---
+
+# Design a Search Autocomplete / Typeahead System
+{: .no_toc }
+
+<details open markdown="block">
+  <summary>Table of Contents</summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
+
+---
+
+## What We're Building
+
+We are designing a **search autocomplete** (also called **typeahead** or **query suggestions**) system: as a user types into a search box, the client shows a ranked list of **top-K** suggested queries—similar in spirit to Google’s search suggestions, Amazon’s product search, or YouTube’s search box.
+
+### Scope
+
+- **Google-like behavior:** suggestions appear **in real time** as the user types partial queries.
+- **Latency target:** return **top-K** suggestions in **under ~100 ms** at the tail (P99), often tighter at P50.
+- **Scale intuition:** Google processes on the order of **billions of queries per day**; each keystroke can trigger a suggestion request (often **debounced** on the client). Industry talks and public data often cite **~8.5B+ searches/day** globally for Google-scale search—your interview numbers will vary; always **align constants with the interviewer**.
+
+{: .note }
+> In interviews, explicitly mention **debouncing**, **caching**, and **prefix-only** APIs—interviewers reward awareness that “every keystroke” is a product behavior, not necessarily one network call per key.
+
+---
+
+## Step 1: Requirements Clarification
+
+### Questions to Ask
+
+| Question | Why it matters | Typical follow-up |
+|----------|----------------|-------------------|
+| What is **K** (e.g., top 5 vs 10)? | Drives payload size, ranking cost, UI | Often 8–10 on desktop, fewer on mobile |
+| Multi-language / locale? | Separate tries, normalization, collation | Per-locale shards or overlays |
+| **Personalization** required? | User history, privacy, infra | Often phased: global first, personalize later |
+| **Safe search** / policy filters? | Blocklists, legal, brand risk | Non-negotiable at big tech |
+| **Freshness** of trends? | Pipeline latency vs accuracy | Hourly vs daily rebuilds |
+| Traffic shape (**QPS**, peaks)? | Autoscaling, cache sizing | Peaks >> daily average |
+| **Write path** for suggestions? | Usually none from users; admin/blocklist APIs | Mostly read-heavy |
+| **Offline** vs **online** learning? | Batch aggregates vs streaming | Hybrid is common |
+
+### Functional Requirements
+
+| Requirement | Priority | Notes |
+|---------------|----------|-------|
+| Return **top 10** suggestions for a **prefix** | Must have | Define tie-breaking (stable sort) |
+| Rank by **popularity / relevance** | Must have | Often blended with recency / trending |
+| **Multi-language** support | Should have | Normalization + locale-specific ranking |
+| **Personalization** (history, region) | Nice to have | Overlay or rerank in separate service |
+| **Trending** queries surfaced | Nice to have | Sliding windows, decay |
+| Admin APIs for **blocklist** / takedowns | Should have | Compliance |
+
+### Non-Functional Requirements
+
+| Requirement | Target | Rationale |
+|-------------|--------|-----------|
+| **Latency** | P99 **< 100 ms** (end-to-end) | Perceived instant typing |
+| **Availability** | **99.99%** | Search box is high-impact |
+| **Throughput** | **100K+ QPS** at peak (example) | Event days, news spikes |
+| **Correctness** | Best-effort ranked lists | Not strongly consistent globally |
+| **Cost** | Bounded memory per region | Trie + caches dominate |
+
+### API Design
+
+A minimal, cache-friendly read API:
+
+```http
+GET /suggestions?prefix=machine%20l&limit=10&locale=en-US&session_id=<opaque>
+```
+
+**Example response:**
+
+```json
+{
+  "prefix": "machine l",
+  "locale": "en-US",
+  "suggestions": [
+    { "text": "machine learning", "score": 0.98, "source": "global" },
+    { "text": "machine learning course", "score": 0.91, "source": "global" }
+  ],
+  "took_ms": 12,
+  "cache": "HIT"
+}
+```
+
+{: .tip }
+> Use **GET** with a stable query string so **CDNs** and **browser caches** can reuse responses for popular prefixes. Avoid putting PII in URLs; `session_id` should be opaque and optional.
+
+---
+
+## Step 2: Back-of-the-Envelope Estimation
+
+Assume:
+
+- **1B DAU**
+- **6 searches / user / day** → **6×10⁹ searches/day**
+- Average **4 characters** typed per search (for sessions that use the box)
+- **20%** of searches **trigger autocomplete** (feature usage—not every search)
+
+### Autocomplete request volume
+
+Not every character sends a request if the client **debounces** (e.g., 50–150 ms). A common interview simplification:
+
+- Autocomplete sessions per day ≈ `0.20 × 6×10⁹ = 1.2×10⁹`.
+- If each session sends **~2–4** suggestion requests after debouncing (not one per key), take **3** as a round number:
+
+`3 × 1.2×10⁹ = 3.6×10⁹` autocomplete **requests/day**.
+
+Average QPS:
+
+`3.6×10⁹ / 86,400 ≈ 41,700 QPS` (average).
+
+Peak-to-average ratios of **3×–10×** are common for global search (news, retail events). At **5×**:
+
+`≈ 200,000 QPS` peak (order-of-magnitude sanity check against “100K+ QPS”).
+
+{: .warning }
+> These numbers are **scenario knobs**. In an interview, state assumptions clearly and round to one significant figure unless asked for precision.
+
+### Trie storage (order of magnitude)
+
+Suppose the serving structure stores **tens of millions** of distinct prefixes / completions with metadata (scores, pointers). A compressed trie might use **tens to low hundreds of bytes** per active node **on average** (highly data-dependent).
+
+- **100M nodes × 100 B ≈ 10 GB** per logical dictionary (illustrative).
+- With **sharding** by prefix range, each shard holds a fraction; **replicas** multiply RAM footprint.
+
+### Bandwidth
+
+If each response averages **1 KB** (JSON with 10 suggestions + metadata):
+
+`4×10⁴ QPS × 1 KB ≈ 40 MB/s` average egress from the suggestion tier (excluding replication/internal chatter)—again, peaks higher.
+
+---
+
+## Step 3: High-Level Design
+
+At a high level, separate **online serving** (milliseconds) from **offline / nearline analytics** (minutes to hours) that rebuilds suggestion models.
+
+```mermaid
+flowchart LR
+  Client[Browser / App]
+  CDN[CDN / Edge Cache]
+  GW[API Gateway]
+  AC[Autocomplete Service]
+  Trie[(In-memory Trie / Radix Structure)]
+  Redis[(Redis Cache)]
+  K[Kafka: Query Logs]
+  SP[Spark / Flink Aggregator]
+  TB[Trie Builder Job]
+  Obj[(Object Store: Snapshots)]
+
+  Client --> CDN
+  CDN --> GW
+  GW --> AC
+  AC --> Trie
+  AC --> Redis
+  AC --> K
+  K --> SP
+  SP --> Obj
+  SP --> TB
+  TB --> Obj
+  TB --> Trie
+```
+
+### Two major subsystems
+
+1. **Online serving (fast path):** resolve prefix → candidates → rank → filter → respond. Dominated by **in-memory structures** and **caches**.
+2. **Offline trie building:** aggregate billions of events into **counts / scores**, build a new snapshot, **atomically swap** into serving.
+
+{: .note }
+> Many production systems also maintain a **small “delta” layer** (recent trending) merged at read time, even if the bulk trie is rebuilt periodically.
+
+---
+
+## Step 4: Deep Dive
+
+### 4.1 Trie Data Structure
+
+#### Basics
+
+A **trie** (prefix tree) stores strings so that prefixes share path prefixes. Each edge is labeled with a character (or token). Searching for a prefix walks from the root following edges.
+
+```
+        (root)
+       /  |  \
+      c   d   m
+      |   |    \
+      a   o     a
+      |   |      \
+      t   g       c
+                ...
+```
+
+#### Frequency-augmented trie
+
+For autocomplete, nodes often store:
+
+- **Aggregate frequency** for the substring ending at that node (or for completions beneath it—define one convention and stick to it).
+- Optional **top-K heap** at hot nodes (trade memory for speed).
+
+**Retrieval:** from the node matching the prefix, collect candidates via:
+
+- Traversal with pruning, or
+- Precomputed top-K per node, or
+- Hybrid: bounded DFS + heap merge.
+
+#### Java: Trie with top-K at each node
+
+The following illustrates a **mutable trie** with per-node frequency and a **min-heap** of size K for top completions at terminal / summary points. Production code would add memory pooling, serialization, and careful Unicode handling.
+
+```java
+import java.util.*;
+
+/**
+ * Illustrative prefix trie for interview discussion.
+ * Not production-hardened: Unicode, concurrency, and memory are simplified.
+ */
+public class SuggestionTrie {
+    static final class Node {
+        final Map<Character, Node> children = new HashMap<>();
+        long frequency; // aggregated weight for this path
+        final PriorityQueue<Candidate> topK;
+        final int k;
+
+        Node(int k) {
+            this.k = k;
+            this.topK = new PriorityQueue<>(Comparator.comparingLong(c -> c.score));
+        }
+
+        void offerCompletion(String text, long score) {
+            if (topK.size() < k) {
+                topK.add(new Candidate(text, score));
+            } else if (score > topK.peek().score) {
+                topK.poll();
+                topK.add(new Candidate(text, score));
+            }
+        }
+
+        List<Candidate> snapshotTop() {
+            ArrayList<Candidate> list = new ArrayList<>(topK);
+            list.sort((a, b) -> Long.compare(b.score, a.score));
+            return list;
+        }
+    }
+
+    public static final class Candidate {
+        public final String text;
+        public final long score;
+
+        public Candidate(String text, long score) {
+            this.text = text;
+            this.score = score;
+        }
+    }
+
+    private final Node root;
+    private final int k;
+
+    public SuggestionTrie(int k) {
+        this.k = k;
+        this.root = new Node(k);
+    }
+
+    public void insert(String query, long score) {
+        if (query == null || query.isEmpty()) return;
+        Node cur = root;
+        for (int i = 0; i < query.length(); i++) {
+            char ch = query.charAt(i);
+            cur = cur.children.computeIfAbsent(ch, c -> new Node(k));
+            cur.frequency += score; // simple propagation example
+        }
+        // Register full string at the terminal walk (here: repeat traversal)
+        Node n = root;
+        for (int i = 0; i < query.length(); i++) {
+            char ch = query.charAt(i);
+            n = n.children.get(ch);
+            n.offerCompletion(query, score);
+        }
+    }
+
+    public List<Candidate> topKForPrefix(String prefix) {
+        Node n = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char ch = prefix.charAt(i);
+            n = n.children.get(ch);
+            if (n == null) return Collections.emptyList();
+        }
+        return n.snapshotTop();
+    }
+}
+```
+
+#### Go: Concurrent-safe trie (RWMutex + rune-wise children)
+
+Go prefers **`rune`**-wise children for Unicode. This example uses a **striped read/write lock** pattern: one `sync.RWMutex` on the trie for clarity (sharded locks would scale further).
+
+```go
+package trie
+
+import (
+	"container/heap"
+	"sort"
+	"sync"
+)
+
+type Candidate struct {
+	Text  string
+	Score int64
+}
+
+type minHeap []Candidate
+
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i].Score < h[j].Score }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *minHeap) Push(x any) { *h = append(*h, x.(Candidate)) }
+func (h *minHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+type node struct {
+	mu        sync.Mutex
+	children  map[rune]*node
+	freq      int64
+	topK      int
+	heap      minHeap
+}
+
+func newNode(k int) *node {
+	return &node{children: make(map[rune]*node), topK: k}
+}
+
+func (n *node) offer(c Candidate) {
+	if n.topK == 0 {
+		return
+	}
+	if len(n.heap) < n.topK {
+		heap.Push(&n.heap, c)
+		return
+	}
+	if c.Score > n.heap[0].Score {
+		heap.Pop(&n.heap)
+		heap.Push(&n.heap, c)
+	}
+}
+
+// ConcurrentTrie is safe for concurrent reads; inserts should be managed by a builder thread in production.
+type ConcurrentTrie struct {
+	mu   sync.RWMutex
+	root *node
+	k    int
+}
+
+func NewConcurrentTrie(k int) *ConcurrentTrie {
+	return &ConcurrentTrie{root: newNode(k), k: k}
+}
+
+func (t *ConcurrentTrie) Insert(s string, score int64) {
+	runes := []rune(s)
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	cur := t.root
+	for _, r := range runes {
+		if cur.children[r] == nil {
+			cur.children[r] = newNode(t.k)
+		}
+		cur = cur.children[r]
+		cur.freq += score
+	}
+	// register completions along the path (simplified pattern)
+	cur = t.root
+	for _, r := range runes {
+		cur = cur.children[r]
+		cur.offer(Candidate{Text: s, Score: score})
+	}
+}
+
+func (t *ConcurrentTrie) TopK(prefix string) []Candidate {
+	runes := []rune(prefix)
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	cur := t.root
+	for _, r := range runes {
+		cur = cur.children[r]
+		if cur == nil {
+			return nil
+		}
+	}
+	out := make([]Candidate, len(cur.heap))
+	copy(out, cur.heap)
+	sort.Slice(out, func(i, j int) bool { return out[i].Score > out[j].Score })
+	return out
+}
+```
+
+{: .warning }
+> For hot paths, prefer **pre-sorted immutable snapshots** built offline; sorting on every read adds CPU cost when QPS is high.
+
+#### Python: Trie with heap for top-K
+
+Python’s `heapq` provides a **min-heap** useful for tracking **largest K** via score inversion or by storing tuples.
+
+```python
+from __future__ import annotations
+
+import heapq
+from dataclasses import dataclass
+from typing import Dict, List, Tuple
+
+
+@dataclass(frozen=True)
+class Suggestion:
+    text: str
+    score: float
+
+
+class TrieNode:
+    __slots__ = ("children", "freq", "heap", "k")
+
+    def __init__(self, k: int) -> None:
+        self.children: Dict[str, TrieNode] = {}
+        self.freq: float = 0.0
+        self.k = k
+        # min-heap of (score, text) — pop smallest when full
+        self.heap: List[Tuple[float, str]] = []
+
+    def offer(self, text: str, score: float) -> None:
+        if self.k <= 0:
+            return
+        item = (score, text)
+        if len(self.heap) < self.k:
+            heapq.heappush(self.heap, item)
+            return
+        if score > self.heap[0][0]:
+            heapq.heapreplace(self.heap, item)
+
+
+class TopKTrie:
+    def __init__(self, k: int = 10) -> None:
+        self.k = k
+        self.root = TrieNode(k)
+
+    def insert(self, query: str, score: float) -> None:
+        if not query:
+            return
+        cur = self.root
+        for ch in query:
+            cur.freq += score
+            cur = cur.children.setdefault(ch, TrieNode(self.k))
+        cur.freq += score
+
+        cur = self.root
+        for ch in query:
+            cur = cur.children[ch]
+            cur.offer(query, score)
+
+    def top_k(self, prefix: str) -> List[Suggestion]:
+        cur = self.root
+        for ch in prefix:
+            nxt = cur.children.get(ch)
+            if nxt is None:
+                return []
+            cur = nxt
+        # extract max-K from min-heap
+        ranked = sorted(((s, t) for s, t in cur.heap), reverse=True)
+        return [Suggestion(text=t, score=s) for s, t in ranked]
+```
+
+---
+
+### 4.2 Trie Optimization
+
+#### Compressed trie (radix tree)
+
+Merge chains of nodes with **single children** into one edge labeled with a **substring**. This reduces pointer overhead and improves cache locality—critical at billion-query scale **when the tree is sparse**.
+
+#### Node pruning
+
+Remove ultra-low-frequency branches to cap memory:
+
+- **Minimum support threshold** (e.g., count ≥ N in the aggregation window).
+- **Per-depth budgets** (deeper nodes must justify storage).
+
+#### Limit trie depth
+
+Cap **max prefix length** (e.g., **50** Unicode scalars) to bound worst-case traversal and abuse (megabyte “prefixes”).
+
+#### Memory per node (rough)
+
+| Component | Typical cost |
+|-----------|--------------|
+| Child map overhead | Pointers + hash/map structure |
+| Edge label | Strings or packed byte slices |
+| Scores / metadata | 8–32 bytes |
+| Top-K heap | O(K) entries at hot nodes |
+
+{: .tip }
+> Prefer **immutable snapshots** built offline with **dense arrays** + **FSA**-like layouts for production serving—maps of children are easy to explain in interviews but not always the most RAM-efficient representation.
+
+#### Comparison table
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Basic trie** | Simple to explain | High pointer overhead |
+| **Radix tree** | Less memory, fewer hops | More complex splits/merges |
+| **DAWG / FSA** | Very compact | Harder dynamic updates |
+| **Precomputed top-K per node** | O(prefix) lookup | Stale until rebuild; memory |
+| **On-the-fly DFS + heap** | Lower memory | Higher CPU on hot paths |
+
+---
+
+### 4.3 Data Collection & Analytics Pipeline
+
+**Instrumentation:** clients and API gateways emit structured events:
+
+- `session_id`, `prefix`, `chosen_suggestion` (if any), timestamps, locale.
+
+**Ingest:** append-only logs → **Kafka**.
+
+**Aggregate:** **Flink/Spark** jobs compute:
+
+- **Global** frequency per query string
+- **Time-decayed** counts (exponential decay)
+- **Trending** spikes vs baseline (e.g., z-score on deltas)
+
+Use **sliding windows** (1h, 24h, 7d) with **watermarks** for event time.
+
+```mermaid
+flowchart LR
+  LB[Load Balancer]
+  API[Autocomplete API]
+  K[Kafka Topics]
+  F[Flink / Spark Streaming]
+  DW[(Data Warehouse)]
+  OFF[Offline Batch: Daily/hourly)]
+  FS[(Feature Store / Object Store)]
+  JOB[Aggregator Outputs: CSV/Parquet)]
+
+  LB --> API
+  API --> K
+  K --> F
+  F --> DW
+  K --> OFF
+  OFF --> JOB
+  JOB --> FS
+```
+
+#### Python: batch aggregation sketch (pandas-style)
+
+```python
+from dataclasses import dataclass
+from typing import Iterable, Tuple
+import hashlib
+
+
+@dataclass
+class QueryEvent:
+    query: str
+    weight: float
+    locale: str
+
+
+def stable_shard_key(query: str, shards: int) -> int:
+    h = hashlib.sha256(query.encode("utf-8")).digest()
+    return int.from_bytes(h[:8], "big") % shards
+
+
+def aggregate_counts(events: Iterable[QueryEvent]) -> dict[Tuple[str, str], float]:
+    counts: dict[Tuple[str, str], float] = {}
+    for e in events:
+        key = (e.locale, e.query.strip().lower())
+        counts[key] = counts.get(key, 0.0) + e.weight
+    return counts
+
+
+def decay_merge(
+    previous: dict[Tuple[str, str], float],
+    fresh: dict[Tuple[str, str], float],
+    alpha: float,
+) -> dict[Tuple[str, str], float]:
+    """Exponential decay merge: alpha in (0,1], higher alpha favors fresh."""
+    keys = set(previous.keys()) | set(fresh.keys())
+    out: dict[Tuple[str, str], float] = {}
+    for k in keys:
+        out[k] = alpha * fresh.get(k, 0.0) + (1 - alpha) * previous.get(k, 0.0)
+    return out
+```
+
+{: .note }
+> Real pipelines add **bot filtering**, **deduplication**, and **privacy** constraints (e.g., differential privacy or minimum thresholds before storing rare queries).
+
+---
+
+### 4.4 Trie Building (Offline)
+
+**Batch rebuild** from aggregated counts:
+
+1. Load `(query, score)` pairs.
+2. Build a new trie snapshot in memory (or memory-map a serialized artifact).
+3. **Atomic swap** pointer / file descriptor in serving processes (**blue-green**).
+
+**Incremental updates** help between rebuilds but complicate correctness; many systems use **small overlays** (e.g., Redis ZSET for hot queries) merged at read time.
+
+#### Java: Trie builder service (sketch)
+
+```java
+import java.io.*;
+import java.util.*;
+
+public class TrieBuilderService {
+    public static SuggestionTrie buildFromCounts(Map<String, Long> queryToCount, int k) {
+        SuggestionTrie trie = new SuggestionTrie(k);
+        for (Map.Entry<String, Long> e : queryToCount.entrySet()) {
+            trie.insert(e.getKey(), e.getValue());
+        }
+        return trie;
+    }
+
+    public static void writeSnapshot(SuggestionTrie trie, File out) throws IOException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(out))) {
+            oos.writeObject(trie); // illustrative only—prefer custom binary format
+        }
+    }
+}
+```
+
+{: .warning }
+> Java serialization is shown for **interview simplicity**. Production systems use **versioned binary formats**, **checksums**, and **mmap**-friendly layouts.
+
+#### Go: Atomic trie swap
+
+```go
+package serving
+
+import "sync/atomic"
+
+type Snapshot struct {
+	trie *ConcurrentTrie
+}
+
+type AtomicTrieHolder struct {
+	ptr atomic.Pointer[Snapshot]
+}
+
+func (h *AtomicTrieHolder) Current() *ConcurrentTrie {
+	s := h.ptr.Load()
+	if s == nil {
+		return nil
+	}
+	return s.trie
+}
+
+func (h *AtomicTrieHolder) Publish(t *ConcurrentTrie) {
+	h.ptr.Store(&Snapshot{trie: t})
+}
+```
+
+---
+
+### 4.5 Ranking & Personalization
+
+**Signals**
+
+- **Global popularity** (long-term counts)
+- **Recency** / **trending** (short-term spikes)
+- **User history** (recent searches, clicks)
+- **Geo** / locale affinity
+- **Safety** penalties (blocked terms)
+
+A simple **interview-friendly** scoring formula:
+
+\[
+\text{score}(q) = w_1 \log(1 + f_{\text{global}}) + w_2 \cdot f_{\text{trend}} + w_3 \cdot f_{\text{user}} - w_4 \cdot \text{penalty}_{\text{safety}}
+\]
+
+**User overlay:** maintain a small per-user **LRU** of recent successful queries; boost if prefix matches.
+
+**A/B testing:** route cohorts to different weight vectors; log impressions/clicks; optimize for CTR or success metrics.
+
+#### Python: ranking service sketch
+
+```python
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Dict, List, Sequence
+
+
+@dataclass(frozen=True)
+class RankedQuery:
+    text: str
+    score: float
+
+
+class RankingService:
+    def __init__(self, weights: Dict[str, float]) -> None:
+        self.w = weights
+
+    def rank(
+        self,
+        candidates: Sequence[RankedQuery],
+        user_boost: Dict[str, float],
+        safety_penalty: Dict[str, float],
+    ) -> List[RankedQuery]:
+        out: List[RankedQuery] = []
+        for c in candidates:
+            ub = user_boost.get(c.text, 0.0)
+            pen = safety_penalty.get(c.text, 0.0)
+            s = (
+                self.w.get("w1", 1.0) * c.score
+                + self.w.get("w2", 0.5) * ub
+                - self.w.get("w3", 1.0) * pen
+            )
+            out.append(RankedQuery(text=c.text, score=s))
+        out.sort(key=lambda x: x.score, reverse=True)
+        return out
+```
+
+---
+
+### 4.6 Distributed Trie
+
+**Sharding strategies**
+
+- **Prefix range:** e.g., `a–m` shard 1, `n–z` shard 2 (simple but can skew for English).
+- **Hash of full query / prefix:** better balance; requires **routing** that preserves prefix locality—often **consistent hashing** on a canonicalized prefix key.
+
+**Replication:** each shard has **N replicas** behind a load balancer for availability.
+
+```mermaid
+flowchart TB
+  R[Shard Router]
+  S1[Shard: A-F]
+  S2[Shard: G-M]
+  S3[Shard: N-Z]
+  LB1[LB]
+  LB2[LB]
+  LB3[LB]
+
+  R -->|prefix range| S1
+  R --> S2
+  R --> S3
+  S1 --> LB1
+  S2 --> LB2
+  S3 --> LB3
+```
+
+#### Go: shard router
+
+```go
+package shard
+
+import "unicode"
+
+type Router struct {
+	shards int
+}
+
+func NewRouter(shards int) *Router {
+	return &Router{shards: shards}
+}
+
+func (r *Router) PickShard(prefix string) int {
+	if prefix == "" {
+		return 0
+	}
+	rs := []rune(prefix)
+	first := unicode.ToLower(rs[0])
+	bucket := int((first-'a')%26) // simplified Latin assumption
+	return bucket % r.shards
+}
+```
+
+{: .note }
+> Latin-only sharding is an **interview shortcut**. Real systems normalize Unicode, handle digits/emoji, and avoid skew with **hash-based** shard keys.
+
+---
+
+### 4.7 Caching Strategy
+
+**Tiers**
+
+1. **Browser:** cache responses keyed by `(prefix, locale)` with short TTL; respect `Cache-Control`.
+2. **CDN / edge:** cache **hot prefixes**; use surrogate keys for invalidation.
+3. **Application:** **Redis** for prefix → serialized top-K JSON **or** candidate IDs.
+
+**Invalidation:** on trie snapshot swap, bump a **generation token** included in cache keys:
+
+`ac:v{generation}:{locale}:{prefix}`
+
+```mermaid
+flowchart TB
+  U[User]
+  B[Browser Cache]
+  E[Edge CDN]
+  A[Autocomplete Service]
+  R[Redis]
+  T[In-memory Trie]
+
+  U --> B
+  B -->|miss| E
+  E -->|miss| A
+  A --> R
+  A --> T
+```
+
+---
+
+### 4.8 Filtering & Safety
+
+- **Offensive content:** union of ML classifiers + lexicon blocklists.
+- **Spam:** rate limits per IP/session; discard bot-like patterns.
+- **Legal:** DMCA / regional takedowns; **right to be forgotten** removes entries from dictionaries and caches (generation bump + key purge).
+
+**Blocklist implementation:** Bloom filter for cheap negatives + exact hash set for confirmations.
+
+---
+
+## Step 5: Scaling & Production
+
+### Multi-region
+
+- **Trie per region** captures local trends and reduces cross-region latency.
+- **Global trie + regional overlay:** merge global backbone with locale-specific boosts at serve time.
+
+### Performance optimization
+
+| Technique | Benefit |
+|-----------|---------|
+| **Debouncing** (~100 ms) | Cuts QPS dramatically |
+| **Prefetch on focus** | Warms cache for likely first character |
+| **Cancel in-flight** requests | Avoids stale UI updates |
+| **Client result cache** | Reuse prior suggestions on backspace |
+
+{: .tip }
+> Mention **keyboard latency budgets**: rendering suggestions must be **smooth**—profile end-to-end, not only server time.
+
+### Monitoring
+
+| Metric | Why |
+|--------|-----|
+| **P50/P95/P99 latency** | User experience & SLO tracking |
+| **Cache hit rate** (CDN / Redis) | Cost & tail latency |
+| **Impression / click-through** | Ranking quality |
+| **Empty-result rate** | Data coverage issues |
+| **Trie age** | Staleness visibility |
+
+---
+
+## Interview Tips
+
+### Common follow-ups
+
+1. **How do you handle Unicode normalization** (NFC vs NFD) and casing?
+2. **What if two shards hot-spot** on a viral prefix?
+3. **How do you evaluate ranking** offline (replay logs) vs online (A/B)?
+4. **How would you add personalization** without leaking sensitive data?
+5. **Exactly-once** logging isn’t possible—how do you tolerate duplicates in aggregates?
+
+### Strong answers mention
+
+- **Read path vs write path** separation
+- **Snapshot immutability** + atomic swap
+- **Debounce + caching** as first-class citizens
+- **Safety** and **compliance** as non-negotiables
+
+---
+
+### Appendix A — Additional Java: Streaming trie build iterator
+
+```java
+import java.util.*;
+
+public class TrieBuildChunks {
+    public static void ingestChunk(SuggestionTrie trie, Iterable<Map.Entry<String, Long>> chunk) {
+        for (Map.Entry<String, Long> e : chunk) {
+            trie.insert(e.getKey(), e.getValue());
+        }
+    }
+}
+```
+
+### Appendix B — Additional Go: Prefix canonicalization
+
+```go
+package textutil
+
+import "strings"
+
+func CanonicalPrefix(s string) string {
+	return strings.ToLower(strings.TrimSpace(s))
+}
+```
+
+### Appendix C — Additional Python: Safe response shaping
+
+```python
+def sanitize_suggestions(items: list[str], blocklist: set[str]) -> list[str]:
+    out: list[str] = []
+    for t in items:
+        if t in blocklist:
+            continue
+        out.append(t)
+    return out
+```
+
+### Appendix D — Trade-off summary table
+
+| Topic | Choose A | Choose B |
+|-------|----------|----------|
+| Freshness | Hourly rebuilds | Daily rebuilds + overlays |
+| Memory | Precomputed per-node top-K | Compute on read |
+| Sharding | Prefix ranges | Hash-based |
+| Personalization | Strong (per user store) | Weak (session only) |
+
+---
+
+### Real-world references (high level)
+
+- Large-scale search stacks combine **inverted indexes** for full-text retrieval with **separate suggestion systems** optimized for prefixes.
+- **Typeahead** products often rely on **aggregated query logs** and **strict filtering** pipelines—public engineering blogs from major search providers discuss streaming aggregation and caching, though exact internals vary.
+
+{: .note }
+> Use “**real-world references**” in interviews cautiously: cite **patterns** (Kafka, Flink, Redis, CDNs) rather than unverifiable internal numbers.
+
+---
+
+### Extended Java: Immutable snapshot reader
+
+```java
+import java.util.*;
+
+public final class ImmutableTrieSnapshot {
+    public static final class SnapNode {
+        public final Map<Character, SnapNode> children;
+        public final List<SuggestionTrie.Candidate> top;
+
+        public SnapNode(Map<Character, SnapNode> children, List<SuggestionTrie.Candidate> top) {
+            this.children = children;
+            this.top = top;
+        }
+    }
+
+    private final SnapNode root;
+
+    public ImmutableTrieSnapshot(SnapNode root) {
+        this.root = root;
+    }
+
+    public List<SuggestionTrie.Candidate> lookup(String prefix) {
+        SnapNode n = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            n = n.children.get(prefix.charAt(i));
+            if (n == null) return List.of();
+        }
+        return n.top;
+    }
+}
+```
+
+### Extended Go: HTTP handler with timeouts
+
+```go
+package httpapi
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"time"
+)
+
+type SuggestResponse struct {
+	Prefix        string   `json:"prefix"`
+	Suggestions   []string `json:"suggestions"`
+	TookMs        int64    `json:"took_ms"`
+	CacheStatus   string   `json:"cache"`
+}
+
+func AutocompleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 75*time.Millisecond)
+	defer cancel()
+
+	prefix := r.URL.Query().Get("prefix")
+	_ = ctx // in real code, pass ctx into dependencies
+
+	resp := SuggestResponse{Prefix: prefix, Suggestions: []string{}, TookMs: 0, CacheStatus: "MISS"}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(resp)
+}
+```
+
+### Extended Python: FastAPI-style service sketch
+
+```python
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
+
+
+@dataclass
+class Settings:
+    max_prefix_len: int = 50
+    default_limit: int = 10
+
+
+class SuggestionItem(BaseModel):
+    text: str
+    score: float = Field(ge=0.0)
+
+
+class SuggestResponse(BaseModel):
+    prefix: str
+    suggestions: List[SuggestionItem]
+    took_ms: int
+    cache: str
+
+
+class AutocompleteApp:
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+
+    def normalize(self, prefix: str) -> str:
+        return prefix.strip().lower()[: self.settings.max_prefix_len]
+
+    def get_suggestions(
+        self, prefix: str, limit: Optional[int] = None
+    ) -> SuggestResponse:
+        start = time.perf_counter()
+        lim = limit or self.settings.default_limit
+        norm = self.normalize(prefix)
+        items = [SuggestionItem(text=norm + " example", score=1.0)]
+        took = int((time.perf_counter() - start) * 1000)
+        return SuggestResponse(
+            prefix=norm,
+            suggestions=items[:lim],
+            took_ms=took,
+            cache="MISS",
+        )
+
+
+@lru_cache(maxsize=1)
+def get_app() -> AutocompleteApp:
+    return AutocompleteApp(Settings())
+```
+
+---
+
+## Failure Modes & Resilience
+
+```mermaid
+flowchart LR
+  A[Autocomplete Pod] -->|timeout| R[Fallback cache-only]
+  A -->|overload| RL[Rate limit / shed load]
+  R --> E[Empty or stale suggestions]
+  RL --> E
+```
+
+| Failure | Mitigation |
+|---------|------------|
+| Trie snapshot corrupt | Checksum before swap; keep last good snapshot |
+| Redis down | Serve from in-process trie; graceful degradation |
+| Hot shard | Autoscale; traffic shift; prefix hot-cache |
+| Bad deploy | Canary + rollback; feature flags for ranking |
+
+### Java: Redis cache facade (sketch)
+
+```java
+import java.time.Duration;
+import java.util.Optional;
+
+public class RedisSuggestionCache {
+    public Optional<String> get(String key) {
+        return Optional.empty();
+    }
+
+    public void setex(String key, Duration ttl, String json) {
+        // jedis.setex(key, ttl.getSeconds(), json);
+    }
+}
+```
+
+### Go: Circuit breaker (conceptual)
+
+```go
+package resilience
+
+import "time"
+
+type Breaker struct {
+	failures  int
+	threshold int
+	openUntil time.Time
+}
+
+func (b *Breaker) Allow(now time.Time) bool {
+	return !now.Before(b.openUntil)
+}
+
+func (b *Breaker) OnFailure(now time.Time) {
+	b.failures++
+	if b.failures >= b.threshold {
+		b.openUntil = now.Add(5 * time.Second)
+	}
+}
+
+func (b *Breaker) OnSuccess() {
+	b.failures = 0
+}
+```
+
+### Python: Client debounce
+
+```python
+import threading
+from typing import Callable, Optional
+
+
+class Debouncer:
+    def __init__(self, delay_s: float, fn: Callable[[str], None]) -> None:
+        self.delay_s = delay_s
+        self.fn = fn
+        self._timer: Optional[threading.Timer] = None
+        self._lock = threading.Lock()
+
+    def push(self, text: str) -> None:
+        with self._lock:
+            if self._timer is not None:
+                self._timer.cancel()
+            self._timer = threading.Timer(self.delay_s, lambda: self.fn(text))
+            self._timer.daemon = True
+            self._timer.start()
+```
+
+---
+
+## Privacy & Abuse (Interview Depth)
+
+| Concern | Mitigation |
+|---------|------------|
+| PII in queries | Minimize logging; hash session IDs; TTL |
+| Right to be forgotten | Purge + blocklist; generation bump caches |
+| Skewed sharding | Hash-based routing + monitor shard load |
+
+{: .warning }
+> Autocomplete logs are sensitive—**data minimization** is a strong senior-level talking point.
+
+### Java: Blocklist filter
+
+```java
+import java.util.*;
+
+public class BlocklistFilter {
+    private final Set<String> exact = new HashSet<>();
+    private final List<String> contains = new ArrayList<>();
+
+    public BlocklistFilter(Collection<String> exact, Collection<String> contains) {
+        this.exact.addAll(exact);
+        this.contains.addAll(contains);
+    }
+
+    public boolean isBlocked(String suggestion) {
+        String s = suggestion.toLowerCase(Locale.ROOT);
+        if (exact.contains(s)) return true;
+        for (String frag : contains) {
+            if (s.contains(frag)) return true;
+        }
+        return false;
+    }
+}
+```
+
+### Go: Hash-based shard router
+
+```go
+package shard
+
+import (
+	"crypto/sha256"
+	"encoding/binary"
+)
+
+type HashRouter struct {
+	shards int
+}
+
+func NewHashRouter(shards int) *HashRouter {
+	return &HashRouter{shards: shards}
+}
+
+func (h *HashRouter) ShardForPrefix(prefix string) int {
+	sum := sha256.Sum256([]byte(prefix))
+	x := binary.BigEndian.Uint64(sum[:8])
+	if h.shards <= 0 {
+		return 0
+	}
+	return int(x % uint64(h.shards))
+}
+```
+
+### Python: Sliding-window trending counter
+
+```python
+from __future__ import annotations
+
+from collections import deque
+from dataclasses import dataclass
+from time import time
+from typing import Deque, Dict
+
+
+@dataclass
+class TimedEvent:
+    ts: float
+    weight: float
+
+
+class SlidingWindowCounter:
+    def __init__(self, window_s: float) -> None:
+        self.window_s = window_s
+        self.events: Dict[str, Deque[TimedEvent]] = {}
+
+    def add(self, key: str, weight: float, now: float | None = None) -> None:
+        t = time() if now is None else now
+        q = self.events.setdefault(key, deque())
+        q.append(TimedEvent(ts=t, weight=weight))
+        self._prune(key, t)
+
+    def _prune(self, key: str, now: float) -> None:
+        q = self.events.get(key)
+        if not q:
+            return
+        cutoff = now - self.window_s
+        while q and q[0].ts < cutoff:
+            q.popleft()
+
+    def sum(self, key: str, now: float | None = None) -> float:
+        t = time() if now is None else now
+        self._prune(key, t)
+        q = self.events.get(key)
+        if not q:
+            return 0.0
+        return sum(e.weight for e in q)
+```
+
+---
+
+## Load Testing & Capacity Notes
+
+| Knob | Example |
+|------|---------|
+| RPS / instance | Highly variable by trie layout and runtime |
+| Payload | ~0.5–2 KB JSON typical |
+
+**Little’s Law (intuition):** \(L = \lambda W\). Enough concurrency must exist so that short spikes in \(\lambda\) do not create unbounded queue delay.
+
+### Java: Blue-green trie holder
+
+```java
+import java.util.concurrent.atomic.AtomicReference;
+
+public class BlueGreenTrie {
+    private final AtomicReference<SuggestionTrie> active = new AtomicReference<>();
+
+    public SuggestionTrie active() {
+        return active.get();
+    }
+
+    public void publish(SuggestionTrie next) {
+        active.set(next);
+    }
+}
+```
+
+### Go: Versioned cache key
+
+```go
+package cachekey
+
+import "fmt"
+
+func Key(gen int64, locale, prefix string) string {
+	return fmt.Sprintf("ac:v%d:%s:%s", gen, locale, prefix)
+}
+```
+
+### Python: Merge top-K from shard lists
+
+```python
+from __future__ import annotations
+
+import heapq
+from dataclasses import dataclass
+from typing import Iterable, List, Tuple
+
+
+@dataclass(order=True)
+class Scored:
+    score: float
+    text: str
+
+
+def merge_top_k(parts: Iterable[List[Tuple[str, float]]], k: int) -> List[Scored]:
+    heap: List[Scored] = []
+    for group in parts:
+        for text, score in group:
+            item = Scored(score=score, text=text)
+            if len(heap) < k:
+                heapq.heappush(heap, item)
+            elif item.score > heap[0].score:
+                heapq.heapreplace(heap, item)
+    return sorted(heap, key=lambda x: x.score, reverse=True)
+```
+
+---
+
+## Incremental vs Full Rebuild
+
+| Strategy | Wins | Risks |
+|----------|------|-------|
+| Hourly full rebuild | Simple | Staleness window |
+| Daily + overlay | Balance | Merge bugs |
+| Streaming | Freshest | Complexity |
+
+### Java: Hybrid suggest (trie + head map)
+
+```java
+import java.util.*;
+
+public class HybridSuggest {
+    private final SuggestionTrie trie;
+    private final Map<String, Long> head;
+
+    public HybridSuggest(SuggestionTrie trie, Map<String, Long> head) {
+        this.trie = trie;
+        this.head = head;
+    }
+
+    public List<SuggestionTrie.Candidate> suggest(String prefix) {
+        List<SuggestionTrie.Candidate> out = new ArrayList<>(trie.topKForPrefix(prefix));
+        Long bump = head.get(prefix);
+        if (bump != null) {
+            out.add(new SuggestionTrie.Candidate(prefix, bump));
+        }
+        out.sort((a, b) -> Long.compare(b.score, a.score));
+        return out;
+    }
+}
+```
+
+### Go: Parallel shard fan-out
+
+```go
+package fanout
+
+import (
+	"context"
+	"sync"
+)
+
+type ShardClient interface {
+	Suggest(ctx context.Context, prefix string) ([]string, error)
+}
+
+func ParallelSuggest(ctx context.Context, clients []ShardClient, prefix string) ([]string, error) {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var combined []string
+	var firstErr error
+	for _, c := range clients {
+		wg.Add(1)
+		go func(cc ShardClient) {
+			defer wg.Done()
+			part, err := cc.Suggest(ctx, prefix)
+			if err != nil {
+				mu.Lock()
+				if firstErr == nil {
+					firstErr = err
+				}
+				mu.Unlock()
+				return
+			}
+			mu.Lock()
+			combined = append(combined, part...)
+			mu.Unlock()
+		}(c)
+	}
+	wg.Wait()
+	return combined, firstErr
+}
+```
+
+### Python: Cohort-based ranking weights
+
+```python
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Dict
+
+
+@dataclass(frozen=True)
+class RankingWeights:
+    w_global: float = 1.0
+    w_trend: float = 0.5
+    w_user: float = 0.3
+
+
+def weights_for_cohort(cohort: str) -> RankingWeights:
+    presets: Dict[str, RankingWeights] = {
+        "control": RankingWeights(),
+        "trend_heavy": RankingWeights(w_global=0.8, w_trend=0.9, w_user=0.3),
+    }
+    return presets.get(cohort, presets["control"])
+```
+
+### Java: Prefix walk with budget
+
+```java
+import java.util.*;
+
+public class PrefixWalk {
+    public static List<SuggestionTrie.Candidate> collect(
+            SuggestionTrie trie, String prefix, int budget) {
+        List<SuggestionTrie.Candidate> base = trie.topKForPrefix(prefix);
+        if (base.size() >= budget) {
+            return base.subList(0, Math.min(budget, base.size()));
+        }
+        return base;
+    }
+}
+```
+
+### Go: Read-through cache
+
+```go
+package cache
+
+import "context"
+
+type Provider interface {
+	Load(ctx context.Context, key string) (string, error)
+}
+
+type ReadThrough struct {
+	p Provider
+}
+
+func (r *ReadThrough) Get(ctx context.Context, key string, local map[string]string) (string, error) {
+	if v, ok := local[key]; ok {
+		return v, nil
+	}
+	v, err := r.p.Load(ctx, key)
+	if err != nil {
+		return "", err
+	}
+	local[key] = v
+	return v, nil
+}
+```
+
+### Python: Metrics stub
+
+```python
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Metrics:
+    suggest_latency_ms: float = 0.0
+    cache_hits: int = 0
+    cache_misses: int = 0
+
+    def hit_ratio(self) -> float:
+        total = self.cache_hits + self.cache_misses
+        if total == 0:
+            return 0.0
+        return self.cache_hits / total
+```
+
+---
+
+## Optional: Multi-Tier Caching (Expanded)
+
+```mermaid
+flowchart TB
+  subgraph client [Client]
+    D[Debounce 100ms]
+    BC[Browser cache]
+  end
+  subgraph edge [Edge]
+    CDN[CDN]
+  end
+  subgraph origin [Origin]
+    R[Redis]
+    T[Trie snapshot]
+  end
+  D --> BC
+  BC -->|miss| CDN
+  CDN -->|miss| R
+  R -->|miss| T
+```
+
+{: .note }
+> **Surrogate keys** at the CDN allow invalidating all keys tied to trie generation `vN` without enumerating prefixes.
+
+---
+
+## Closing Checklist (Interview)
+
+- Clarify **K**, **locale**, **personalization**, and **safety**.
+- Quantify **QPS**, **memory**, and **cache** impact.
+- Draw **online vs offline** and **snapshot swap**.
+- Deep dive **trie + ranking + caches + sharding**.
+- Close with **monitoring**, **failure modes**, and **ethical** considerations.
+
+---

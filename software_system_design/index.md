@@ -103,12 +103,59 @@ Design a system to send push notifications, emails, SMS, and in-app messages.
 
 ---
 
-## Coming Soon
+### [Chat System]({{ site.baseurl }}/software_system_design/chat_system)
+{: .d-inline-block }
 
-- **Chat System** - Real-time messaging architecture
-- **News Feed / Timeline** - Social media feed generation
-- **Search Autocomplete** - Typeahead suggestions
-- **Distributed Cache** - Build your own Redis
+Realtime
+{: .label .label-green }
+
+Design a real-time messaging platform for 1:1 and group chat with presence, delivery semantics, and push.
+
+**Key concepts:** WebSockets, stateful gateways, Kafka ordering, Cassandra message storage, Redis presence, fan-out on write vs read, idempotency, FCM/APNs
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [News Feed / Timeline]({{ site.baseurl }}/software_system_design/news_feed)
+{: .d-inline-block }
+
+Social
+{: .label .label-purple }
+
+Design a social media feed: fan-out (push vs pull vs hybrid), ranking, Redis feed caches, celebrity problem, media and real-time updates.
+
+**Key concepts:** Fan-out on write/read, Kafka workers, sorted-set feeds, ML ranking, CDN, WebSockets/SSE, sharding
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete)
+{: .d-inline-block }
+
+Search
+{: .label .label-blue }
+
+Design Google-like typeahead: trie serving, analytics pipelines, ranking, personalization, and multi-tier caching.
+
+**Key concepts:** Prefix trie / radix tree, top-K heaps, Kafka + Spark/Flink aggregates, atomic trie snapshots, Redis/CDN caching, sharding, safety filters
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
+### [Distributed Cache (Redis / Memcached–style)]({{ site.baseurl }}/software_system_design/distributed_cache)
+{: .d-inline-block }
+
+Infrastructure
+{: .label .label-yellow }
+
+Design an in-memory distributed cache with sharding, replication, eviction, and persistence.
+
+**Key concepts:** Consistent hashing, LRU/LFU, cache-aside vs write-through, Redis Cluster slots, replication, RDB/AOF, hot keys, stampede mitigation
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
 
 ---
 
@@ -118,7 +165,7 @@ As you study these designs, look for patterns that repeat:
 
 | Pattern | Where You'll See It |
 |---------|---------------------|
-| **Cache-aside** | URL Shortener, Rate Limiter - Redis for fast lookups |
+| **Cache-aside** | URL Shortener, Rate Limiter, Distributed Cache - Redis for fast lookups |
 | **Message Queue** | Voting System, Notification System - async processing |
 | **Read Replicas** | URL Shortener, Voting System - separate read/write load |
 | **Distributed IDs** | URL Shortener - Snowflake algorithm |
@@ -141,4 +188,8 @@ As you study these designs, look for patterns that repeat:
 | **Rate Limiter** | N/A | Millions of clients | Precision vs memory |
 | **Web Crawler** | N/A | Billions of pages | Speed vs politeness |
 | **Notification System** | Write-heavy | Millions/minute | Reliability vs latency |
+| **News Feed / Timeline** | Read-heavy | Billions of feed loads/day | Fan-out cost vs read latency |
+| **Chat System** | Write-heavy + connections | Millions concurrent sockets | Ordering vs fan-out cost |
+| **Distributed Cache** | Read-heavy | Hot keys, memory pressure | Stale reads vs latency |
+| **Search Autocomplete** | Read-heavy | Peak QPS, trie memory | Freshness vs latency |
 
