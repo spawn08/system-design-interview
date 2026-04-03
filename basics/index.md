@@ -18,16 +18,17 @@ Master the building blocks that appear in every system design interview.
 
 Before designing complex systems like Twitter or Uber, you need to understand the components that make them work. These fundamentals are the "vocabulary" of system design:
 
-- **Load Balancers** distribute traffic so no single server gets overwhelmed
-- **Caches** store frequently accessed data for lightning-fast retrieval  
-- **Databases** persist your data reliably and at scale
+- **Interview Framework** teaches you HOW to approach any system design question
+- **Estimation** sizes infrastructure before building
 - **Networking** enables communication between services
-- **Concurrency** handles multiple operations simultaneously
-- **Distributed Systems** coordinate work across multiple machines
+- **Databases** persist your data reliably and at scale
+- **Caches** store frequently accessed data for lightning-fast retrieval
+- **Load Balancers** distribute traffic so no single server gets overwhelmed
 - **API Design** defines how services communicate clearly and reliably
+- **Concurrency** handles multiple operations simultaneously
 - **Security** protects data and systems from threats
 - **Scalability & Reliability** ensures systems handle growth and failures
-- **Estimation** sizes infrastructure before building
+- **Distributed Systems** coordinate work across multiple machines
 
 ---
 
@@ -35,16 +36,17 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 
 | Topic | Description | Difficulty |
 |-------|-------------|------------|
-| [Load Balancing]({{ site.baseurl }}/basics/load_balancer) | Distribute requests across multiple servers | ⭐ Beginner |
-| [Caching]({{ site.baseurl }}/basics/caching) | Store data for faster access | ⭐ Beginner |
-| [Databases]({{ site.baseurl }}/basics/databases) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
+| [Interview Framework]({{ site.baseurl }}/basics/interview_framework) | How to approach any system design question | ⭐ Beginner |
+| [Estimation & Planning]({{ site.baseurl }}/basics/estimation) | Back-of-the-envelope calculations | ⭐⭐ Intermediate |
 | [Networking]({{ site.baseurl }}/basics/networking) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
-| [Concurrency]({{ site.baseurl }}/basics/concurrency) | Threads, locks, async patterns | ⭐⭐ Intermediate |
-| [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems) | CAP, consensus, DHTs, message queues | ⭐⭐⭐ Advanced |
+| [Databases]({{ site.baseurl }}/basics/databases) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
+| [Caching]({{ site.baseurl }}/basics/caching) | Store data for faster access | ⭐ Beginner |
+| [Load Balancing]({{ site.baseurl }}/basics/load_balancer) | Distribute requests across multiple servers | ⭐ Beginner |
 | [API Design]({{ site.baseurl }}/basics/api_design) | REST, GraphQL, versioning, rate limiting | ⭐⭐ Intermediate |
+| [Concurrency]({{ site.baseurl }}/basics/concurrency) | Threads, locks, async patterns | ⭐⭐ Intermediate |
 | [Security]({{ site.baseurl }}/basics/security) | Encryption, hashing, TLS, vulnerabilities | ⭐⭐ Intermediate |
 | [Scalability & Reliability]({{ site.baseurl }}/basics/scalability) | Scaling, availability, disaster recovery | ⭐⭐⭐ Advanced |
-| [Estimation & Planning]({{ site.baseurl }}/basics/estimation) | Back-of-the-envelope calculations | ⭐⭐ Intermediate |
+| [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems) | CAP, consensus, DHTs, message queues | ⭐⭐⭐ Advanced |
 
 ---
 
@@ -150,6 +152,7 @@ ESTIMATION
 
 After mastering these fundamentals:
 
-1. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/)
-2. **See ML-specific patterns** in [ML System Design]({{ site.baseurl }}/ml_system_design/)
-3. **Practice** drawing architectures using these building blocks
+1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts
+2. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/) with 19 walkthroughs
+3. **See ML-specific patterns** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) and [ML System Design]({{ site.baseurl }}/ml_system_design/)
+4. **Practice** drawing architectures using these building blocks

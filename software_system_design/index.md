@@ -159,20 +159,166 @@ Design an in-memory distributed cache with sharding, replication, eviction, and 
 
 ---
 
+### [Video Streaming (YouTube)]({{ site.baseurl }}/software_system_design/video_streaming)
+{: .d-inline-block }
+
+Media
+{: .label .label-purple }
+
+Design a video streaming platform with upload, transcoding, and adaptive bitrate delivery.
+
+**Key concepts:** Chunked upload, FFmpeg transcoding, HLS/DASH adaptive streaming, CDN, DAG-based processing pipeline, deduplication
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Photo Sharing (Instagram)]({{ site.baseurl }}/software_system_design/photo_sharing)
+{: .d-inline-block }
+
+Social
+{: .label .label-green }
+
+Design a photo sharing platform with upload, feed generation, and stories.
+
+**Key concepts:** Object storage (S3), CDN, image resizing/thumbnails, fan-out on write vs read, celebrity problem, feed ranking, sharding
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
+### [Collaborative Editor (Google Docs)]({{ site.baseurl }}/software_system_design/collaborative_editor)
+{: .d-inline-block }
+
+Realtime
+{: .label .label-green }
+
+Design a real-time collaborative editing system with conflict resolution.
+
+**Key concepts:** OT vs CRDTs, WebSocket connection management, document versioning, cursor/presence tracking, offline support
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Ride Sharing (Uber/Lyft)]({{ site.baseurl }}/software_system_design/ride_sharing)
+{: .d-inline-block }
+
+Geospatial
+{: .label .label-blue }
+
+Design a ride-sharing platform with real-time matching and tracking.
+
+**Key concepts:** Geospatial indexing (geohash, quadtree, S2), driver-rider matching, ETA computation, trip state machine, surge pricing
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Cloud Storage (Google Drive)]({{ site.baseurl }}/software_system_design/cloud_storage)
+{: .d-inline-block }
+
+Storage
+{: .label .label-yellow }
+
+Design a cloud file storage and sync service.
+
+**Key concepts:** File chunking (Rabin fingerprint), content-addressable deduplication, sync protocol, metadata service, conflict resolution, versioning
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Event Booking (Ticketmaster)]({{ site.baseurl }}/software_system_design/event_booking)
+{: .d-inline-block }
+
+E-commerce
+{: .label .label-blue }
+
+Design a ticket booking system that handles flash sales and prevents overselling.
+
+**Key concepts:** Seat inventory locking (optimistic/pessimistic), virtual waiting room, payment timeout, idempotency, preventing double booking
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
+### [Task Scheduler]({{ site.baseurl }}/software_system_design/task_scheduler)
+{: .d-inline-block }
+
+Infrastructure
+{: .label .label-yellow }
+
+Design a distributed task scheduler for delayed and recurring tasks.
+
+**Key concepts:** Priority queue (min-heap), timing wheel, lease-based execution, cron expressions, dead letter queue, idempotency
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
+### [Key-Value Store]({{ site.baseurl }}/software_system_design/key_value_store)
+{: .d-inline-block }
+
+Infrastructure
+{: .label .label-yellow }
+
+Design a distributed key-value store (Dynamo-style).
+
+**Key concepts:** Consistent hashing, quorum (W+R>N), vector clocks, gossip protocol, LSM tree, Merkle trees, read repair
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Payment System]({{ site.baseurl }}/software_system_design/payment_system)
+{: .d-inline-block }
+
+Financial
+{: .label .label-red }
+
+Design a payment processing system with idempotency and compliance.
+
+**Key concepts:** Payment state machine, idempotency keys, double-entry ledger, PSP integration, reconciliation, PCI-DSS compliance
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Proximity Service]({{ site.baseurl }}/software_system_design/proximity_service)
+{: .d-inline-block }
+
+Geospatial
+{: .label .label-blue }
+
+Design a service to find nearby places (restaurants, gas stations, etc.).
+
+**Key concepts:** Geohash, quadtree, S2 geometry, PostGIS, Redis GEO, bounding box search, Haversine distance, caching by geohash prefix
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
 ## Pattern Recognition
 
 As you study these designs, look for patterns that repeat:
 
 | Pattern | Where You'll See It |
 |---------|---------------------|
-| **Cache-aside** | URL Shortener, Rate Limiter, Distributed Cache - Redis for fast lookups |
-| **Message Queue** | Voting System, Notification System - async processing |
-| **Read Replicas** | URL Shortener, Voting System - separate read/write load |
-| **Distributed IDs** | URL Shortener - Snowflake algorithm |
-| **Idempotency** | Voting System, Notification System - prevent duplicates |
-| **Rate Limiting** | Rate Limiter, Web Crawler - control request flow |
-| **Priority Queues** | Notification System, Web Crawler - prioritize work |
-| **Bloom Filters** | Web Crawler - memory-efficient set membership |
+| **Cache-aside** | URL Shortener, Rate Limiter, Distributed Cache, Proximity Service |
+| **Message Queue** | Voting System, Notification System, Video Streaming, Task Scheduler |
+| **Read Replicas** | URL Shortener, Voting System, News Feed |
+| **Distributed IDs** | URL Shortener, Payment System - Snowflake algorithm |
+| **Idempotency** | Voting System, Notification System, Payment System, Task Scheduler |
+| **Rate Limiting** | Rate Limiter, Web Crawler, Event Booking (virtual queue) |
+| **Consistent Hashing** | Key-Value Store, Distributed Cache - data partitioning |
+| **WebSockets** | Chat System, Collaborative Editor, Ride Sharing - real-time updates |
+| **Geospatial Indexing** | Ride Sharing, Proximity Service - geohash, quadtree |
+| **Fan-out** | News Feed, Photo Sharing - push vs pull vs hybrid |
+| **State Machine** | Payment System, Ride Sharing, Task Scheduler, Event Booking |
+| **CDN** | Video Streaming, Photo Sharing, Cloud Storage - edge delivery |
+| **Conflict Resolution** | Key-Value Store (vector clocks), Collaborative Editor (OT/CRDT), Cloud Storage |
+| **Bloom Filters** | Web Crawler, Key-Value Store - memory-efficient set membership |
 
 {: .note }
 > Master these patterns and you can apply them to any new problem the interviewer throws at you.
@@ -184,12 +330,22 @@ As you study these designs, look for patterns that repeat:
 | Design | Read/Write Ratio | Scale Challenge | Core Trade-off |
 |--------|------------------|-----------------|----------------|
 | **URL Shortener** | 100:1 (read-heavy) | Billions of URLs | Consistency vs latency |
-| **Voting System** | 1:1 | Thousands/sec spikes | Accuracy vs throughput |
 | **Rate Limiter** | N/A | Millions of clients | Precision vs memory |
-| **Web Crawler** | N/A | Billions of pages | Speed vs politeness |
-| **Notification System** | Write-heavy | Millions/minute | Reliability vs latency |
-| **News Feed / Timeline** | Read-heavy | Billions of feed loads/day | Fan-out cost vs read latency |
-| **Chat System** | Write-heavy + connections | Millions concurrent sockets | Ordering vs fan-out cost |
+| **Key-Value Store** | Varies | Partitioning, replication | Consistency vs availability |
 | **Distributed Cache** | Read-heavy | Hot keys, memory pressure | Stale reads vs latency |
+| **Notification System** | Write-heavy | Millions/minute | Reliability vs latency |
+| **Web Crawler** | N/A | Billions of pages | Speed vs politeness |
+| **Chat System** | Write-heavy + connections | Millions concurrent sockets | Ordering vs fan-out cost |
+| **News Feed / Timeline** | Read-heavy | Billions of feed loads/day | Fan-out cost vs read latency |
 | **Search Autocomplete** | Read-heavy | Peak QPS, trie memory | Freshness vs latency |
+| **Voting System** | 1:1 | Thousands/sec spikes | Accuracy vs throughput |
+| **Video Streaming** | Read-heavy | Petabytes of video | Storage cost vs quality |
+| **Photo Sharing** | Read-heavy | Billions of images | Fan-out cost vs feed latency |
+| **Collaborative Editor** | Write-heavy | Concurrent editors | Consistency vs responsiveness |
+| **Ride Sharing** | Write-heavy (locations) | Millions of drivers | Matching speed vs optimality |
+| **Cloud Storage** | Balanced | Petabytes, file sync | Sync speed vs bandwidth |
+| **Event Booking** | Write-heavy (flash) | Thousands/sec spikes | Consistency vs throughput |
+| **Task Scheduler** | Write-heavy | Millions of tasks | At-least-once vs exactly-once |
+| **Payment System** | Write-heavy | Financial accuracy | Consistency vs availability |
+| **Proximity Service** | Read-heavy | Millions of locations | Precision vs query speed |
 

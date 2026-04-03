@@ -2,7 +2,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
 
-A comprehensive, interview-ready guide covering **35+ system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples.
+A comprehensive, interview-ready guide covering **50 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples in Java, Python, and Go.
 
 **Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
 
@@ -20,20 +20,28 @@ A comprehensive, interview-ready guide covering **35+ system design topics** wit
 
 | Section | Topics | Status |
 |---------|--------|--------|
-| Essential System Design | 10 | Complete |
-| Advanced Topics | 5 | Complete |
+| Essential System Design | 11 | Complete |
+| Advanced Topics | 9 | Complete |
+| Software System Design | 19 | Complete |
 | GenAI/ML Fundamentals | 5 | Complete |
-| Software System Design | 9 | Complete |
 | ML System Design | 6 | Complete |
-| **Total** | **35** | **All complete** |
+| **Total** | **50** | **All complete** |
 
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
 ## I. Essential System Design Topics
 
-These topics are fundamental to system design.  A strong understanding of these concepts is crucial, regardless of your specific role.
+These topics are fundamental to system design. A strong understanding of these concepts is crucial, regardless of your specific role. Topics are ordered from foundational to advanced.
 
-### 1. Load Balancing
+### 1. Interview Framework
+
+*   **4-Step Approach:** Requirements, High-Level Design, Deep Dive, Trade-offs
+*   **Time Management:** 35-45 minute interview breakdown
+*   **Back-of-Envelope Estimation:** Quick reference formulas
+*   **Communication:** Driving the conversation, handling "what if" questions
+*   **Common Mistakes:** Anti-patterns to avoid
+
+### 2. Load Balancing
 
 *   **Types:** Round Robin, Least Connections, IP Hash, Weighted Round Robin, etc.
 *   **Hardware vs. Software Load Balancers**
@@ -41,7 +49,7 @@ These topics are fundamental to system design.  A strong understanding of these 
 *   **Health Checks**
 *   **Pros and Cons** of different algorithms
 
-### 2. Caching
+### 3. Caching
 
 *   **Cache Types:** In-memory (Redis, Memcached), CDN, Browser Cache, Database Cache
 *   **Cache Eviction Policies:** LRU, LFU, FIFO, TTL
@@ -49,7 +57,7 @@ These topics are fundamental to system design.  A strong understanding of these 
 *   **Write Policies:** Write-through, Write-back, Write-around
 *   **Cache Coherency**
 
-### 3. Databases
+### 4. Databases
 
 *   **Relational Databases (SQL):**
     *   ACID properties
@@ -68,7 +76,7 @@ These topics are fundamental to system design.  A strong understanding of these 
     *   Master-Slave, Master-Master
 *   **Data Modeling**
 
-### 4. Networking
+### 5. Networking
 
 *   **TCP/IP, UDP**
 *   **HTTP/HTTPS, REST, gRPC**
@@ -77,14 +85,14 @@ These topics are fundamental to system design.  A strong understanding of these 
 *   **WebSockets**
 *   **Key Metrics:** Latency, Bandwidth, Throughput
 
-### 5. Concurrency
+### 6. Concurrency
 
 *   **Threads, Processes**
 *   **Locks, Mutexes, Semaphores**
 *   **Deadlocks, Race Conditions**
 *   **Concurrency Patterns:** e.g., Producer-Consumer
 
-### 6. Distributed Systems Concepts
+### 7. Distributed Systems Concepts
 
 *   **Consistency and Availability:** CAP Theorem
 *   **Distributed Consensus:** Paxos, Raft
@@ -93,7 +101,7 @@ These topics are fundamental to system design.  A strong understanding of these 
 *   **Distributed Hash Tables (DHTs)**
 *   **Leader Election**
 
-### 7. API Design
+### 8. API Design
 
 *   **RESTful APIs**
 *   **GraphQL**
@@ -101,21 +109,21 @@ These topics are fundamental to system design.  A strong understanding of these 
 *   **Rate Limiting**
 *   **Authentication and Authorization:** OAuth, JWT
 
-### 8. Security
+### 9. Security
 
 *   **Common Vulnerabilities:** SQL Injection, XSS, CSRF
 *   **Encryption:** Symmetric, Asymmetric
 *   **Hashing**
 *   **TLS/SSL**
 
-### 9. Scalability, Availability, and Reliability
+### 10. Scalability, Availability, and Reliability
 
 *   **Horizontal vs. Vertical Scaling**
 *   **Redundancy and Failover**
 *   **Monitoring and Alerting**
 *   **Disaster Recovery**
 
-### 10. Estimation and Capacity Planning
+### 11. Estimation and Capacity Planning
 
 *   Ability to estimate storage, bandwidth, and compute needs based on user numbers, request rates, and data sizes.
 *   Back-of-the-envelope calculations.
@@ -151,6 +159,34 @@ These topics are generally more relevant for Senior/Staff roles and specialized 
 *   **Strong Consistency**
 *   **Eventual Consistency**
 *   **Causal Consistency**
+
+### 6. Object Storage & CDN
+
+*   **Object Storage:** S3-compatible APIs, buckets, multi-part uploads, storage classes
+*   **CDN:** Edge caching, origin pull/push, geo-routing, cache invalidation
+*   **Pre-signed URLs:** Temporary access, security patterns
+*   **Edge Compute:** Lambda@Edge, Cloudflare Workers
+
+### 7. Distributed Locking
+
+*   **Redis-Based:** SET NX PX, Redlock algorithm, fencing tokens
+*   **ZooKeeper-Based:** Ephemeral nodes, watch mechanism
+*   **Database-Based:** SELECT FOR UPDATE, advisory locks, optimistic locking
+*   **etcd-Based:** Lease-based approach, compare-and-swap
+
+### 8. Observability
+
+*   **Logging:** Structured logging, ELK stack, correlation IDs
+*   **Metrics:** RED/USE methods, Prometheus, time-series databases
+*   **Distributed Tracing:** OpenTelemetry, Jaeger, sampling strategies
+*   **SLIs/SLOs/SLAs:** Error budgets, alerting best practices
+
+### 9. Event Sourcing & CQRS
+
+*   **Event Sourcing:** Events as source of truth, event store, replay
+*   **CQRS:** Separate read/write models, eventual consistency
+*   **Projections:** Materialized views, rebuilding from events
+*   **Use Cases:** Financial ledgers, audit trails, order lifecycle
 
 ## III. GenAI/ML Specific Topics
 
@@ -190,24 +226,31 @@ These topics are particularly important for system design interviews focused on 
 *   **Model Parallelism**
 *   **Parameter Servers**
 
-## IV. Top 25 System Design Interview Questions
+## IV. Top 35 System Design Interview Questions
 
-These questions are categorized and cover a range of difficulty levels.  Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution.
+These questions are categorized and cover a range of difficulty levels. Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution. Questions marked with **(NEW)** have full walkthroughs in this guide.
 
 ### General System Design (Applicable to all roles)
 
-1.  **Design a URL Shortener (TinyURL):**  Hashing, databases, scaling.
+1.  **Design a URL Shortener (TinyURL):** Hashing, databases, scaling.
 2.  **Design a Rate Limiter:** Algorithms (token bucket, leaky bucket), distributed systems.
-3.  **Design a Web Crawler:** Concurrency, distributed processing, politeness policies.
-4.  **Design a Notification System:** Message queues, push vs. pull, scalability.
-5.  **Design a Distributed Cache:** Caching strategies, consistency, eviction policies.
-6.  **Design a Key-Value Store:** Data structures, consistency, distributed systems.
-7.  **Design a Proximity Service (e.g., find nearby restaurants):** Geospatial indexing, data structures (quadtrees, geohashes).
-8.  **Design a System for Processing a High Volume of Events:** Message queues, stream processing, data pipelines.
-9.  **Design a Social Media Feed (e.g., Twitter, Facebook):** Data modeling, read-heavy vs. write-heavy, caching.
-10. **Design a Distributed Message Queue:** Message delivery guarantees, fault tolerance, scalability.
-11. **Design a system to handle large file uploads:** Chunking, resumable uploads, storage.
-12. **Design a system for collaborative text editing (like Google Docs):** Operational transforms, conflict resolution, real-time updates.
+3.  **Design a Key-Value Store (NEW):** Consistent hashing, replication, conflict resolution.
+4.  **Design a Distributed Cache:** Caching strategies, consistency, eviction policies.
+5.  **Design a Web Crawler:** Concurrency, distributed processing, politeness policies.
+6.  **Design a Notification System:** Message queues, push vs. pull, scalability.
+7.  **Design a Chat System:** WebSockets, message ordering, presence tracking.
+8.  **Design a Social Media Feed:** Fan-out strategies, ranking, caching.
+9.  **Design Search Autocomplete:** Trie data structure, ranking, real-time updates.
+10. **Design a Voting System:** Consistency, duplicate prevention, real-time results.
+11. **Design YouTube / Video Streaming (NEW):** CDN, transcoding, adaptive bitrate.
+12. **Design Instagram / Photo Sharing (NEW):** Object storage, feed, image processing.
+13. **Design Google Docs / Collaborative Editor (NEW):** OT/CRDTs, WebSocket, conflict resolution.
+14. **Design Uber/Lyft / Ride Sharing (NEW):** Geospatial indexing, matching, real-time tracking.
+15. **Design Google Drive / Cloud Storage (NEW):** File sync, chunking, deduplication.
+16. **Design Ticketmaster / Event Booking (NEW):** Inventory locking, virtual queues, flash crowds.
+17. **Design a Distributed Task Scheduler (NEW):** Priority queues, lease-based execution, timing wheels.
+18. **Design a Payment System (NEW):** Idempotency, double-entry ledger, PCI compliance.
+19. **Design a Proximity Service (NEW):** Geohash, quadtree, spatial indexing.
 
 ### GenAI/ML Specific System Design
 
@@ -224,9 +267,9 @@ These questions are categorized and cover a range of difficulty levels.  Remembe
 
 ### Senior Software Engineer System Design (Focus on Architecture & Trade-offs)
 
-23. **Design a system to handle a sudden surge in traffic (e.g., a viral event).** Load balancing, auto-scaling, caching, circuit breakers.
-24. **You are tasked with migrating a monolithic application to a microservices architecture.  Describe your approach.** Service decomposition, API design, data consistency, deployment.
-25. **Design a system that needs to be highly available and fault-tolerant across multiple data centers.** Replication, consistency, disaster recovery, network considerations.
+33. **Design a system to handle a sudden surge in traffic (e.g., a viral event).** Load balancing, auto-scaling, caching, circuit breakers.
+34. **You are tasked with migrating a monolithic application to a microservices architecture. Describe your approach.** Service decomposition, API design, data consistency, deployment.
+35. **Design a system that needs to be highly available and fault-tolerant across multiple data centers.** Replication, consistency, disaster recovery, network considerations.
 
 ## V. Key Tips for System Design Interviews
 
@@ -297,43 +340,58 @@ system-design-interview/
 │   └── head_custom.html        # Fonts, Mermaid.js, custom styles
 ├── _sass/custom/
 │   └── custom.scss             # Theme overrides and custom styles
-├── basics/                     # Essential System Design Topics (10 topics)
+├── basics/                     # Essential System Design Topics (11 topics)
 │   ├── index.md
-│   ├── load_balancer.md
-│   ├── caching.md
-│   ├── databases.md
+│   ├── interview_framework.md  # NEW - How to approach any design question
+│   ├── estimation.md
 │   ├── networking.md
-│   ├── concurrency.md
-│   ├── distributed_systems.md
+│   ├── databases.md
+│   ├── caching.md
+│   ├── load_balancer.md
 │   ├── api_design.md
+│   ├── concurrency.md
 │   ├── security.md
 │   ├── scalability.md
-│   └── estimation.md
-├── advanced/                   # Advanced Topics (Senior/Staff level)
+│   └── distributed_systems.md
+├── advanced/                   # Advanced Topics (9 topics, Senior/Staff level)
 │   ├── index.md
 │   ├── message_queues.md
 │   ├── search_systems.md
-│   ├── data_warehousing.md
+│   ├── consistency_patterns.md
 │   ├── microservices.md
-│   └── consistency_patterns.md
-├── genai_ml_basics/            # GenAI/ML Fundamentals (building blocks)
+│   ├── data_warehousing.md
+│   ├── object_storage_cdn.md   # NEW
+│   ├── distributed_locking.md  # NEW
+│   ├── observability.md        # NEW
+│   └── event_sourcing_cqrs.md  # NEW
+├── software_system_design/     # System Design Problems (19 designs)
+│   ├── index.md
+│   ├── url_shortening.md
+│   ├── rate_limiter.md
+│   ├── key_value_store.md      # NEW
+│   ├── distributed_cache.md
+│   ├── notification_system.md
+│   ├── web_crawler.md
+│   ├── chat_system.md
+│   ├── news_feed.md
+│   ├── search_autocomplete.md
+│   ├── voting-system-design.md
+│   ├── video_streaming.md      # NEW - Design YouTube
+│   ├── photo_sharing.md        # NEW - Design Instagram
+│   ├── collaborative_editor.md # NEW - Design Google Docs
+│   ├── ride_sharing.md         # NEW - Design Uber/Lyft
+│   ├── cloud_storage.md        # NEW - Design Google Drive
+│   ├── event_booking.md        # NEW - Design Ticketmaster
+│   ├── task_scheduler.md       # NEW - Design Task Scheduler
+│   ├── payment_system.md       # NEW - Design Payment System
+│   └── proximity_service.md    # NEW - Design Proximity Service
+├── genai_ml_basics/            # GenAI/ML Fundamentals (5 building blocks)
 │   ├── index.md
 │   ├── model_serving.md
 │   ├── feature_stores.md
 │   ├── data_pipelines.md
 │   ├── llm_systems.md
 │   └── distributed_training.md
-├── software_system_design/     # Classic System Design Problems (9 designs)
-│   ├── index.md
-│   ├── url_shortening.md
-│   ├── rate_limiter.md
-│   ├── web_crawler.md
-│   ├── notification_system.md
-│   ├── voting-system-design.md
-│   ├── chat_system.md
-│   ├── news_feed.md
-│   ├── search_autocomplete.md
-│   └── distributed_cache.md
 ├── ml_system_design/           # ML System Design (6 designs)
 │   ├── index.md
 │   ├── recommendation_system.md

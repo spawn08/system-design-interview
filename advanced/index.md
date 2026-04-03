@@ -30,6 +30,9 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | [Microservices Architecture]({{ site.baseurl }}/advanced/microservices) | Service discovery, API gateways, Docker, Kubernetes | ⭐⭐⭐ Advanced |
 | [Consistency Patterns]({{ site.baseurl }}/advanced/consistency_patterns) | Strong, eventual, causal consistency, CRDTs, sagas | ⭐⭐⭐⭐ Expert |
 | [Object Storage & CDN]({{ site.baseurl }}/advanced/object_storage_cdn) | S3-style storage, edge caching, presigned URLs, streaming | ⭐⭐⭐ Advanced |
+| [Distributed Locking]({{ site.baseurl }}/advanced/distributed_locking) | Redlock, fencing tokens, ZooKeeper, lease-based locks | ⭐⭐⭐ Advanced |
+| [Observability]({{ site.baseurl }}/advanced/observability) | Logging, metrics, tracing, OpenTelemetry, alerting | ⭐⭐⭐ Advanced |
+| [Event Sourcing & CQRS]({{ site.baseurl }}/advanced/event_sourcing_cqrs) | Append-only logs, projections, read/write separation | ⭐⭐⭐⭐ Expert |
 
 ---
 
@@ -43,6 +46,9 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | "How do you decompose a monolith?" | Microservices Architecture |
 | "How do you keep data consistent across services?" | Consistency Patterns |
 | "How do you serve images/video globally?" | Object Storage & CDN |
+| "How do you prevent race conditions across services?" | Distributed Locking |
+| "How do you monitor and debug distributed systems?" | Observability |
+| "How do you maintain a complete audit trail?" | Event Sourcing & CQRS |
 
 ---
 
@@ -99,4 +105,23 @@ OBJECT STORAGE & CDN
 ├── CDN           → Edge cache, TTL, purge, origin pull
 ├── Access        → Presigned URLs, OAC, bucket policies, CORS
 └── Patterns      → Static assets, HLS/DASH, API cache at edge
+
+DISTRIBUTED LOCKING
+├── Redis         → SET NX PX, Redlock (multi-node)
+├── ZooKeeper     → Ephemeral sequential nodes, watches
+├── Database      → SELECT FOR UPDATE, advisory locks
+├── Fencing       → Monotonic tokens prevent stale locks
+└── etcd          → Lease-based, compare-and-swap
+
+OBSERVABILITY
+├── Logging       → Structured (JSON), ELK, correlation IDs
+├── Metrics       → RED (services), USE (resources), Prometheus
+├── Tracing       → OpenTelemetry, Jaeger, span context propagation
+└── Alerting      → Symptom-based, error budgets, runbooks
+
+EVENT SOURCING & CQRS
+├── Events        → Immutable, append-only, versioned schema
+├── Projections   → Materialized views, async rebuild
+├── CQRS          → Separate read/write models, eventual consistency
+└── Use cases     → Financial ledger, order lifecycle, audit trail
 ```
