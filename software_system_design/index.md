@@ -9,7 +9,7 @@ permalink: /software_system_design/
 # System Design Examples
 {: .fs-9 }
 
-Step-by-step walkthroughs of 24 system design interview questions — from classic URL shortener to distributed file systems.
+Step-by-step walkthroughs of 27 system design interview questions — from classic URL shortener to distributed file systems.
 {: .fs-6 .fw-300 }
 
 ---
@@ -77,6 +77,14 @@ Step-by-step walkthroughs of 24 system design interview questions — from class
 |---|--------|-----------|--------------|
 | 23 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
 | 24 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
+
+### Tier 8: Modern & Trending
+
+| # | Design | Builds On | New Concepts |
+|---|--------|-----------|--------------|
+| 25 | [Gaming Leaderboard]({{ site.baseurl }}/software_system_design/gaming_leaderboard) | Cache, Message Queue | Redis sorted sets, real-time ranking, anti-cheat |
+| 26 | [API Gateway]({{ site.baseurl }}/software_system_design/api_gateway) | Rate Limiter, Load Balancer | Plugin architecture, circuit breaker, hot config reload |
+| 27 | [Content Delivery Network]({{ site.baseurl }}/software_system_design/content_delivery_network) | Distributed Cache, Cloud Storage | Edge caching, PoP hierarchy, Anycast routing |
 
 ---
 
