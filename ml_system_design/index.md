@@ -9,14 +9,14 @@ permalink: /ml_system_design/
 # ML System Design
 {: .fs-9 }
 
-Design machine learning systems for production - from data pipelines to model serving.
+Design machine learning systems for production — 7 designs covering ranking, retrieval, personalization, and ads.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## What Makes ML Design Different?
 
-ML system design interviews focus on the **full ML lifecycle**, not just the model. You need to think about:
+ML system design interviews focus on the **full ML lifecycle**, not just the model:
 
 | Stage | Key Considerations |
 |-------|-------------------|
@@ -27,6 +27,23 @@ ML system design interviews focus on the **full ML lifecycle**, not just the mod
 
 {: .warning }
 > A common mistake: focusing only on the model architecture. Interviewers want to see you design the entire system around it.
+
+---
+
+## Recommended Study Order
+
+{: .tip }
+> Follow this order — each design introduces new concepts that build on earlier ones.
+
+| Order | Design | New Concepts Introduced | Prerequisite |
+|-------|--------|------------------------|--------------|
+| 1 | [Image Caption Generator]({{ site.baseurl }}/ml_system_design/image_caption_generator) | Encoder-decoder, GPU serving, Triton | Model Serving fundamentals |
+| 2 | [Image Search]({{ site.baseurl }}/ml_system_design/image_search) | Embeddings, vector DBs, ANN indexes | Image Caption (embeddings) |
+| 3 | [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system) | Two-Tower, collaborative filtering, cold start | Image Search (ANN) |
+| 4 | [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking) | BM25, LambdaMART, retrieval + ranking | Recommendation (two-stage) |
+| 5 | [Fraud Detection]({{ site.baseurl }}/ml_system_design/fraud_detection) | Real-time features, class imbalance, ensembles | Search Ranking (ranking) |
+| 6 | [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization) | Session models, bandits, exploration | Recommendation + Fraud |
+| 7 | [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking) | CTR prediction, auctions, budget pacing | All of the above |
 
 ---
 
@@ -46,6 +63,20 @@ Design a system that generates descriptive captions for images using deep learni
 
 ---
 
+### [Image Search System]({{ site.baseurl }}/ml_system_design/image_search)
+{: .d-inline-block }
+
+Vector Search
+{: .label .label-blue }
+
+Design a visual search system for finding similar images or searching by text description.
+
+**Key concepts:** CLIP embeddings, vector databases (FAISS, Pinecone), ANN indexes (IVF, HNSW), multi-modal search, indexing pipelines, re-ranking
+
+**Difficulty:** ⭐⭐⭐ Medium-Hard
+
+---
+
 ### [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system)
 {: .d-inline-block }
 
@@ -55,6 +86,20 @@ Personalization
 Design a recommendation system for e-commerce or content platforms like Netflix/Amazon.
 
 **Key concepts:** Collaborative filtering, content-based filtering, Two-Tower models, ANN retrieval (FAISS), ranking models, cold start, A/B testing
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking)
+{: .d-inline-block }
+
+Information Retrieval
+{: .label .label-green }
+
+Design an ML-powered search ranking system (learning-to-rank, retrieval + ranking + re-ranking).
+
+**Key concepts:** BM25, dense retrieval, hybrid fusion, LambdaMART, cross-encoder re-ranking, position bias, NDCG, serving at scale
 
 **Difficulty:** ⭐⭐⭐⭐ Hard
 
@@ -74,34 +119,6 @@ Design a system that detects fraudulent transactions in real-time (<100ms).
 
 ---
 
-### [Image Search System]({{ site.baseurl }}/ml_system_design/image_search)
-{: .d-inline-block }
-
-Vector Search
-{: .label .label-blue }
-
-Design a visual search system for finding similar images or searching by text description.
-
-**Key concepts:** CLIP embeddings, vector databases (FAISS, Pinecone), ANN indexes (IVF, HNSW), multi-modal search, indexing pipelines, re-ranking
-
-**Difficulty:** ⭐⭐⭐ Medium-Hard
-
----
-
-### [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking)
-{: .d-inline-block }
-
-Information Retrieval
-{: .label .label-green }
-
-Design an ML-powered search ranking system (learning-to-rank, retrieval + ranking + re-ranking).
-
-**Key concepts:** BM25, dense retrieval, hybrid fusion, LambdaMART, cross-encoder re-ranking, position bias, NDCG, serving at scale
-
-**Difficulty:** ⭐⭐⭐⭐ Hard
-
----
-
 ### [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization)
 {: .d-inline-block }
 
@@ -116,8 +133,20 @@ Design a real-time personalization system that adapts to user behavior within a 
 
 ---
 
-{: .note }
-> Looking for **Model Serving, Feature Stores, Data Pipelines, LLMs, or Distributed Training?** These foundational topics now live in the dedicated [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) section — master those building blocks first, then apply them here.
+### [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking)
+{: .d-inline-block }
+
+Revenue ML
+{: .label .label-red }
+
+NEW
+{: .label .label-yellow }
+
+Design an ads ranking system — the core revenue engine at Google, Meta, Amazon. Predict CTR/CVR, run auctions, manage advertiser budgets.
+
+**Key concepts:** CTR prediction (DCN/DLRM), second-price/GSP auctions, budget pacing, position bias correction, calibration, exploration for new ads, near-real-time training
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
 
 ---
 
@@ -196,20 +225,19 @@ MONITORING
 
 ## Pattern Recognition
 
-As you study these designs, look for patterns that repeat:
-
 | Pattern | Where You'll See It |
 |---------|---------------------|
-| **Two-stage retrieval+ranking** | Recommendations, Search, Fraud Detection |
-| **Vector embeddings** | Image Search, Recommendations |
-| **Feature stores** | Fraud Detection, Recommendations |
+| **Two-stage retrieval+ranking** | Recommendations, Search, Ads Ranking, Fraud Detection |
+| **Vector embeddings** | Image Search, Recommendations, Ads (DLRM) |
+| **Feature stores** | Fraud Detection, Recommendations, Ads Ranking |
 | **Dynamic batching** | Image Captioning, all GPU-based serving |
 | **A/B testing** | All ML systems |
 | **Ensemble models** | Fraud Detection, Recommendations |
-| **Rules + ML hybrid** | Fraud Detection, Content Moderation |
-| **Real-time aggregations** | Fraud Detection (velocity), Recommendations (session), Personalization |
+| **Rules + ML hybrid** | Fraud Detection, Content Moderation, Ads |
+| **Real-time aggregations** | Fraud Detection (velocity), Personalization, Ads |
 | **Session modeling** | Real-time Personalization, Recommendations |
-| **Multi-armed bandits** | Real-time Personalization, A/B Testing |
+| **Multi-armed bandits** | Personalization, Ads (new ad exploration) |
+| **Auction mechanics** | Ads Ranking (unique to ads) |
 
 {: .note }
 > Master these patterns and you can apply them to any new ML system design problem.
@@ -225,26 +253,18 @@ As you study these designs, look for patterns that repeat:
 | **Fraud Detection** | <100ms | Class imbalance | Precision-Recall |
 | **Image Search** | <200ms | Index at scale | Recall@K, Latency |
 | **Search Ranking** | <200ms | Retrieval + rank budgets | NDCG@K, CTR |
-| **Real-time Personalization** | <50ms | Session modeling, cold start | CTR, Session Depth |
+| **Personalization** | <50ms | Session modeling, cold start | CTR, Session Depth |
+| **Ads Ranking** | <50ms | Revenue × relevance | AUC, Revenue, Calibration |
 
 ---
 
-## Interview Tips for ML Design
+## What's Next?
 
-{: .tip }
-> **Don't just talk about the model!** Interviewers at top companies (Google, Meta, Netflix) want to see you design the full system:
-> - Data pipelines and feature engineering
-> - Training infrastructure and experiment tracking  
-> - Serving architecture with latency considerations
-> - Monitoring, A/B testing, and iteration
+After mastering ML system design:
 
-**Common mistakes to avoid:**
-1. Jumping into model architecture without understanding requirements
-2. Ignoring data quality and feature engineering
-3. Forgetting about cold start problems
-4. Not discussing how to measure success
-5. Ignoring operational concerns (monitoring, retraining)
+1. **Go deeper on GenAI** with [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 9 LLM/GenAI systems with interview transcripts
+2. **Review fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) for any gaps
+3. **Practice with transcripts** — the GenAI section includes full hypothetical interview walkthroughs
 
 {: .note }
-> Looking for **LLM Chatbot, RAG, Code Assistant, Content Moderation, or Multi-Modal Search** designs? These GenAI-specific system designs live in the dedicated [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) section — complete with hypothetical interview transcripts.
-
+> Looking for **LLM Chatbot, RAG, Code Assistant, AI Agents, or Text-to-Image** designs? These GenAI-specific system designs live in the dedicated [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) section.

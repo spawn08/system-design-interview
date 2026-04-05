@@ -32,6 +32,18 @@ Just as **load balancing, caching, and databases** are fundamentals for software
 
 ---
 
+## Recommended Study Order
+
+| Order | Topic | Time | Why This Order |
+|-------|-------|------|---------------|
+| 1 | [Data Pipelines for ML]({{ site.baseurl }}/genai_ml_basics/data_pipelines) | 2-3 hours | Data comes first — can't train without it |
+| 2 | [Feature Stores]({{ site.baseurl }}/genai_ml_basics/feature_stores) | 2-3 hours | Organize features for training and serving |
+| 3 | [Model Serving]({{ site.baseurl }}/genai_ml_basics/model_serving) | 3-4 hours | Get models into production |
+| 4 | [Distributed Training]({{ site.baseurl }}/genai_ml_basics/distributed_training) | 3-4 hours | Scale training to large models |
+| 5 | [Large Language Models]({{ site.baseurl }}/genai_ml_basics/llm_systems) | 4-5 hours | The most complex — builds on everything above |
+
+---
+
 ## What's Covered
 
 ### [Model Serving]({{ site.baseurl }}/genai_ml_basics/model_serving)
@@ -121,17 +133,18 @@ Design training infrastructure that scales deep learning across hundreds of GPUs
 ```
 GenAI/ML Fundamentals              ML System Design Questions
 ─────────────────────              ─────────────────────────
-Model Serving          ──────►     Image Caption Generator
-Feature Stores         ──────►     Recommendation System
-Data Pipelines         ──────►     Fraud Detection System
+Model Serving          ──────►     Image Caption Generator, all ML systems
+Feature Stores         ──────►     Recommendation System, Fraud Detection, Ads Ranking
+Data Pipelines         ──────►     Fraud Detection, Recommendation System
 
 GenAI/ML Fundamentals              GenAI System Design Questions
 ─────────────────────              ─────────────────────────────
-LLM Systems            ──────►     LLM Chatbot, Enterprise RAG, Code Assistant
-Model Serving          ──────►     LLM Chatbot, Code Assistant
-Distributed Training   ──────►     ML Training Platform
-Feature Stores         ──────►     Content Moderation
+LLM Systems            ──────►     LLM Chatbot, Enterprise RAG, Code Assistant, AI Agents
+Model Serving          ──────►     LLM Chatbot, Code Assistant, LLM Gateway
+Distributed Training   ──────►     ML Training Platform, Text-to-Image
+Feature Stores         ──────►     Content Moderation, Ads Ranking
+Data Pipelines         ──────►     All GenAI Systems
 ```
 
 {: .tip }
-> Master the fundamentals first, then apply them in the [ML System Design]({{ site.baseurl }}/ml_system_design/) and [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) sections where you'll design complete end-to-end systems.
+> Master the fundamentals first, then apply them in the [ML System Design]({{ site.baseurl }}/ml_system_design/) (7 designs) and [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) (9 designs with interview transcripts) sections.

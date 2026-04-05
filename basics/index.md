@@ -152,7 +152,7 @@ ESTIMATION
 
 After mastering these fundamentals:
 
-1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts
-2. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/) with 19 walkthroughs
-3. **See ML-specific patterns** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) and [ML System Design]({{ site.baseurl }}/ml_system_design/)
+1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts (13 topics)
+2. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/) — 21 walkthroughs organized by learning path
+3. **Learn ML/GenAI** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) → [ML System Design]({{ site.baseurl }}/ml_system_design/) (7 designs) → [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) (9 designs with interview transcripts)
 4. **Practice** drawing architectures using these building blocks

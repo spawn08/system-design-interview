@@ -2,7 +2,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
 
-A comprehensive, interview-ready guide covering **56 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples in Java, Python, and Go.
+A comprehensive, interview-ready guide covering **66 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), production-quality code examples in Java, Python, and Go, and hypothetical interview transcripts.
 
 **Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
 
@@ -22,12 +22,12 @@ A comprehensive, interview-ready guide covering **56 system design topics** with
 | Section | Topics | Status |
 |---------|--------|--------|
 | Essential System Design | 11 | Complete |
-| Advanced Topics | 9 | Complete |
-| Software System Design | 19 | Complete |
+| Advanced Topics | 13 | Complete |
+| Software System Design | 21 | Complete |
 | GenAI/ML Fundamentals | 5 | Complete |
-| ML System Design | 6 | Complete |
-| GenAI System Design | 6 | Complete |
-| **Total** | **56** | **All complete** |
+| ML System Design | 7 | Complete |
+| GenAI System Design | 9 | Complete |
+| **Total** | **66** | **All complete** |
 
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
@@ -228,15 +228,15 @@ These topics are particularly important for system design interviews focused on 
 *   **Model Parallelism**
 *   **Parameter Servers**
 
-## IV. Top 35 System Design Interview Questions
+## IV. Top 40 System Design Interview Questions
 
-These questions are categorized and cover a range of difficulty levels. Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution. Questions marked with **(NEW)** have full walkthroughs in this guide.
+These questions are categorized and cover a range of difficulty levels. Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution. All questions have full walkthroughs in this guide.
 
-### General System Design (Applicable to all roles)
+### General System Design (21 designs)
 
 1.  **Design a URL Shortener (TinyURL):** Hashing, databases, scaling.
 2.  **Design a Rate Limiter:** Algorithms (token bucket, leaky bucket), distributed systems.
-3.  **Design a Key-Value Store (NEW):** Consistent hashing, replication, conflict resolution.
+3.  **Design a Key-Value Store:** Consistent hashing, replication, conflict resolution.
 4.  **Design a Distributed Cache:** Caching strategies, consistency, eviction policies.
 5.  **Design a Web Crawler:** Concurrency, distributed processing, politeness policies.
 6.  **Design a Notification System:** Message queues, push vs. pull, scalability.
@@ -244,33 +244,39 @@ These questions are categorized and cover a range of difficulty levels. Remember
 8.  **Design a Social Media Feed:** Fan-out strategies, ranking, caching.
 9.  **Design Search Autocomplete:** Trie data structure, ranking, real-time updates.
 10. **Design a Voting System:** Consistency, duplicate prevention, real-time results.
-11. **Design YouTube / Video Streaming (NEW):** CDN, transcoding, adaptive bitrate.
-12. **Design Instagram / Photo Sharing (NEW):** Object storage, feed, image processing.
-13. **Design Google Docs / Collaborative Editor (NEW):** OT/CRDTs, WebSocket, conflict resolution.
-14. **Design Uber/Lyft / Ride Sharing (NEW):** Geospatial indexing, matching, real-time tracking.
-15. **Design Google Drive / Cloud Storage (NEW):** File sync, chunking, deduplication.
-16. **Design Ticketmaster / Event Booking (NEW):** Inventory locking, virtual queues, flash crowds.
-17. **Design a Distributed Task Scheduler (NEW):** Priority queues, lease-based execution, timing wheels.
-18. **Design a Payment System (NEW):** Idempotency, double-entry ledger, PCI compliance.
-19. **Design a Proximity Service (NEW):** Geohash, quadtree, spatial indexing.
+11. **Design YouTube / Video Streaming:** CDN, transcoding, adaptive bitrate.
+12. **Design Instagram / Photo Sharing:** Object storage, feed, image processing.
+13. **Design Google Docs / Collaborative Editor:** OT/CRDTs, WebSocket, conflict resolution.
+14. **Design Uber/Lyft / Ride Sharing:** Geospatial indexing, matching, real-time tracking.
+15. **Design Google Drive / Cloud Storage:** File sync, chunking, deduplication.
+16. **Design Ticketmaster / Event Booking:** Inventory locking, virtual queues, flash crowds.
+17. **Design a Distributed Task Scheduler:** Priority queues, lease-based execution, timing wheels.
+18. **Design a Payment System:** Idempotency, double-entry ledger, PCI compliance.
+19. **Design a Proximity Service:** Geohash, quadtree, spatial indexing.
+20. **Design a Distributed Message Queue (Kafka):** Append-only log, partitioning, consumer groups, zero-copy I/O.
+21. **Design a Metrics & Monitoring System (Datadog):** Time-series storage, Gorilla compression, alerting pipeline, federation.
 
-### ML System Design
+### ML System Design (7 designs)
 
-13. **Design a Recommendation System (e.g., for Netflix, Amazon):** Collaborative filtering, content-based filtering, hybrid approaches, cold start.
-14. **Design a System for Real-time Fraud Detection:** Feature engineering, model serving, low-latency.
-15. **Design a System for Image Search:** Feature extraction, similarity search, indexing, vector databases.
-16. **Design a system for personalized search:** User profiling, query understanding, ranking models.
-17. **Design a system for generating captions for images:** Image understanding, text generation, model evaluation.
-18. **Design a Real-time Personalization System:** Session models, contextual bandits, multi-task ranking.
+22. **Design a Recommendation System (Netflix/Amazon):** Collaborative filtering, Two-Tower models, cold start, A/B testing.
+23. **Design Real-time Fraud Detection:** Feature engineering, velocity features, class imbalance, ensemble models.
+24. **Design Image Search:** CLIP embeddings, vector databases, ANN indexes, re-ranking.
+25. **Design Image Caption Generation:** Encoder-decoder, attention, Triton serving.
+26. **Design Search Ranking:** BM25, LambdaMART, retrieval + ranking + re-ranking, NDCG.
+27. **Design Real-time Personalization:** Session models, contextual bandits, multi-task ranking.
+28. **Design an Ads Ranking System (Google/Meta):** CTR prediction, auction mechanics, budget pacing, calibration.
 
-### GenAI System Design (NEW — with interview transcripts)
+### GenAI System Design (9 designs — with interview transcripts)
 
-19. **Design an LLM-Powered Chatbot (NEW):** KV-cache, PagedAttention, speculative decoding, RLHF, guardrails, streaming.
-20. **Design an Enterprise RAG System (NEW):** Chunking, hybrid retrieval, re-ranking, ACL-aware search, citation grounding, hallucination mitigation.
-21. **Design an AI Code Assistant (NEW):** Fill-in-the-middle, speculative decoding, repository-level context, telemetry-driven evaluation.
-22. **Design an LLM Content Moderation System (NEW):** Cascade architecture, adversarial robustness, human-in-the-loop, fairness monitoring.
-23. **Design an ML Training Platform (NEW):** Gang scheduling, checkpointing, distributed training, experiment tracking, GPU cluster management.
-24. **Design a Multi-Modal Search System (NEW):** CLIP/SigLIP embeddings, cross-modal retrieval, ScaNN, query fusion, video search.
+29. **Design an LLM-Powered Chatbot:** KV-cache, PagedAttention, speculative decoding, RLHF, guardrails, streaming.
+30. **Design an Enterprise RAG System:** Chunking, hybrid retrieval, re-ranking, ACL-aware search, citation grounding.
+31. **Design an AI Code Assistant:** Fill-in-the-middle, speculative decoding, repository-level context, telemetry.
+32. **Design an LLM Content Moderation System:** Cascade architecture, adversarial robustness, human-in-the-loop, fairness.
+33. **Design an ML Training Platform:** Gang scheduling, checkpointing, distributed training, GPU cluster management.
+34. **Design a Multi-Modal Search System:** CLIP/SigLIP embeddings, cross-modal retrieval, ScaNN, video search.
+35. **Design an AI Agent System:** ReAct pattern, tool calling, planning, memory architecture, multi-agent orchestration.
+36. **Design an LLM Gateway / AI Proxy:** Multi-model routing, semantic caching, cost control, PII scrubbing.
+37. **Design a Text-to-Image Generation System:** Diffusion models, latent space, CFG, safety, content provenance.
 
 ### Senior Software Engineer System Design (Focus on Architecture & Trade-offs)
 
@@ -371,11 +377,11 @@ system-design-interview/
 │   ├── distributed_locking.md  # NEW
 │   ├── observability.md        # NEW
 │   └── event_sourcing_cqrs.md  # NEW
-├── software_system_design/     # System Design Problems (19 designs)
+├── software_system_design/     # System Design Problems (21 designs)
 │   ├── index.md
 │   ├── url_shortening.md
 │   ├── rate_limiter.md
-│   ├── key_value_store.md      # NEW
+│   ├── key_value_store.md
 │   ├── distributed_cache.md
 │   ├── notification_system.md
 │   ├── web_crawler.md
@@ -383,15 +389,18 @@ system-design-interview/
 │   ├── news_feed.md
 │   ├── search_autocomplete.md
 │   ├── voting-system-design.md
-│   ├── video_streaming.md      # NEW - Design YouTube
-│   ├── photo_sharing.md        # NEW - Design Instagram
-│   ├── collaborative_editor.md # NEW - Design Google Docs
-│   ├── ride_sharing.md         # NEW - Design Uber/Lyft
-│   ├── cloud_storage.md        # NEW - Design Google Drive
-│   ├── event_booking.md        # NEW - Design Ticketmaster
-│   ├── task_scheduler.md       # NEW - Design Task Scheduler
-│   ├── payment_system.md       # NEW - Design Payment System
-│   └── proximity_service.md    # NEW - Design Proximity Service
+│   ├── video_streaming.md
+│   ├── photo_sharing.md
+│   ├── collaborative_editor.md
+│   ├── ride_sharing.md
+│   ├── cloud_storage.md
+│   ├── event_booking.md
+│   ├── task_scheduler.md
+│   ├── payment_system.md
+│   ├── proximity_service.md
+│   ├── message_queue.md        # NEW - Distributed Message Queue (Kafka)
+│   ├── metrics_monitoring.md   # NEW - Metrics & Monitoring System (Datadog)
+│   └── staff_engineer_expectations.md
 ├── genai_ml_basics/            # GenAI/ML Fundamentals (5 building blocks)
 │   ├── index.md
 │   ├── model_serving.md
@@ -399,22 +408,26 @@ system-design-interview/
 │   ├── data_pipelines.md
 │   ├── llm_systems.md
 │   └── distributed_training.md
-├── ml_system_design/           # ML System Design (6 designs)
+├── ml_system_design/           # ML System Design (7 designs)
 │   ├── index.md
 │   ├── recommendation_system.md
 │   ├── fraud_detection.md
 │   ├── image_search.md
 │   ├── image_caption_generator.md
 │   ├── search_ranking.md
-│   └── realtime_personalization.md
-├── genai_ml_system_design/    # GenAI System Design (6 designs, NEW)
+│   ├── realtime_personalization.md
+│   └── ads_ranking.md          # NEW - Ads Ranking System (Google/Meta)
+├── genai_ml_system_design/    # GenAI System Design (9 designs)
 │   ├── index.md
-│   ├── llm_chatbot.md         # NEW - Design LLM Chatbot (Gemini/ChatGPT)
-│   ├── enterprise_rag.md      # NEW - Design Enterprise RAG System
-│   ├── ai_code_assistant.md   # NEW - Design AI Code Assistant
-│   ├── content_moderation.md  # NEW - Design LLM Content Moderation
-│   ├── ml_training_platform.md # NEW - Design ML Training Platform
-│   └── multimodal_search.md   # NEW - Design Multi-Modal Search
+│   ├── llm_chatbot.md
+│   ├── enterprise_rag.md
+│   ├── ai_code_assistant.md
+│   ├── content_moderation.md
+│   ├── ml_training_platform.md
+│   ├── multimodal_search.md
+│   ├── ai_agent_system.md      # NEW - AI Agent System (ReAct, tools, memory)
+│   ├── llm_gateway.md          # NEW - LLM Gateway / AI Proxy
+│   └── text_to_image.md        # NEW - Text-to-Image Generation (Imagen/DALL-E)
 ├── _config.yml                 # Jekyll site configuration
 ├── Gemfile                     # Ruby dependencies
 ├── index.md                    # Home page

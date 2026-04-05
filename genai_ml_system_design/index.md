@@ -9,14 +9,14 @@ permalink: /genai_ml_system_design/
 # GenAI System Design
 {: .fs-9 }
 
-Production system design for Generative AI — LLM chatbots, RAG pipelines, code assistants, content moderation, training platforms, and multi-modal search.
+Production system design for Generative AI — 9 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## Why GenAI System Design Is a Separate Category
 
-Traditional ML system design focuses on **classification, ranking, and retrieval**. GenAI system design introduces fundamentally different challenges:
+Traditional ML system design focuses on **classification, ranking, and retrieval**. GenAI introduces fundamentally different challenges:
 
 | Traditional ML | GenAI/LLM Systems |
 |----------------|-------------------|
@@ -29,6 +29,37 @@ Traditional ML system design focuses on **classification, ranking, and retrieval
 
 {: .warning }
 > Google, Meta, and Anthropic interviews increasingly ask GenAI-specific designs. Saying "just call the OpenAI API" will not pass. You need to demonstrate understanding of **inference optimization, safety, grounding, cost control, and evaluation at scale**.
+
+---
+
+## Recommended Study Order
+
+{: .tip }
+> Follow this progression. Each design builds on concepts from earlier ones. All designs include a full hypothetical interview transcript.
+
+### Phase 1: Core GenAI Patterns
+
+| Order | Design | New Concepts Introduced | Why First |
+|-------|--------|------------------------|-----------|
+| 1 | [LLM-Powered Chatbot]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) | KV-cache, PagedAttention, streaming, safety | Foundation for all LLM serving |
+| 2 | [Enterprise RAG System]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) | Chunking, hybrid retrieval, citations, ACLs | #1 production LLM pattern |
+| 3 | [LLM Gateway]({{ site.baseurl }}/genai_ml_system_design/llm_gateway) | Multi-model routing, semantic caching, cost control | Infra layer used by all LLM apps |
+
+### Phase 2: Specialized Applications
+
+| Order | Design | New Concepts Introduced | Builds On |
+|-------|--------|------------------------|-----------|
+| 4 | [AI Code Assistant]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant) | FIM, repo context, speculative decoding | Chatbot (serving) + RAG (retrieval) |
+| 5 | [AI Agent System]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system) | ReAct, tool use, planning, memory, multi-agent | Chatbot + RAG + Gateway |
+| 6 | [LLM Content Moderation]({{ site.baseurl }}/genai_ml_system_design/content_moderation) | Cascade, adversarial robustness, human-in-the-loop | Chatbot (safety pipeline) |
+
+### Phase 3: Advanced GenAI
+
+| Order | Design | New Concepts Introduced | Builds On |
+|-------|--------|------------------------|-----------|
+| 7 | [Text-to-Image Generation]({{ site.baseurl }}/genai_ml_system_design/text_to_image) | Diffusion models, CFG, latent space, safety | Chatbot (GPU serving) + Moderation |
+| 8 | [Multi-Modal Search]({{ site.baseurl }}/genai_ml_system_design/multimodal_search) | CLIP/SigLIP, cross-modal retrieval, video | RAG (retrieval) + Image generation |
+| 9 | [ML Training Platform]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform) | Gang scheduling, checkpointing, GPU clusters | All (training infrastructure for all models) |
 
 ---
 
@@ -62,6 +93,23 @@ Design a retrieval-augmented generation system for enterprise knowledge bases wi
 
 ---
 
+### [LLM Gateway]({{ site.baseurl }}/genai_ml_system_design/llm_gateway)
+{: .d-inline-block }
+
+AI Infrastructure
+{: .label .label-yellow }
+
+NEW
+{: .label .label-blue }
+
+Design an LLM gateway/proxy that handles routing, fallback, semantic caching, rate limiting, cost tracking, and observability across multiple LLM providers.
+
+**Key concepts:** Semantic caching, intelligent model routing, token-based rate limiting, circuit breaker per provider, PII scrubbing, cost attribution, unified API normalization
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
 ### [AI Code Assistant]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant)
 {: .d-inline-block }
 
@@ -71,6 +119,23 @@ Developer Tools
 Design an AI code completion and chat system like Gemini Code Assist / GitHub Copilot — IDE integration, repository-aware context, and low-latency suggestions.
 
 **Key concepts:** Fill-in-the-middle (FIM), tree-sitter AST, repository-level context, speculative decoding, streaming, telemetry-driven evaluation, code safety
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
+
+---
+
+### [AI Agent System]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system)
+{: .d-inline-block }
+
+Autonomous AI
+{: .label .label-purple }
+
+NEW
+{: .label .label-blue }
+
+Design an autonomous AI agent system that can plan, use tools, maintain memory, and execute multi-step tasks — like Google's AI agents or Anthropic's computer use.
+
+**Key concepts:** ReAct pattern, tool calling, task decomposition, working + semantic memory, multi-agent orchestration, sandboxed execution, human-in-the-loop
 
 **Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
 
@@ -90,15 +155,18 @@ Design a content moderation system using LLMs for text, image, and video — pol
 
 ---
 
-### [ML Training Platform]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform)
+### [Text-to-Image Generation]({{ site.baseurl }}/genai_ml_system_design/text_to_image)
 {: .d-inline-block }
 
-ML Infrastructure
-{: .label .label-red }
+Generative Media
+{: .label .label-purple }
 
-Design an ML training platform like Vertex AI / SageMaker — job scheduling, distributed training, experiment tracking, and GPU cluster management.
+NEW
+{: .label .label-blue }
 
-**Key concepts:** GPU scheduling (gang scheduling), checkpointing, elastic training, experiment tracking, hyperparameter tuning, multi-tenancy, cost attribution
+Design a text-to-image generation system like Imagen / DALL-E 3 / Midjourney — from text prompts to high-quality images with safety and copyright controls.
+
+**Key concepts:** Diffusion models, latent diffusion, classifier-free guidance, CLIP/T5 conditioning, ControlNet, LoRA, super-resolution cascades, content provenance (C2PA)
 
 **Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
 
@@ -118,16 +186,33 @@ Design a multi-modal search system like Google Lens — search across text, imag
 
 ---
 
+### [ML Training Platform]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform)
+{: .d-inline-block }
+
+ML Infrastructure
+{: .label .label-red }
+
+Design an ML training platform like Vertex AI / SageMaker — job scheduling, distributed training, experiment tracking, and GPU cluster management.
+
+**Key concepts:** GPU scheduling (gang scheduling), checkpointing, elastic training, experiment tracking, hyperparameter tuning, multi-tenancy, cost attribution
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
+
+---
+
 ## Quick Reference: System Comparison
 
 | System | Latency Target | Key Challenge | Primary Metric |
 |--------|---------------|---------------|----------------|
 | **LLM Chatbot** | TTFT < 500ms | GPU cost, safety | User satisfaction, Helpfulness |
 | **Enterprise RAG** | < 3s end-to-end | Hallucination, ACLs | Faithfulness, Recall@K |
+| **LLM Gateway** | < 20ms overhead | Multi-provider resilience | Availability, cost savings |
 | **AI Code Assistant** | < 200ms (completion) | Context window, accuracy | Acceptance rate, Keystroke savings |
-| **Content Moderation** | < 500ms | Adversarial attacks, fairness | Precision, Recall, False positive rate |
-| **ML Training Platform** | N/A (throughput) | GPU utilization, fault tolerance | MFU, Job completion rate |
+| **AI Agent System** | < 5min per task | Planning, tool reliability | Task completion rate |
+| **Content Moderation** | < 500ms | Adversarial attacks, fairness | Precision, Recall, FPR |
+| **Text-to-Image** | < 10s per image | Safety, quality | FID, CLIP score, Human preference |
 | **Multi-Modal Search** | < 300ms | Cross-modal alignment | NDCG@K, Recall@K |
+| **ML Training Platform** | N/A (throughput) | GPU utilization, fault tolerance | MFU, Job completion rate |
 
 ---
 
@@ -186,6 +271,8 @@ Use this adapted framework in your interviews:
 4. Assuming unlimited context windows solve all problems
 5. Forgetting about cost — GPU inference is 100-1000x more expensive than traditional APIs
 6. Not separating retrieval from generation in RAG systems
+7. Ignoring multi-provider resilience (single provider = single point of failure)
+8. Treating agents as simple chatbots (planning, memory, tool use are distinct subsystems)
 
 ---
 
@@ -194,10 +281,10 @@ Use this adapted framework in your interviews:
 ```
 GenAI/ML Fundamentals              GenAI System Design Questions
 ─────────────────────              ─────────────────────────────
-Model Serving          ──────►     LLM Chatbot, Code Assistant
-LLM Systems            ──────►     Enterprise RAG, Chatbot
+Model Serving          ──────►     LLM Chatbot, Code Assistant, LLM Gateway
+LLM Systems            ──────►     Enterprise RAG, Chatbot, AI Agents
 Feature Stores         ──────►     Content Moderation
-Distributed Training   ──────►     ML Training Platform
+Distributed Training   ──────►     ML Training Platform, Text-to-Image
 Data Pipelines         ──────►     All GenAI Systems
 
 ML System Design                   GenAI System Design Questions
@@ -205,6 +292,7 @@ ML System Design                   GenAI System Design Questions
 Image Search           ──────►     Multi-Modal Search
 Search Ranking         ──────►     Enterprise RAG (retrieval)
 Fraud Detection        ──────►     Content Moderation (cascade)
+Ads Ranking            ──────►     LLM Gateway (cost optimization)
 ```
 
 {: .note }
