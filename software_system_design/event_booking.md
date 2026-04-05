@@ -139,6 +139,237 @@ An **event ticketing platform** where organizers list concerts, sports, and thea
 {: .tip }
 > Return **`expires_at`** and a **`server_time`** so clients can show countdowns without drift arguments. Always enforce expiry **server-side**.
 
+### Technology Selection & Tradeoffs
+
+Interviewers want to hear **constraints first**: concurrent seat writes need **serializable semantics per seat** (or equivalent), order flows need **durability and replay**, and browse traffic needs **cheap reads**. Below is a concise comparison you can narrate, then collapse to “our choice.”
+
+#### Database: PostgreSQL vs MySQL vs DynamoDB (concurrent seat booking)
+
+| Dimension | PostgreSQL | MySQL (InnoDB) | DynamoDB |
+|-----------|------------|----------------|----------|
+| **Row-level locking** | Strong; `SELECT … FOR UPDATE`, MVCC | Strong; similar InnoDB model | No classic SQL row lock; use **conditional writes** (`ConditionExpression`) |
+| **Transactions** | Rich SQL, **SERIALIZABLE** when needed | Good; isolation nuances differ by version | **TransactWriteItems** (limited items/second per partition); hot partitions need careful key design |
+| **Constraints & uniqueness** | **UNIQUE**, `CHECK`, deferrable constraints | Similar | **Conditional** puts; uniqueness via GSIs with careful modeling |
+| **Concurrent “claim seat”** | Single-row `UPDATE … WHERE status AND version` or `FOR UPDATE` in short txn | Same idea | **Optimistic** single-item updates; avoid multi-seat transactions across many partitions unless batched |
+| **Ops & ecosystem** | Mature, JSON, extensions | Ubiquitous hosting | Serverless scale, **partition** design is make-or-break |
+
+**Why it matters for seats:** Double-booking is prevented by **atomic transitions** on authoritative seat rows (or keys). SQL databases express **multi-seat holds in one transaction** naturally. DynamoDB can work at huge scale but you **design for partition limits** and often use **application-level sagas** or **item collections** with careful contention control.
+
+#### Queue: Kafka vs RabbitMQ vs SQS (order processing)
+
+| Dimension | Apache Kafka | RabbitMQ | Amazon SQS |
+|-----------|--------------|----------|------------|
+| **Ordering** | Per-partition order; replayable log | Queues + optional ordering plugins | **FIFO** queues for order; standard is best-effort |
+| **Throughput & replay** | Excellent for **event sourcing**, replay consumers | Strong for task queues; replay is not the core model | Simple; DLQ + visibility timeout |
+| **Use case fit** | **Outbox**, `OrderConfirmed`, analytics, search sync | **Job** workflows, payment retry workers | **Managed** webhooks, fan-out with SNS |
+| **Ops** | Cluster expertise | Moderate | Low ops on AWS |
+
+**Narrative:** Use a **log (Kafka)** when many services must **consume the same facts** idempotently (tickets issued, search index, fraud). Use **SQS** when you want **minimal ops** and at-least-once workers. Use **RabbitMQ** when you need **complex routing** and classic broker patterns.
+
+#### Cache: Redis for seat maps and availability
+
+| Pattern | What to cache | Risk |
+|---------|----------------|------|
+| **Static geometry** | Section polygons, SVG paths, venue metadata | Safe; long TTL + versioning |
+| **Availability snapshot** | Section-level counts, “heat maps” | **Stale reads**; must label **approximate** and refresh on selection |
+| **Per-seat availability in Redis** | Possible as **accelerator** | **Never** treat as source of truth for sale; DB/Dynamo is authoritative |
+
+Redis also backs **rate limits**, **waiting-room tokens**, and **short-lived hold metadata** (with TTL), which is orthogonal to “cache” but shares the same infrastructure.
+
+#### Payment integration: synchronous vs asynchronous; Stripe vs PayPal vs custom
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Synchronous API** (create intent, return client secret) | Simple mental model for interview | Long user steps (3DS); **don’t** hold DB locks |
+| **Async (webhooks + polling)** | Matches PSP reality; resilient | Must handle duplicates, delays, **reconciliation** |
+
+| Provider | Strengths | Interview angle |
+|----------|-----------|-----------------|
+| **Stripe** | APIs, idempotency, Connect for marketplaces | Default **north-star** example for intents + webhooks |
+| **PayPal** | Buyer familiarity; different flows | Emphasize **two-phase** flows and region-specific behavior |
+| **Custom / bank** | Control, cost | **PCI** scope, certification time, **you** own retries and audits |
+
+**Why async wins in production:** Card networks and mobile clients are unreliable; **webhooks are at-least-once**. Your system must be **idempotent** and **reconcilable** regardless of sync/async surface.
+
+#### Distributed locking: Redis `SETNX` vs database `FOR UPDATE` vs optimistic locking
+
+| Mechanism | When it shines | Failure modes |
+|-----------|----------------|---------------|
+| **Optimistic locking** (`version` on seat row) | **Short** transactions; high contention on *different* seats | Retries; **user-visible** “someone took it” |
+| **`SELECT … FOR UPDATE`** | **Low** contention per row; must keep txn **milliseconds** | Lock wait storms; **deadlocks** if ordering wrong |
+| **Redis `SET` with NX + expiry** | **Coarse** locks, **rate limiting**, **waiting room** | Not your **authoritative** inventory unless you build **2PC**-level discipline; **clock/lease** bugs |
+
+{: .warning }
+> For **authoritative seat sale**, prefer **database-enforced** state transitions (constraints + versioning) on the OLTP store. Redis locks are great for **admission** and **coordination**, not as the **only** line of defense against oversell.
+
+**Our choice (example stack):**
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **OLTP** | **PostgreSQL** (or CockroachDB for global SQL) | Rich transactions, constraints, and familiar locking for **per-show** shards |
+| **Queue / events** | **Kafka** (or **SQS** on AWS for simpler ops) for outbox and notifications | Durable ordering and replay for downstream systems |
+| **Cache / coordination** | **Redis** | TTL holds metadata, rate limits, waiting room; **optional** cached availability with clear staleness rules |
+| **Payments** | **Stripe**-style intents + **async** webhooks + **reconciliation** | Industry-default pattern; minimize PCI scope with hosted flows |
+| **Locking model** | **Optimistic** seat rows + **short** pessimistic spans where needed; **no** long DB locks | Matches flash-sale contention and payment latency reality |
+
+---
+
+### CAP Theorem Analysis
+
+CAP is a **coarse lens**: in practice you choose **per operation** and **per data product** (OLTP vs cache vs search), not one label for the whole company.
+
+| Subsystem | CAP tendency | Why |
+|-----------|--------------|-----|
+| **Seat reservation / sale** | **CP** | **Duplicate sale of one seat** is worse than a slow response. Prefer **correctness** and **failure** (409, retry) over showing two users “success” for the same seat |
+| **Seat map display (cached CDN + API)** | **AP** (with stale bounds) | Browsing can tolerate **seconds** of staleness if the **checkout path re-validates**. Availability and low latency beat perfect global freshness |
+| **Payment processing** | **CP** with **external PSP** | Money movement must be **reconciled**; duplicates are handled by **idempotency** and **ledger** semantics, not by “eventual maybe” |
+| **Waitlist / queue position** | **AP**-friendly | **Fair ordering** can be approximate; showing position is **best-effort**; **admission tokens** matter more than millisecond-accurate ranks |
+
+{: .note }
+> “CP vs AP” is shorthand. Interviewers often reward naming **linearizability** for a single seat record, **serializable** transactions for multi-seat holds, and **bounded staleness** for read replicas and caches.
+
+```mermaid
+flowchart TB
+  subgraph CP["CP-style paths (correctness first)"]
+    R[Seat hold / confirm in OLTP]
+    P[Payment intent + capture + ledger]
+  end
+
+  subgraph AP["AP-style paths (available + soft freshness)"]
+    M[Seat map + CDN]
+    C[Cached availability summary]
+    W[Waiting room position UX]
+  end
+
+  U[User] --> M
+  U --> C
+  U --> W
+  U --> R
+  R --> P
+
+  M -.->|stale OK| C
+  R -.->|invalidates or version-checks| C
+```
+
+**How to say it in one breath:** We are **CP on inventory and money**, **AP on browse and queue UX**, and we **never trust the cache** for the final seat claim.
+
+---
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** (often with money); **SLOs** are internal targets; **SLIs** are what you measure. Below are **candidate** SLOs for a primary ticketing platform—tune numbers to your “billion-dollar on-sale” story.
+
+#### SLIs and SLOs (examples)
+
+| Area | SLI | SLO target (example) | Notes |
+|------|-----|----------------------|-------|
+| **Booking confirmation** | `POST /orders` + `confirm` **success latency** (server-side) | **P95 < 800 ms**, **P99 < 2 s** excluding 3DS user time | Measure at orchestrator; separate **user think time** |
+| **Seat availability accuracy** | Fraction of holds that fail **after** client saw seat “available” | **< 0.1%** false-positive **selection** per session | Drives UX copy: “availability not guaranteed until held” |
+| **Payment success rate** | Captures / (captures + hard declines) for valid intents | **> 98%** for healthy traffic (excl. user error) | Track PSP outages separately |
+| **On-sale availability** | **Successful** hold attempts / attempted holds | **> 95%** during declared incident-free windows | Distinct from **seat** sell-through |
+| **System availability (browse)** | Successful `GET` requests for catalog and map divided by all attempts | **99.9%** monthly | Exclude client errors; define **dependency** SLOs for PSP |
+
+#### Error budget policy
+
+| Principle | Policy |
+|-----------|--------|
+| **Budget consumption** | If **booking confirmation** error budget burns fast in a release window, **freeze** feature work and prioritize reliability |
+| **Dependency burn** | If PSP SLI drops, **page** payments on-call; **scale** webhook workers; **do not** “fix” by caching payments |
+| **On-sale events** | **Stricter** monitoring; **pre-allocated** capacity; **feature flags** to shed non-critical work (recommendations, heavy analytics) |
+
+{: .tip }
+> Tie **SLOs** to product language: “held” means **server guarantee**; “green seat” on map is **indicative**. That alignment reduces false expectations and support load.
+
+---
+
+### Database Schema
+
+Schemas below are **illustrative**—interviews care that you separate **catalog**, **inventory**, **reservation**, and **payment**, with clear **state** and **idempotency**.
+
+#### `events`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `UUID` / `BIGSERIAL` | Primary key |
+| `name` | `TEXT` | Display name |
+| `venue_id` | `UUID` | FK to `venues` (not shown) |
+| `starts_at`, `ends_at` | `TIMESTAMPTZ` | Event window |
+| `capacity` | `INT` | **Venue** or **sellable** cap—define one meaning and stick to it |
+| `status` | `ENUM` | e.g. `draft`, `published`, `cancelled` |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | Audit |
+
+**Show times:** Often **`shows`** (or `event_occurrences`) with `event_id`, `starts_at`, `on_sale_at`—one event, many performances.
+
+#### `seats` / inventory
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `BIGSERIAL` | Surrogate PK optional |
+| `show_id` | `UUID` | **Shard key** candidate |
+| `section` | `TEXT` | e.g. `A` |
+| `row_id` | `TEXT` | e.g. `12` |
+| `seat` | `TEXT` | e.g. `4` |
+| `status` | `ENUM` | `available`, `held`, `sold`, `blocked` |
+| `price_cents` | `BIGINT` | Or FK to `price_tiers` |
+| `version` | `INT` | **Optimistic locking** |
+| `hold_id` | `UUID` NULL | Optional FK to active hold |
+| `updated_at` | `TIMESTAMPTZ` | |
+
+**Constraints (examples):**
+
+- `UNIQUE (show_id, section, row_id, seat)` — one logical seat per show.
+- Check allowed **`status`** transitions in app or **FSM** + constraints.
+
+#### `reservations` / `holds` and `bookings`
+
+**`holds`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `UUID` | PK |
+| `user_id` | `UUID` | Owner |
+| `show_id` | `UUID` | |
+| `seat_ids` | `UUID[]` or child table `hold_seats` | Normalizing to **`hold_seats(show_id, seat_id)`** is often clearer |
+| `status` | `ENUM` | `active`, `released`, `converted` |
+| `expires_at` | `TIMESTAMPTZ` | **Server authority** |
+| `idempotency_key` | `TEXT` UNIQUE | Client retry safety |
+| `created_at` | `TIMESTAMPTZ` | |
+
+**`orders` / `bookings`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `UUID` | Order id |
+| `user_id` | `UUID` | |
+| `show_id` | `UUID` | |
+| `hold_id` | `UUID` UNIQUE NULL | If created from hold |
+| `status` | `ENUM` | `pending_payment`, `confirmed`, `cancelled`, `refunded` |
+| `total_cents` | `BIGINT` | |
+| `currency` | `CHAR(3)` | |
+| `idempotency_key` | `TEXT` UNIQUE | **Order** creation idempotency |
+| `payment_id` | `UUID` NULL | FK to `payments` |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | |
+
+Child table **`order_items`** (or `booking_lines`): `order_id`, `show_id`, `seat_id`, `price_cents`.
+
+#### `payments`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `UUID` | PK |
+| `order_id` | `UUID` | FK |
+| `provider` | `TEXT` | `stripe`, etc. |
+| `provider_intent_id` | `TEXT` UNIQUE | PSP reference |
+| `amount_cents` | `BIGINT` | |
+| `currency` | `CHAR(3)` | |
+| `status` | `ENUM` | `requires_action`, `processing`, `succeeded`, `failed` |
+| `idempotency_key` | `TEXT` UNIQUE | Align with PSP |
+| `raw_event_id` | `TEXT` NULL | Last processed webhook id for dedup |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | |
+
+{: .note }
+> **Normalize** “one row per seat” vs “JSON array of seats” based on reporting needs; **query patterns** and **locking** are easier with **`hold_seats`** and **`order_items`** as first-class rows.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

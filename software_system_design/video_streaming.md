@@ -149,6 +149,217 @@ Typical REST (or gRPC internal) surface:
 {: .warning }
 > Never expose **raw storage credentials** to clients. Use **pre-signed URLs** or short-lived upload tokens so the browser talks directly to object storage where appropriate.
 
+### Technology Selection & Tradeoffs
+
+At interview depth, **name 2–3 realistic options per layer**, compare on **ops burden, cost model, and time-to-market**, then commit to a **default “big company” stack** (managed object store + queue + CDN + relational metadata) unless the prompt forces self-hosted or bare-metal.
+
+#### Video storage: S3 vs custom blob store vs HDFS
+
+| Dimension | **S3 (or compatible: GCS, Azure Blob)** | **Custom blob store** (MinIO cluster, Ceph, internal key-value blobs) | **HDFS** |
+|-----------|------------------------------------------|----------------------------------------------------------------------|----------|
+| **Best for** | Default production path; global durability SLAs; multipart + lifecycle APIs | Full control of hardware, tenancy isolation, or air-gapped deploys | Batch analytics on huge files; **not** a great fit for small random reads at CDN scale |
+| **Durability / HA** | Vendor-managed replication across AZs/ regions | You own erasure coding, repair, and upgrades | NameNode SPOF patterns unless heavily engineered; tuned for **sequential** big reads |
+| **API ergonomics** | Pre-signed uploads, versioning, tiering, inventory | Must build auth, metering, lifecycle yourself | POSIX/HDFS client assumptions; poor match for **HTTP range** + CDN origin patterns |
+| **Cost** | Pay egress + API + storage; predictable at scale | CapEx + small team to run it | Cheap TB for warehouse-style jobs; **egress to internet** is awkward |
+| **Interview risk** | “Everyone uses it” — explain **multi-part**, **checksums**, **lifecycle to Glacier** | Show you know **when** (regulated, repatriation, margin) | Only if interviewer asks data-lake adjacency; say **not primary for user-facing VOD** |
+
+#### Transcoding: FFmpeg workers vs cloud transcoding vs GPU-accelerated
+
+| Dimension | **Self-managed FFmpeg on CPU workers** | **Cloud transcoding (e.g. MediaConvert, Transcoder API)** | **GPU-accelerated (NVENC / cloud GPU pools)** |
+|-----------|----------------------------------------|-----------------------------------------------------------|-----------------------------------------------|
+| **Control** | Full codec knobs, custom DAGs, per-title tuning | Opinionated pipelines; faster integration | Highest throughput per watt for certain codecs; complex capacity planning |
+| **Cost model** | You pay compute + ops; **spot** instances for batch | Per-minute or per-output pricing; less ops | GPU $/hour can beat CPU for **throughput** if utilization is high |
+| **Latency to first rendition** | Depends on queue + worker pool | Often good regional pools; less tuning | Great for **live** or huge parallel ladders |
+| **Why choose** | Maximum flexibility; industry default in diagrams | Startup or when ops headcount is limited | Peak transcode, **live**, or AV1/HEVC at scale with hardware assist |
+
+#### Streaming protocol: HLS vs DASH vs CMAF vs WebRTC (live)
+
+| Dimension | **HLS** | **DASH** | **CMAF (fMP4)** | **WebRTC** |
+|-----------|---------|----------|-----------------|------------|
+| **Container** | Traditionally MPEG-TS; modern: **fMP4** | fMP4 segments + MPD | **Common segment format** for HLS and DASH | RTP; not segment-cache like VOD |
+| **Client support** | Excellent on Apple/Safari; industry default for ABR VOD | Strong on Android/TV; needs polyfill on some browsers | **One encode** packaged to both HLS and DASH manifests | **Ultra-low latency**; signaling + peer/server infra |
+| **Caching** | Segment URLs cache well on CDN | Same | Same; aligns segment boundaries across renditions | Harder to cache “like HLS”; different architecture |
+| **Typical use** | **VOD + live (LL-HLS)** | VOD + smart TV ecosystems | **Reduce duplicate storage** when serving both HLS and DASH | **Live** interactive (sub-second), not primary for long VOD |
+
+#### CDN: CloudFront vs Akamai vs custom edge vs multi-CDN
+
+| Dimension | **CloudFront (example: AWS-native)** | **Akamai / Fastly-class global CDNs** | **Custom edge** (your POPs) | **Multi-CDN** |
+|-----------|--------------------------------------|----------------------------------------|-------------------------------|---------------|
+| **Integration** | Tight with S3/API Gateway; fast to sketch | Mature WAF, media features, global footprint | Rare unless Netflix-scale; huge CapEx + peering | **Avoid lock-in**, failover, price arbitrage |
+| **Features** | Signed URLs, origin shield, geo headers | Deep edge logic, large peer ecosystem | Full control | Routing layer chooses provider per region/cost |
+| **When to mention** | Default AWS answer | “We need maximum edge POP density or compliance” | “We’re hyperscaler-scale” | “Egress is 40% of COGS; we **steer** traffic” |
+
+#### Metadata database: PostgreSQL vs DynamoDB vs Cassandra (view counts)
+
+| Dimension | **PostgreSQL** | **DynamoDB** | **Cassandra** |
+|-----------|----------------|--------------|---------------|
+| **Strength** | **ACID** transactions, joins, constraints; great for **video + channel** rows | Predictable **partition-key** scale; **DynamoDB Streams** for pipelines | Massive **write** throughput for **wide** partitions when modeled carefully |
+| **Hot keys** | Viral `video_id` row can bottleneck **counters** | Hot partition unless sharded/split patterns | Still need careful **partition** design |
+| **View counts** | Fine behind **async aggregation**, not raw per-click row updates | Good for **sharded counters** + atomic adds | Good for **time-bucket** counters and high ingest |
+| **Interview story** | “Source of truth for metadata; cache reads” | “Fully managed, regional, key-value at huge QPS” | “Write-heavy, multi-region if we already operate C*” |
+
+**Our choice (typical VOD platform):**
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **Blob storage** | **S3-compatible object storage** | Multipart uploads, pre-signed URLs, **11 nines** durability narrative, lifecycle tiers — minimizes undifferentiated heavy lifting. |
+| **Transcoding** | **FFmpeg-based workers on autoscaled CPU** (optional GPU pool for peak) | Flexibility for **DAG** stages; cloud transcoder as alternative for teams optimizing for speed over control. |
+| **Packaging** | **HLS + fMP4 (CMAF)** where possible | One segment format, **CDN-friendly**, broad player support; add DASH if Android/TV needs dominate. |
+| **CDN** | **Major managed CDN** + path to **multi-CDN** at scale | Correct default; multi-CDN when **egress cost** and **availability** dominate. |
+| **Metadata** | **PostgreSQL** for relational truth; **Redis** for hot reads; **stream processing** + KV/OLAP for **views** | Keeps **strong consistency** for “what exists” while isolating **write-heavy analytics** from OLTP. |
+
+{: .note }
+> Tie each choice to **constraints**: “We optimize for **time-to-market** and **managed durability** on blobs; we **don’t** optimize for running our own HDFS for user-facing bytes.”
+
+### CAP Theorem Analysis
+
+**CAP** (in the practical sense used in interviews): partition tolerance **P** is non-negotiable at global scale, so you choose **C vs A** **per subsystem**, not once for the whole company.
+
+| Subsystem | Typical CAP stance | Why |
+|-----------|-------------------|-----|
+| **Video upload (multipart)** | **CP** toward **durability**: completion must be **consistent** (no “lost” acknowledged parts) | Use storage **strong read-after-write** semantics on complete; **idempotent** APIs so retries don’t double-commit |
+| **Metadata (video row, channel)** | **CP** within a region (Postgres **ACID**); **AP** across regions if async multi-master | Users expect **correct title/status**; cross-region can be **eventual** with CRDTs or last-writer-wins for rare conflicts |
+| **Streaming / playback (CDN + segments)** | **AP**: **availability** and **low latency** beat **strong** consistency of “view count” on the manifest | Segments are **immutable** once published → **easy eventual consistency**; CDN serves **stale** rarely matters if URLs are versioned |
+| **Recommendations** | **AP**: personalized lists can be **stale minutes** | Ranking features updated **offline**; **fresh enough** beats **globally consistent** |
+| **View counts** | **AP** with **eventual** aggregation | Exact global total in real time **sacrifices A or P** under viral load; **accept delay** + **reconcile** |
+
+```mermaid
+flowchart TB
+  subgraph CP["CP-biased (control plane)"]
+    U[Multipart upload complete]
+    M[Metadata OLTP]
+    J[Job queue state / orchestration]
+  end
+  subgraph AP["AP-biased (data plane / scale)"]
+    C[CDN segment delivery]
+    R[Recommendations]
+    V[View count aggregates]
+  end
+  U --> M
+  M --> J
+  J --> C
+  M -.->|eventual| R
+  M -.->|async| V
+```
+
+**Why this split wins interviews:** **Immutability** of packaged segments makes playback **highly available** without coordination; **upload and processing** use **queues + durable storage** so you **don’t lose work**; **counters and ML** move to **async** paths so spikes don’t **brick** the OLTP database.
+
+### SLA and SLO Definitions
+
+Define **SLI → SLO → error budget** so you can talk about **on-call**, **prioritization**, and **throttling** coherently.
+
+| Area | **SLI (what we measure)** | **Example SLO** | **Notes** |
+|------|----------------------------|-----------------|-----------|
+| **Video start time** | Time from **play intent** to **first decoded video frame** (or **TTFB** on first segment) | **p95 ≤ 3 s**, **p99 ≤ 5 s** on “good” residential networks | Separate **API** (metadata) from **CDN** (segments); track **per region** |
+| **Rebuffering ratio** | **Rebuffer events / playback minutes** (or stall seconds / watched seconds) | **≤ 0.5%** rebuffer minutes monthly (global blend) | Correlate with **CDN errors**, **origin 5xx**, **player bugs** |
+| **Upload processing time** | Wall clock from **`COMPLETE` upload** to **`READY` playable** | **p95 ≤ 15 min** for typical 1080p; **p99 ≤ 60 min** | Depends on **queue depth**; publish internal **ETA** from orchestrator |
+| **Content availability** | Time from **upload complete** to **first manifest+segments visible on CDN** | **p95 ≤ 20 min** end-to-end for standard ladder | Distinct from “processing done” if **regional** rollout |
+| **CDN cache hit ratio** | **Edge bytes served / origin bytes** (or request hit ratio) | **≥ 90–95%** for segment URLs on popular content | Low hits → **origin** cost and **latency** spike |
+
+**Error budget policy (how teams use SLOs):**
+
+| Policy element | Practice |
+|----------------|----------|
+| **Budget** | Monthly **allowed bad events** = \((1 - \text{SLO}) \times \text{total eligible events}\) |
+| **Burn alerts** | **Fast burn** (budget gone in hours) vs **slow burn** (gradual drift) — page **playback** hotter than **view count delay** |
+| **Release gates** | If **playback SLO** budget is low, **freeze** risky CDN config / encoder rollouts; **processing** SLO can use **separate** budget |
+| **Customer comms** | **SLO** is internal; external **SLA** may promise **money back** on stricter or narrower terms |
+
+{: .tip }
+> In interviews, say **why** two numbers differ: **TTFB** is user-perceived; **cache hit ratio** is a **leading indicator** of both **cost** and **TTFB** at scale.
+
+### Database Schema
+
+Schemas below are **illustrative** (PostgreSQL-style). At scale, **partition** `view_history` and **never** store raw view increments on the `videos` row — use **aggregation pipelines**.
+
+**`users` (abbreviated — auth identity lives elsewhere)**
+
+```sql
+CREATE TABLE users (
+  id BIGSERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**`channels` (creators)**
+
+```sql
+CREATE TABLE channels (
+  id              BIGSERIAL PRIMARY KEY,
+  owner_user_id   BIGINT NOT NULL REFERENCES users(id),
+  slug            VARCHAR(100) NOT NULL UNIQUE,
+  display_name    VARCHAR(255) NOT NULL,
+  description     TEXT,
+  subscriber_count BIGINT NOT NULL DEFAULT 0,  -- denormalized; fed by async pipeline
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_channels_owner ON channels(owner_user_id);
+```
+
+**`videos`**
+
+```sql
+CREATE TABLE videos (
+  id                BIGSERIAL PRIMARY KEY,
+  uploader_id       BIGINT NOT NULL REFERENCES users(id),
+  channel_id        BIGINT NOT NULL REFERENCES channels(id),
+  title             VARCHAR(500) NOT NULL,
+  description       TEXT,
+  status            VARCHAR(32) NOT NULL
+                    CHECK (status IN ('UPLOADING','PROCESSING','READY','FAILED','BLOCKED')),
+  storage_key       VARCHAR(1024) NOT NULL,    -- raw or mezzanine object key prefix
+  duration_ms       BIGINT,
+  resolution_ladder JSONB NOT NULL DEFAULT '[]',
+  -- e.g. [{"h":1080,"codecs":["av1","h264"],"max_br_kbps":8000}, ...]
+  visibility        VARCHAR(32) NOT NULL DEFAULT 'PUBLIC',
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  published_at      TIMESTAMPTZ
+);
+CREATE INDEX idx_videos_channel_created ON videos(channel_id, created_at DESC);
+CREATE INDEX idx_videos_status ON videos(status) WHERE status <> 'READY';
+```
+
+**`video_segments` (packaged segments per quality rung)**
+
+```sql
+CREATE TABLE video_segments (
+  id              BIGSERIAL PRIMARY KEY,
+  video_id        BIGINT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  quality         VARCHAR(32) NOT NULL,       -- e.g. '1080p', '720p', 'audio_only'
+  segment_number  INT NOT NULL CHECK (segment_number >= 0),
+  storage_key     VARCHAR(1024) NOT NULL,     -- object key for .m4s or .ts
+  duration_ms     INT,
+  byte_length     BIGINT,
+  UNIQUE (video_id, quality, segment_number)
+);
+CREATE INDEX idx_segments_video_quality ON video_segments(video_id, quality);
+```
+
+**`view_history` (per-user progress; high read/write — shard at scale)**
+
+```sql
+CREATE TABLE view_history (
+  user_id     BIGINT NOT NULL REFERENCES users(id),
+  video_id    BIGINT NOT NULL REFERENCES videos(id),
+  progress_ms BIGINT NOT NULL DEFAULT 0 CHECK (progress_ms >= 0),
+  last_watched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, video_id)
+);
+CREATE INDEX idx_history_user_last ON view_history(user_id, last_watched_at DESC);
+```
+
+**Why these shapes:**
+
+| Table | **Interview talking point** |
+|-------|-----------------------------|
+| **`videos.resolution_ladder`** | **JSONB** for evolving ladder **without** schema churn; or normalize to **`video_renditions`** if you want strict FKs. |
+| **`video_segments`** | Optional if you only store **prefix** + naming convention; **explicit rows** help **partial re-transcode** and **CDN debugging**. |
+| **`view_history`** | **Resume playback**; **not** global view count — that lives in **analytics** stores. |
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

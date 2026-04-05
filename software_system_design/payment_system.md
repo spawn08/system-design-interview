@@ -132,6 +132,241 @@ Content-Type: application/json
 {: .tip }
 > Put `Idempotency-Key` on every mutating call. Store keys with the resulting payment id and status so retries replay the same outcome without duplicate side effects.
 
+### Technology Selection & Tradeoffs
+
+Payment platforms sit at the intersection of **correctness**, **auditability**, and **operational complexity**. Technology choices should optimize for **serializable money semantics** in the core path and **predictable async processing** at the edges—not for maximum raw throughput on a single node.
+
+#### Database: PostgreSQL vs MySQL (ACID for payments)
+
+Both can run ACID transactions, but defaults and ecosystem differ in ways that matter for ledgers and long-running reconciliation jobs.
+
+| Dimension | PostgreSQL | MySQL (InnoDB) |
+|-----------|------------|----------------|
+| **Default isolation** | Read Committed; **SERIALIZABLE** and **REPEATABLE READ** are first-class | REPEATABLE READ (InnoDB); SERIALIZABLE available |
+| **Constraints & checks** | Rich CHECK, exclusion constraints, partial indexes—useful for ledger invariants | Strong InnoDB row locking; CHECK supported (modern versions) |
+| **Numeric precision** | `NUMERIC` / `DECIMAL` for money—**avoid float** | `DECIMAL` for money—avoid float |
+| **Extensions** | pglogical, partitioning patterns, mature JSONB for metadata | Wide hosting availability; simpler ops on many clouds |
+| **Why it matters** | Double-entry constraints (e.g., journal must balance) map cleanly to DB-enforced rules | Fine when schema discipline is strict; team familiarity often drives choice |
+
+**Why strong consistency is non-negotiable here:** a payment row and its ledger lines must commit **together** (or neither). You are not “eventually” charging a card—you either record a committed financial fact or you do not. That pushes you toward **short, well-bounded transactions** on a relational engine with **durable WAL** and **constraints** that catch programmer mistakes before money leaves the building.
+
+#### Message queue: Kafka vs RabbitMQ (async payments & event sourcing)
+
+| Dimension | Apache Kafka | RabbitMQ |
+|-----------|--------------|----------|
+| **Model** | Durable **log**: topics, partitions, consumer groups | **Broker** with queues, exchanges, routing |
+| **Ordering** | Per-partition strict order | Queues can preserve order for single consumer; complex with competing consumers |
+| **Replay** | Native: consumers can rewind to offsets for **reprocessing** | Not the primary model; dead-letter queues for failures |
+| **Throughput & retention** | Very high; long retention as an **event backbone** | High; typical retention shorter unless plugins |
+| **Event sourcing fit** | Natural: append-only log ≈ domain event stream | Possible with discipline; often paired with outbox + separate event store |
+| **Ops complexity** | Higher (ZooKeeper/KRaft, sizing partitions) | Lower for classic task queues |
+
+**Interview framing:** Use a **queue** (RabbitMQ, SQS, etc.) for **work distribution**—webhook fan-out, notification dispatch, reconciliation jobs. Use a **log** (Kafka) when you need an **immutable audit trail** consumed by many services, **replay** for new projections, or **event-carried state** at scale. Event sourcing *can* sit on Kafka; the **ledger of record** for balances often remains relational for constraints and reporting.
+
+#### Idempotency store: Redis vs database
+
+| Dimension | Redis | Database (same as payments) |
+|-----------|-------|-----------------------------|
+| **Speed** | Sub-ms reads/writes for hot keys | Milliseconds; sufficient for API path if indexed |
+| **Durability** | AOF/RDB—**tune carefully**; not the same proof as relational WAL for all deployments | **Durable by default** with replication; matches payment row lifecycle |
+| **Atomicity with payment** | Requires **distributed transaction** or careful ordering—easy to get wrong | Single local transaction: idempotency row + payment insert **together** |
+| **TTL / eviction** | Natural for short-lived reservation keys | Use status + cleanup jobs for old keys |
+| **Best use** | Fast **in-flight** dedupe, rate limits, locks with expiry | **Source of truth** for “this idempotency key already returned pay_xxx” |
+
+**Why candidates pick DB for idempotency keys:** the idempotency record is part of the **same consistency boundary** as creating the payment. Redis is excellent for **auxiliary** dedupe (e.g., webhook burst coalescing) when loss of the key is acceptable **only if** the relational event store still prevents double posting.
+
+#### Payment gateway: Stripe vs Adyen vs PayPal vs direct bank
+
+| Option | Strengths | Tradeoffs |
+|--------|-----------|-----------|
+| **Stripe** | Developer experience, global cards, Connect/marketplaces, Radar, documentation | Pricing; some advanced acquiring features via partners |
+| **Adyen** | Unified omnichannel, large-enterprise acquiring, rich routing | Integration complexity; often enterprise-led |
+| **PayPal / Braintree** | Huge wallet user base, buyer trust | UX and settlement model differ; integration quirks |
+| **Direct bank / ACH / RTP** | Lower fees at scale, full control | **Heavy compliance** (returns, NACHA, SEPA), slower iteration, more operational burden |
+
+**Direct bank integration** is rarely “drop in a REST call”—it implies **sponsor banks**, **KYC/KYB**, exception handling for returns, and often longer settlement cycles. Interviews reward saying you’d **start with a PSP** to shrink PCI and network scope, then add rails as volume justifies.
+
+#### Ledger design: double-entry vs single-entry vs event sourcing
+
+| Approach | Idea | Pros | Cons |
+|----------|------|------|------|
+| **Double-entry** | Every movement: debit = credit; **chart of accounts** | Accountants and auditors understand it; **invariants** (balanced journals) catch bugs | More tables and rules; training for engineers |
+| **Single-entry** | One line per “transaction” | Simpler to sketch | Easy to **lose** or **double-count**; weak for platforms and fees |
+| **Event sourcing** | Store events; derive balances | Great audit trail, replay | You still need **projections**; **correct monetary invariants** often enforced via **double-entry projections** |
+
+**Our choice (example for this guide):** **PostgreSQL** for OLTP payments and **double-entry ledger** tables with strict constraints; **Kafka or RabbitMQ** depending on whether we need **log replay** and multi-subscriber analytics (Kafka) or **simpler job queuing** first (RabbitMQ); **idempotency keys in PostgreSQL** in the same transaction as payment creation; **Stripe or Adyen** as PSP for cards until volume and geography justify **Adyen**-style acquiring depth or **direct bank** for ACH/SEPA with a dedicated banking partner. Rationale: **minimize split-brain** between “charged” and “recorded,” **pass audits**, and **defer** bank-direct complexity until compliance and ops can absorb it.
+
+{: .note }
+> In interviews, “we use Redis for idempotency” is acceptable **if** you explain failover, persistence, and why the **authoritative** outcome still lives in the relational store.
+
+### CAP Theorem Analysis
+
+CAP is often oversimplified as “pick two letters.” For payments, the useful framing is: **which operations require linearizable truth about money, and which can tolerate stale reads or asynchronous delivery?**
+
+- **Consistency (C):** every read sees a result consistent with the latest successful write (in the formal CAP sense, linearizability for that data).
+- **Availability (A):** every request receives a non-error response (not the same as “PSP always approves”).
+- **Partition (P):** network splits between your services, DB replicas, or between you and the PSP **will** happen.
+
+**Canonical stance:** the **money path** is effectively **CP**: during a partition you prefer **failing closed** (reject or queue) over showing inconsistent balances or double-spending. You **cannot** sacrifice correctness for availability on ledger writes.
+
+| Surface | CAP-style behavior | Why |
+|---------|-------------------|-----|
+| **Payment initiation** (create, capture, refund) | **CP** on internal state | Must agree with PSP semantics + ledger; use strong consistency + idempotency |
+| **Payment status queries** | Can be **AP** at the edge | **Cached** “processing” or last-known status OK if **stale reads** are labeled or eventually refreshed; **not** for authoritative balance |
+| **Ledger** | **CP** | Balances and journals must never diverge across replicas in a way that breaks invariants |
+| **Notifications** (email, push, webhooks to merchants) | **AP** | At-least-once delivery; duplicate-safe consumers |
+
+```mermaid
+flowchart TB
+  subgraph cp["CP surfaces — strongly consistent"]
+    PI[Payment initiation & commits]
+    LD[Ledger writes & balances]
+    IDEM[Idempotency + financial invariants]
+  end
+
+  subgraph ap_edge["AP-tolerant surfaces"]
+    QS[Status read replicas / CDN cache]
+    NOTIF[Customer notifications]
+    MERCH_WH[Merchant webhook fan-out]
+  end
+
+  subgraph partition["Partition / failure"]
+    P[Network split or replica lag]
+  end
+
+  PI --> IDEM
+  LD --> IDEM
+  QS -.->|stale OK with TTL| PI
+  NOTIF --> MERCH_WH
+  P -->|prefer errors or queued work| PI
+  P -->|do not serve wrong balance| LD
+```
+
+{: .important }
+> PSPs are **external CP-ish systems** with their own failure modes: your design must **reconcile** and **never assume** your DB and Stripe agree without verification.
+
+### SLA and SLO Definitions
+
+**SLA** = contract with users or merchants (often with credits). **SLO** = internal target you measure against; **SLI** = the measured metric.
+
+| Area | SLI (what we measure) | Example SLO | Notes |
+|------|------------------------|-------------|-------|
+| **Payment processing latency** | p50 / p95 / p99 latency from API accept to terminal `succeeded` or `failed` | p99 &lt; 3s for hosted-field flows; stricter for in-app token reuse | Excludes customer think time; includes your stack + PSP |
+| **Payment success rate** | `successful_charges / eligible_attempts` (exclude fraud declines if policy-defined) | 99%+ for returning cards in home region | Segment by new card, cross-border, 3DS |
+| **Reconciliation accuracy** | Matched PSP rows / total PSP rows in window | 99.99%+ daily match; 100% investigated within N days | Residual exceptions tracked |
+| **System availability** | Successful API fraction (2xx/4xx as “up”; 5xx budgeted) | 99.95% monthly for payment API | Planned maintenance excluded or announced |
+| **Refund processing time** | Time from accepted refund request to PSP-confirmed refund | p95 &lt; 24h for standard; faster if instant refund rail | Depends on PSP settlement rules |
+
+**Error budget policy (example):**
+
+- **Monthly error budget** for payment API availability: \(100\% - 99.95\% = 0.05\%\) ≈ **21.6 minutes** downtime/month (if 24/7).
+- If budget is **exhausted**: freeze non-critical deploys, prioritize incident fixes, defer risky changes; consider **stricter review** for ledger migrations.
+- **Latency SLOs** consume budget when p99 exceeds threshold for a rolling window—triggers **alerting** and **capacity** review, not necessarily customer credits unless SLA says so.
+
+{: .tip }
+> Tie SLOs to **user stories**: “buyer sees confirmation within X” beats raw millisecond vanity for behavioral acceptance.
+
+### Database Schema
+
+Use **integer minor units** (e.g., cents) or **`NUMERIC`**—never floating point. Enforce **lifecycle** and **referential integrity** with foreign keys; enforce **business rules** with checks and unique constraints.
+
+**`merchants`** — who gets paid.
+
+```sql
+CREATE TABLE merchants (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  external_ref    VARCHAR(64) NOT NULL UNIQUE,
+  name            VARCHAR(255) NOT NULL,
+  status          VARCHAR(32) NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active', 'suspended', 'closed')),
+  default_currency CHAR(3) NOT NULL,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_merchants_status ON merchants (status);
+```
+
+**`payments`** — one row per payment attempt; ties to merchant, PSP, and idempotency.
+
+```sql
+CREATE TABLE payments (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  merchant_id       UUID NOT NULL REFERENCES merchants (id),
+  amount_minor      BIGINT NOT NULL CHECK (amount_minor > 0),
+  currency          CHAR(3) NOT NULL,
+  status            VARCHAR(32) NOT NULL
+    CHECK (status IN (
+      'pending', 'authorized', 'captured', 'settled',
+      'failed', 'refunding', 'refunded', 'chargeback_open'
+    )),
+  payment_method    VARCHAR(64) NOT NULL,
+  gateway_ref       VARCHAR(255),
+  idempotency_key   VARCHAR(128) NOT NULL,
+  idempotency_scope VARCHAR(64) NOT NULL DEFAULT 'create_payment',
+  metadata          JSONB,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (idempotency_key, idempotency_scope)
+);
+
+CREATE INDEX idx_payments_merchant_created ON payments (merchant_id, created_at DESC);
+CREATE INDEX idx_payments_gateway_ref ON payments (gateway_ref) WHERE gateway_ref IS NOT NULL;
+```
+
+**`ledger_entries`** — double-entry: every journal has ≥2 lines that sum to zero per currency (here: signed `amount_minor` with account side encoded in sign convention or separate debit/credit columns).
+
+```sql
+CREATE TABLE ledger_journals (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  merchant_id   UUID NOT NULL REFERENCES merchants (id),
+  payment_id    UUID REFERENCES payments (id),
+  description   VARCHAR(512),
+  currency      CHAR(3) NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE ledger_entries (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  journal_id    UUID NOT NULL REFERENCES ledger_journals (id) ON DELETE CASCADE,
+  account_code  VARCHAR(64) NOT NULL,
+  debit_minor   BIGINT NOT NULL DEFAULT 0 CHECK (debit_minor >= 0),
+  credit_minor  BIGINT NOT NULL DEFAULT 0 CHECK (credit_minor >= 0),
+  CHECK (NOT (debit_minor > 0 AND credit_minor > 0))
+);
+
+-- Balanced journal: sum(debits) == sum(credits) per journal — enforce in transaction or via constraint trigger
+CREATE UNIQUE INDEX uq_ledger_natural_move
+  ON ledger_entries (journal_id, account_code);
+```
+
+Application code (or a `DEFERRABLE` constraint trigger) should assert **`SUM(debit_minor) = SUM(credit_minor)`** per `journal_id` on commit. Interview answer: **constraint triggers** or **serializable transactions** that validate balance before commit.
+
+**`refunds`** — idempotent refunds linked to parent payment.
+
+```sql
+CREATE TABLE refunds (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payment_id        UUID NOT NULL REFERENCES payments (id),
+  amount_minor      BIGINT NOT NULL CHECK (amount_minor > 0),
+  currency          CHAR(3) NOT NULL,
+  status            VARCHAR(32) NOT NULL
+    CHECK (status IN ('pending', 'succeeded', 'failed')),
+  gateway_ref       VARCHAR(255),
+  idempotency_key   VARCHAR(128) NOT NULL,
+  idempotency_scope VARCHAR(64) NOT NULL DEFAULT 'refund',
+  reason            VARCHAR(64),
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (idempotency_key, idempotency_scope)
+);
+-- Enforce: sum(refunds per payment) <= captured amount — use a trigger or serializable transaction
+-- (PostgreSQL CHECK cannot reference other rows reliably for this invariant.)
+```
+
+{: .warning }
+> PostgreSQL **CHECK** referencing other rows is limited; production schemas often use a **trigger** or **application-level validation** to ensure refund totals never exceed captured amount. The interview point is: **enforce invariants somewhere**—prefer DB if your team can maintain it.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

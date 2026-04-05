@@ -128,6 +128,199 @@ A **ride-hailing marketplace** that connects passengers who need trips with driv
 {: .tip }
 > Sequence numbers or monotonic timestamps help clients **discard stale updates** after reconnects.
 
+### Technology Selection & Tradeoffs
+
+Ride sharing stacks several independent “knobs”: how you index space, how you move bits to clients, where you persist truth, how you assign work, and how you buffer high-volume streams. Interviewers care that you **name alternatives**, **compare on real constraints** (latency, ops cost, correctness), and **commit to a coherent story**.
+
+#### Location indexing
+
+| Approach | Idea | Strengths | Weaknesses | Typical use |
+|----------|------|-----------|------------|-------------|
+| **Geohash** | Hierarchical string/bit encoding of lat/lng into rectangular cells | Simple prefix scans in KV/Redis; easy bucketing and cache keys | Cell shapes stretch at poles; **edge neighbors** need explicit neighbor expansion, not prefix alone | Redis GEO, quick prototypes, cell-based surge |
+| **R-tree / R\*-tree** | Balanced tree of bounding rectangles for points and polygons | Strong for **variable-density** data and polygon containment (zones, airports) | Higher write amplification; harder to shard horizontally than fixed cells | GIS databases (PostGIS), offline analytics, geofencing |
+| **S2 (Google)** | Hilbert curve on a sphere; hierarchical cells with stable IDs | **Spherical** model; fast neighbor/cover ops; level-based refinement | Learning curve; you still tune cell level per city density | Global fleets, consistent cross-region logic |
+| **H3 (Uber)** | Hexagonal hierarchical grid on the sphere | **Uniform neighbors** (6 at fine levels); good for **aggregates** (heatmap, surge hexes) | Not a drop-in for arbitrary “distance to point” APIs; tooling ecosystem smaller than S2 in some stacks | Demand/supply aggregation, surge maps, ML features |
+
+**Why it matters in interviews:** Matching starts with **coarse spatial filtering**; the index should support **ring expansion**, **TTL eviction** for offline drivers, and **hot-cell** isolation in dense cores.
+
+#### Real-time communication (client ↔ edge)
+
+| Option | Model | Strengths | Weaknesses | Fit |
+|--------|--------|-----------|------------|-----|
+| **WebSocket** | Full-duplex TCP, often via HTTPS upgrade | Ubiquitous in mobile; simple multiplexed **trip + location** channels; CDN/WAF friendly | Stateful connections; reconnect storms; regional stickiness | **Default** for rider/driver live UX |
+| **gRPC streaming** | HTTP/2 multiplexed RPC streams | Strong typing, flow control, binary payloads | Mobile/browser support and ops tooling vary; often paired with gateways | Service-to-service **high-QPS** streams (e.g., internal fan-out) |
+| **MQTT** | Pub/sub over lightweight broker | Great for **many small devices** and topic fan-out | Less common as primary app API for consumer ride apps; extra hop (broker) | Telematics, IoT, some embedded fleets |
+
+#### Database (trip truth vs hot geo vs write-heavy telemetry)
+
+| Store | Strengths | Weaknesses | Role in ride sharing |
+|-------|-----------|------------|----------------------|
+| **PostgreSQL + PostGIS** | ACID transactions; **trip** and **payment** integrity; rich constraints; spatial predicates | Vertical scaling limits; cross-region latency if monolithic | **System of record** for trips, users, payments, disputes |
+| **Redis GEO** | Sub-ms **nearby** queries; simple ops; pairs with geohash | Memory-bound; **not** your financial ledger; durability is a product choice (AOF/cluster) | **Live driver positions** and offer locks with TTL |
+| **Cassandra** | Wide partitions; high ingest; multi-DC | Tunable consistency; **no** rich joins; operational complexity | **High-volume trip events**, location archives, idempotent write paths at huge scale |
+| **DynamoDB** | Managed, predictable key-path access; global tables option | Hot partitions need design; limited ad-hoc query vs SQL | **Regional** trip metadata, ride history, feature stores with known access patterns |
+
+**Interview pattern:** OLTP for **money and state machine**; Redis (or equivalent) for **geo hot path**; column/wide-column or KV for **append-only** telemetry at extreme scale.
+
+#### Matching algorithm
+
+| Approach | What it does | Pros | Cons |
+|----------|----------------|------|------|
+| **Greedy nearest (with ETA)** | Iteratively pick best-scoring driver by heuristic after spatial filter | Simple; fast; easy to add business rules | Can be globally suboptimal; order of offers matters |
+| **Hungarian / min-cost assignment** | Optimal **one-to-one** assignment on a cost matrix | Strong when batching many simultaneous requests | **O(n³)**; expensive at city scale; needs batch windows |
+| **ML-based ranking** | Learn weights or pairwise preferences from data | Handles **nonlinear** effects (acceptance, churn) | Cold start; explainability; still needs **guardrails** and fallbacks |
+
+Production systems almost always combine **greedy + ETA + rules**, with **batch optimization** only in constrained windows (e.g., pool rides, small zones).
+
+#### Message queue: location updates
+
+| System | Strengths | Weaknesses | When to pick |
+|--------|-----------|------------|--------------|
+| **Kafka** | Durable log; high throughput; replay; consumer groups; cross-service contracts | Ops/heavy JVM ecosystem in some orgs; **ordering per key** is a discipline | **Default** for `driver.locations`: partition by `driver_id`, multiple consumers |
+| **Redis Streams** | Low latency; simple if you already run Redis at core | Not the same multi-team replay story as Kafka at petabyte scale; persistence model must be explicit | Edge aggregation, smaller deployments, or **extra** fast path beside Kafka |
+
+**Our choice (illustrative architecture)**  
+- **S2 or geohash-backed Redis GEO** (or H3 for surge/heatmap) for **live** nearby queries—operational simplicity and proven mobile patterns.  
+- **WebSockets** (or MQTT only if product is IoT-heavy) for **rider/driver** streams; **Kafka** for **location ingestion** and downstream consumers (matching freshness, ETA, analytics).  
+- **PostgreSQL + PostGIS** as **source of truth** for trips and payments; **Redis** for geo + short-lived coordination; **Cassandra or DynamoDB** only when you justify **massive** append-only or multi-region access patterns with clear key design.  
+- **Greedy matching with road-network ETA** and sequential offers; reserve **Hungarian/ILP** for bounded batch problems; layer **ML** on ranking weights, not as the only safety-critical assigner.  
+
+This stack optimizes for **interview clarity**: separate **AP-friendly** location paths from **CP** trip/payment paths, and show you know **when** to pay for optimality vs latency.
+
+### CAP Theorem Analysis
+
+CAP is a **thought model**, not a literal database toggle: in partitions, you choose between **linearizable consistency** and **always answering** with possibly stale data. Ride sharing **mixes subsystems** with different tolerances.
+
+| Subsystem | Dominant need | CAP lens (under partition) | Rationale |
+|-----------|---------------|----------------------------|-----------|
+| **Location tracking** | Freshness + availability | **AP**: accept that two clients might briefly disagree on exact coordinates; **eventual** convergence is OK | Maps can tolerate seconds of skew; **do not** block the world on GPS |
+| **Ride matching** | No double-dispatch | **CP** for **assignment decision**: one writer “wins” (trip offer acceptance) | Two drivers must not be **MATCHED** to the same trip; use **compare-and-swap**, fencing tokens, or DB constraints |
+| **Trip state** | Correct lifecycle | **CP** for transitions (`REQUESTED` → `MATCHED` → …) | Stale trip state breaks UX and billing; prefer **strong consistency** per `trip_id` |
+| **Payment** | Monetary integrity | **CP**: authoritative ledger; **no** duplicated capture without idempotency | Card networks are **eventually consistent** externally; **your** ledger must reconcile |
+
+**Why “driver location is AP but assignment is CP” is a strong interview answer:**  
+- **Location** is **high volume** and **softly consistent**—show last-known-good with timestamps.  
+- **Assignment** is **low volume** and **hard invariant**—serialize decisions on the trip row or dedicated lock service.
+
+```mermaid
+flowchart TB
+  subgraph AP["AP-biased — under partition: keep serving; location may briefly disagree"]
+    L[Driver location stream]
+    M[Map / ETA display]
+    H[Heartbeats]
+  end
+
+  subgraph CP["CP-biased — under partition: serialize; no double-dispatch or double-capture"]
+    A[Offer accept / assign driver]
+    T[Trip state transitions]
+    P[Payment authorize / capture]
+  end
+
+  L --> M
+  A --> T
+  T --> P
+```
+
+{: .note }
+> Mention **idempotency keys** and **single-writer** patterns for the CP side; mention **timestamps + sequence numbers** on the AP side so clients reject garbage after reconnect.
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** (often external); **SLOs** are internal targets composed from **SLIs** (indicators). For interviews, define **what you measure**, **target**, and **how you burn error budget**.
+
+#### Service level indicators and example objectives
+
+| Area | SLI (what we measure) | Example SLO target | Why candidates care |
+|------|------------------------|----------------------|---------------------|
+| **Matching latency** | Time from `POST /trips` to **first driver offer sent** (p95/p99) | **p95 < 3 s**, **p99 < 8 s** in dense cities | Drives geo index + matching service budgets |
+| **ETA accuracy** | Absolute error between **predicted** and **actual** trip time (p50/p90) | **p90 error < 25%** of trip duration (tune per market) | Wrong ETAs erode trust; tie to map/traffic pipeline |
+| **Location freshness** | Age of last accepted driver position shown to rider (p95) | **p95 < 5 s** on trip; adaptive when idle | Battery vs UX; backpressure must not silently stall |
+| **Trip completion rate** | **Completed / (requested − fraudulent)** over rolling window | **> 98%** “happy path” completion excluding rider cancel | Separates product health from **supply** gaps |
+| **Payment processing** | Successful **capture** on first attempt / reconciliation latency | **99.95%** capture success within **60 s** of completion; **100%** eventual consistency via ledger | Money path gets the **tightest** objectives |
+
+#### Error budget policy
+
+| Principle | Practice |
+|-----------|----------|
+| **Budget = 1 − SLO** over window (e.g., 30 days) | Example: 99.9% monthly availability ⇒ **43.2 min** downtime budget |
+| **Fast vs slow burn** | Alert on **burn rate**: consuming budget **too fast** blocks risky releases |
+| **Feature flags** | Disable **non-critical** experiments (e.g., new ranker) when matching SLO burns |
+| **Tiered response** | **Green**: normal deploys. **Yellow**: freeze features; scale matching. **Red**: degrade **AP** paths (coarser map) before **CP** paths (never “best effort” payments) |
+
+{: .warning }
+> Never promise **100%** for distributed systems except where **business definition** allows (e.g., “100% of trips eventually reach terminal state **or** explicit reconciliation case”).
+
+### Database Schema
+
+Schemas below are **illustrative** for interviews: normalize **users**, keep **trips** as the core aggregate, isolate **high-churn** driver locations, and treat **payments** as append-only events with idempotency.
+
+#### `users` (riders and drivers)
+
+| Column | Type | Notes |
+|--------|------|------|
+| `user_id` | `UUID` (PK) | Stable identity |
+| `role` | `ENUM('rider','driver','both')` | App may use separate profiles |
+| `email` / `phone` | `TEXT`, hashed or tokenized | PII minimization |
+| `status` | `ENUM('active','suspended',…)` | Fraud / compliance |
+| `created_at` | `TIMESTAMPTZ` | Audit |
+
+**`driver_profiles` (1:1 when role includes driver)**
+
+| Column | Type | Notes |
+|--------|------|------|
+| `driver_id` | `UUID` (PK, FK → `users`) | |
+| `vehicle_class` | `TEXT` | e.g., `ECONOMY`, `XL` |
+| `license_region` | `TEXT` | Regulatory |
+| `rating_avg` | `NUMERIC(3,2)` | Denormalized cache; source of truth can be aggregates |
+
+#### `rides` / `trips`
+
+| Column | Type | Notes |
+|--------|------|------|
+| `trip_id` | `UUID` (PK) | Public id in APIs |
+| `rider_id` | `UUID` (FK → `users`) | |
+| `driver_id` | `UUID` (FK → `users`, nullable until matched) | |
+| `pickup_lat`, `pickup_lng` | `DOUBLE PRECISION` | Or `GEOGRAPHY(POINT)` in PostGIS |
+| `dropoff_lat`, `dropoff_lng` | `DOUBLE PRECISION` | Nullable if unknown at request |
+| `status` | `ENUM('REQUESTED','MATCHED',…)` | Align with state machine |
+| `fare_estimate_cents` / `fare_final_cents` | `BIGINT` | Integer money |
+| `currency` | `CHAR(3)` | ISO 4217 |
+| `idempotency_key` | `TEXT` UNIQUE | Rider retries |
+| `requested_at`, `matched_at`, `started_at`, `completed_at` | `TIMESTAMPTZ` | Timeline + SLO measurement |
+| `version` | `BIGINT` | Optimistic locking for transitions |
+
+Indexes: `(rider_id, requested_at DESC)`, `(driver_id, status)`, `(status, requested_at)` for ops dashboards.
+
+#### `driver_locations` (hot path)
+
+| Column | Type | Notes |
+|--------|------|------|
+| `driver_id` | `UUID` (PK) | One row per online driver, or partition by time if historified |
+| `lat`, `lng` | `DOUBLE PRECISION` | |
+| `geohash` / `s2_cell_id` | `TEXT` / `BIGINT` | Accelerate cell queries if not only in Redis |
+| `heading_deg` | `SMALLINT` | Optional |
+| `updated_at` | `TIMESTAMPTZ` | Freshness SLI |
+| `trip_id` | `UUID` NULL | When on active trip |
+
+At scale, **Redis GEO** holds the same fields with TTL; **OLTP** may store only **snapshots** or **nothing** if stream-only.
+
+#### `payments`
+
+| Column | Type | Notes |
+|--------|------|------|
+| `payment_id` | `UUID` (PK) | |
+| `trip_id` | `UUID` (FK → `rides`) | |
+| `payer_user_id` | `UUID` | Rider |
+| `amount_cents` | `BIGINT` | |
+| `currency` | `CHAR(3)` | |
+| `status` | `ENUM('AUTHORIZED','CAPTURED','FAILED','REFUNDED')` | |
+| `psp_reference` | `TEXT` | Opaque token from PSP |
+| `idempotency_key` | `TEXT` UNIQUE | **Mandatory** for captures |
+| `created_at`, `settled_at` | `TIMESTAMPTZ` | Reconciliation |
+
+{: .tip }
+> In a deep dive, add **`trip_events`** (append-only) for audit and **`outbox`** rows for reliable downstream notifications—interviewers reward **event + transaction** pairing.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

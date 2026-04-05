@@ -103,6 +103,164 @@ Content-Type: application/json
 {: .tip }
 > Use **cursor-based** pagination for stable results under concurrent catalog updates; avoid large `offset` on deep pages at scale.
 
+### CAP Theorem Analysis
+
+**CAP** (Consistency, Availability, Partition tolerance) states that under a **network partition**, a distributed system cannot simultaneously guarantee both **strong consistency** and **full availability** for reads and writes. Real products rarely pick a single letter globally—they **partition the problem** by data domain and user expectation.
+
+**Why it matters for proximity:** Nearby search is **latency-sensitive** and **read-dominated**. Clients expect an answer even if a replica is stale; missing results during an outage hurts UX more than seeing a POI that opened **30 seconds** ago on another shard. That pushes the **geospatial query path** toward **AP**: stay **available**, accept **eventually consistent** index views, and rely on **partition-tolerant** regional shards (geohash/S2) so failures isolate to a slice of the world.
+
+| Subsystem | CAP lean | Rationale |
+|-----------|----------|-----------|
+| **Geospatial index & nearby reads** | **AP** | Serve candidates from **sharded** index stores and caches; **stale** cells or replica lag is acceptable if bounded (see SLOs). Prefer **degraded** (cached tile, wider cell) over hard failure. |
+| **Authoritative business metadata** (hours, address, category, **is_open**) | **CP** (within region) | **Single source of truth** (e.g., Postgres row) with **strong** read-your-writes for **operators** and ingest pipelines. Cross-region may still be **async**, but **one primary** per entity avoids conflicting “official” hours. |
+| **Ratings / review counts on list cards** | **AP** (eventual) | **Aggregates** updated by **async jobs** or **CRDT-friendly** counters; search results can show **slightly stale** averages. **Strong consistency** on every star click would bottleneck writes and hurt availability. |
+
+**Interview narrative:** “We don’t choose C or A once—we **separate the hot read path** (AP, fast) from **transactional truth** for edits (CP where it matters) and **fan-out aggregates** (eventual).”
+
+```mermaid
+flowchart TB
+  subgraph ap_path [AP: serving path]
+    Q[Nearby query]
+    IX[(Geospatial shards / Redis GEO)]
+    CA[Optional cache]
+    Q --> IX --> CA
+  end
+
+  subgraph cp_path [CP: authoritative writes]
+    ADM[Admin / ingest]
+    OLTP[(OLTP: place row + geometry)]
+    ADM --> OLTP
+  end
+
+  subgraph ev_path [Eventual: aggregates]
+    RV[Reviews stream]
+    AGG[Aggregator / materializer]
+    SUM[(Denormalized rating_sum, count)]
+    RV --> AGG --> SUM
+  end
+
+  OLTP -. async index build .-> IX
+  OLTP -. publish change .-> AGG
+  SUM -. read model for cards .-> IX
+```
+
+**Takeaway:** Geospatial **reads** optimize for **availability** and **low latency**; **canonical** place records optimize for **consistency** where the business requires a single truth; **social proof** numbers are **eventually** consistent to protect throughput.
+
+### SLA and SLO Definitions
+
+**Terminology (for interviews):**
+
+- **SLI** (Service Level Indicator): a measurable metric (e.g., “share of successful nearby requests under 200 ms”).
+- **SLO** (Service Level Objective): a **target** for an SLI over a window (e.g., “99% of requests &lt; 200 ms per month”).
+- **SLA** (Service Agreement): a **contract** with users/partners; often includes **credits** if SLOs are missed—many internal tiers use **SLOs only** until revenue depends on them.
+
+**Example SLOs** (tune to product; numbers are illustrative for a consumer maps app):
+
+| Area | SLI | SLO (monthly) | Why candidates care |
+|------|-----|----------------|----------------------|
+| **Search latency** | Nearby `GET` **server-side** latency | **P99 &lt; 200 ms**, **P50 &lt; 50 ms** | Matches interactive map expectations; separates **client** paint from **backend** work. |
+| **Search availability** | Ratio of **2xx** vs all attempts (excluding client cancel) | **≥ 99.9%** monthly (tier **99.95%** if premium) | Maps feel “broken” when search fails; **degraded** (stale cache) still counts as success if defined in SLI. |
+| **Geospatial accuracy** | Share of returned POIs with **Haversine distance ≤ radius × (1 + ε)** after refine | **≥ 99.99%** of results within **ε = 1%** radius slack | Catches index bugs, wrong **WGS84** handling, or missing **neighbor** cells. |
+| **Data freshness** (new/updated businesses **visible** in nearby) | Time from **commit** in OLTP to **searchable** in index | **P95 &lt; 60 s**, **P99 &lt; 5 min** | Balances **ingest** cost vs “I just added my store” expectations. |
+| **Index update latency** | Lag between **change event** and **materialized** row in geo shard / Redis | **P99 &lt; 2 min** | Distinct from user-visible freshness if you batch; matters for **ops** dashboards and **replay** alerts. |
+
+**Error budget policy:**
+
+- **Budget** = allowed **unhealthy** time per window (e.g., if availability SLO is 99.9%, budget ≈ **43 minutes** downtime/month).
+- **If budget is healthy:** ship **riskier** index changes, experiments, or **cache** TTL reductions carefully.
+- **If budget burns fast:** freeze **non-critical** releases, **roll back** bad deploys, widen **degradation** (serve cache-only in hot regions), and **throttle** expensive queries (max radius, stricter rate limits).
+- **Separate budgets** for **latency** vs **availability** so one does not mask the other.
+
+{: .note }
+> In interviews, tie **freshness** SLO to the **async** path (queue + index builder) and **latency** SLO to **sync** read path—shows you understand **different failure surfaces**.
+
+### Database Schema
+
+**Design goals:** one **OLTP** source of truth for **editable** fields; **derived** geospatial structures for **serving**; **normalized** reviews with **denormalized** aggregates on `places` for fast list views.
+
+**1. `places` (businesses / POIs)** — core entity:
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | `UUID` or `BIGSERIAL` | Stable public id; opaque string in APIs (`pl_*`). |
+| `name` | `TEXT` | Display name; optional **fts** vector if name search combined. |
+| `category` | `TEXT` or `FK → categories(id)` | Filter/sort; normalized if taxonomy grows. |
+| `lat`, `lng` | `DOUBLE PRECISION` | **WGS84**; validate ranges. |
+| `geohash` | `CHAR(12)` (or generated) | **Denormalized** from lat/lng for prefix scans; **recomputed** on move. |
+| `address` | `JSONB` or structured columns | Street, city, country; locale for display. |
+| `hours` | `JSONB` or child table `place_hours` | Weekly schedule; **CP** updates here. |
+| `rating` | `NUMERIC(3,2)` | **Denormalized** average; maintained by job from `reviews`. |
+| `review_count` | `BIGINT` | Denormalized count. |
+| `loc` | `GEOGRAPHY(POINT, 4326)` (PostGIS) | **Canonical** geometry; **not** duplicated in every index—**GiST** index on `loc`. |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | Ingest auditing, freshness SLOs. |
+
+**Why denormalize `geohash` on the row:** speeds **batch** reindex and **debug** (“which prefix is this place in?”); the **serving** tier may still use a **separate** KV keyed by prefix.
+
+**2. Geospatial index structure (serving layer, conceptual)**
+
+This is often **not** one giant SQL table for global QPS, but the **logical** model is:
+
+- **Shard key:** coarse **`geohash_prefix`** (length 4–6) or **S2 cell** at fixed level → routes to a **regional** index service.
+- **Per-shard store:** sorted sets / B-trees keyed by **`geohash` full string** or **`place_id` → {lat, lng, rank features}`** for **radius** queries (e.g., Redis **GEO** uses **geohash-like** encoding internally).
+- **Optional auxiliary:** **R-tree** or **GiST** per region in PostGIS for **admin** analytics, not necessarily on the **hot** user path.
+
+**Interview line:** “OLTP holds **`loc` + GiST** for truth and complex predicates; **read-optimized** shards hold **pre-partitioned** cells for **horizontal** scale.”
+
+**3. `reviews`**
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | `BIGSERIAL` / `UUID` | Primary key. |
+| `business_id` | `FK → places(id)` | **Indexed** for listing by place. |
+| `user_id` | `UUID` | **Unique** `(business_id, user_id)` if one review per user. |
+| `rating` | `SMALLINT` | 1–5; **CHECK** constraint. |
+| `text` | `TEXT` | Moderation, **PII** policy off logs. |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | **Immutable** reviews common; edits bump `updated_at`. |
+
+**Aggregate maintenance:** on insert/update/delete, publish to a **queue**; **aggregator** updates `places.rating` / `review_count` with **idempotent** sums or **periodic** reconciliation for **AP** consistency.
+
+**Minimal DDL sketch (PostGIS-oriented):**
+
+```sql
+CREATE TABLE places (
+  id              BIGSERIAL PRIMARY KEY,
+  external_ref    TEXT UNIQUE,
+  name            TEXT NOT NULL,
+  category        TEXT NOT NULL,
+  lat             DOUBLE PRECISION NOT NULL CHECK (lat BETWEEN -90 AND 90),
+  lng             DOUBLE PRECISION NOT NULL CHECK (lng BETWEEN -180 AND 180),
+  geohash         CHAR(12) NOT NULL,
+  address         JSONB,
+  hours           JSONB,
+  rating          NUMERIC(3,2),
+  review_count    BIGINT NOT NULL DEFAULT 0,
+  loc             GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
+                    ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography
+                  ) STORED,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_places_loc_gist ON places USING GIST (loc);
+CREATE INDEX idx_places_geohash ON places (geohash);
+
+CREATE TABLE reviews (
+  id              BIGSERIAL PRIMARY KEY,
+  business_id     BIGINT NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL,
+  rating          SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  body            TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (business_id, user_id)
+);
+
+CREATE INDEX idx_reviews_business ON reviews (business_id, created_at DESC);
+```
+
+{: .tip }
+> **Generated** `loc` avoids drift between raw lat/lng and geometry; in interviews, mention **migration** path if `geohash` is **application-computed** vs DB trigger.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation
