@@ -195,6 +195,14 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | [**Web Crawler**]({{ site.baseurl }}/software_system_design/web_crawler) | ⭐⭐⭐⭐ Hard | URL frontier, dedup |
 | [**Search Autocomplete**]({{ site.baseurl }}/software_system_design/search_autocomplete) | ⭐⭐⭐ Medium-Hard | Trie, ranking |
 
+### Modern & Trending
+
+| Design | Difficulty | Core Pattern |
+|--------|-----------|--------------|
+| [**Gaming Leaderboard**]({{ site.baseurl }}/software_system_design/gaming_leaderboard) | ⭐⭐⭐ Medium-Hard | Redis sorted sets, real-time ranking |
+| [**API Gateway**]({{ site.baseurl }}/software_system_design/api_gateway) | ⭐⭐⭐⭐ Hard | Plugin architecture, circuit breaker |
+| [**Content Delivery Network**]({{ site.baseurl }}/software_system_design/content_delivery_network) | ⭐⭐⭐⭐ Hard | Edge caching, PoP hierarchy |
+
 ---
 
 ## Pattern Recognition
@@ -217,6 +225,10 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | **Append-Only Log** | Message Queue, Event Sourcing, Metrics & Monitoring, Distributed File System |
 | **Stream Processing** | Ad Click Aggregator, Metrics & Monitoring — windowed aggregation |
 | **Master-Worker** | Distributed File System, Task Scheduler — coordination patterns |
+| **Sorted Sets / Skip Lists** | Gaming Leaderboard — real-time rank queries |
+| **Circuit Breaker** | API Gateway, Notification System — fault isolation |
+| **Edge Caching** | Content Delivery Network, Video Streaming — PoP hierarchy |
+| **Plugin / Middleware** | API Gateway — extensible request processing |
 
 {: .note }
 > Master these patterns and you can apply them to any new problem the interviewer throws at you.
@@ -250,6 +262,9 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | **Proximity Service** | Read-heavy | Millions locations | Precision vs query speed |
 | **Distributed File System** | Write-heavy (append) | Petabytes | Single master vs availability |
 | **Ad Click Aggregator** | Write-heavy | 1M events/sec | Exactness vs latency |
+| **Gaming Leaderboard** | Read-heavy | 50K writes/sec, 500K reads/sec | Rank precision vs latency |
+| **API Gateway** | Balanced | 100K RPS/node | Routing overhead vs feature richness |
+| **Content Delivery Network** | Read-heavy | 10M RPS globally | Cache hit ratio vs freshness |
 
 ---
 
