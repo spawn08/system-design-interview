@@ -91,6 +91,151 @@ Illustrative commands aligned with Redis-style semantics:
 {: .tip }
 > Mention **idempotency** for DEL and for SET with same value; **not idempotent** in the strict sense for INCR-style ops unless designed carefully.
 
+### Technology Selection & Tradeoffs
+
+Caches are not interchangeable: pick the **engine**, **eviction**, **persistence**, **topology**, and **serialization** to match **latency**, **operational cost**, and **consistency** expectations. Below is interview-ready comparison material you can narrate while drawing a box-and-arrow diagram.
+
+#### Cache engine
+
+| Engine | Strengths | Weaknesses | Typical fit |
+|--------|-----------|------------|-------------|
+| **Redis** | Rich types (hash, zset, stream), replication, cluster, optional persistence, Lua scripting, mature ecosystem | Single-threaded command execution per shard (CPU-bound hot keys), operational surface area | Default for most “Redis-style” interviews; general-purpose distributed cache + coordination |
+| **Memcached** | Simple multithreaded model, predictable slab allocator, very fast for plain GET/SET | No replication in core OSS (use client-side redundancy or vendor builds), no persistence story, strings + opaque blobs only | Massive simple KV, session caches, large-scale GET-heavy workloads with minimal features |
+| **Hazelcast** | JVM-native embedded/server, CP data structures option, WAN replication in enterprise | JVM heap/GC tuning, heavier footprint than C daemons | Java-centric stacks needing embedded cache + distributed data structures in one product |
+| **Apache Ignite** | Memory-centric **compute + SQL + persistence** (not “just a cache”), distributed transactions (configurable) | Heavier cluster; overlaps with databases — easy to blur “cache vs system of record” | Analytics/near-cache with compute colocated with data; less common as a pure Memcached replacement |
+
+{: .note }
+> In interviews, **name the workload**: plain KV at huge QPS → Memcached is credible; **invalidation, structures, TTL semantics, cluster** → Redis is the usual answer.
+
+#### Eviction policy (when memory is full)
+
+| Policy | Strengths | Weaknesses | When it wins |
+|--------|-----------|------------|--------------|
+| **LRU** | Strong **recency** bias; O(1) classic implementations; good for “recently touched” working sets | One-off scans can pollute; not ideal if **frequency** matters more than recency | General web/session traffic, skewed hot sets |
+| **LFU** | Protects **frequently** used keys from one-off bursts | “Forever hot” keys can block cold-but-important data; needs **aging** (e.g. W-TinyLFU) in practice | Catalogs, feature flags, reference data with stable popularity |
+| **FIFO** | Simple queue; predictable | Ignores access pattern; often poor hit rate vs LRU/LFU | Rarely ideal; sometimes used with **bounded queues** of jobs |
+| **ARC** | Adapts between LRU-like and frequency-like behavior; resilient to scanning | More complex; higher metadata cost | Mixed workloads with both scans and hot working sets (file cache lineage) |
+| **Random** | O(1), minimal metadata | Worst hit-rate predictability | Stress tests, or when eviction is almost never hit |
+
+{: .tip }
+> Tie eviction to **access pattern**: “burst then idle” → LRU; “steady popularity” → LFU or **W-TinyLFU** (Redis 4+ optional eviction families).
+
+#### Persistence
+
+| Mode | Strengths | Weaknesses | Interview takeaway |
+|------|-----------|------------|-------------------|
+| **None** | Fastest writes; simplest ops; true “cache” semantics | Process loss = cold cache; **RPO** = “since last fill” | Pure cache tier; durability = **replicas + source of truth** |
+| **RDB (snapshot)** | Compact; fast restarts if snapshot fresh; good for backups | Data loss since last snapshot; `fork` cost on large heaps | Periodic checkpoints; acceptable RPO in minutes |
+| **AOF (append log)** | Finer granularity; replay for durability story | Larger disk use; replay time; fsync policy drives latency | When you need smaller RPO than RDB alone |
+| **Hybrid (RDB + AOF)** | Balance replay time + granularity | Operational complexity (rewrite, compaction) | “We want fast restarts **and** bounded loss window” |
+
+#### Cluster topology
+
+| Topology | Strengths | Weaknesses | When to use |
+|----------|-----------|------------|-------------|
+| **Client-side sharding** (library computes shard from key) | No proxy hop; flexible algorithms | Every client must implement **routing**, **failover**, **migration**; version skew pain | Uniform smart clients; smaller clusters |
+| **Redis Cluster** (slot map, server-assisted) | First-class **MOVED/ASK**, resharding story; widely understood | Clients must be **cluster-aware**; ops complexity | Default answer for Redis-native horizontal scale |
+| **Proxy (Twemproxy, Envoy Redis, etc.)** | Simpler app config; central routing; optional multi-tenancy | Extra hop + failure domain; proxy capacity becomes bottleneck | Many languages/clients; need consistent connection pooling at proxy |
+
+{: .warning }
+> **Twemproxy** is historically popular but **static** shard maps are painful during migrations — contrast with **cluster-aware** clients or proxies that track slot maps dynamically.
+
+#### Serialization
+
+| Format | Strengths | Weaknesses | Typical use |
+|--------|-----------|------------|-------------|
+| **JSON** | Human-readable; ubiquitous | Larger payloads; slower parse; float/text ambiguity | Config, small objects, debuggability-first |
+| **Protobuf** | Compact; fast; schema evolution | Needs `.proto` and codegen; binary | Service boundaries, large structured values |
+| **MessagePack** | Compact JSON-like binary; schemaless | Less human-readable than JSON; fewer guarantees than Protobuf | Mixed services, dynamic maps |
+| **Custom binary** | Minimum bytes and parse cost | Fragile without versioning; cross-language pain | Extreme performance, fixed layouts |
+
+**Our choice (typical interview narrative):** **Redis** as the cache engine for **data structures + TTL + cluster**; **W-TinyLFU or LRU** eviction depending on workload (state which); **no persistence** or **RDB** for a cache tier unless the interviewer mandates durability; **Redis Cluster or a dynamic proxy** if many polyglot clients need simpler routing; **Protobuf** (or **MessagePack**) for large structured values, **JSON** for small human-tunable blobs. Rationale: optimize **p99 latency** and **operational familiarity** while keeping the cache **replaceable** (source of truth remains the database).
+
+### CAP Theorem Analysis
+
+**CAP** (Consistency, Availability, Partition tolerance) forces honesty: in a **network partition**, you cannot have both **linearizable** reads/writes **and** full **availability** for every operation. Real caches almost always choose **AP-ish** behavior for reads (serve possibly stale data) while **tuning** writes and control-plane behavior separately.
+
+| Dimension | Typical distributed cache stance | Why |
+|-----------|----------------------------------|-----|
+| **Consistency** | **Eventual** between replicas and vs origin DB | Async replication and cache-aside mean no single global linearization without extra protocol |
+| **Availability** | **High** for reads on reachable replicas | Cache exists to absorb load; failing closed on every uncertainty would offload pain to the DB |
+| **Partition tolerance** | **Required** | Datacenters and racks partition; system must continue with best-effort semantics |
+
+Per-operation behavior (what to say in the interview):
+
+| Operation | Partition scenario | CP-leaning behavior | AP-leaning behavior (common) |
+|-----------|--------------------|------------------------|------------------------------|
+| **Reads** | Client cannot reach primary but can reach a replica | Return **error** or **stale-if-error** policy | Serve **possibly stale** replica data; prefer **timeouts + fallback** over hard fail |
+| **Writes** | Split between primaries or quorum loss | **Reject writes** until safe leader | **Accept write on one side** → **divergent** replicas (dangerous — usually avoided without merge) |
+| **Invalidation** | Pub/sub or RPC to cache nodes fails | **Strict**: block until invalidation succeeds (hurts availability) | **Best-effort**: accept **stale** until TTL or eventual repair |
+| **Cluster membership / routing** | Gossip partitions | **Split views**; some clients route wrong | **Eventual** convergence; **MOVED/ASK** or rediscovery; risk of **stale routes** briefly |
+
+{: .note }
+> **“CP vs AP” for caches** is often **per request class**: user-facing reads may be **AP** (stale OK for 30s), while **financial balances** might bypass cache or use **version checks** — say **explicitly** if the interviewer allows tiered consistency.
+
+```mermaid
+flowchart TB
+  subgraph Partitioned["Network partition"]
+    C1[Clients / AZ A]
+    N1[Shard primary A]
+    N2[Replica B - possibly stale]
+  end
+  C1 -->|read| N2
+  C1 -->|ideal write| N1
+  N1 -.->|replication blocked| N2
+  C1 -->|choice: fail vs stale| X{Serve stale read?}
+  X -->|AP: yes| R[Return replica value + optional version]
+  X -->|CP: no| E[Error / retry / redirect]
+```
+
+**Interview punchline:** Caches **bias toward availability and partition tolerance** for reads; **correctness** comes from **TTL**, **invalidation**, **versioning**, and **application-level invariants**, not from pretending the cache is a strongly consistent store.
+
+### Data Model & Schema
+
+Caches are **schema-light** but **not schema-free**: bad key design causes **hot shards**, **inefficient invalidation**, and **unbounded memory**.
+
+#### Logical model
+
+| Concept | Description |
+|---------|-------------|
+| **Key** | Opaque identifier; often **hierarchical** (`tenant:entity:id:field`) |
+| **Value** | Blob or structured payload; size affects **network, eviction, replication** |
+| **Metadata** | **TTL** (absolute or sliding), **version/CAS token**, **logical size**, optional **content-type** |
+| **Namespacing** | Per-tenant or per-service **prefix** to avoid collisions and to enable **SCAN**-style maintenance |
+| **Cluster state** | **Slot or shard ID**, **primary/replica role**, **epoch/config version** — not stored per key but drives routing |
+
+**Value shapes (logical):**
+
+| Pattern | Contents | Trade-off |
+|---------|----------|-----------|
+| **Opaque blob** | Serialized domain object | Simple; whole-value refresh on any field change |
+| **Hash fields** | Column-like subkeys | Partial updates; smaller invalidation granularity |
+| **Aggregates** | Precomputed denormalized read models | Fast reads; write amplification on upstream changes |
+| **IDs + pointers** | Cache stores **IDs**, client hydrates | Lower memory; extra round trips |
+
+#### Metadata fields (typical)
+
+| Field | Purpose |
+|-------|---------|
+| `ttl_seconds` or `expire_at` | Bound staleness; drive lazy expiry |
+| `version` / `etag` | Optimistic concurrency; detect stale writes |
+| `byte_size` | Enforce **max value** limits; observability |
+| `compression` flag | Alternate encoding for large values |
+
+#### Redis-specific key conventions
+
+| Convention | Example | Reason |
+|------------|---------|--------|
+| **Colon hierarchy** | `user:123:profile` | Human-readable; prefix scanning (`SCAN user:123:*`) |
+| **Hash tags** (cluster) | `foo{user123}:orders` | Forces same **slot** for related keys (Redis Cluster) |
+| **Version suffix** | `config:v3:feature_x` | Blue/green config rollouts |
+| **Negative cache** | `user:404:999` with short TTL | Avoid **repeated DB misses** (document carefully to avoid poisoning) |
+
+{: .tip }
+> State **maximum key and value sizes** you would enforce (e.g. **KBs for keys**, **MB cap** per value with review) to prevent **big key** incidents.
+
+**Cluster state (what lives in “control plane” memory):** slot → node map, replica pointers, **config epoch**, migration state — clients cache this and refresh on **MOVED** / periodic **CLUSTER SLOTS**-style discovery.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

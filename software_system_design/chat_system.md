@@ -138,6 +138,143 @@ A **real-time messaging platform** that supports one-to-one (1:1) conversations,
 {: .tip }
 > Always separate **client-generated idempotency** (`client_msg_id`) from **server message id**. Retries must not create duplicate logical messages.
 
+### Technology Selection & Tradeoffs
+
+Chat is **write-heavy** and **connection-heavy**. Technology choices should separate **durability + ordering** (messages) from **ephemeral + fast** (presence, typing) and **bulk immutable** (media). Below is how you compare options in an interview—not to memorize winners, but to **name constraints** (latency, ops cost, partition model, team skills).
+
+#### Message storage (write-heavy chat history)
+
+| Store | Strengths | Weaknesses | When it shines |
+|-------|-----------|------------|----------------|
+| **Apache Cassandra / Scylla** | Massive sustained writes, hash/range partitioning by `conversation_id`, tunable consistency, TTL | No rich joins; secondary indexes are limited; ops/understanding of LWT & repairs | Global scale, hot partitions managed with buckets |
+| **Apache HBase** | Strong for wide rows, Hadoop ecosystem, BigTable model | Heavier ops, JVM tuning; less common greenfield for pure chat than C* | Existing HBase investment, batch analytics co-located |
+| **MongoDB** | Flexible documents, change streams, developer familiarity | Single-document atomicity is natural; **cross-shard multi-doc transactions** add latency/complexity at high QPS | Mid-scale chat, teams already on Mongo |
+| **PostgreSQL** | ACID, constraints, great tooling, Citus/Sharding for scale | Vertical + careful sharding; **very high global write QPS** needs discipline (partitioning, connection pooling) | MVP–early scale, compliance-heavy metadata, relational membership |
+
+**Why write-heavy matters:** Inserts are the steady path; reads are often “recent window + cursor.” You want **append-friendly partitions** and **idempotent writes** (`client_msg_id`), not heavy cross-table joins on the hot path.
+
+#### Connection management (real-time to clients)
+
+| Mechanism | Strengths | Weaknesses | Fit |
+|-----------|-----------|------------|-----|
+| **WebSocket** | Full duplex, low overhead after upgrade, standard for chat | Stateful gateways, reconnect/backoff, proxy timeouts | **Default** for interactive chat |
+| **SSE (Server-Sent Events)** | Simple one-way server→client over HTTP; auto-reconnect in browsers | No binary multiplexing like WS; half-duplex; send path still needs HTTP/WS | Live feeds, read-heavy notifications; often paired with HTTP POST for sends |
+| **Long polling** | Works through restrictive proxies | High latency vs WS; many open requests | Legacy mobile networks; fallback only |
+| **MQTT** | Lightweight pub/sub; good for IoT | Not the typical web chat stack; different auth/session model | Device telemetry, not general consumer chat UX |
+
+**Interview point:** Choose **WebSocket** for bidirectional chat unless product is strictly broadcast-only; keep **HTTP** for history sync and uploads.
+
+#### Message queue / log
+
+| System | Strengths | Weaknesses | Fit |
+|--------|-----------|------------|-----|
+| **Apache Kafka** | High throughput, durable log, consumer groups, partition = ordering scope | Ops complexity; tuning for latency vs durability | **Fan-out pipeline**, cross-service replay, partition by `conversation_id` |
+| **RabbitMQ** | Flexible routing (exchanges), classic enterprise | Throughput ceiling lower than Kafka at extreme scale; different mental model | Smaller scale, complex routing, lower message volume |
+| **Redis Streams** | Low latency, simple if Redis already present | Persistence model differs from Kafka; clustering for durability needs care | Per-region buffers, gateway-local queues, **not** sole global source of truth at WhatsApp scale |
+
+**Why:** Kafka (or Pulsar) gives a **replayable** backbone when workers or gateways restart; Redis Streams can sit **inside** a region for fast handoff but usually **pairs** with a durable log for critical paths.
+
+#### Presence service
+
+| Approach | Strengths | Weaknesses | Fit |
+|----------|-----------|------------|-----|
+| **Redis (TTL + Pub/Sub)** | Fast, simple heartbeats, fan-out channels | Best-effort; memory-bound; cluster failover semantics need design | **Industry default** for online/away |
+| **Custom in-memory** on gateway | Lowest read latency | Not shared across gateways without sync; loss on crash | Micro-optimization with Redis as source of truth |
+| **Dedicated protocols (XMPP presence, etc.)** | Standardized | Heavy ecosystem; less common in greenfield mobile apps | Interop, legacy IM |
+
+**Why:** Presence is **eventually consistent** by nature; optimize for **availability** and **low latency**, not perfect global agreement.
+
+#### Media storage
+
+| Approach | Strengths | Weaknesses | Fit |
+|--------|-----------|------------|-----|
+| **S3 (or GCS/Azure Blob) + CDN** | Infinite scale, lifecycle, encryption at rest, signed URLs | Cold/warm latency without CDN; egress cost | **Default** for attachments |
+| **Custom blob store** | Full control, colocation with app | You reimplement durability, erasure coding, compliance | Hyperscale or special compliance; rare in interviews |
+
+**Our choice (aligned with this guide):**
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **Message bodies** | **Cassandra / Scylla** (or DynamoDB in managed form) | Partition by conversation, clustering by server message id; survives write spikes |
+| **Metadata / membership** | **PostgreSQL** (or managed SQL) | Roles, invites, audit—fits relational model |
+| **Realtime transport** | **WebSocket** gateways | Bidirectional events; industry norm |
+| **Async fan-out** | **Kafka** (conceptually; Pulsar similar) | Durable log, replay, partition-scoped ordering |
+| **Presence & routing** | **Redis** cluster | TTL presence, session routing, rate limits |
+| **Media** | **Object storage + CDN** | Offload bytes; signed URLs; lifecycle policies |
+
+This stack **separates concerns**: SQL for **authoritative membership**, wide-column (or key-value) for **append-only messages**, Kafka for **pipeline durability**, Redis for **soft state**.
+
+### CAP Theorem Analysis
+
+CAP (**Consistency**, **Availability**, **Partition tolerance**) is a **lens**, not a single dial: in a network partition, you often pick between **linearizable consistency** and **always answering**. Chat systems **cannot** sacrifice partition tolerance in real networks—so the real design is **per subsystem**: which paths favor **CP** (strong invariants) vs **AP** (always try to serve or deliver).
+
+**How to narrate it in an interview**
+
+- **Messages (durable history):** You want **ordering and durability within a conversation** more than global linearizability across all conversations. Typical pattern: **single-writer order per partition** (e.g., Kafka partition or DB shard key = `conversation_id`) + **at-least-once** delivery with idempotency. Under partition, you may **delay ACK** until replicated (favor **CP** on “accepted” write) while still keeping the **read path** available from a replica with **explicit staleness** bounds if you allow it (product decision).
+- **Presence:** Inherently **AP**: show “online” with **TTL**; accept **false offline/online** briefly after splits. Wrong presence is annoying but not a financial ledger error.
+- **Read receipts:** Often **eventual**: delivered/read state propagates asynchronously; duplicates handled by idempotency. You may choose **stronger consistency** for “read cursor” per user in SQL if product demands strict ordering of receipts.
+- **Group membership:** Usually **CP** in the **authoritative store** (add/remove must not disagree); **cached** membership in Redis is **AP** (stale cache tolerable for milliseconds–seconds with invalidation).
+
+```mermaid
+flowchart LR
+  subgraph AP_paths["AP-leaning paths"]
+    P[Presence TTL]
+    T[Typing indicators]
+    C[Cached membership]
+  end
+
+  subgraph CP_paths["CP-leaning paths"]
+    M[Authoritative membership DB]
+    W[Message ack after durable commit]
+  end
+
+  subgraph Mixed["Mixed / pipeline"]
+    R[Read receipts via queue]
+    F[Fan-out consumers]
+  end
+
+  AP_paths --> UX[Best-effort UX]
+  CP_paths --> INV[Invariant: who is in the group / what is persisted]
+  Mixed --> EVC[Eventually consistent across viewers]
+```
+
+**Per-path summary**
+
+| Data path | CAP leaning | Why |
+|-----------|-------------|-----|
+| **Messages** | **CP** at commit (“accepted” = durable); **AP** on optional read replicas if you allow lag | Users must not lose acknowledged messages; ordering scoped to conversation |
+| **Presence** | **AP** | Availability and freshness beat perfect agreement |
+| **Read receipts** | **Eventual** (often **AP** on fan-out) | Optimize for delivery; tolerate short inconsistency between devices |
+| **Group membership** | **CP** in source of truth | Security and billing depend on correct roster |
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** (often with customers); **SLOs** are internal targets; **SLIs** are what you measure. For chat, define SLOs **per user journey** so error budgets drive **priorities** (e.g., shed typing before dropping message ACKs).
+
+#### Proposed SLOs (illustrative—tune to product tier)
+
+| SLI | SLO target | Measurement window | Notes |
+|-----|------------|--------------------|-------|
+| **Message delivery latency (server-side)** | **p99 &lt; 300 ms** from accept to first delivery attempt to recipient’s gateway; **p99 &lt; 1 s** including mobile variable last mile | 30-day rolling | Separate “online” vs “push” paths |
+| **Message delivery reliability** | **99.99%** of messages accepted by server are **delivered or made durable for offline sync** within **60 s** | 30-day rolling | Pair with idempotency metrics |
+| **Connection availability** | **99.95%** of connection-minutes **without unexplained mass disconnect**; per-region | 30-day rolling | Exclude client OS kills |
+| **Presence accuracy** | **95%** of presence transitions reflected within **10 s** for watched peers | 30-day rolling | Intentionally softer than messaging |
+| **Group message fan-out latency** | **p99 fan-out enqueue** &lt; **500 ms** for groups up to product max size (e.g., 10k members) | 30-day rolling | Large channels may use async pipeline only |
+
+{: .note }
+> **p99** hides worst users; also watch **p999** and **max** for hot conversations. Publish SLOs **per region** if you operate globally.
+
+#### Error budget policy
+
+| Concept | Policy |
+|---------|--------|
+| **Budget** | If monthly error budget for **message delivery reliability** is exhausted (e.g., more than 0.01% failed deliveries), **freeze feature launches** that touch the hot path; focus on reliability work |
+| **Burn rate** | Alert on **multi-hour burn** (fast budget consumption) vs slow drift |
+| **Tiering** | **Tier 1:** message accept + durable write + fan-out. **Tier 2:** receipts, presence. **Tier 3:** typing, optional badges. Shed **Tier 3** first under stress |
+| **Customer-facing SLA** | May promise **monthly uptime** on API/WebSocket endpoint separately from latency SLOs; be explicit about **exclusions** (client bugs, third-party push) |
+
+**Why this matters in interviews:** Showing **SLOs + error budgets** proves you connect **architecture** to **operations**: what you protect first when Kafka lags or a region degrades.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

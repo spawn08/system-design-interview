@@ -124,6 +124,178 @@ A **multi-user collaborative document editor** where many clients edit the same 
 {: .tip }
 > Always carry a **client-generated op id** for idempotent application on retries. The server maps it to a monotonic **server sequence** for total order (if you use a log).
 
+### Technology Selection & Tradeoffs
+
+Picking technologies here is really picking **semantics** (how conflicts resolve), **transport shape** (who speaks first), **durability layout** (log vs document vs blob), and **where presence lives** (ephemeral vs durable). Interviewers reward tying each choice to **product constraints**: offline depth, rich text complexity, compliance, and ops maturity.
+
+#### Conflict resolution: OT vs CRDT vs diff-merge vs locking
+
+| Approach | How convergence works | Strengths | Weaknesses | Typical fit |
+|----------|------------------------|-----------|------------|-------------|
+| **OT (Operational Transform)** | Transform ops against each other under a **canonical order** (often server-assigned) so all clients apply equivalent effects | Mature for text editors; compact ops; strong **intention preservation** narrative | Transform implementation is error-prone; central ordering or careful engineering | Classic Google Docs–style; server-sequenced plain/rich text |
+| **CRDT** | Deterministic merge rules (e.g., RGA, Yjs) so replicas converge without a single global order | **Offline-first**; natural reconnect; less “single sequencer” dependency | Tombstones/memory; undo/redo and schema evolution need discipline | Notion-like blocks, Figma-like structured state, mobile offline |
+| **Diff-merge (3-way / patch)** | Compare states or diffs at sync time; merge overlapping regions with heuristics | Simple mental model for **infrequent** sync (e.g., config files) | Terrible for **fine-grained concurrent typing**; merge conflicts surface constantly | Not a primary engine for live co-editing; OK for coarse-grained sections |
+| **Locking (pessimistic)** | Serialize edits via section/paragraph locks | Predictable; easy to explain | Awful UX at scale; doesn’t match “many cursors”; fails on flaky networks | Rare; maybe admin “checkout” modes |
+
+{: .note }
+> **Interview anchor:** OT and CRDT both target **eventual convergence**; diff-merge and locking trade away real-time collaboration quality for simplicity.
+
+#### Real-time transport: WebSocket vs WebRTC vs SSE
+
+| Transport | Direction | Strengths | Weaknesses | When to choose |
+|-----------|-----------|-----------|------------|----------------|
+| **WebSocket** | Full duplex | Low overhead after upgrade; natural **op + ack** loop; ubiquitous infra (L7 LB, gateways) | Stateful connections; sticky routing/drain; proxy timeouts need tuning | **Default** for doc sync, presence on same pipe |
+| **WebRTC (Data Channel)** | P2P duplex | Can reduce server relay latency in true P2P topologies | NAT/signaling complexity; enterprise firewalls; harder ACL enforcement at wire | Experiments, local mesh, or hybrid **relay fallback** |
+| **SSE** | Server → client only | Simple; HTTP/2 multiplexing | **Cannot** send edits upstream on same channel; need parallel HTTP for submits | Live **notifications** or read-only tailing; not enough for bidirectional editing |
+
+#### Document storage: PostgreSQL vs MongoDB vs append-only log vs S3 (snapshots)
+
+| Store | What it’s good for | Trade-offs |
+|-------|---------------------|------------|
+| **PostgreSQL** | **Metadata**, ACLs, titles, pointers to snapshot keys, **materialized read models** for search | Strong transactions; not ideal as the **only** home for multi-GB op streams |
+| **MongoDB** | Flexible **document JSON** (blocks), nested comments metadata | Good for hierarchical docs; still pair with a **log** for ordered ops at high write rates |
+| **Append-only log (Kafka / durable journal)** | **Per-doc ordered ops**, replay, audit; partition key = `doc_id` | Retention/compaction policy is a product decision; not a human-query store by itself |
+| **S3 (object store)** | **Snapshots**, exports, cold revision blobs | High latency vs DB; **eventual listing** consistency; perfect for WORM-style snapshot storage |
+
+{: .warning }
+> In interviews, say clearly: **hot path** = append op to **durable ordered log** + async **snapshot** to object storage; **cold path** = rebuild from log tail + latest snapshot.
+
+#### Presence and cursor: Redis Pub/Sub vs dedicated presence service vs peer-to-peer
+
+| Option | Pattern | Strengths | Weaknesses |
+|--------|---------|-----------|------------|
+| **Redis Pub/Sub (or Streams)** | Gateways publish/subscribe per `doc_id` channel | Fast to ship; cross-gateway fan-out; familiar ops | Pub/Sub is **fire-and-forget** (no persistence by default); need careful **ACL** at subscribe |
+| **Dedicated presence service** | Optimized for ephemeral state, region-local, optional CRDT for cursor ordering | Clear scaling story; isolation from doc sequencer | More services to own; must not become durability bottleneck |
+| **Peer-to-peer** | Exchange cursors over WebRTC mesh | Low server load for presence | Hard to enforce **who may see whom**; inconsistent under NAT; rarely alone for enterprise |
+
+**Our choice (illustrative):** **CRDT or OT** for merge (product-dependent: CRDT if offline is core; OT if central order fits the team), **WebSockets** through a gateway tier for bidirectional sync, **Kafka (or equivalent) + periodic snapshots to S3** for durability and fast catch-up, **PostgreSQL** for document metadata and collaborator ACLs, and **Redis Pub/Sub** (or a thin presence microservice backed by Redis) for **throttled** presence/cursor fan-out—because it separates volatile traffic from the **authoritative op log** while staying operationally simple.
+
+---
+
+### CAP Theorem Analysis
+
+CAP is easy to misapply in interviews. For collaborative editors, the nuanced story is:
+
+- **Local edits must feel available**: clients apply their own keystrokes immediately (**high A for the local session**).
+- **Global linearizability** across regions for “every character everywhere at once” is **not** the goal; **eventual convergence** with explicit ordering or CRDT rules is.
+- **Partition** (client ↔ server or region ↔ region): you either **buffer** (offline queue), **degrade** (read-only), or **merge later** (CRDT)—you do not “solve CAP,” you **choose user-visible behavior**.
+
+| Subsystem | Consistency flavor under partition | Availability posture | Why it’s special |
+|-----------|-----------------------------------|----------------------|------------------|
+| **Operation log** | **Ordered per document** (single partition key); **strong ordering** within a partition | Writers target a **single doc leader** or partition; failover may introduce **epoch** bumps | This is the **source of truth** for “what happened” in OT-style systems |
+| **Document state (materialized)** | **Eventual** behind the log; snapshot + tail | Reads can be **stale** briefly; catch-up uses `seq` | Optimized for query/search, not for per-keystroke linearizable reads |
+| **Presence / cursor** | **Soft consistency**; last-write or CRDT-lite per session | Prefer **availability** of presence channel; **lossy** updates acceptable | Ephemeral; correctness is **privacy + membership**, not document text |
+| **Permissions / ACL** | **Strong** on control plane when possible | If IAM store is partitioned, **fail closed** (deny) for new joins | **Security beats liveness** for new connections |
+
+```mermaid
+flowchart TB
+  subgraph cp [Control plane - strong consistency preferred]
+    ACL[ACL / collaborators in DB]
+    TOK[Short-lived WS tokens]
+  end
+
+  subgraph data [Data plane - per-document ordering]
+    LOG[Op log partition by doc_id]
+    SEQ[Monotonic seq per doc]
+  end
+
+  subgraph soft [Soft / ephemeral]
+    PRES[Presence & cursor]
+  end
+
+  ACL --> TOK
+  LOG --> SEQ
+  PRES -.->|best-effort| clients[Active clients]
+  LOG -->|authoritative| clients
+  TOK -->|authorize| clients
+```
+
+{: .tip }
+> **Answer template:** “We guarantee **strong per-document operation order** on the log partition; **eventual** materialized document state; **best-effort** presence; **fail-closed** ACL when in doubt.” That shows you separate **hard invariants** from **UX-soft paths**.
+
+---
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** (often external); **SLOs** are internal targets measured by **SLIs**. For collaborative editors, measure what users **feel** (typing, reconnect) and what they **trust** (nothing acknowledged is lost).
+
+| Area | SLI (what we measure) | Example SLO | Notes |
+|------|-------------------------|-------------|-------|
+| **Operation propagation** | End-to-end time from **client send** to **remote collaborator receive** (or “apply ready”) | **p99 &lt; 300 ms**, **p95 &lt; 150 ms** within region | Separate **cross-region** SLO if you allow it; presence may have looser targets |
+| **Document save durability** | Time from **server accept** to **durable append** (fsync / quorum ack) | **p99 &lt; 100 ms** to durable log; **0** acknowledged ops lost | Align with “ack after durable append” policy |
+| **Collaboration session availability** | WS session **successful connect + keepalive** for authorized users | **99.9%** monthly (exclude client network) | Define **error budget** exclusions (browser sleep, VPN) |
+| **Cursor / presence freshness** | Staleness of last rendered remote cursor vs source | **p95 &lt; 500 ms** under normal load; degrade to **2 Hz** under pressure | Product may allow **seconds** for huge docs |
+
+**Error budget policy (illustrative):**
+
+- **Monthly budget** tied to collaboration SLO (e.g., 99.9% → **43.2 minutes** downtime budget per month).
+- If **propagation p99** burns budget for **7 consecutive days**, trigger: **reduce presence rate**, **shed noncritical features**, **page** on-call.
+- **Durability SLO** is **non-negotiable**: any breach triggers **incident**, possible **pause releases**, and **freeze** risky migrations.
+- **User-visible degradation order**: throttle presence → batch broadcasts → read-only mode for overloaded docs (if product allows) → never silently drop **acknowledged** ops.
+
+{: .note }
+> Pair every SLO with **how you measure it**: synthetic probes for WS regions, **trace span** from gateway → sequencer → fan-out, and **reconciliation jobs** for durability (checksum snapshot vs replayed tail).
+
+---
+
+### Database Schema
+
+The schema separates **durable document identity**, **authoritative ordering** (operation log), and **sharing**. Exact types vary by SQL dialect; below is **PostgreSQL-oriented** DDL that interviews can adapt.
+
+**`documents`** — one row per logical doc; snapshot pointer supports fast hydrate.
+
+```sql
+CREATE TABLE documents (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title           TEXT NOT NULL,
+  owner_user_id   UUID NOT NULL,
+  content_snapshot TEXT,                    -- optional denormalized plain text / serialized tree
+  snapshot_version BIGINT NOT NULL DEFAULT 0, -- last compacted seq included in snapshot
+  snapshot_s3_key TEXT,                     -- object storage key for large/binary snapshot
+  current_version BIGINT NOT NULL DEFAULT 0,  -- last applied server sequence (monotonic)
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_documents_owner ON documents (owner_user_id);
+CREATE INDEX idx_documents_updated ON documents (updated_at DESC);
+```
+
+**`operation_log`** — append-only logical table (at scale, **partition by `doc_id`** or store in Kafka with this schema mirrored).
+
+```sql
+CREATE TABLE operation_log (
+  doc_id        UUID NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+  seq           BIGINT NOT NULL,            -- monotonic per doc
+  operation     JSONB NOT NULL,             -- OT op, CRDT update, or binary-encoded payload
+  author_user_id UUID NOT NULL,
+  client_op_id  TEXT NOT NULL,              -- idempotency key from client
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (doc_id, seq),
+  UNIQUE (doc_id, client_op_id)
+);
+
+CREATE INDEX idx_op_log_doc_seq ON operation_log (doc_id, seq);
+```
+
+**`collaborators`** — ACLs for share UI and server-side enforcement.
+
+```sql
+CREATE TABLE collaborators (
+  doc_id     UUID NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL,
+  permission TEXT NOT NULL CHECK (permission IN ('owner', 'editor', 'commenter', 'viewer')),
+  granted_by UUID,
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (doc_id, user_id)
+);
+
+CREATE INDEX idx_collab_user ON collaborators (user_id);
+```
+
+{: .tip }
+> Mention **why** `client_op_id` is unique per `doc_id`: retries after timeouts must not **double-apply** ops. For CRDT-heavy designs, `operation` may store **binary blobs**; keep **seq** for catch-up and **debuggability**.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

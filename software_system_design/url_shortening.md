@@ -122,6 +122,119 @@ GET /aB3xYz1
 GET /api/v1/urls/aB3xYz1/stats
 ```
 
+### Technology Selection & Tradeoffs
+
+Interviewers often ask *why* you picked specific technologies. The URL shortener is **read-heavy** (redirects ≫ creates), needs **strong uniqueness** on write (no duplicate short codes), and benefits from **predictable hot-key caching**. Below are structured comparisons you can cite in an interview; section 4.2 revisits SQL vs NoSQL in the context of schema design.
+
+#### Database (read-heavy workload)
+
+| Criterion | PostgreSQL | MySQL (InnoDB) | DynamoDB | Cassandra |
+|-----------|------------|-----------------|----------|-----------|
+| **Read path fit** | Excellent with indexes + replicas; mature query planner | Excellent; similar to PG for simple key lookups | Excellent at key-value get by partition key; single-digit ms at scale | Excellent for wide-partition reads; tunable consistency |
+| **Strong uniqueness (`short_code`)** | Native `UNIQUE`, transactional | Native `UNIQUE`, transactional | Conditional writes / idempotent keys; app must handle races carefully | Lightweight transactions / compare-and-set; more app logic |
+| **Horizontal write scale** | Sharding is manual (or Citus); vertical + replicas first | Same pattern | Native partitioning; on-demand throughput | Native; best for multi-DC active-active |
+| **Ops & ecosystem** | Rich extensions, JSON, great HA story (Patroni, etc.) | Ubiquitous; slightly fewer advanced types | Fully managed on AWS; vendor lock-in | Complex ops unless managed; excellent for huge scale |
+| **Consistency model** | Serializable / repeatable read (tunable) | InnoDB ACID | Per-item strong reads available; global secondary indexes eventual | Tunable per read (ONE, QUORUM, ALL) |
+| **Best when** | Default for most designs; strong consistency + SQL | Team already standardized on MySQL | AWS-native, huge partition-key QPS, minimal joins | Extreme write scale, multi-region, time-series style patterns |
+
+**Read-heavy nuance:** For redirects you mostly do `SELECT long_url WHERE short_code = ?`—any of these can work if **cache hit rate is high**. The harder part is **write correctness** (one canonical mapping per code) and **operational simplicity** at your target scale.
+
+#### Cache layer
+
+| Criterion | Redis | Memcached | CDN / edge cache |
+|-----------|-------|-----------|------------------|
+| **Data structures** | Strings, hashes, sorted sets, streams | Simple key-value | Cached HTTP responses / edge KV |
+| **Persistence & HA** | Optional AOF/RDB; Redis Cluster / Sentinel | RAM-only; client-side sharding | POP replication; origin on miss |
+| **Eviction & TTL** | Rich TTL, LRU policies | LRU | HTTP `Cache-Control`; URL-specific policies |
+| **Best for** | **Redirect lookup cache**, rate limits, locks, analytics buffers | Pure microsecond KV when you need simplicity | **Static or cacheable redirect responses**, geo latency reduction; careful with personalized/analytics accuracy |
+| **Tradeoff** | Slightly more features = slightly more complexity | No persistence; fewer features | Stale mappings until purge; harder to invalidate on URL update/delete |
+
+**Interview tip:** Say **Redis (or compatible)** for application cache (cache-aside), optional **CDN** in front for popular short links to shave RTT globally—pair CDN with **short TTLs** or **purge APIs** when mappings change.
+
+#### ID generation for `short_code`
+
+| Approach | Uniqueness | Coordination | Predictability | Notes |
+|----------|------------|--------------|----------------|-------|
+| **Hash-based** (truncate MD5/SHA) | Risk of collisions at short length; must detect & retry | Low | Same URL → same code (dedupe) or varies with salt | Simple; collision handling adds latency and complexity |
+| **Counter + Base62** | Strong if counter is single source of truth | High if one DB sequence; **low** with ranges / Snowflake | Sequential unless obfuscated | Industry standard; combine with Snowflake or range allocator |
+| **UUID (v4 / v7)** | Practically unique | None | Not URL-short without encoding | Longer as string; usually encoded → longer than 7 chars unless truncated (collision risk) |
+| **Snowflake-style** | Strong per machine + time | None per ID (clock sync matters) | Roughly time-ordered | Scales horizontally; encode to Base62 for short codes |
+
+#### Our choice
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **Primary store** | **PostgreSQL** (or MySQL if org-standard) | ACID `UNIQUE` on `short_code`, straightforward HA, great read replica story for redirect path; sufficient until sharding is truly required. |
+| **Cache** | **Redis** (cluster if needed) | Rich TTL, HA options, rate limiting & locks for thundering herd; Memcached is fine if you only need dumb KV and have other solutions for limits. |
+| **Edge** | **CDN optional** | Cuts latency for hot links; use conservative caching or active purge when edits matter. |
+| **IDs** | **Snowflake (or DB sequence / range allocation)** for production scale; **hash** only with explicit collision handling | Snowflake avoids a single DB bottleneck while keeping uniqueness; counter+Base62 from one DB is acceptable at smaller scale. |
+
+This aligns with the architecture diagram in Step 3 (PostgreSQL + Redis + async analytics).
+
+---
+
+### CAP Theorem Analysis
+
+CAP (**Consistency**, **Availability**, **Partition tolerance**) applies to *distributed* stores. In practice: **network partitions happen**, so systems choose between **CP** (sacrifice availability during partition) and **AP** (sacrifice strong consistency during partition). The URL shortener is interesting because **different operations want different tradeoffs**.
+
+| Operation | Desired behavior | CAP-style reading | Why |
+|-----------|------------------|-------------------|-----|
+| **Redirect (read)** | Always answer quickly; stale cache occasionally OK | **AP** for the serving path | Users tolerate rare slightly stale reads better than widespread failed redirects; cache + async replication favor availability and latency. |
+| **Create short URL (write)** | **Never** hand out the same `short_code` to two URLs | **CP** at the persistence boundary | Uniqueness is a correctness property: you need atomic insert or conditional write against an authoritative source. |
+| **Analytics** | Complete eventually | **AP** | Counts can lag; use async pipelines (Kafka → ClickHouse). |
+
+**Per-operation narrative:**
+
+1. **Redirects:** Load balancer + app + Redis strive for **high availability**. If Redis is empty after a failover, you **degrade to PostgreSQL**—slightly higher latency, still **available** if the DB is up. During a partition, you might serve from cache (**A**) while replicas converge (**eventual C** for non-critical fields).
+2. **Creates:** The **insert into `urls` with UNIQUE(short_code)** (or conditional put in DynamoDB) is the **consistency choke point**: two concurrent creators must not succeed with the same code. That is a **CP** moment: you wait for the authoritative node / quorum—not “best effort duplicate.”
+3. **Analytics:** **AP**—duplicate or lost events can be bounded with idempotent consumers; SLAs are softer (see below).
+
+```mermaid
+flowchart TB
+    subgraph AP_path["AP-leaning: redirect read path"]
+        R[Client] --> Edge[CDN / LB]
+        Edge --> App[Redirect service]
+        App --> Cache[(Redis)]
+        App --> DB[(Primary / replicas)]
+    end
+
+    subgraph CP_moment["CP moment: create mapping"]
+        C[Create API] --> Auth[Transactional insert UNIQUE short_code]
+        Auth --> Primary[(Authoritative store)]
+    end
+
+    subgraph Analytics_AP["AP: analytics pipeline"]
+        App --> Q[Queue]
+        Q --> OLAP[(Analytics store)]
+    end
+```
+
+**One-liner for interviews:** *We bias AP on the hot read path for availability and latency, but we enforce CP semantics at write time so short codes are never duplicated.*
+
+---
+
+### SLA and SLO Definitions
+
+**SLA** = contract with users (often includes credits). **SLO** = internal target you measure against. **Error budget** = allowable bad events (e.g., 0.01% unavailability per month) before you freeze features and fix reliability.
+
+#### Service-level objectives (examples)
+
+| Area | SLO | Measurement window | Notes |
+|------|-----|-------------------|-------|
+| **Redirect latency** | **p99 < 50 ms** (server-side, excluding client RTT) | Rolling 30 days | Aligns with NFR; track cache hit ratio correlation. |
+| **Redirect availability** | **99.99%** successful HTTP 302/301 (excluding 404 for bad codes) | Monthly | Matches “links must work” expectation; exclude abuse-driven 4xx if policy-defined. |
+| **URL creation latency** | **p99 < 200 ms** | Rolling 30 days | Includes ID gen + DB commit; stricter if synchronous custom alias checks. |
+| **Data durability** | **RPO ≤ 1 min**, **RTO ≤ 15 min** for mapping data | Per disaster scenario | Sync replica → lower RPO; quantify last mapping loss risk. |
+| **Analytics accuracy** | **≤ 0.1%** discrepancy vs raw log reconciliation | Daily | Async pipeline; bounded delay (e.g., 5 min freshness) stated separately. |
+
+#### Error budget policy
+
+- **Budget:** For **99.99%** availability, allowed unavailability ≈ **4.38 minutes/month**. Spend budget on **planned maintenance** only with explicit approval; **redirect** burns budget fastest—prioritize alerts on redirect SLO.
+- **If budget is exhausted:** Stop non-critical releases; focus on HA, load tests, cache failover; consider **tighter redirect-only on-call** until burn rate recovers.
+- **Latency SLOs:** Treat **p99 redirect** regressions as **launch-blocking** if sustained; they often precede availability incidents.
+
+These SLOs connect directly to monitoring in Step 5 (p99 redirect, success rate, cache hit ratio).
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation
@@ -551,6 +664,8 @@ CREATE INDEX idx_clicks_code_time ON clicks(short_code, clicked_at);
 | **Scaling writes** | Harder (vertical first) | Easy (horizontal) |
 | **Unique constraints** | Built-in | Application-enforced |
 | **Operational complexity** | Lower (familiar) | Higher |
+
+The table above contrasts **SQL vs NoSQL families**. For **engine-level** tradeoffs (PostgreSQL vs MySQL vs DynamoDB vs Cassandra) and how they relate to a read-heavy workload, see **Technology Selection & Tradeoffs** in Step 1.
 
 **Recommendation:** Start with PostgreSQL. It handles millions of URLs easily. Migrate to NoSQL only if you hit scaling limits (billions of URLs, 100K+ writes/sec).
 
@@ -1386,6 +1501,9 @@ func generateBase62Code(length int) (string, error) {
 Use this to structure your answer:
 
 - [ ] **Clarified requirements** (scale, features, read/write ratio)
+- [ ] **Technology tradeoffs** (DB, cache, ID generation—with comparison tables)
+- [ ] **CAP analysis** per operation (redirect AP vs create CP; partition behavior)
+- [ ] **SLA/SLO and error budget** (redirect latency/availability, durability, analytics)
 - [ ] **Estimated capacity** (storage, bandwidth, QPS)
 - [ ] **Drew high-level architecture** (clients, LB, app, cache, DB)
 - [ ] **Explained short code generation** (Base62 + distributed IDs)

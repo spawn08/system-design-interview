@@ -218,6 +218,270 @@ flowchart LR
 - Full **identity resolution** across devices (tie to a separate ID graph)
 - **Legal/compliance** deep dive (consent frameworks) beyond high-level mention
 
+### Technology Selection & Tradeoffs
+
+Interviewers expect you to **name alternatives** and justify **one path** with constraints (team skills, cloud estate, latency vs correctness). Below is a concise comparison you can walk through on a whiteboard.
+
+#### Stream processing engine
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka Streams** | Tight integration with Kafka; embedded library (no separate cluster); good for **stateful transforms** on topics you already own | JVM-only; scaling model is **app instances × partitions**; advanced event-time/window UX is lighter than Flink | You want **minimal moving parts** and your logic fits **partition-local** state + Kafka transactions |
+| **Apache Flink** | Mature **event time**, watermarks, **managed state**, savepoints, **exactly-once** sinks; strong for **out-of-order** ads traffic | Heavier ops (JobManager/TaskManagers); skill curve | **Default pick** for **sub-minute** rollups at **high QPS** with complex windows |
+| **Spark Streaming / Structured Streaming** | Unified **batch + streaming** API; great **lake** integration; teams already run Spark for reconciliation | Micro-batch latency; trickier **sub-second** freshness vs Flink | **Lambda** where streaming freshness is **minute-level** and **same code** must replay batch |
+| **Custom (e.g., consumers + RocksDB)** | Full control; can optimize hot paths | You reimplement **recovery**, **rebalance**, **exactly-once**—easy to get wrong | Only with **very narrow** scope or as a **thin** layer on top of a proven log |
+
+#### OLAP storage (serving aggregates)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **ClickHouse** | Extremely fast **columnar** scans; **MergeTree**; great compression; SQL ergonomics | Real-time ingest + **mutations** need care; ops maturity varies by org | **Self-managed or CH Cloud** when you want **cost-efficient** heavy analytics SQL |
+| **Apache Druid** | Built for **streaming ingestion** + **segment** serving; good **time-series** dashboards | Cluster ops; segment lifecycle tuning | **Real-time OLAP** with segment-based serving and strong **time-range** queries |
+| **Apache Pinot** | Low-latency **user-facing** analytics; **upsert** patterns; multi-tenant | Ops complexity; smaller ecosystem than CH in some regions | **Sub-second** dashboard APIs with **high fan-out** |
+| **BigQuery** | **Serverless**; no OLAP cluster to run; great for **ad-hoc** + reporting joins | **Query pricing**; less suited as sole **sub-100ms** hot path without tuning | **GCP-native** data warehouse + **batch** truth; pair with cache/Pinot for hot paths |
+
+#### Message queue / log
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Apache Kafka** | Industry default; **consumer groups**, **transactions**, huge ecosystem; **replay** for batch | Self-managed ops unless **managed** (MSK, Confluent) | **Multi-subscriber** log: stream + lake + replay; **most interviews** |
+| **Amazon Kinesis** | **Managed**; tight AWS IAM/VPC; on-ramp for **Lambda/Firehose** | Less portable; shard model differs from Kafka partitions | **AWS-only** estates; simpler **managed** path |
+| **Apache Pulsar** | **Multi-tenancy**, geo-replication, **unified** queue+log | Smaller ops playbook than Kafka in many teams | **Global** namespaces or **queue+stream** unification needs |
+
+#### Cache layer
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis** | Rich data types (**sorted sets**, hashes); **TTL**; replication; Lua | Memory cost; hot-key mitigation still needed | **Dashboard** hot keys, **rate limits**, **session** fraud state |
+| **Memcached** | Simple; predictable; very fast **GET/SET** | No built-in **structures** / streams; **no** persistence story like Redis modules | **Pure cache** for **opaque blobs** where simplicity wins |
+
+{: .tip }
+> Say: **“We pick the log for durability + replay, Flink for windows + state, OLAP for slice-and-dice, Redis for hot dashboards—not one database for everything.”**
+
+#### Our choice (example rationale)
+
+| Layer | Choice | Why (interview soundbite) |
+|-------|--------|---------------------------|
+| **Log** | **Kafka** (managed) | Durable **append-only** source of truth; **two consumers** (stream + lake) without coupling |
+| **Stream** | **Flink** | **Event-time** windows, **state**, savepoints—fits **1M events/sec** with checkpointing |
+| **OLAP** | **ClickHouse** or **Pinot** | CH for **cost + SQL**; Pinot when **p99 query** on pre-aggregates is the bottleneck |
+| **Cache** | **Redis** | **TTL** rollups, **idempotency** lease keys, fraud **velocity** windows |
+
+---
+
+### CAP Theorem Analysis
+
+**Framing:** CAP applies to **each distributed store** along a path, not to “the whole system” as one triangle. For money adjacent workloads, teams usually choose **CP** inside the **authoritative** store and accept **eventual** visibility on **read models**—while the **ingest log** is **AP** (durability + availability of append) with **tunable** consistency via **acks** and **ISR**.
+
+| Data path | Typical store / component | CAP lean | Rationale |
+|-----------|---------------------------|----------|-----------|
+| **Ad events ingestion (Kafka/Pulsar)** | Partitioned log | **AP → CP tunable** | **Availability** of append under partitions; **durability** via replication; **stronger consistency** when you wait for **all ISRs** before ack (higher latency) |
+| **Aggregation results (Flink state + OLAP sink)** | RocksDB state + OLAP | **CP** for **correct rollups** | You **cannot** silently split-brain **money counters**—prefer **consistent** reads after commit or **versioned** upserts; accept **brief** unavailability on failover vs wrong totals |
+| **Query path (OLAP + Redis)** | Read replicas + cache | **AP** for **dashboards** | **Stale** cache acceptable if **SLO** bound; **circuit break** to OLAP; **never** claim stronger than **eventual** for cache |
+| **Reconciliation (batch vs stream)** | Lake + job store | **CP** for **report** | Reconciliation output is **authoritative** for **finance**—**single** writer job id, **deterministic** inputs, **monotonic** corrections |
+
+| CAP property | Choice in this design | Rationale |
+|--------------|------------------------|-----------|
+| **Consistency** | **Strong** for billed aggregates **after** commit; **eventual** for cache | **Trust** requires agreed **definitions** (event time, dedup); cache is **best-effort** freshness |
+| **Availability** | **High** on ingest + query; **degraded mode** allowed for non-critical reads | **Ingest** must survive AZ loss; **queries** can shed load via cache TTL + backoff |
+| **Partition tolerance** | **Assume network partitions** | **Multi-AZ**; log + stream **checkpoint**; **idempotent** writers so retries don’t double-bill |
+
+```mermaid
+flowchart TB
+  subgraph ingest["Ingest path — AP log, tunable acks"]
+    P[Producers] --> L[(Durable log)]
+  end
+
+  subgraph agg["Aggregation — CP state + idempotent sink"]
+    L --> F[Stream processor]
+    F --> S[(OLAP / rollup sink)]
+  end
+
+  subgraph q["Query path — AP read models"]
+    S --> API[Query API]
+    R[(Redis cache)] --> API
+    S --> R
+  end
+
+  subgraph recon["Reconciliation — CP job output"]
+    L --> Lake[(Data lake)]
+    Lake --> J[Batch job]
+    J --> Rep[(Reconciliation report)]
+    S --> Rep
+  end
+```
+
+{: .note }
+> If pressed: **“We don’t ‘solve CAP once’—we align each subsystem with the business guarantee: money paths CP, dashboards AP with SLOs.”**
+
+---
+
+### SLA and SLO Definitions
+
+**SLA** = contract with users (often **monthly**); **SLO** = internal target; **SLI** = what we measure. For ads, tie SLOs to **money** and **trust**: ingestion **must not** silently drop; queries can be **fast but approximate** only if **disclosed**.
+
+#### Service level objectives (examples)
+
+| Area | SLI | SLO (example) | User-visible meaning |
+|------|-----|---------------|----------------------|
+| **Ingestion availability** | Successful accepted events / valid attempts | **99.95%** monthly | Clients can **ship** measurement continuously; retries expected |
+| **Aggregation freshness** | `now − max(event_time)` in served rollups | **p95 < 60s**, **p99 < 120s** | Dashboards reflect **last minute** for NRT KPIs |
+| **Query availability** | Successful queries / attempts (excluding client errors) | **99.9%** monthly | Dashboards load; **degraded** = cache miss storm handled |
+| **Query latency** | HTTP latency for pre-aggregate queries | **p99 < 500 ms** | Matches **N2**; heavy exports use **async** job (different SLO) |
+| **Data accuracy** | \|batch − stream\| / max(batch, ε) per campaign-day | **< 0.5%** for billed dimensions | **Reconciliation** bound; investigate **outliers** |
+| **Reconciliation completeness** | Jobs **completed** / scheduled | **99.9%** on-time daily run | Finance gets **full** comparison **T+1** |
+
+#### Error budget policy (example)
+
+| SLO | Monthly error budget (approx) | Policy when burning budget |
+|-----|------------------------------|----------------------------|
+| **Ingest 99.95%** | ~22 minutes downtime | **Freeze** non-critical releases; scale brokers/consumers; **page** on burn rate **> 2×** |
+| **Query 99.9%** | ~43 minutes | Shed **non-essential** traffic; extend cache TTL; **disable** expensive dimensions |
+| **Freshness p99 120s** | (time-based composite) | **Alert** on watermark lag; **tune** parallelism before **relaxing** SLO |
+
+{: .tip }
+> Mention **“error budget”** as the bridge between **reliability** and **velocity**: **no launches** during budget burn without **explicit** risk acceptance.
+
+---
+
+### API Design
+
+**Principles:** **idempotent** ingest (**event_id**); **versioned** JSON; **async** for heavy exports; **tenant** scoping (`advertiser_id`) on every query; **reconciliation** as **read-only** status for finance.
+
+#### Submit click / impression events
+
+`POST /v1/events`
+
+**Request (batch):**
+
+```json
+{
+  "request_id": "01HQXYZ...",
+  "events": [
+    {
+      "event_id": "01HQABC...",
+      "event_type": "IMPRESSION",
+      "event_time": "2026-04-05T12:34:56.789Z",
+      "ad_id": "ad_123",
+      "campaign_id": "cmp_456",
+      "advertiser_id": "adv_789",
+      "country": "US",
+      "device_class": "mobile",
+      "placement_type": "feed",
+      "price_micros": 120000,
+      "currency": "USD"
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "accepted": 1,
+  "rejected": 0,
+  "results": [
+    { "event_id": "01HQABC...", "status": "ACCEPTED" }
+  ]
+}
+```
+
+{: .note }
+> **429** with `Retry-After` on overload; **400** on schema violations; duplicates with same `event_id` return **200** with `status: DUPLICATE` (idempotent).
+
+---
+
+#### Query aggregated metrics
+
+`GET /v1/metrics`
+
+**Query params:** `advertiser_id`, `start`, `end` (ISO-8601), optional `group_by=campaign_id,country`, `granularity=minute|hour|day`.
+
+**Response:**
+
+```json
+{
+  "advertiser_id": "adv_789",
+  "granularity": "minute",
+  "series": [
+    {
+      "bucket_start": "2026-04-05T12:00:00.000Z",
+      "dimensions": { "campaign_id": "cmp_456", "country": "US" },
+      "metrics": {
+        "impressions": 120000,
+        "clicks": 1800,
+        "ctr": 0.015,
+        "spend_micros": 145000000
+      }
+    }
+  ],
+  "freshness_seconds": 42
+}
+```
+
+---
+
+#### Manage campaigns (control plane)
+
+`GET /v1/campaigns/{campaign_id}` — fetch metadata + pacing snapshot.
+
+`PATCH /v1/campaigns/{campaign_id}` — update **mutable** fields (e.g., **daily_budget_micros**, **status**).
+
+**Patch request:**
+
+```json
+{
+  "status": "PAUSED",
+  "daily_budget_micros": 500000000,
+  "expected_version": 17
+}
+```
+
+**Response:**
+
+```json
+{
+  "campaign_id": "cmp_456",
+  "advertiser_id": "adv_789",
+  "status": "PAUSED",
+  "daily_budget_micros": 500000000,
+  "version": 18,
+  "updated_at": "2026-04-05T12:40:00.000Z"
+}
+```
+
+{: .tip }
+> Use **optimistic concurrency** (`expected_version`) so pacing updates don’t **clobber** each other under concurrent UI + API.
+
+---
+
+#### Reconciliation status
+
+`GET /v1/reconciliation/reports/{date}` — `date` in **advertiser/account timezone** or UTC per product contract.
+
+**Response:**
+
+```json
+{
+  "report_date": "2026-04-04",
+  "status": "COMPLETE",
+  "stream_totals_ready_at": "2026-04-05T01:08:00.000Z",
+  "batch_totals_ready_at": "2026-04-05T03:15:00.000Z",
+  "summary": {
+    "campaigns_compared": 125000,
+    "campaigns_within_threshold": 124842,
+    "max_relative_delta": 0.0041
+  },
+  "download": {
+    "csv_url": "https://storage.example/reports/2026-04-04/adv_789.csv",
+    "expires_at": "2026-04-06T00:00:00.000Z"
+  }
+}
+```
+
+`GET /v1/reconciliation/campaigns/{campaign_id}?date=YYYY-MM-DD` — drill-down for **support** and **billing disputes**.
+
 ---
 
 ## Step 2: Estimation

@@ -87,6 +87,213 @@ Illustrative **REST** surface (gRPC is common internally with the same semantics
 {: .tip }
 > Always accept an **idempotency key** on create to dedupe retried client requests. Store a mapping `(idempotency_key, tenant_id) -> task_id` with a TTL.
 
+### Technology Selection & Tradeoffs
+
+Pick storage, scheduling, workers, and coordination **together**: the scheduler’s correctness story (leases, fencing, materialization) must match what your store and locks can guarantee under load and failure.
+
+#### Task storage
+
+| Store | Strengths | Weaknesses | Best when |
+|-------|-----------|------------|-----------|
+| **PostgreSQL** | Strong ACID; row-level locks & `SELECT … FOR UPDATE SKIP LOCKED`; advisory locks; familiar ops | Vertical scaling limits; hot rows if partitioning is wrong | Control-plane metadata, moderate QPS, need transactional invariants |
+| **Redis** | Very fast; sorted sets for delay queues; Lua for atomic claim | Durability depends on AOF/cluster config; not a system of record for all audit needs | Ready/delay **queues**, leases, rate limits—often **beside** a durable DB |
+| **Cassandra** | Wide-column; high write throughput; TTL; multi-DC | Tunable consistency; compare-and-set patterns need careful modeling | Massive scheduled index; time-bucketed partitions; willing to invest in LWT/correctness patterns |
+| **DynamoDB** | Managed; predictable at scale; conditional writes | Hot partitions if key design is poor; GSI cost/latency | Cloud-native task index; conditional updates for lease/version fields |
+
+**Why it matters in interview:** schedulers are **write-heavy** (create, state transitions, heartbeats). You want **conditional updates** (version or `lease_until`) so only one worker wins the lease. Relational DBs express that cleanly; Cassandra/Dynamo need explicit partition keys and idempotent patterns.
+
+#### Scheduling engine
+
+| Approach | How it works | Strengths | Weaknesses |
+|----------|--------------|-----------|------------|
+| **Polling-based** | Periodic DB/query scan: “what is due now?” | Simple to reason about; works with any store | Load grows with table size; coarse skew unless scan is frequent |
+| **Event-driven** | Push when clock fires (per-shard timer, gRPC stream, or queue wake-up) | Low idle CPU; tight skew for near-term tasks | Complexity; still need reconciliation ticks for crash recovery |
+| **Hybrid timing wheel** | O(1) amortized bucketing + promote to ready queue | Industry standard for delay; bounded work per tick | Implementation complexity; per-partition wheels to avoid global contention |
+
+**Interview framing:** use **polling** to bootstrap or for low volume; move to **timing wheel + per-partition ownership** when delay volume dominates. **Event-driven** complements the wheel (wake shard when bucket fires).
+
+#### Worker orchestration
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-------------|------------|-----------|
+| **Kubernetes Jobs** | Built-in retries; isolation per job; clear lifecycle | Per-job overhead; not ideal for millions of tiny tasks/sec | Batch-style workloads; long-running jobs; strong isolation |
+| **Dedicated worker pool** | Long-lived processes; high reuse; pull + lease is natural | You own autoscaling, deploys, and noisy-neighbor fairness | **Default** for high-throughput task execution platforms |
+| **Serverless (Lambda, etc.)** | Elastic scale; no idle fleet cost | Cold start; concurrency/account limits; harder long heartbeats | Spiky, short tasks; event-driven glue; combine with queue triggers |
+
+**Why:** schedulers usually **decouple** “when to run” (control plane) from “how to run” (workers). A **pool of workers** dequeuing from a ready queue matches at-least-once + lease. **Jobs** fit discrete units of work; **Lambda** fits if tasks are short and idempotent and limits are acceptable.
+
+#### Coordination
+
+| Mechanism | Idea | Strengths | Weaknesses |
+|-----------|------|-----------|------------|
+| **Distributed locks (Redis / ZooKeeper / etcd)** | Single holder for shard or schedule row | Fast; clear ownership | Fencing and session expiry; Redis Redlock is controversial for **correctness** without tokens |
+| **Leader election** | One active scheduler per partition (Raft via etcd/K8s lease) | Avoids split-brain for **tick** and cron materialization | Failover delay; must fence stale leaders |
+| **Database advisory / row locks** | `FOR UPDATE` or lease columns in PostgreSQL | Transaction boundaries align with state changes | DB becomes bottleneck; design keys to avoid hot rows |
+
+**Our choice (illustrative):** **PostgreSQL** (or cloud SQL) as the **system of record** for tasks and schedules with **versioned lease** columns and conditional updates; **Redis** (or Kafka) for **ready work** and fast delay ordering per shard; **hybrid timing wheel** inside each scheduler partition process; **dedicated worker pools** with autoscaling on queue depth; **leader election per partition** (or hash-based shard ownership with epoch fencing) for cron materialization and shard ticks; **distributed locks** only where a short-lived critical section is unavoidable—and pair with **fencing tokens** if workers touch downstream state.
+
+**Rationale:** optimize for **clear transactional semantics** on metadata, **bounded** scheduling work per tick, and **operational** patterns teams already run (SQL + Redis/Kafka + K8s).
+
+### CAP Theorem Analysis
+
+CAP is often misquoted as “pick two of three.” For schedulers, the useful framing is: under **network partition**, you cannot have both **strong linearizable agreement** on “who owns this task right now” and **always available** reads/writes everywhere without compromise. Real systems choose **per-partition** consistency with **leases + versions**, and accept **at-least-once** execution with **idempotent** handlers.
+
+| Concern | Consistency angle | Availability angle |
+|---------|-------------------|----------------------|
+| **No double execution** | Need a single authoritative decision: lease owner, monotonic version, or fence | If the primary partition is isolated, some clients may not enqueue or query until routing heals |
+| **No missed tasks** | Reconciliation: expired leases return tasks to READY; ticks recover after crash | Scheduler shards should be **owned** so another node can take over partition |
+| **Client visibility** | Strong read of task state may require leader or quorum read | Eventual consistency on replicas can show stale “PENDING” briefly |
+
+**Task claim / lock mechanism:** implement **compare-and-set** on `(task_id, version)` or `(lease_until, worker_id)`: only one worker’s update succeeds. **Heartbeats** extend `lease_until` only if `worker_id` and **version** still match. On partition, **two writers** cannot both succeed if the store is **linearizable** for that row; if not, you need **fencing tokens** so stale workers cannot commit side effects.
+
+**During a partition:**
+
+- **Scheduler ↔ store:** if the scheduler cannot reach the DB, it cannot safely tick or lease—**that shard’s scheduling pauses** or fails over to a new leader (brief unavailability for that shard is preferable to double materialization of cron).
+- **Worker ↔ scheduler:** a worker may think it holds a lease while the authority has expired it—**at-least-once** retry is why **idempotency** is mandatory.
+- **Split schedulers:** two nodes must not both “promote” the same task; **epoch/leader per partition** prevents duplicate promotion.
+
+**At-least-once vs exactly-once:**
+
+| Guarantee | Meaning | Typical mechanism |
+|-----------|---------|-------------------|
+| **At-least-once** | Task may run more than once | Lease timeout, redelivery, retries |
+| **Exactly-once execution** (true distributed) | One successful execution end-to-end | Very hard; often **exactly-once semantics** are achieved as **effectively-once** via idempotent writes + dedupe store |
+
+**Interview line:** *“We guarantee **at-least-once delivery** to the worker boundary; **exactly-once side effects** are the application’s job via idempotency keys and transactional outbox.”*
+
+```mermaid
+flowchart TB
+  subgraph CP["Partition scenario"]
+    S1[Scheduler A]
+    S2[Scheduler B]
+    DB[(Task store)]
+    W1[Worker 1]
+    W2[Worker 2]
+  end
+  S1 -.->|isolated| DB
+  S2 -->|writes win or fail| DB
+  W1 -->|lease CAS| DB
+  W2 -->|lease CAS rejected| DB
+  DB -->|single version per task_id| W1
+```
+
+**Reading the diagram:** only **one** path succeeds for **lease acquisition** on a linearizable row; the other worker retries or pulls different work—so you trade **perfect availability of every operation** for **no concurrent double execution** of the same task.
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** with users; **SLOs** are internal targets; **SLIs** are what you measure. For a task platform, separate **scheduling** (when work becomes eligible) from **execution** (when a worker finishes).
+
+#### SLIs and candidate SLOs
+
+| Area | SLI (what we measure) | Example SLO | Notes |
+|------|------------------------|-------------|--------|
+| **Scheduling accuracy** | `actual_start_time - scheduled_time` for tasks that became READY | **p99 absolute skew ≤ 30s**; **p99.9 ≤ 2 min** during incidents | Excludes queue wait if you split “fired” vs “started” |
+| **Task execution success rate** | `successful_completions / (successful + terminal_failures)` | **≥ 99.9%** monthly per tenant (exclude user code bugs if policy says so) | Define what counts as “system” vs “user” failure |
+| **Task pickup latency** | `lease_acquired_at - ready_since` (or dequeue lag) | **p95 ≤ 5s**, **p99 ≤ 30s** for default priority | Tighter for premium tiers |
+| **System availability** | Successful `POST /v1/tasks` and `GET /v1/tasks/{id}` vs all attempts | **99.9%–99.95%** monthly API availability | Exclude dependency if you publish **degraded** mode clearly |
+
+Define **priority classes** with different SLOs (e.g., interactive vs batch) to avoid one backlog violating everything.
+
+#### Error budget policy
+
+An **error budget** is `(1 - SLO)` × **window**—how much “bad” you can spend before process changes.
+
+| Signal | Example policy |
+|--------|----------------|
+| **Budget burn** | If **pickup latency p99** exceeds SLO for **1 hour**, page on-call; **24-hour** burn triggers freeze on risky deploys |
+| **Cron skew** | If **scheduling accuracy** misses SLO for a week, prioritize shard rebalancing or clock/leader fixes before new features |
+| **Success rate** | Drop below **99.5%** for **30 min** → incident; below **99%** → block non-critical releases |
+| **Budget remaining** | High remaining budget → allow **faster iteration** (new dispatch policies); exhausted budget → **only** reliability work |
+
+Publish **what counts as downtime** (read-only OK? DLQ-only?) so teams do not debate incidents during interviews—**clarity** is senior signal.
+
+### Database Schema
+
+The **tasks** table is the **authoritative** lifecycle for a unit of work. **Task executions** append-only history supports debugging, billing, and SLA proofs. **Dead letter** tasks are either a **status** on `tasks` plus a **DLQ table** for queries, or a dedicated table—below uses **`tasks.state = 'DLQ'`** plus **`dead_letter_tasks`** for operator workflows.
+
+**Design choices (why):**
+
+- **`lease_version`** enables **conditional** lease and heartbeat updates (same idea as optimistic locking).
+- **`partition_id`** colocates rows with scheduler shards and avoids global hot keys.
+- **`payload_ref`** keeps large blobs out of the hot row (aligns with Step 2 sizing).
+- **Partial indexes** on `scheduled_time` / `state` keep “due work” scans cheap.
+
+```sql
+-- PostgreSQL 13+: gen_random_uuid() is built-in. Optional: citext for case-insensitive keys.
+CREATE TYPE task_state AS ENUM (
+  'PENDING', 'SCHEDULED', 'READY', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'DLQ'
+);
+
+CREATE TABLE tasks (
+  task_id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id          TEXT NOT NULL,
+  partition_id       INT NOT NULL,
+  task_type          TEXT NOT NULL,
+  payload_ref        TEXT,
+  payload_inline     JSONB,
+  scheduled_time     TIMESTAMPTZ NOT NULL,
+  priority           INT NOT NULL DEFAULT 100,
+  state              task_state NOT NULL DEFAULT 'SCHEDULED',
+  max_attempts       INT NOT NULL DEFAULT 3,
+  attempt_count      INT NOT NULL DEFAULT 0,
+  worker_id          TEXT,
+  claimed_at         TIMESTAMPTZ,
+  lease_until        TIMESTAMPTZ,
+  lease_version      BIGINT NOT NULL DEFAULT 0,
+  idempotency_key    TEXT,
+  last_error_code    TEXT,
+  last_error_detail  TEXT,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_tenant_idempotency UNIQUE (tenant_id, idempotency_key)
+);
+
+CREATE INDEX idx_tasks_partition_due
+  ON tasks (partition_id, scheduled_time)
+  WHERE state IN ('SCHEDULED', 'READY');
+
+CREATE INDEX idx_tasks_running_lease
+  ON tasks (lease_until)
+  WHERE state = 'RUNNING';
+
+-- Append-only execution history (audit, SLA, replay analysis)
+CREATE TYPE execution_outcome AS ENUM ('SUCCESS', 'FAILURE', 'LEASE_LOST', 'CANCELLED');
+
+CREATE TABLE task_executions (
+  execution_id    BIGSERIAL PRIMARY KEY,
+  task_id         UUID NOT NULL REFERENCES tasks (task_id) ON DELETE CASCADE,
+  attempt         INT NOT NULL,
+  worker_id       TEXT,
+  started_at      TIMESTAMPTZ NOT NULL,
+  ended_at        TIMESTAMPTZ,
+  outcome         execution_outcome,
+  error_summary   TEXT,
+  duration_ms     INT
+);
+
+CREATE INDEX idx_task_executions_task ON task_executions (task_id, started_at DESC);
+
+-- Dead-letter: optional dedicated table for operator queues, retention, and replay
+CREATE TABLE dead_letter_tasks (
+  dlq_id          BIGSERIAL PRIMARY KEY,
+  task_id         UUID NOT NULL UNIQUE REFERENCES tasks (task_id) ON DELETE CASCADE,
+  tenant_id       TEXT NOT NULL,
+  reason          TEXT NOT NULL,
+  failed_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_attempt    INT,
+  payload_snapshot JSONB,
+  replayed_at     TIMESTAMPTZ,
+  replayed_by     TEXT
+);
+
+CREATE INDEX idx_dlq_tenant_failed ON dead_letter_tasks (tenant_id, failed_at DESC);
+```
+
+**Typical flow:** on terminal failure or exhausted retries, set `tasks.state = 'DLQ'`, insert **`dead_letter_tasks`**, and stop ready-queue visibility. **Replay** creates a **new** task or resets state under a new transaction—never silently delete audit rows.
+
+{: .note }
+> Adjust column types (`TEXT` vs `VARCHAR`) and ENUM vs lookup tables to match org standards. For multi-region, add `region` and replicate with your chosen strategy; **global uniqueness** of `task_id` still matters for idempotency.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

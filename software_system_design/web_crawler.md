@@ -106,6 +106,277 @@ Let's design a **general-purpose web crawler** that can:
 
 ---
 
+## Technology Selection & Tradeoffs
+
+Choosing components is not about picking the “best” technology in isolation—it is about matching **throughput, operational cost, failure modes, and team skills** to the crawler’s workload. Below are common options interviewers expect you to compare.
+
+### URL frontier
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-----------|------------|-----------|
+| **Redis** (sorted sets, streams, lists) | Low latency, familiar ops, good for per-host scoring and short queues | Memory-bound; cross-region consistency is hard; not a durable log by default | Medium scale, need fast dequeue + scoring; combine with persistence (AOF/RDB) or replay source |
+| **Kafka** (partitioned log) | Durable, replayable, horizontal scale, natural backpressure | Higher latency than Redis; ordering is per-partition; consumer lag is an ops concern | Large-scale distributed crawl; need audit trail and reprocessing of URL batches |
+| **Custom in-process priority queue** (per worker + coordination) | Maximum control over politeness heuristics | Does not distribute by itself; single-machine limits | Prototypes, single-DC vertical scale, or as a **local** buffer in front of a distributed queue |
+| **Database-backed** (e.g., PostgreSQL/Cassandra with indexed `next_crawl_time`) | Strong durability; easy queries for “what to crawl next” | Can become a write/read hotspot; needs careful sharding and batch dequeue | Crawl freshness driven by schedules; smaller QPS or when queue logic maps cleanly to SQL |
+
+**Why it matters:** The frontier is the **system’s throttle and fairness layer**. Kafka favors **durability and replay**; Redis favors **speed**; DB-backed favors **queryable schedules** at the cost of hot rows.
+
+### Content storage
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-----------|------------|-----------|
+| **S3-compatible object storage** | Infinite scale, cheap cold storage, lifecycle policies, multi-AZ durability | Not a low-latency random-update store; listing at huge prefix scale needs design | **Default choice** for raw HTML blobs and WARC-style archives |
+| **HDFS** | Tight integration with Hadoop/Spark batch analytics | Heavier ops; cloud-native teams often prefer object storage | On-prem big-data stacks; batch pipelines already on Hadoop |
+| **Cassandra** | High write throughput, wide-column model for metadata | Wrong tool for multi-MB blobs; operational complexity | **Metadata and crawl state**, not primary blob store |
+| **MongoDB** | Flexible documents, good for moderate metadata | Large binary payloads are expensive; sharding ops for TB+ blobs | Smaller crawls or document-centric secondary indices—not typical for petabyte HTML |
+
+**Why it matters:** **Blobs** (HTML) belong in **cheap, durable object storage**; **metadata** (URL hash, timestamps, status) belongs in a **row-oriented or wide-column** store optimized for lookups and writes.
+
+### URL deduplication
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-----------|------------|-----------|
+| **Bloom filter** | Tiny memory per URL for huge sets; extremely fast | False positives (may skip never-seen URLs); no delete without rebuild/rehashing | First-line **negative cache** in front of a definitive store |
+| **Redis SET** (or HyperLogLog for counts only) | Exact membership for keys in RAM; simple API | Memory grows with unique URLs; cross-region sync is non-trivial | Medium corpora, or per-shard exact sets |
+| **RocksDB** (or other LSM KV) | Disk-backed exact set at scale; good write throughput; range scans | Tunable compaction/ops; not a probabilistic filter | **Authoritative “seen URL”** store at billion+ scale |
+
+**Why it matters:** Interviewers want the **two-tier pattern**: Bloom (or similar) for **cheap “probably seen”**, plus **RocksDB/DB for “definitely seen”** to eliminate false positives on enqueue.
+
+### DNS resolution
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-----------|------------|-----------|
+| **Local cache** (per worker or shared Redis) | Fast repeat lookups; reduces resolver load | Stale TTL handling; cold start on new hosts | Always—**every** fetch path should cache by `(host, ttl)` |
+| **Dedicated DNS resolver pool** (recursive resolvers you operate) | Rate limiting, monitoring, retry policy centralized | More infra; must respect resolver policies and avoid becoming abusive | High QPS crawl; need observability and **fairness** across workers |
+
+**Why it matters:** DNS is easy to underestimate. A **shared cache** avoids thundering herds; **dedicated resolvers** isolate failures and apply global rate limits to lookups.
+
+### HTML parsing
+
+| Option | Strengths | Weaknesses | Best when |
+|--------|-----------|------------|-----------|
+| **Lightweight parser** (jsoup, BeautifulSoup, lxml) | Fast, low CPU/memory; great for static HTML | No JS execution | **Default** for link extraction and main content on server-rendered pages |
+| **Headless browser** (Playwright, Puppeteer) | Renders SPAs, executes JS | 10–100× cost per page; harder to scale | Known JS-heavy hosts or after HTTP fetch returns shell HTML |
+
+**Why it matters:** Use the **cheapest** tool that satisfies coverage; reserve headless for a **fraction** of URLs to protect throughput and cost.
+
+### Our choice
+
+| Area | Choice | Rationale |
+|------|--------|-----------|
+| Frontier | **Kafka** (partitioned by host hash) + **Redis** (hot scoring / delays) | Durable backlog and replay for failures; Redis for low-latency politeness metadata if needed |
+| Content | **S3** (gzip) | Cost and durability for petabyte-scale blobs; standard for this problem |
+| Dedup | **Bloom** (cluster-wide) + **RocksDB** (per shard, exact) | Minimize RAM while bounding false positives with a ground-truth store |
+| DNS | **Shared cache** + **dedicated resolver tier** at high QPS | Cache hits dominate; resolvers isolate abuse and ease monitoring |
+| Parsing | **Lightweight parser** default + **headless** on allowlist | Maximizes pages/sec while still covering SPAs where required |
+
+---
+
+## CAP Theorem Analysis
+
+CAP (Consistency, Availability, Partition tolerance) is a **useful mental model**, not a literal database knob—especially for a **batch-leaning** crawler where “consistency” means **no wasted work** and **correct politeness**, not linearizable reads everywhere.
+
+### How to frame it in an interview
+
+- **Partition tolerance (P)** is non-negotiable in a distributed crawler: networks split, brokers restart, regions fail.
+- You then choose **per subsystem** whether you favor **stronger consistency** (dedup, crawl commitments) or **liveness** (keeping the frontier moving).
+
+### Per-component view
+
+| Component | CAP leaning | Consistency concern | Availability / liveness |
+|-----------|-------------|---------------------|-------------------------|
+| **URL deduplication (authoritative)** | **CP** | Must not permanently wrongfully skip URLs (mitigate Bloom FP with DB check) | Brief unavailability may stall enqueue; prefer **retry** over wrong skip |
+| **Frontier queue** | **AP** | Duplicate deliveries are acceptable idempotently | **Must** keep dequeuing under failures (at-least-once is OK) |
+| **Politeness / rate state** | **AP** with convergence | Per-host clocks can temporarily violate delay; should **self-correct** | Crawl should not stop globally if one shard’s delay cache is stale |
+| **Content store (S3)** | **AP** (eventual listing/consistency models vary) | Uniqueness via **content hash + key** idempotency | Writes succeed independently per object |
+| **Crawl metadata DB** | Tunable (often **CP** within quorum) | Same URL should not diverge into contradictory “never crawled” vs “stored” | Reads can be eventually consistent for dashboards |
+
+**Why dedup “must be consistent” but frontier “can be AP”:** Duplicate frontier work wastes bandwidth but is **safe if dedup and storage are idempotent**. Wrong dedup **loses coverage**—harder to fix than wasting a fetch.
+
+### Diagram
+
+```mermaid
+flowchart LR
+  subgraph CP["CP-leaning (ground truth)"]
+    Dedup[(Authoritative dedup\nRocksDB / DB)]
+    Meta[(Crawl metadata\ncommitted state)]
+  end
+
+  subgraph AP["AP-leaning (keep moving)"]
+    Frontier[[Frontier\nKafka / Redis]]
+    Polite[Politeness cache]
+  end
+
+  Frontier -->|at-least-once URL| Workers
+  Workers --> Dedup
+  Workers --> Meta
+  Polite -.->|best-effort delay| Workers
+```
+
+Under a partition, **prefer**: frontier may **duplicate**, workers may **re-fetch** occasionally, but **dedup + idempotent writes** prevent permanent inconsistency in “what the corpus contains.”
+
+---
+
+## SLA and SLO Definitions
+
+SLAs are **contracts** (often with customers); **SLOs** are internal targets measured by **SLIs**. For a crawler, SLOs align **coverage, freshness, ethics, and cost**.
+
+### Service level indicators (SLIs) and objectives (SLOs)
+
+| Dimension | SLI (what we measure) | Example SLO | Notes |
+|-----------|-------------------------|-------------|-------|
+| **Crawl throughput** | Successful `200` HTML fetches / sec (or / min sustained) | **≥ 400 pages/sec** monthly 99th percentile of **5-min** windows | Exclude intentionally skipped (robots, non-HTML); align with capacity plan |
+| **Crawl freshness** | Time between successful crawls of same URL (p50 / p95) | **p95 ≤ 14 days** for “news” class; **p95 ≤ 90 days** for static class | Requires URL **tiering**; single global number is a red flag in interviews |
+| **Politeness** | Requests per host per second (max over 1-min window) | **≤ 1 rps/host** default unless `robots` allows more | Measure per crawler **User-Agent** aggregate if multiple shards hit same host |
+| **Dedup accuracy** | Ratio of false “already seen” decisions that skip **new** URLs (sampled audit) | **≤ 0.01%** bad skips after Bloom + DB verification | Bloom alone cannot hit this—**audit** matters |
+| **Content durability** | Objects in blob store with successful periodic **HEAD/verify** or replication checks | **≥ 99.999999999%** annual durability (provider SLA) for stored objects | Pair with **checksum** on write; lifecycle to detect corruption |
+
+### Error budget policy
+
+| Element | Policy |
+|---------|--------|
+| **Budget** | If monthly error budget is consumed (e.g., freshness SLO misses > 5% of URLs in a tier), **freeze** new features (e.g., new JS rendering modes) until recovery. |
+| **Burn alerts** | **Fast burn**: budget will exhaust in days; page on-call, scale workers, shed low-priority tiers. **Slow burn**: investigate scheduler drift, bad seeds, or dedup regression. |
+| **Tradeoffs** | Spending budget on **higher throughput** may **consume politeness budget**—explicitly cap QPS before raising concurrency. |
+
+**Interview tip:** Tie each SLO to a **dashboard** and an **alert**; mention **tiered freshness** so you do not promise one number for the whole web.
+
+---
+
+## Database Schema
+
+Schemas separate **what must be queryable** (scheduling, status, graph analytics) from **blobs** (stored in object storage). Types are illustrative—adjust for your SQL/NoSQL choice.
+
+### `url_frontier` (work queue + scheduling)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `url_id` | `UUID` or `BYTEA` (hash) | Stable id; hash of canonical URL if UUID not used |
+| `url` | `TEXT` | Canonical URL |
+| `priority` | `DOUBLE` or `BIGINT` | Crawl priority (PageRank, freshness score, tier) |
+| `state` | `ENUM` | e.g. `pending`, `scheduled`, `leased`, `fetched`, `failed`, `skipped_robots` |
+| `next_crawl_time` | `TIMESTAMPTZ` | When the URL is eligible again (freshness / retry backoff) |
+| `lease_owner` | `TEXT` (nullable) | Worker or session id if using lease-based dequeue |
+| `lease_expires_at` | `TIMESTAMPTZ` (nullable) | For stuck work reclaim |
+| `discovered_from` | `TEXT` (nullable) | Provenance for debugging (optional) |
+
+**Indexes:** `(state, next_crawl_time)`, `(priority DESC, next_crawl_time)` for batch selection; **shard key** often `hash(url)` or `host`.
+
+### `crawled_pages` (fetch outcome + pointer to blob)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `url_id` | same as frontier | FK or matching hash |
+| `url` | `TEXT` | Final URL after redirects |
+| `content_hash` | `BYTEA` (SHA-256) | Deduplication and integrity |
+| `crawl_timestamp` | `TIMESTAMPTZ` | End of successful fetch |
+| `http_status` | `SMALLINT` | e.g. 200, 404, 429 |
+| `response_headers` | `JSONB` | Subset: `Content-Type`, `ETag`, `Last-Modified` |
+| `storage_key` | `TEXT` | S3 key or equivalent |
+| `content_length` | `BIGINT` | Bytes stored (compressed or raw, document clearly) |
+
+**Indexes:** `content_hash` (for duplicate detection), `crawl_timestamp` (for incremental exports).
+
+### `link_graph` (optional, for ranking / debugging)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `source_url_id` | `UUID` / hash | Outlink source |
+| `target_url_id` | `UUID` / hash | Outlink target |
+| `anchor_text` | `TEXT` (nullable) | Useful for ranking; can be omitted at huge scale |
+| `discovered_at` | `TIMESTAMPTZ` | When edge was seen |
+
+**Primary key / index:** `(source_url_id, target_url_id)`; optional inverted index on `target_url_id` for backlink queries (expensive at scale—often sampled).
+
+---
+
+## API Design
+
+External APIs **control** the crawl (seeds, politeness) and **observe** it (status, results). All writes should be **authenticated**; rate-limit public endpoints.
+
+### Overview
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/v1/seeds` | `POST` | Submit seed URLs (and optional crawl tier / max depth) |
+| `/v1/crawls/{crawl_job_id}` | `GET` | Job status: queued, running, completed, failed counts |
+| `/v1/hosts/{host}/politeness` | `PUT` | Set rps, crawl-delay override, or pause for a host |
+| `/v1/results` | `GET` | Query crawl results by URL or time range (paged) |
+
+### `POST /v1/seeds`
+
+**Body (JSON):**
+
+```json
+{
+  "seeds": ["https://example.com/", "https://news.example.com/"],
+  "job_name": "monthly-recrawl",
+  "priority": "normal",
+  "respect_robots": true
+}
+```
+
+**Response `202 Accepted`:** `{ "crawl_job_id": "...", "queued_urls": 2 }` — enqueue is async.
+
+**Why:** Seeds can be large; **accept quickly**, process in the frontier.
+
+### `GET /v1/crawls/{crawl_job_id}`
+
+**Response `200`:**
+
+```json
+{
+  "crawl_job_id": "...",
+  "state": "running",
+  "submitted_at": "2026-04-05T12:00:00Z",
+  "stats": {
+    "fetched_ok": 1200000,
+    "failed": 8900,
+    "skipped_robots": 45000,
+    "queue_depth_estimate": 50000000
+  }
+}
+```
+
+**Why:** Operators need **aggregate progress**, not per-URL polling.
+
+### `PUT /v1/hosts/{host}/politeness`
+
+**Body:**
+
+```json
+{
+  "max_rps": 0.5,
+  "crawl_delay_ms": 2000,
+  "paused": false,
+  "effective_until": "2026-04-12T00:00:00Z"
+}
+```
+
+**Response `204 No Content`** on success.
+
+**Why:** Incidents (429 storms, site owner contact) require **fast policy changes** without redeploying workers.
+
+### `GET /v1/results`
+
+**Query params:** `url` (exact), `since`, `until`, `page_size`, `page_token`.
+
+**Response:** Paged list of `{ "url", "content_hash", "crawl_timestamp", "http_status", "storage_key" }`.
+
+**Why:** Downstream indexers consume **metadata + pointer**; bulk export may use **separate** batch APIs or data lake.
+
+### Error model (consistent)
+
+| HTTP | When |
+|------|------|
+| `400` | Invalid URL, bad host, conflicting politeness |
+| `401` / `403` | Auth failures |
+| `404` | Unknown `crawl_job_id` or host rule |
+| `429` | Client exceeded API rate limit (distinct from origin `429`) |
+| `503` | Frontier overload; client should retry with backoff |
+
+---
+
 ## Step 2: Back-of-Envelope Estimation
 
 ### Scale Assumptions
@@ -1541,6 +1812,11 @@ async def fetch_page(url: str):
 ## Interview Checklist
 
 - [ ] **Clarified requirements** (purpose, scale, scope)
+- [ ] **Compared technology tradeoffs** (frontier, storage, dedup, DNS, parsing)
+- [ ] **CAP analysis** (CP dedup vs AP frontier; idempotency)
+- [ ] **Defined SLOs** (throughput, freshness tiers, politeness, dedup accuracy, durability; error budget)
+- [ ] **Outlined data model** (frontier, crawled pages, link graph)
+- [ ] **Defined APIs** (seeds, job status, politeness, results)
 - [ ] **Explained components** (frontier, fetcher, parser, dedup)
 - [ ] **Discussed politeness** (robots.txt, rate limiting)
 - [ ] **Covered deduplication** (URL bloom filter, content fingerprinting)

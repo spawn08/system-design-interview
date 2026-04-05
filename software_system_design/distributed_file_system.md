@@ -228,6 +228,275 @@ If **average file size** is **KB** scale while chunks are **128 MB**, **most chu
 
 ---
 
+### Technology Selection & Tradeoffs
+
+Metadata, data layout, consistency, and namespace shape are **not independent**—they determine **RAM ceilings**, **repair cost**, and **what apps must assume**. Interviewers expect you to **name alternatives** and **justify a coherent stack**.
+
+#### Metadata storage
+
+| Approach | How it works | Strengths | Weaknesses |
+|----------|----------------|-----------|------------|
+| **Single active master + shadows / standby (GFS-style)** | One process serves mutations; **warm** replicas replay **edit log** | Simple mental model; **microsecond** in-memory path lookups | **Vertical** scale limit; failover must **fence** old primary |
+| **Distributed metadata service (Ceph monitors, sharded Colossus)** | **Quorum** or **sharded** partitions own **slices** of namespace | Horizontal scale; smaller **blast radius** per shard | **Cross-shard** ops (rename across shards) cost **latency** and **protocol** complexity |
+| **Raft-replicated state machine (small HA cluster)** | **3f+1** nodes run **consensus** on metadata log | **Strong** durability + **linearizable** metadata updates (within shard) | **Leader** bottleneck per shard; **watch** quorum latency on every commit |
+
+**Why it matters:** Metadata is **small per op** but **hot**; wrong choice shows up as **edit log stalls** or **RAM cliffs** at billion-file scale.
+
+#### Data storage
+
+| Approach | How it works | Strengths | Weaknesses |
+|----------|----------------|-----------|------------|
+| **Chunkservers + full replication (factor N)** | Each chunk stored **N** times on different failure domains | **Fast** recovery (read from peer); simple reads | **N×** disk cost; **N×** repair traffic |
+| **Erasure coding (RS, LRC, …)** | Chunks split into **k+m** fragments; **m** failures tolerated | **~1.3–1.6×** overhead vs **3×** replication for cold data | **Rebuild** eats **CPU + cross-rack bandwidth**; not ideal for **latency-sensitive** hot paths |
+| **Hybrid (hot replicated, cold EC)** | Policy moves **warm** data to **replica** tier and **cold** to **EC** | Balances cost and **SLA** per access class | **Tiering** jobs + **layout** complexity; apps see **variable** tail latency on cold |
+
+**Replication factor** trades **durability vs cost**: \(P(\text{loss}) \approx P(\text{correlated failures})^{\text{effective copies}}\) only if placement is **uncorrelated**—interviews reward saying **rack/zone** diversity explicitly.
+
+#### Consistency model
+
+| Layer | Typical choice | Rationale |
+|-------|----------------|-----------|
+| **Metadata** | **Strong** (linearizable per path/inode within a shard) | **Lost updates** to namespace are unacceptable; **directory** races confuse every consumer |
+| **Chunk locations / leases** | **Strong** at master + **versioned** invalidation | Clients must agree on **primary** and **epoch**; stale caches cause **silent divergence** |
+| **Data bytes on replicas** | **Eventual** convergence **behind** primary ordering | Throughput wins; **primary serializes** mutations; **secondaries** catch up in **defined** order |
+| **Cross-chunk / cross-file** | **No ACID** in classic DFS | **POSIX** transactions omitted for scale; **higher layers** add **exactly-once** if needed |
+
+**Teaching point:** **Strong metadata + ordered replication** is how you get **predictable** failure stories without **distributed transactions** on every byte.
+
+#### Namespace shape
+
+| Model | Examples | Strengths | Weaknesses |
+|-------|----------|-----------|------------|
+| **Hierarchical (POSIX-like tree)** | GFS, HDFS paths | Familiar to apps; **prefix** listing | **Hot directories**; deep trees stress **metadata** |
+| **Flat + application prefixes** | Some object-style layouts | Simple sharding by **hash** | Weak **directory** UX unless **layered** index |
+| **Object-style (bucket/key)** | S3 mental model | Easy to **partition** by key | Not a drop-in for **Hadoop** path semantics |
+
+{: .note }
+> **Federation** (multiple roots) is often a **namespace** scaling tactic: split **tenants** or **datasets** across **independent** masters with a **router** (e.g., ViewFS-style).
+
+#### Our choice
+
+For this guide’s **analytics / data-lake** framing:
+
+- **Metadata:** **Raft-backed** (or **QJM**) **highly available** logical master **per namespace shard**, starting from **single-shard** clarity in the interview, with a **clear migration** story to **sharding** when inode count grows.
+- **Data:** **Chunkservers** with **3× replication** on **rack-aware** placement for **interactive** and **pipeline** hot paths; **erasure coding** for **cold** volumes to cut **TCO**, with **explicit** rebuild **budgets**.
+- **Consistency:** **Linearizable metadata** + **primary-based** per-chunk **mutation order**; **record-append** semantics **documented** (duplicates possible).
+- **Namespace:** **Hierarchical paths** for ecosystem compatibility, with **quota** and **federation** called out as **scale levers**.
+
+**Rationale:** This bundle matches **how HDFS/GFS-class systems actually ship**—optimize for **throughput**, **operable** failure modes, and **honest** app contracts, then **evolve** toward **Colossus-style** sharding and **EC** as the org’s **metadata** and **cost** limits bite.
+
+---
+
+### CAP Theorem Analysis
+
+**CAP** (choose **two** of **C**onsistency, **A**vailability, **P**artition tolerance) is best applied **per subsystem** in a DFS: **one global CAP label** misleads.
+
+| Subsystem | Partition in the wild | Desired posture | Why |
+|-----------|------------------------|-------------------|-----|
+| **Metadata service (namespace, chunkmap)** | Loss of **ZooKeeper / quorum journal** connectivity | **CP**-leaning: **sacrifice availability** of writes rather than **split-brain** two active masters | **Two writers** to namespace → **unrecoverable** corruption; **brief** read-only is acceptable in many batch stacks |
+| **Chunk data plane** | Rack **partition** isolates some replicas | **AP**-leaning: **serve reads** from **any** **up-to-date** replica; **writes** pause until **primary** is **knowable** | **Throughput** and **durability** beat **single-site** strong consistency across **all** bytes |
+| **Client caches** | Stale **location** cache | **Eventual**: accept **stale** until **version mismatch** → **refresh** | Explicit **version/epoch** turns “**eventually**” into **detectable** staleness |
+
+**Per-component breakdown:**
+
+- **Master / metadata quorum:** Prioritize **consistent** view of **paths** and **chunk ownership**. During **split-brain risk**, **fencing** + **no dual active** → **availability** hit is **intentional**.
+- **Primary + secondaries:** **Consistency** within a chunk is **linearizable** via **primary order**; **across** chunks there is **no** global order—**P** is tolerated at **cluster** level.
+- **Cross-datacenter:** Often **async** replication → **C** weakens for **DR** copies; **interview** answer: **metadata sync** may be **strong inside cell**, **async** across cells for **bandwidth**.
+
+```mermaid
+flowchart LR
+  subgraph Meta["Metadata path — CP-leaning"]
+    M[Quorum / Raft log]
+    NS[Namespace + chunkmap]
+    M --> NS
+  end
+  subgraph Data["Data path — AP-leaning reads"]
+    R1[Replica A]
+    R2[Replica B]
+    R3[Replica C]
+  end
+  subgraph Part["Network partition"]
+    P[Some edges cut]
+  end
+  Part -.->|may isolate| Meta
+  Part -.->|replicas may be split| Data
+  Meta -->|leases + version| Data
+```
+
+{: .tip }
+> **Interview sound bite:** “We’re **CP** on **metadata** so we never fork the namespace; we’re **AP-oriented on bulk data** because **replicas + primary ordering** give us **durability** without **global transactions**.”
+
+---
+
+### SLA and SLO Definitions
+
+SLAs are **external promises** (often **contractual**); **SLOs** are **internal** targets with **error budgets**. For a **cluster DFS**, state **scope** (single cell vs global) and **workload** (batch vs interactive).
+
+#### Service tiers (illustrative)
+
+| Tier | Users | Emphasis |
+|------|---------|----------|
+| **Metadata API** | All clients | **Low** tail latency, **high** correctness |
+| **Data read/write** | Tasks, pipelines | **Throughput**, **sequential** bandwidth |
+| **Admin / recovery** | Operators | **Bounded** repair time, **predictable** blast radius |
+
+#### SLO examples (adjust numbers in interview)
+
+| SLO | Target | Measurement window | Notes |
+|-----|--------|--------------------|-------|
+| **Read latency (p50 / p99)** | **&lt; 5 ms / &lt; 50 ms** same-rack sequential chunk read | **Rolling 30 days** | Excludes **cross-region**; **cold** EC tail may be **higher**—split SLO by **tier** |
+| **Write / append ack (p99)** | **&lt; 100 ms** intra-cell | **Rolling 30 days** | Dominated by **pipeline** + **disk**; **record append** may **batch** |
+| **Metadata RPC (p99)** | **&lt; 10 ms** for lookup / lease | **Rolling 30 days** | **Spikes** often mean **GC**, **HA** failover, or **hot** directory |
+| **Data durability** | **99.999999999%** (11 nines) **annual** object survival | **Yearly** | **Justify** with **3× replication + scrubbing + MTTR**—not magic; **backups** for **metadata** |
+| **Metadata durability** | **No silent loss** of committed namespace; **RPO** **near zero** for edit log | Per incident | **QJM/Raft** **fsync** policy matters |
+| **Availability (data plane reads)** | **99.9%–99.99%** monthly | **Monthly** | **Planned** maintenance windows **excluded** or **budgeted** separately |
+| **Availability (metadata writes)** | **99.95%+** with HA | **Monthly** | **Failover** seconds; **degraded** mode may be **read-only** |
+| **Cluster aggregate throughput** | **≥ X GB/s** sustained **read** under **normal** load | **Weekly peak** | Capacity **planning** SLO, not a **single-RPC** metric |
+
+{: .warning }
+> **11 nines** for **bytes** is a **design story** (replication, **anti-correlation**, **scrubbing**, **repair**), not a **single formula**. Tie **durability** SLO to **measurable** inputs: **replica count**, **MTTR**, **bitrot** detection.
+
+#### Error budget policy
+
+| Element | Policy |
+|---------|--------|
+| **Budget** | **1 - SLO** per month (e.g., **99.99%** → **~4.32 min** bad metadata availability per month) |
+| **Spend** | **Failover**, **GC pauses**, **slow disks** consume budget—track **burn rate** |
+| **Gate releases** | If **burn** &gt; **2×** sustained, **freeze** risky changes; prioritize **reliability** work |
+| **Degraded modes** | **Read-only metadata** may **preserve** **C** at **cost of A**—document as **acceptable** for **batch** |
+| **Customer comms** | **SLA** credits only if **external** monitoring agrees; **internal** SLOs stricter |
+
+{: .note }
+> Separate **latency** SLOs for **interactive** SQL-on-HDFS vs **batch** MapReduce—same cluster, **different** expectations.
+
+---
+
+### Database Schema
+
+The **master** is not always a **relational** DB, but **interview** answers are clearer with **normalized** tables. **Implementation** may be **custom in-memory** structures + **WAL**; the **schema** still guides **APIs** and **scaling**.
+
+#### Entity relationships (conceptual)
+
+- **One directory** has many **children** (files or subdirs).
+- **One file** maps to an **ordered list of chunks** (by index).
+- **One chunk** has **multiple replica rows** (locations + disk id + state).
+- **Leases** attach to **chunk epoch** (optional separate table or columns on chunk).
+
+#### 1) File metadata (`files` / inodes)
+
+Structured to answer: **Who owns this path?** **How big?** **Which chunks?** **Which generation for cache invalidation?**
+
+```sql
+-- Illustrative DDL (PostgreSQL-style). Production masters often use custom stores + WAL.
+CREATE TABLE files (
+  file_id           BIGINT PRIMARY KEY,
+  parent_inode_id   BIGINT NOT NULL,
+  name              VARCHAR(4096) NOT NULL,
+  is_directory      BOOLEAN NOT NULL DEFAULT FALSE,
+  owner_uid         BIGINT NOT NULL,
+  group_gid         BIGINT NOT NULL,
+  permission_bits   INT NOT NULL,           -- unix-style rwx
+  size_bytes        BIGINT NOT NULL DEFAULT 0,
+  chunk_count       INT NOT NULL DEFAULT 0,
+  replication_goal  SMALLINT NOT NULL DEFAULT 3,
+  generation        BIGINT NOT NULL,        -- inode generation for open() validation
+  created_at_ns     BIGINT NOT NULL,
+  modified_at_ns    BIGINT NOT NULL,
+  accessed_at_ns    BIGINT,
+  UNIQUE (parent_inode_id, name)
+);
+
+CREATE INDEX idx_files_parent ON files (parent_inode_id);
+```
+
+| Column | Purpose |
+|--------|---------|
+| `generation` | Invalidates **stale** client handles after **delete/recreate** |
+| `chunk_count` | **Denormalized** for fast stat; or **derive** from `file_chunks` |
+| `replication_goal` | **Per-file** policy override (rare) vs **cluster default** |
+
+#### 2) File → chunk mapping (`file_chunks`)
+
+**Ordered** mapping **file → chunk index → chunk_id** (GFS/HDFS **logical block** list).
+
+```sql
+CREATE TABLE file_chunks (
+  file_id     BIGINT NOT NULL REFERENCES files(file_id) ON DELETE CASCADE,
+  chunk_index INT NOT NULL,      -- 0-based order in file
+  chunk_id    BIGINT NOT NULL,
+  PRIMARY KEY (file_id, chunk_index)
+);
+
+CREATE INDEX idx_file_chunks_chunk ON file_chunks (chunk_id);
+```
+
+#### 3) Chunk locations and version (`chunks`, `chunk_replicas`)
+
+| Table | Answers |
+|-------|---------|
+| `chunks` | **Version**, **lease**, **primary**, **state** (under-replicated, etc.) |
+| `chunk_replicas` | **Which disk** on **which server** holds a **replica** |
+
+```sql
+CREATE TABLE chunks (
+  chunk_id           BIGINT PRIMARY KEY,
+  version            BIGINT NOT NULL,       -- bumped on primary failover / repair
+  lease_holder       VARCHAR(128),          -- chunkserver id of primary
+  lease_epoch        BIGINT NOT NULL DEFAULT 0,
+  lease_expiry_ns    BIGINT,
+  expected_replicas  SMALLINT NOT NULL DEFAULT 3,
+  state              VARCHAR(32) NOT NULL DEFAULT 'HEALTHY', -- HEALTHY, UNDER_REPLICATED, CORRUPT
+  last_scrubbed_ns   BIGINT
+);
+
+CREATE TABLE chunk_replicas (
+  chunk_id      BIGINT NOT NULL REFERENCES chunks(chunk_id) ON DELETE CASCADE,
+  server_id     VARCHAR(128) NOT NULL,
+  disk_id       VARCHAR(128) NOT NULL,
+  replica_role  VARCHAR(16) NOT NULL,       -- PRIMARY, SECONDARY
+  persistent_version BIGINT NOT NULL,       -- stored on disk; must match chunks.version for PRIMARY
+  status        VARCHAR(16) NOT NULL DEFAULT 'LIVE', -- LIVE, STALE, DECOMMISSIONING
+  PRIMARY KEY (chunk_id, server_id, disk_id)
+);
+
+CREATE INDEX idx_replicas_server ON chunk_replicas (server_id);
+```
+
+**Why separate replica rows:** **Placement**, **rack** diversity, and **decommission** are **per-replica** operations; **join** to `chunks` for **version** truth.
+
+#### 4) Namespace tree (`directories` / path resolution)
+
+Either **materialized path** (simple, bad for rename) or **inode tree** (used above with `parent_inode_id` + `name`).
+
+```sql
+-- Optional: fast path string index if product exposes full path as key (trade-off: rename cost)
+CREATE TABLE path_index (
+  path_hash     BYTEA PRIMARY KEY,
+  file_id       BIGINT NOT NULL REFERENCES files(file_id)
+);
+```
+
+**Interview trade-off:** **Inode tree** + `(parent, name)` **unique** → **O(depth)** rename in **directory** only; **path index** → faster **lookup** by **full path** but **rename** must **update subtree** (or **avoid** full path materialization).
+
+#### Structured view (non-SQL)
+
+```text
+Inode {
+  inode_id, parent_id, name, is_dir,
+  attrs: { uid, gid, mode, size, mtime, ctime, generation }
+}
+FileChunks: ordered list { chunk_index -> chunk_id }
+Chunk {
+  chunk_id, version, lease { primary_id, epoch, expiry },
+  replicas: [ { server_id, disk_id, role, on_disk_version, status } ]
+}
+```
+
+{: .tip }
+> Mention **checkpoint** + **edit log**: the **authoritative** order is **log append**; **tables** are **derived** state replayed for **fast startup**—same schema, **two** **persistence** paths.
+
+---
+
 ## Step 2: Estimation
 
 ### Assumptions (Interview-Adjustable)

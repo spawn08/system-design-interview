@@ -94,6 +94,174 @@ GET /suggestions?prefix=machine%20l&limit=10&locale=en-US&session_id=<opaque>
 {: .tip }
 > Use **GET** with a stable query string so **CDNs** and **browser caches** can reuse responses for popular prefixes. Avoid putting PII in URLs; `session_id` should be opaque and optional.
 
+### Technology Selection & Tradeoffs
+
+Autocomplete is a **read-optimized, prefix-constrained** problem: you need **sub-millisecond local lookups** at scale, **cheap invalidation** when models change, and a **clear separation** between “what the world searches” (global) and “what this user likely wants” (personalization). The choices below are the ones interviewers expect you to compare explicitly—not because one option always wins, but because **tradeoffs change with scale, team skills, and product requirements**.
+
+#### Data structure
+
+| Approach | How it works | Pros | Cons | Best when |
+|----------|----------------|------|------|-----------|
+| **Trie / radix / DAWG** | Walk edges for each character of the prefix; nodes hold top-K completions | True **O(prefix length)** navigation; natural prefix API; easy to cap depth | Memory for sparse branches; dynamic updates are awkward (prefer snapshots) | **High QPS**, strict latency, you control the binary layout |
+| **Inverted index (term → postings)** | Map prefix to candidate terms via token dictionaries + postings | Great for **full-text** and fuzzy matching extensions | Prefix completion is not the native operation; more moving parts for pure typeahead | Hybrid search (suggestions + document retrieval) |
+| **Prefix hash table** | Hash of prefix string → precomputed list of completions | **Simple**; fast O(1) map lookup if lists are small | Explodes key space for long prefixes; merging/ranking across shards is harder; hot-prefix memory | Small catalogs, **non-search** typeahead (SKU codes, usernames) |
+| **Elasticsearch (completion / prefix query)** | `completion` suggester, `match_phrase_prefix`, or edge n-grams on analyzed text | **Mature** ecosystem, relevance tuning, ops tooling | Higher **tail latency** and cost at extreme QPS; tuning analyzers for multilingual prefixes is non-trivial | Teams already on ES; **moderate** QPS; need fuzzy + analyzers |
+
+**Why it matters:** For interview “Google-scale typeahead,” a **custom in-memory trie snapshot** (often radix-compressed) is the usual winning story because it minimizes work on the hot path. Elasticsearch shines when **search relevance** and **text analysis** dominate; a plain hash map shines when the **key space is tiny** and you do not need linguistic structure.
+
+#### Storage / serving substrate
+
+| Approach | Pros | Cons | Best when |
+|----------|------|------|-----------|
+| **Redis (ZSET / HASH + TTL)** | Fast, familiar, great for **hot overlays**, A/B flags, cache | Not a trie; you model prefix keys explicitly or store blobs—**memory cost** can grow | Trending overlay, **cache**, session-scoped boosts, rate limits |
+| **Custom in-memory trie (per process)** | Lowest latency; **immutable snapshots** + atomic swap | You own serialization, rollout, crash recovery | **Primary read path** for global suggestions at scale |
+| **Elasticsearch cluster** | Query flexibility, horizontal scaling for text features | Ops overhead; harder to hit aggressive **P99** at huge QPS without heavy caching | Secondary index or **smaller** autocomplete tier |
+| **Dedicated autocomplete microservice + object store** | Clear ownership; snapshots in **S3/GCS**; replayable builds | More services to deploy | Mature orgs separating **ML/ranking** from generic search |
+
+**Why it matters:** Global popularity is usually served from **replicated in-memory artifacts** (mmap or heap) built offline. Redis is rarely “the whole trie” at web-scale; it is almost always **adjacent** (cache, trending, personalization features).
+
+#### Ranking
+
+| Signal type | Pros | Cons | Best when |
+|-------------|------|------|-----------|
+| **Popularity / global frequency** | Stable, cheap to compute, strong baseline | Misses spikes and user intent diversity | **V1** and backbone ranking |
+| **Personalized (history, clicks)** | Higher CTR for signed-in users | Privacy, cold start, infra for per-user stores | Product requires **“your recent searches”** |
+| **Recency / trending (time-decayed)** | Surfaces news and viral queries | Noisy; abuse-sensitive | Homepage/news/product search |
+| **ML (learning-to-rank, embeddings)** | Can blend many features | Training/serving complexity; observability needs | Mature teams with logged **impressions/clicks** |
+
+**Why it matters:** Interviewers want to hear **layering**: global trie provides **candidates + coarse order**; small overlays rerank with **trending** and **user boosts** under strict latency budgets.
+
+#### Where to serve from
+
+| Approach | Pros | Cons | Best when |
+|----------|------|------|-----------|
+| **Edge / CDN-cached** | Massive offload for **hot prefixes**; lower origin QPS | Stale suggestions until TTL or surrogate-key purge; harder personalization | Anonymous traffic, **popular** prefixes |
+| **Centralized origin cluster** | Easier **consistent** routing, richer ranking context | Must scale for peaks | Default origin design |
+| **Client-side trie / bloom of hot queries** | Zero network for cached prefixes | Bundle size; privacy; freshness control | Mobile **offline-ish** or very small static lists |
+
+**Our choice:** **Immutable in-memory trie (radix/compressed) snapshots** for the global index, **atomic swap** on publish, **Redis** for generation-scoped caches and short-lived trending overlays, **CDN** for anonymous hot-prefix caching with **versioned keys**, and **centralized ranking** for personalization that needs stable session/context. **Rationale:** it minimizes work on the P99 path (trie walk + small merges), isolates **slow analytics** from **fast serving**, and uses managed caches only where they **reduce origin load** without becoming the source of truth for the full dictionary.
+
+---
+
+### CAP Theorem Analysis
+
+The CAP framing for autocomplete is **not** “pick one of C, A, or P forever”—it is **which guarantees matter on which path**. Autocomplete is **read-heavy** and **latency-sensitive**; users prefer **fast, slightly stale** suggestions over **empty results** or **long waits**.
+
+| Dimension | Serving path (user-facing) | Index / analytics path |
+|-----------|----------------------------|-------------------------|
+| **Consistency** | **Eventual** is acceptable: suggestions may lag real-world queries by minutes | **Eventual** is typical: aggregates, dedupe, and rebuilds complete asynchronously |
+| **Availability** | **Favor availability + low latency**: degrade to cache/stale trie rather than hard-fail the box | Brief inconsistency across regions is OK if **serving** stays up |
+| **Partition tolerance** | Under network splits, **do not** block the UI: serve **best-effort** from local replica/cache | Log pipelines may buffer (Kafka); builders **catch up** later |
+
+**Interview takeaway:** treat the **serving tier as AP-oriented**: prefer **stale suggestions** over **no suggestions** when dependencies are unhealthy (Redis down → trie-only; partial shard → return what you have with lower K). Strong consistency across regions for “everyone sees the same top-10 instantly” is **not** worth the latency cost; **bounded staleness** (snapshot age, overlay TTL) is the right language.
+
+```mermaid
+flowchart TB
+  subgraph ap_path["AP-biased serving path"]
+    U[User keystroke]
+    E[Edge / CDN optional]
+    O[Origin autocomplete]
+    L[Local replica / in-memory snapshot]
+    C[Redis cache optional]
+    U --> E --> O
+    O --> C
+    O --> L
+  end
+
+  subgraph ev_index["Eventually consistent index pipeline"]
+    K[Kafka query logs]
+    A[Aggregators Spark / Flink]
+    S[Snapshot builder]
+    OB[(Object store snapshots)]
+    A --> S --> OB
+    K --> A
+  end
+
+  OB -. "async publish / swap" .-> L
+```
+
+**Why:** the **index** can sacrifice immediate cross-replica consistency because **search logs** are noisy and **rebuilds** are batch-oriented. The **user** cannot sacrifice **prompt feedback**—so the system **prioritizes partition tolerance + availability** on the read path, with **monotonic snapshot versions** to make staleness **explainable** (not random).
+
+---
+
+### SLA and SLO Definitions
+
+SLAs are **contracts** (often external); SLOs are **internal targets** that should be **stricter** than the SLA so you keep **error budget** for dependencies and releases.
+
+#### Core SLOs (example targets—tune with product)
+
+| SLO | Target | Measurement window | Rationale |
+|-----|--------|--------------------|-----------|
+| **Suggestion latency** | **P99 < 100 ms** end-to-end (client to origin); **P50 < 20–40 ms** origin-only | 30-day rolling | Typing feels instant; tail drives perceived “jank” |
+| **Availability** | **99.99%** successful suggestion responses (non-5xx, within timeout) | 30-day rolling | Search box is high-impact; budget for rare outages |
+| **Relevance** | **CTR@K** or “success within top-K” ≥ baseline − small regression budget | 30-day rolling | Protects ranking changes; use **shadow** or **canary** traffic |
+| **Index freshness** | **≤ 1 h** median age of global snapshot; trending overlay **≤ 5–15 min** | 7-day rolling | News/social need fresher tails without full rebuild every minute |
+
+#### Error budget policy
+
+- **Latency burn:** if **P99 latency** consumes error budget for **7 consecutive days**, freeze **non-critical** launches (new ranking experiments), increase **cache TTL** for safe prefixes, and **scale out** before new features.
+- **Availability burn:** if **availability** drops below SLO, **disable** optional paths first (personalization overlay, experimental rerankers), **shed** load via stricter rate limits, and **fail open** to trie-only responses.
+- **Relevance burn:** if **CTR@K** regresses beyond agreed threshold, **rollback** ranking weights via feature flag; do **not** compensate by increasing latency (avoid “fix relevance by searching harder” without a budget).
+
+{: .note }
+> In interviews, pair each SLO with **how you measure it**: distributed tracing for latency, synthetic probes for availability, and **impression/click logs** for relevance—otherwise SLOs are wishful thinking.
+
+---
+
+### Database Schema
+
+Autocomplete storage is **not** one relational table—it is a **logical model** split across **online serving structures**, **analytical warehouses**, and **streaming state**. Below is an interview-ready breakdown.
+
+#### 1. Suggestion index (logical)
+
+**Entities**
+
+| Entity | Purpose | Key fields |
+|--------|---------|------------|
+| **Prefix node** | Navigation unit in trie (or segment in FSA) | `node_id`, `locale`, `depth`, optional `label` fragment |
+| **Completion** | A candidate query string shown under a prefix | `query_text`, `global_score`, `sources[]`, `safety_flags` |
+| **Snapshot** | Immutable generation of the whole structure | `snapshot_id`, `created_at`, `checksum`, `locale` |
+
+**Logical relationships:** each **prefix node** references up to **K completions** (or IDs into a string table for deduplication). **Scores** are **pre-aggregated** offline so the read path avoids heavy joins.
+
+#### 2. Query logs (raw, for aggregation)
+
+Append-only events (Kafka → warehouse):
+
+| Field | Type (logical) | Notes |
+|-------|----------------|-------|
+| `event_id` | UUID | Idempotency / dedupe |
+| `ts` | timestamp | Event time |
+| `normalized_query` | string | Lowercased, Unicode-normalized |
+| `locale` | string | `en-US`, etc. |
+| `session_id` | opaque id | **Not** PII if possible; rotate/hash |
+| `impression` / `click` | boolean | For CTR and ranking |
+| `client_version` | string | Debug |
+
+**Why:** powers **global frequency**, **trending**, and **relevance** experiments; kept out of the **hot serving** path.
+
+#### 3. Trending queries (short window)
+
+| Field | Type (logical) | Notes |
+|-------|----------------|-------|
+| `query` | string | Canonical key |
+| `window_start` | timestamp | Sliding or hopping window |
+| `trend_score` | float | z-score, EWMA spike, etc. |
+| `locale` | string | Partition key |
+
+Often maintained in **streaming state** (RocksDB in Flink) or **Redis** with TTL for **fast overlay**.
+
+#### Physical storage formats (how it actually sits in systems)
+
+| Store | What you store | Format / access pattern |
+|-------|----------------|-------------------------|
+| **In-process trie** | Nodes + per-node **min-heap / sorted top-K** | Pointer graph or **packed arrays** for snapshots; **read-only** after swap |
+| **Redis** | (a) `ZSET trending:{locale}` member=`query`, score=`trend`; (b) `STRING ac:v{gen}:{locale}:{prefix}` → JSON of top-K; (c) **rate counters** | **O(log N)** for ZSET updates; keys **versioned** by snapshot generation |
+| **Object store** | Serialized **snapshot blobs** + manifest | **Immutability**; blue-green workers **mmap** or load at boot |
+| **Warehouse (e.g., Iceberg/BigQuery)** | **query_logs** partitions by `date`, `locale` | Batch aggregates; **not** queried by online API |
+
+**Interview tip:** say **why**—the trie is **CPU-cache-friendly** and **prefix-local**; Redis **ZSET** gives **bounded-size** trending without rebuilding the whole trie; the warehouse gives **correct aggregates** offline without touching P99 serving.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

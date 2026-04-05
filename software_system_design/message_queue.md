@@ -265,6 +265,168 @@ class Consumer:
 {: .tip }
 > Mention **metadata service** (topic → partition leaders), **authentication** (SASL), and **compression** (`gzip`, `lz4`, `zstd`) at the boundary—they matter for production.
 
+### Technology Selection & Tradeoffs
+
+Choosing a message platform is choosing **durability semantics**, **operational model**, and **client protocol** together. Interviewers expect you to name **two realistic options** and justify one for the stated workload (throughput, ordering, multi-tenancy, cloud vs self-managed).
+
+#### Broker architecture
+
+| Style | Examples | How it works | Strengths | Weaknesses |
+|-------|----------|--------------|-----------|------------|
+| **Log / partition-centric** | Apache Kafka, Redpanda | Append-only **partitions** on brokers; **offsets**; consumer groups pull | Massive throughput, replay, many subscribers per topic | Ops-heavy; hot partitions; fewer built-in routing patterns than AMQP |
+| **Traditional broker / queue-centric** | RabbitMQ, ActiveMQ | **Exchanges**, **queues**, optional streams plugin | Flexible routing, classic task queues, per-queue DLQ patterns | Classic queues are **not** infinite replay logs; throughput often broker-bound |
+| **Hybrid / layered** | Apache Pulsar | Broker serves clients; **BookKeeper** or cloud journal for persistence; **tiered** offload | Strong isolation, geo, tiered storage story | More moving parts; steeper learning curve |
+| **Cloud-native managed** | Amazon SQS + SNS, GCP Pub/Sub, Azure Event Hubs | Fully managed APIs, quotas, IAM | Fast to production, no broker fleet to run | Vendor semantics, egress/ingress costs, less control over internals |
+
+{: .note }
+> **Why this matters in interviews:** “Kafka vs RabbitMQ” is not a beauty contest—it is **log + replay + fan-out** vs **routing + competing consumers + delete-on-ack**. Pick the model that matches **retention**, **ordering**, and **who owns consumer scale-out**.
+
+#### Storage backend (for log-style systems)
+
+| Option | Idea | Strengths | Weaknesses |
+|--------|------|-----------|------------|
+| **Append-only log on local disk** | Segmented files per partition; sequential writes | Predictable throughput; easy replication (byte-identical followers) | Disk full, single-AZ failure without replication |
+| **Page cache + OS read path** | Writes hit page cache; `sendfile`/mmap for reads | **Zero-copy**-friendly fan-out; low CPU | Tail latency spikes if cache cold or GC pauses |
+| **Tiered storage (e.g. older segments → S3)** | Hot data local; cold in object store | Long retention **without** linear disk spend | **Read latency** for cold segments; ops complexity |
+
+{: .tip }
+> Tie storage to **SLO**: local SSD + page cache wins **p99 produce/fetch**; tiered wins **$/GB-month** for compliance retention. Say both when the interviewer mentions “7 years of audit logs.”
+
+#### Delivery semantics
+
+| Semantics | Meaning | Duplicate / loss risk | Typical mechanism |
+|-----------|---------|----------------------|-------------------|
+| **At-most-once** | Message may be **lost**, never duplicated | Loss on crash before ack | Ack **before** processing; or fire-and-forget producer |
+| **At-least-once** | Message **never lost** if committed; may be **processed twice** | Duplicates on retry | Ack **after** processing + **idempotent** sinks |
+| **Exactly-once (broker + app)** | **Effects** happen once | Requires **idempotent producer**, **transactions** where needed, **idempotent consumer/sink** | Sequence numbers, txn boundaries, dedupe keys |
+
+{: .warning }
+> **Exactly-once** is a **system property**, not a single checkbox: the broker can dedupe **retries** and support **transactions**, but **your database** still needs **keys** or **upserts** so duplicate delivery does not double-charge.
+
+#### Protocol
+
+| Protocol | Shape | Strengths | Weaknesses |
+|----------|-------|-----------|------------|
+| **Custom binary (Kafka protocol)** | Length-prefixed RPC frames, versioned APIs | Mature clients; batching; zero-copy path | Not human-debuggable with `curl` |
+| **AMQP 0.9.1 / 1.0** | Broker exchanges, queues, acknowledgements | Great for **routing** and **per-queue** semantics | Heavier than minimal log RPC for huge firehose |
+| **MQTT** | Pub/sub over TCP; lightweight | IoT, intermittent networks; small footprint | Not the default for multi-MB payloads or huge intra-DC throughput |
+| **gRPC / HTTP/2** | Request streams, flow control | Uniform with microservices; easy gateways | Often extra framing vs highly tuned binary log pipeline |
+
+**Our choice (for this Kafka-like guide):** a **partitioned append-only log** with **custom or Kafka-compatible binary protocol**, **local segmented storage** with **page-cache-friendly** I/O, optional **tiered** offload for cost, **at-least-once** as the default product semantics with **idempotent producer + idempotent application** for duplicate control, and **transactions** only where read-process-write atomicity is required. This maximizes **throughput and replay** while keeping a clear path to **production-grade** durability via **ISR** and **`acks=all`**.
+
+---
+
+### CAP Theorem Analysis
+
+Distributed queues sit on the **CP vs AP** frontier: **network partitions** force a choice between **accepting writes** (availability to producers, risk **duplicates** or **divergent** state) and **rejecting writes** (consistency of what is “committed,” risk **unavailability** or **producer-side backlog**).
+
+| During a partition… | If the broker favors… | What happens | Interview framing |
+|---------------------|-------------------------|--------------|-------------------|
+| Subset of replicas isolated | **CP** (quorum / min ISR not met) | **Reject** or **fail** produces that need replication | **No silent loss** of acknowledged writes; producers retry or fail visible |
+| | **AP** (accept leader writes without ISR) | **Higher availability** of the write API | Risk **data loss** on failover (**unclean leader election**)—must be explicit |
+| Producer cannot reach leader | Either | **Timeouts / retries** | At-least-once with **duplicate** risk unless idempotent producer |
+
+{: .note }
+> **CAP** is about **network partition**, not “disk died.” Replication and **leader election** are how you map **partition tolerance** to concrete broker behavior.
+
+**ISR (in-sync replica) model (sketch):** Each partition has a **leader** and **followers**. The **ISR** is the set of replicas **caught up** within lag bounds. A produce with **`acks=all`** is acknowledged only after **all ISR replicas** have the record (Kafka’s exact rules involve **HW** and **leader epochs**—interviews use this story). If a follower **falls behind**, it is **dropped from ISR**; **`min.insync.replicas`** blocks commits if the ISR is too small—**CP** over **taking writes without enough copies**.
+
+```mermaid
+flowchart TB
+  subgraph Healthy["Healthy ISR"]
+    L[Leader LEO advances]
+    F1[Follower 1 in ISR]
+    F2[Follower 2 in ISR]
+    L -->|replicate| F1
+    L -->|replicate| F2
+  end
+  subgraph Partition["Network partition"]
+    L2[Leader isolated or min ISR not met]
+    P[Producer]
+    P -->|acks=all| L2
+    L2 -.->|cannot replicate| F3[Followers unreachable]
+  end
+  Healthy -->|split-brain risk if two leaders| Partition
+```
+
+{: .tip }
+> **Staff sound bite:** Under partition, **Kafka-style** systems with **`acks=all` + min ISR** behave **CP** on the **commit set** (you may **not** get an ack). **Unclean election** trades **C** for **A**—say that only for **explicit** disaster policies.
+
+---
+
+### SLA and SLO Definitions
+
+SLIs are **measurable**; SLOs are **targets** over a window; error budgets decide **when to freeze features** vs **fix reliability**.
+
+| Area | SLI (what we measure) | Example SLO (monthly) | Why candidates care |
+|------|------------------------|----------------------|------------------------|
+| **Publish latency** | Time from `send` return to broker ack | **p99 &lt; 10 ms**, **p999 &lt; 50 ms** (same region) | Batching vs `linger.ms` trade-off; cross-AZ blows p99 |
+| **End-to-end delivery latency** | Produce timestamp → consumer **processing** complete | **p99 &lt; 100 ms** for pipeline class (tuned) | Includes **consumer lag**, **poll interval**, downstream DB |
+| **Message durability** | Fraction of **acked** `acks=all` writes lost | **&lt; 0.001%** annual (often expressed via **RPO**) | Ties to **RF=3**, **ISR**, **rack awareness** |
+| **Availability** | Successful produce+fetch API / total attempts | **99.95%**–**99.99%** API monthly | **Controller** quorum, rolling restarts, AZ spread |
+| **Ordering guarantee** | Violations of **per-partition** total order | **100%** within partition for keyed traffic | Misconfigured **parallelism** or **retries** break order |
+
+{: .note }
+> Publish SLO is **broker-local**; end-to-end SLO is **product-owned**—always separate them in interviews.
+
+**Error budget policy (example):**
+
+| Budget state | Action |
+|--------------|--------|
+| **&gt; 50% remaining** | Normal feature velocity; optional latency tuning |
+| **25–50%** | Freeze non-critical launches; prioritize **ISR**, **lag**, **p99** work |
+| **&lt; 25%** | Incident review; **no** partition increases without review; paging on SLO burn |
+| **Exhausted** | **Freeze** releases until root cause; exec review |
+
+{: .warning }
+> **Consumer lag** is not always an SLO violation: define whether **max lag** (e.g. **&lt; 5 minutes** at p99) is a **product SLO** or an **internal** alerting threshold.
+
+---
+
+### Data Model
+
+Clear **entities** help you explain **metadata**, **storage layout**, and **failure recovery** on the whiteboard.
+
+| Entity | Definition | Interview hooks |
+|--------|------------|-----------------|
+| **Topic** | Named **logical** stream; configured with partition count, retention, replication factor, compaction | **Control plane** stores config; clients resolve **metadata** to leaders |
+| **Partition** | **Ordered** append-only sub-log; **unit of parallelism** and **per-partition order** | Hot key → **one** partition → skew |
+| **Offset** | Monotonic **logical position** within a partition (0-based or long sequence) | **Consumer progress**; **not portable** across clusters after geo-replication |
+| **Message / record envelope** | On-wire or stored **blob** with fields below | Serialization (Avro/Protobuf/JSON) is **application** concern |
+
+**Record envelope (typical):**
+
+| Field | Role |
+|-------|------|
+| **Key** | Partition routing (`hash(key) % P`); optional **null** for round-robin |
+| **Value** | Payload bytes (often serialized record) |
+| **Headers** | Metadata (trace id, content-type, schema id) without parsing **value** |
+| **Timestamp** | **Create** time (producer or broker **LogAppendTime**); used for retention and **timeindex** |
+
+{: .tip }
+> Say **headers** carry **observability** and **routing hints**; **value** carries **business data**—helps in schema-evolution questions.
+
+**Consumer group state (logical):**
+
+| Piece | Stored as |
+|-------|-----------|
+| **Group id** | String; coordinator **shard** by hashing group name |
+| **Generation / epoch** | Increments on **rebalance**; guards stale commits |
+| **Member id → partitions** | Assignment **vector**; **sticky** assignors reduce churn |
+| **Committed offsets** | `(topic, partition) → offset` map; **internal compacted topic** or external store |
+
+**Dead letter queue (DLQ) structure (pattern):**
+
+| Field | Purpose |
+|-------|---------|
+| **Original topic, partition, offset** | **Replay** or **inspect** source record |
+| **Failure reason / stack** | Ops triage |
+| **Payload copy or reference** | Idempotency; **large** bodies may be **blob store** pointer |
+| **Retry count, first/last failure time** | **Backoff** and **alert** thresholds |
+
+{: .note }
+> **DLQ** is often a **separate topic** (or queue product) with **short retention** + **alerting**—not infinite storage of bad messages.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

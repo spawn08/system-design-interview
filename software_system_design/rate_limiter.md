@@ -88,6 +88,263 @@ A rate limiter controls how many requests a client can make to an API within a g
 
 ---
 
+### Technology Selection & Tradeoffs
+
+Production rate limiters are built from **state store + algorithm + deployment shape + synchronization primitives**. The right combination depends on latency budget, accuracy needs, operational maturity, and whether limits are global or regional.
+
+#### State store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis** | Sub-ms reads/writes, Lua for atomic multi-key logic, TTL, clustering, mature ops story | Another dependency; single-region strong consistency is natural; cross-region needs a strategy | Default for distributed APIs at scale |
+| **Memcached** | Very fast, simple GET/INCR | No Lua, no rich data structures, weaker TTL/story for complex windows; harder to do atomic sliding-window math | High-QPS simple fixed-window or INCR-only limits |
+| **In-process memory** | Zero network hop, simplest | Not shared across instances → **per-server** limits unless sticky sessions; lost on restart | Edge-only or canary; local burst protection layered on top of Redis |
+| **DynamoDB** | Durable, regional, pay-per-use; conditional writes for counters | Higher p99 than Redis; need idempotent design; cost at extreme QPS | Control plane, audit, rule config; or when you already standardize on Dynamo for hot path |
+
+{: .tip }
+> **Interview angle:** Redis wins the **default** because you need **shared mutable state** with **atomic updates** across many app servers. Memcached is acceptable only when your algorithm maps cleanly to simple counters. In-process is never enough alone for a horizontally scaled API unless you explicitly partition traffic (sticky) or accept approximate per-host limits.
+
+#### Algorithm — production choice and tradeoffs
+
+The file already compares algorithms; in interviews, explain **why** you pick one for production:
+
+| Production goal | Prefer | Why it wins | What you give up |
+|-----------------|--------|-------------|------------------|
+| Smooth per-minute/hour limits without boundary spikes | **Sliding window counter** | O(1) state, good accuracy, fits Redis INCR + two windows | Small approximation vs sliding log |
+| Product needs **burst allowance** (e.g. “100/min but burst 20 in a second”) | **Token bucket** | Natural burst semantics; one hash per client in Redis | Refill tuning; not identical to “N per calendar minute” |
+| Strict **calendar windows** and simplicity | **Fixed window** | Cheapest operations | Boundary burst (classic interview trap) |
+| Billing or compliance needs **exact** request counts in a window | **Sliding window log** | Exact | Memory and Redis memory proportional to request rate |
+
+**Why sliding window counter is often “the” production default:** it balances **memory**, **accuracy**, and **implementability** in Redis without storing every timestamp. **Why token bucket** when the PM says “users can spike”: bursts are a product requirement, not a bug—token bucket encodes that explicitly.
+
+#### Deployment model
+
+| Model | Pros | Cons | Typical use |
+|-------|------|------|-------------|
+| **API gateway** (Kong, AWS API Gateway, Envoy rate limit filter) | Central policy, one place to audit, consistent headers | Gateway becomes critical path; vendor limits on expressiveness | Multi-team APIs, edge-first security |
+| **Middleware** in app (framework filter/interceptor) | Full request context (user, route, body size); fast iteration | Duplicated across services if not shared as library | Single service or shared internal library |
+| **Sidecar** (e.g. Envoy + ext_authz / local RL) | Consistent per-pod behavior, language-agnostic | More moving parts; two hops if calling Redis from sidecar | Kubernetes mesh, uniform limits per workload |
+| **Standalone rate limiter service** | Independent scaling, clear SLO, reusable across many callers | Extra network hop; must stay on critical path budget | Large orgs, gRPC “check limit” used by many backends |
+
+#### Synchronization
+
+| Approach | Behavior | Tradeoff |
+|----------|----------|----------|
+| **Redis Lua** | Read-modify-write in one atomic script | Best correctness/perf balance; keep scripts short |
+| **Single-key atomic ops** (`INCR`, `DECR`) | Simple, fast | Multi-key windows need careful ordering or Lua |
+| **Distributed locks** (Redlock, etc.) | Serializes updates | Higher latency, complexity, partition edge cases—**usually avoid** for hot-path limiting |
+| **Eventually consistent replicas** | Lower read latency | Stale reads → occasional under- or over-counting; sometimes acceptable for soft limits |
+
+**Our choice (typical interview answer):** **Redis** (clustered as needed) with **sliding window counter** or **token bucket** implemented via **Lua** (or carefully ordered `INCR` + rollback) for atomicity; **middleware or API gateway** for enforcement so product teams share one policy engine; **fail-open** on Redis errors unless compliance mandates otherwise. Add **PostgreSQL** (or similar) only for **rules, audit, and exemptions**—not for per-request hot path.
+
+---
+
+### CAP Theorem Analysis
+
+Rate limiters sit in an interesting CAP position: the **counter store** is effectively a **low-latency coordination service**. Interviewers want to hear you connect **consistency of counts**, **availability of the API**, and **partition tolerance** of the infrastructure.
+
+| Dimension | Typical stance | Why |
+|-----------|----------------|-----|
+| **Consistency** | Strong per-key updates on the **Redis primary** (Lua/INCR) | You want a single authoritative count per `(client, rule, window)` on the hot path |
+| **Availability (of limiting)** | Often **degraded**: **fail open** (allow traffic) when Redis is unavailable | Protecting the business from total outage usually beats strict enforcement |
+| **Partition tolerance** | Infrastructure partitions happen; **you cannot** have both strict global limits and full availability without compromise | Cross-region splits duplicate or miss counts unless you add coordination |
+
+**Multi-region:** a **single global Redis** optimizes consistency of one number but hurts **latency and partition resilience**. **Per-region Redis** improves availability and RTT but **violates a strict global limit** unless you add async reconciliation (eventually consistent) or a **partitioned budget** (e.g. 200/min per region).
+
+**During a Redis partition:** clients on the minority side may see **stale** or **split-brain** counts if reads go to replicas or split primaries—designs usually **route writes to one primary** per key and accept **unavailability of enforcement** (fail open) rather than wrong hard enforcement. **Split clients** (some to each partition) can **exceed** the intended limit until the partition heals—acknowledge this as **bounded over-admission**.
+
+```mermaid
+flowchart TB
+  subgraph CP [Consistency vs availability under partition]
+    W[Writers to single Redis primary per shard]
+    R[Reads from primary for limit checks]
+    P[Network partition]
+    W --> P
+    R --> P
+    P -->|minority partition| FO[Fail open OR queue checks]
+    P -->|healed| REC[Reconcile counters / accept over-count]
+  end
+```
+
+{: .tip }
+> **Sound bite:** *“We’re not choosing CAP for the whole company—we’re choosing it for the rate limit path: **strong consistency per key on the primary** for correctness, **partition tolerance** via Redis clustering, and **availability of the edge** via fail-open when the store is unreachable, trading strict enforcement for site uptime.”*
+
+---
+
+### Database Schema / State Model
+
+Separate **hot-path state** (ephemeral counters) from **cold-path configuration** (durable rules and audit).
+
+#### Redis key patterns and values (hot path)
+
+| Concept | Key pattern (example) | Value / structure | TTL |
+|---------|-------------------------|-------------------|-----|
+| Sliding window counter | `rl:{rule_id}:{subject_hash}:w:{window_id}` | String integer count | ~2× window |
+| Token bucket | `rl:tb:{rule_id}:{subject_hash}` | Hash: `tokens`, `last_refill` (ms) | derived from refill |
+| Composite subject | `subject` = hash of `(tenant_id, api_key_id)` or `ip` | — | — |
+| Burst / cost | Same key family; **cost** as weighted tokens | Lua subtracts `cost` | Same as bucket |
+
+**Subject keying:** prefer **stable IDs** (API key id, user id) over raw secrets in keys; hash if keys are sensitive.
+
+#### Rule definition (logical model)
+
+| Field | Purpose |
+|-------|---------|
+| `rule_id` | Stable identifier |
+| `scope` | global / tenant / endpoint / method |
+| `limit`, `window_sec` | Policy |
+| `algorithm` | `sliding_counter` \| `token_bucket` \| … |
+| `priority` | Which rule wins when multiple apply |
+
+#### PostgreSQL schema (rules, audit, exemptions)
+
+Rules and exemptions change rarely; use a relational store for **versioning**, **admin UI**, and **compliance audit**. Caches push active rules to Redis or app memory.
+
+```sql
+-- Rate limit rules (configuration)
+CREATE TABLE rate_limit_rules (
+  id              BIGSERIAL PRIMARY KEY,
+  rule_uuid       UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  name            TEXT NOT NULL,
+  scope           TEXT NOT NULL CHECK (scope IN ('global','tenant','endpoint')),
+  tenant_id       BIGINT,  -- NULL = global scope; optional FK to tenants(id) in your schema
+  http_method     TEXT,
+  path_pattern    TEXT,
+  algorithm       TEXT NOT NULL CHECK (algorithm IN ('sliding_window_counter','token_bucket','fixed_window')),
+  max_requests    INTEGER NOT NULL CHECK (max_requests > 0),
+  window_seconds  INTEGER NOT NULL CHECK (window_seconds > 0),
+  burst_capacity  INTEGER,
+  priority        INTEGER NOT NULL DEFAULT 0,
+  enabled         BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_rate_rules_tenant ON rate_limit_rules(tenant_id) WHERE tenant_id IS NOT NULL;
+
+-- Exemptions (allowlists)
+CREATE TABLE rate_limit_exemptions (
+  id           BIGSERIAL PRIMARY KEY,
+  rule_id      BIGINT NOT NULL REFERENCES rate_limit_rules(id) ON DELETE CASCADE,
+  subject_type TEXT NOT NULL CHECK (subject_type IN ('api_key','user','ip_cidr','service_account')),
+  subject_value TEXT NOT NULL,
+  reason       TEXT,
+  expires_at   TIMESTAMPTZ,
+  created_by   TEXT NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (rule_id, subject_type, subject_value)
+);
+
+-- Audit trail for config changes
+CREATE TABLE rate_limit_rule_audit (
+  id          BIGSERIAL PRIMARY KEY,
+  rule_id     BIGINT REFERENCES rate_limit_rules(id),
+  action      TEXT NOT NULL CHECK (action IN ('insert','update','delete','enable','disable')),
+  old_row     JSONB,
+  new_row     JSONB,
+  actor       TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+**Optional usage snapshots:** batch **aggregate** usage into `usage_daily` for billing—not for synchronous enforcement.
+
+---
+
+### API Design
+
+Expose **machine-facing** headers on every checked response, and **operator-facing** HTTP APIs for configuration and observability.
+
+#### Check path (middleware / gateway) — response headers
+
+Clients should receive consistent headers on **200** and **429** (and often on errors). Align with common conventions (GitHub, Stripe-style); `RateLimit-*` is newer IETF draft style—mention both in interviews.
+
+| Header | Meaning | Example |
+|--------|---------|---------|
+| `X-RateLimit-Limit` | Max requests in the policy window | `100` |
+| `X-RateLimit-Remaining` | Estimated remaining in current window | `42` |
+| `X-RateLimit-Reset` | Unix time (seconds) when the window resets | `1743877200` |
+| `Retry-After` | Seconds (or HTTP-date) to wait after **429** | `30` |
+| `RateLimit-Limit` / `RateLimit-Remaining` / `RateLimit-Reset` | Draft standard naming (optional dual-publish) | same values |
+
+**429 example:**
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1743877260
+Retry-After: 45
+
+{"error":"rate_limit_exceeded","message":"Too many requests","rule":"per_api_key_per_minute"}
+```
+
+**200 example (successful check):**
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 41
+X-RateLimit-Reset: 1743877260
+```
+
+{: .tip }
+> **Why headers matter:** they let clients **back off** without guessing, reduce **retry storms**, and support **SDK** throttling—say this explicitly in interviews.
+
+#### Configuration API (operators / tenants)
+
+| Method & path | Purpose |
+|---------------|---------|
+| `GET /v1/rate-limit/rules` | List rules (filter by tenant, scope) |
+| `POST /v1/rate-limit/rules` | Create rule |
+| `PUT /v1/rate-limit/rules/{ruleId}` | Update rule |
+| `DELETE /v1/rate-limit/rules/{ruleId}` | Soft-delete or disable |
+| `POST /v1/rate-limit/rules/{ruleId}/exemptions` | Add exemption subject |
+| `DELETE /v1/rate-limit/exemptions/{exemptionId}` | Remove exemption |
+
+**Example create rule:**
+
+```http
+POST /v1/rate-limit/rules HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <admin_token>
+
+{
+  "name": "default_per_key",
+  "scope": "global",
+  "algorithm": "sliding_window_counter",
+  "maxRequests": 100,
+  "windowSeconds": 60,
+  "priority": 10
+}
+```
+
+#### Usage query API
+
+| Method & path | Purpose |
+|---------------|---------|
+| `GET /v1/rate-limit/usage?subjectType=api_key&subjectId=...&ruleId=...` | Current count / remaining for a subject (read from Redis or replica with **staleness note**) |
+| `GET /v1/rate-limit/usage/me` | Caller’s own usage (scoped token) |
+
+**Response sketch:**
+
+```json
+{
+  "ruleId": "rl_default_per_key",
+  "limit": 100,
+  "remaining": 73,
+  "resetAt": "2026-04-05T12:01:00Z",
+  "windowSeconds": 60
+}
+```
+
+#### Internal check API (optional)
+
+Microservices may call a small **gRPC/HTTP** service: `CheckLimit(subject, rule_id) → { allowed, remaining, reset }` so enforcement stays consistent outside a single framework.
+
+---
+
 ## Step 2: Back-of-Envelope Estimation
 
 Before choosing an algorithm or architecture, estimate the scale to understand memory, bandwidth, and infrastructure needs.

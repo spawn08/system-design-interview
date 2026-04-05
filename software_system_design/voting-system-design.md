@@ -87,6 +87,348 @@ Let's design a system similar to **Strawpoll** or **Twitter Polls**:
 
 ---
 
+## Technology Selection & Tradeoffs
+
+Choosing storage, aggregation, deduplication, and rate limiting is not “pick the fastest”—each option trades correctness, ops cost, and failure behavior. Interviewers want to hear **why** a choice fits *this* workload (burst writes, exactly-once semantics per user/poll).
+
+### Vote storage (PostgreSQL vs Redis vs DynamoDB vs Cassandra)
+
+| Store | Strengths | Weaknesses | Fit for high-burst vote writes |
+|-------|-----------|------------|--------------------------------|
+| **PostgreSQL** | ACID, `UNIQUE` constraints, rich queries, familiar ops | Single-primary write path; needs pooling/sharding at extreme scale | **Strong default** when dedup must be authoritative; use async ingestion + batching to smooth bursts |
+| **Redis** | Extremely fast writes | Not a durable system of record; persistence modes add complexity; cluster split-brain risks | **Cache + fast dedup flag**, not sole source of truth for “did this user vote?” in production |
+| **DynamoDB** | Managed, horizontal scale, predictable at high TPS | Conditional writes / idempotency patterns needed; hot partitions on `poll_id` | **Good** if you partition keys carefully (e.g. `user_id`+`poll_id` composite, avoid mega-hot polls on one key without sharding strategy) |
+| **Cassandra** | Write-optimized, wide-column | No cheap cross-partition uniqueness—**duplicate prevention is harder**; LWT adds latency | **Risky** for strict one-vote-per-user unless you model uniqueness in application layer or use strong patterns per partition |
+
+**Why it matters:** Duplicate votes are a **consistency** problem. The durable store must enforce `(user_id, poll_id)` uniqueness. Redis/Dynamo/Cassandra can participate, but the *guarantee* usually lives in PostgreSQL (or Dynamo conditional writes with careful key design).
+
+### Count aggregation (real-time counter vs batch vs CRDT)
+
+| Approach | Pros | Cons | When to use |
+|----------|------|------|-------------|
+| **Real-time counter** (Redis `HINCRBY`, DB column++) | Low read latency; great UX for live results | Lost increments if not paired with durable write/replay; ordering issues under retries | Live polls **after** vote is durably accepted or idempotently applied |
+| **Batch aggregation** (Spark/Flink/scheduled SQL) | Simple mental model; good for analytics | High **lag**; poor for “live” leaderboard | Reporting, reconciliation, historical analytics |
+| **CRDT / distributed counters** | Nice for highly partitioned eventually consistent counts | Overkill for most polls; still need **authoritative** dedup elsewhere | Specialized multi-region *display* layers—not for replacing vote integrity |
+
+**Why it matters:** Counters can be **eventually consistent** for *display*; **deduplication cannot**. Often: Kafka + worker updates Redis for speed, DB remains source of truth, periodic reconciliation fixes drift.
+
+### Deduplication (DB constraint vs Redis set vs Bloom filter)
+
+| Mechanism | Behavior | False negatives? | False positives? | Notes |
+|-----------|----------|-------------------|-------------------|--------|
+| **DB `UNIQUE (user_id, poll_id)`** | Strong guarantee | No | No | **Source of truth**; handles races via transaction/constraint violation |
+| **Redis `SET` / `SETNX`** | Fast “already voted?” | No (if hit) | No | **Cache**; can be wrong on eviction/crash unless TTL and recovery sync from DB |
+| **Bloom filter** | Memory-efficient membership test | No | **Yes** (may say “maybe voted”) | Use only as **prefilter**—“probably voted, check DB”—never sole reject path |
+
+**Why it matters:** Retries and concurrent tabs make **idempotency keys** and **unique constraints** non-negotiable; Redis accelerates happy path; Bloom filters save RAM at cost of rare extra DB lookups.
+
+### Rate limiting (token bucket vs sliding window; in-memory vs distributed)
+
+| Algorithm | Burst behavior | Steady-state fairness | Implementation notes |
+|-----------|----------------|----------------------|----------------------|
+| **Token bucket** | Allows controlled bursts (tokens refill) | Good for APIs that tolerate short spikes | Common in gateways; bucket per user/IP |
+| **Sliding window** | Stricter in a rolling interval | Fairer for “max N per minute” abuse prevention | Often implemented with Redis sorted sets or approximate counters |
+| **Fixed window** | Simple | Spike at window boundaries | Easier but uneven; mention as naive option |
+
+| Deployment | Pros | Cons |
+|------------|------|------|
+| **In-memory (per gateway instance)** | Zero extra RTT; very fast | Wrong under load balancing unless sticky sessions or sync—**counts split across nodes** |
+| **Distributed (Redis/Redis Cluster, Envoy rate limit service)** | Consistent limits across instances | Extra hop; must handle Redis failure (fail open vs closed) |
+
+**Why it matters:** Rate limits protect **availability** and reduce fraud; they are **not** a substitute for vote dedup (different problem).
+
+### Our choice
+
+- **Vote durability + dedup:** **PostgreSQL** with `UNIQUE (user_id, poll_id)` as the final arbiter; **Redis** for fast duplicate checks and live counts; **Kafka** (or similar) to absorb bursts and decouple API from DB write pressure.
+- **Counts:** **Real-time Redis counters** updated after successful durable/idempotent processing, plus **batch or periodic reconciliation** against PostgreSQL for accuracy.
+- **Dedup layers:** **Redis `SETNX` / key per (poll, user)** + **idempotent consumer** + **DB constraint**; optional **Bloom** only if memory is constrained and extra DB reads are acceptable.
+- **Rate limiting:** **Distributed sliding window or token bucket** in **Redis** (or API gateway plugin backed by Redis) for consistent limits; tune **fail-open** vs **fail-closed** for voting (often fail-open for availability with abuse handled elsewhere).
+
+**Rationale in one line:** Optimize the **write path** for bursts without sacrificing **exactly-once vote semantics**; treat **display counts** as eventually consistent with a reconciling truth in PostgreSQL.
+
+---
+
+## CAP Theorem Analysis
+
+CAP is a lens, not a prescription: in practice we choose **per operation** consistency vs availability, often with **latency** (PACELC) as the real tie-breaker.
+
+### The tension
+
+- **Vote deduplication** needs **strong consistency**: a user must not record two successful votes for the same poll.
+- **Peak voting** demands **high availability**: users expect the button to work during spikes; regional outages should degrade gracefully.
+- **Leaderboards / live counts** can often tolerate **eventual consistency** if bounds are stated (seconds of lag).
+
+### Per-operation posture
+
+| Surface | Typical choice | Rationale |
+|---------|----------------|-----------|
+| **Vote submission (acceptance)** | **CP** on the *decision* “have we recorded this vote?” | Duplicate prevention is a correctness invariant; prefer failing or retrying over double-counting |
+| **Vote counts / bar charts** | **AP** / **eventual** | Reads scale with replicas and caches; small lag is acceptable if disclosed |
+| **Leaderboard (if ranked by votes)** | **AP** | Same as counts; tie-breaks may use snapshot timestamps |
+
+### Why not “all AP” or “all CP”?
+
+- **All AP:** You might show snappy results while **risking duplicate acceptance** unless another layer enforces uniqueness—dangerous.
+- **All CP:** You maximize correctness but **sacrifice availability** under partitions (e.g. strict quorum everywhere), hurting peak traffic.
+
+### Diagram: logical partitions of consistency
+
+```mermaid
+flowchart TB
+    subgraph CP_Path [CP-oriented: vote integrity]
+        VS[Vote submission path]
+        UC[(DB UNIQUE / conditional write)]
+        VS --> UC
+    end
+
+    subgraph AP_Path [AP-oriented: read scaling]
+        RC[Results / counts read path]
+        CACHE[(Redis / read replicas)]
+        RC --> CACHE
+    end
+
+    subgraph Eventual [Eventual: display freshness]
+        LB[Leaderboard / live ticker]
+        Q[Stream / worker updates]
+        LB --> Q
+        Q --> CACHE
+    end
+
+    UC -.->|reconcile / async projection| CACHE
+```
+
+**Interview takeaway:** Say clearly: **dedup is a consistency problem**; **fan-out reads and UI aggregates are availability/throughput problems**. Separate paths, reconcile.
+
+---
+
+## SLA and SLO Definitions
+
+SLAs are **contracts** with users or customers; SLOs are **internal targets** used to steer engineering; error budgets quantify **how much unreliability** you can spend before slowing feature work.
+
+### SLOs (example targets for a viral-ready poll platform)
+
+| SLO | Target | Measurement window | Notes |
+|-----|--------|--------------------|--------|
+| **Vote submission latency** | **p99 < 500 ms**, **p50 < 150 ms** | Rolling 30 days | End-to-end from edge to “accepted” response (202 or 200 per design) |
+| **Vote acceptance rate** | **≥ 99.95%** of *valid* authenticated requests succeed | Rolling 30 days | Exclude client errors (4xx); include 5xx and timeouts |
+| **Count accuracy (lag)** | **≤ 5 s** behind authoritative processing for live results (p99) | Rolling 7 days | Compare Redis/display vs DB reconciliation job |
+| **Availability during peak** | **≥ 99.99%** for vote API during declared peak events | Per event window | May use stricter internal target than global monthly SLA |
+
+### SLI (what we measure)
+
+- **Latency:** API gateway or service histograms for `POST /polls/{id}/votes`.
+- **Success:** ratio of `2xx` to total minus `4xx` validation failures.
+- **Accuracy:** scheduled job comparing `SUM(votes)` vs `poll_options.vote_count` / Redis hashes.
+- **Availability:** synthetic probes + success rate from real traffic.
+
+### Error budget policy
+
+| Monthly budget (example) | If burn is fast… |
+|--------------------------|------------------|
+| **99.9% availability** ≈ **43 minutes** downtime/month | Freeze non-critical releases; prioritize hotfix, scaling, load tests |
+| **99.95%** ≈ **22 minutes** | Same, plus incident review for vote path only |
+| **Latency SLO miss** (p99 > 500 ms sustained) | Treat like availability burn: scale workers, Kafka consumers, DB pool; review sync hot paths |
+
+**Policy:** Consuming **>50% of error budget** in **<25% of the window** triggers a **freeze** on risky changes and an **incident review**. Voting systems: prioritize **acceptance rate** and **dedup correctness** over cosmetic features when budgets burn.
+
+---
+
+## API Design
+
+REST-shaped JSON APIs are easy to reason about in interviews; emphasize **idempotency**, **clear errors**, and **async acceptance** where queues are used.
+
+### Conventions
+
+- **Auth:** `Authorization: Bearer <JWT>` for authenticated routes.
+- **Idempotency:** `Idempotency-Key` header on `POST` vote (and optional on poll create) for safe retries.
+- **Async vote path:** `202 Accepted` + `operation_id` or `vote_id` when processing is queued; `GET` status endpoint for polling clients that need it.
+
+### Endpoints overview
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/v1/polls` | Create poll |
+| `GET` | `/v1/polls/{poll_id}` | Poll metadata + options |
+| `PATCH` | `/v1/polls/{poll_id}` | Update poll (owner; restricted fields) |
+| `POST` | `/v1/polls/{poll_id}/votes` | Submit a vote |
+| `GET` | `/v1/polls/{poll_id}/results` | Aggregated counts / percentages |
+| `GET` | `/v1/polls/{poll_id}/votes/me` | Check whether current user voted (and option if allowed) |
+| `GET` | `/v1/polls/{poll_id}/votes/{request_id}` | Optional: status of async vote by client request id |
+
+---
+
+### Submit a vote
+
+`POST /v1/polls/{poll_id}/votes`
+
+**Request headers:** `Authorization`, `Idempotency-Key: <uuid>`
+
+**Request body:**
+
+```json
+{
+  "option_id": "550e8400-e29b-41d4-a716-446655440000",
+  "client_meta": {
+    "app_version": "1.4.2",
+    "platform": "ios"
+  }
+}
+```
+
+**Response `202 Accepted` (queued processing):**
+
+```json
+{
+  "status": "accepted",
+  "poll_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "request_id": "a3bb189e-8bf9-3888-b889-317e3f6b8c4d",
+  "message": "Vote is being processed"
+}
+```
+
+**Response `200 OK` (synchronous path, if implemented):**
+
+```json
+{
+  "status": "recorded",
+  "vote_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "poll_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "option_id": "550e8400-e29b-41d4-a716-446655440000",
+  "recorded_at": "2026-04-05T12:00:01.234Z"
+}
+```
+
+**Errors (examples):**
+
+```json
+{
+  "error": {
+    "code": "ALREADY_VOTED",
+    "message": "You have already voted on this poll",
+    "poll_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+  }
+}
+```
+
+---
+
+### Get results / counts
+
+`GET /v1/polls/{poll_id}/results`
+
+Optional query: `?tally=final|live` (if product distinguishes).
+
+**Response `200 OK`:**
+
+```json
+{
+  "poll_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "status": "active",
+  "total_votes": 12847,
+  "as_of": "2026-04-05T12:00:05.000Z",
+  "options": [
+    {
+      "option_id": "550e8400-e29b-41d4-a716-446655440000",
+      "label": "Option A",
+      "votes": 7201,
+      "percentage": 56.1
+    },
+    {
+      "option_id": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "label": "Option B",
+      "votes": 5646,
+      "percentage": 43.9
+    }
+  ]
+}
+```
+
+**Why `as_of`:** Signals **eventual** freshness for interview discussion (cached vs authoritative).
+
+---
+
+### Create / manage polls
+
+**Create:** `POST /v1/polls`
+
+```json
+{
+  "title": "Best programming language in 2026?",
+  "description": "For backend services at scale.",
+  "options": [
+    { "text": "Go", "display_order": 0 },
+    { "text": "Rust", "display_order": 1 },
+    { "text": "TypeScript", "display_order": 2 }
+  ],
+  "start_time": "2026-04-05T10:00:00Z",
+  "end_time": "2026-04-12T10:00:00Z",
+  "settings": {
+    "show_results_during_voting": true,
+    "allow_anonymous": false
+  }
+}
+```
+
+**Response `201 Created`:**
+
+```json
+{
+  "poll_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "status": "draft",
+  "created_at": "2026-04-05T09:55:00.000Z",
+  "manage_url": "https://api.example.com/v1/polls/7c9e6679-7425-40de-944b-e07fc1f90ae7"
+}
+```
+
+**Update (owner):** `PATCH /v1/polls/{poll_id}`
+
+```json
+{
+  "status": "active",
+  "title": "Best programming language in 2026? (edited)"
+}
+```
+
+**Response `200 OK`:** updated poll envelope (omit for brevity in interview if time-boxed).
+
+---
+
+### Check vote status
+
+`GET /v1/polls/{poll_id}/votes/me`
+
+**Response `200 OK` (has voted):**
+
+```json
+{
+  "has_voted": true,
+  "option_id": "550e8400-e29b-41d4-a716-446655440000",
+  "voted_at": "2026-04-05T11:59:58.000Z"
+}
+```
+
+**Response `200 OK` (not voted):**
+
+```json
+{
+  "has_voted": false
+}
+```
+
+**Optional async status:** `GET /v1/polls/{poll_id}/votes/requests/{request_id}`
+
+```json
+{
+  "request_id": "a3bb189e-8bf9-3888-b889-317e3f6b8c4d",
+  "state": "completed",
+  "vote_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+}
+```
+
+`state` may be `pending`, `completed`, or `failed` with `error` object—useful when linking **API design** to **Kafka** backpressure and retries in discussion.
+
+---
+
 ## Step 2: Back-of-Envelope Estimation
 
 Let's size for a Twitter-scale polling system.
@@ -1274,6 +1616,10 @@ Structured logs for easy querying:
 ## Interview Checklist
 
 - [ ] **Clarified requirements** (type of voting, scale, anonymity)
+- [ ] **Technology tradeoffs** (storage, aggregation, dedup, rate limits—and **our choice**)
+- [ ] **CAP / per-operation consistency** (vote path vs counts vs leaderboard)
+- [ ] **SLA/SLO and error budget** (latency, acceptance rate, count lag, peak availability)
+- [ ] **API design** (vote, results, poll CRUD, vote status, idempotency)
 - [ ] **Estimated capacity** (votes/sec, storage)
 - [ ] **Drew high-level architecture** (async processing)
 - [ ] **Explained duplicate prevention** (Redis + DB constraint)
@@ -1315,6 +1661,10 @@ Let me draw the architecture..."
 
 | Challenge | Solution |
 |-----------|----------|
+| **Tech stack choices** | PostgreSQL + Redis + Kafka; CP for vote integrity, AP for reads; distributed rate limits |
+| **CAP tension** | Strong consistency on dedup; eventual counts/leaderboard with reconciliation |
+| **SLA/SLO** | p99 latency, acceptance rate, count lag SLOs; error budget gates releases |
+| **API surface** | REST + idempotency keys; async `202` + status; results with `as_of` freshness |
 | **Duplicate prevention** | Three layers: Redis check + Kafka dedup + DB constraint |
 | **High throughput** | Async processing via Kafka, horizontal scaling |
 | **Real-time results** | Redis counters, WebSocket updates |
