@@ -9,7 +9,7 @@ permalink: /ml_system_design/
 # ML System Design
 {: .fs-9 }
 
-Design machine learning systems for production — 7 designs covering ranking, retrieval, personalization, and ads.
+Design machine learning systems for production — 10 designs covering ranking, retrieval, personalization, NLP, speech, and ML infrastructure.
 {: .fs-6 .fw-300 }
 
 ---
@@ -45,6 +45,8 @@ ML system design interviews focus on the **full ML lifecycle**, not just the mod
 | 6 | [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization) | Session models, bandits, exploration | Recommendation + Fraud |
 | 7 | [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking) | CTR prediction, auctions, budget pacing | All of the above |
 | 8 | [Real-time Feature Platform]({{ site.baseurl }}/ml_system_design/feature_platform) | Streaming features, PIT joins, drift | Infra for all above |
+| 9 | [Machine Translation]({{ site.baseurl }}/ml_system_design/machine_translation) | Transformer NMT, multilingual, QE, low-resource | Seq2Seq fundamentals |
+| 10 | [Speech Recognition]({{ site.baseurl }}/ml_system_design/speech_recognition) | CTC/RNN-T, streaming ASR, diarization | Audio processing basics |
 
 ---
 
@@ -168,6 +170,40 @@ Design a real-time feature platform that computes, stores, and serves ML feature
 
 ---
 
+### [Machine Translation]({{ site.baseurl }}/ml_system_design/machine_translation)
+{: .d-inline-block }
+
+NLP
+{: .label .label-blue }
+
+NEW
+{: .label .label-yellow }
+
+Design a machine translation system like Google Translate — 100+ languages, text/image/speech, quality estimation, and low-resource language support.
+
+**Key concepts:** Transformer encoder-decoder, multilingual NMT, BPE/SentencePiece, quality estimation, back-translation, pivot languages, beam search, model distillation for serving
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Speech Recognition]({{ site.baseurl }}/ml_system_design/speech_recognition)
+{: .d-inline-block }
+
+Audio/Speech
+{: .label .label-purple }
+
+NEW
+{: .label .label-yellow }
+
+Design a speech recognition (ASR) system like Google Speech-to-Text or Whisper — real-time streaming, speaker diarization, 100+ languages.
+
+**Key concepts:** Mel spectrograms, CTC/RNN-T, Conformer, streaming inference, speaker diarization, language model fusion, SpecAugment, on-device vs cloud deployment
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
 ## ML System Design Framework
 
 Use this framework in your interviews:
@@ -256,6 +292,9 @@ MONITORING
 | **Session modeling** | Real-time Personalization, Recommendations |
 | **Multi-armed bandits** | Personalization, Ads (new ad exploration) |
 | **Auction mechanics** | Ads Ranking (unique to ads) |
+| **Encoder-decoder** | Machine Translation, Image Captioning, Speech Recognition |
+| **Beam search/decoding** | Machine Translation, Speech Recognition |
+| **Streaming inference** | Speech Recognition, Real-time Personalization |
 
 {: .note }
 > Master these patterns and you can apply them to any new ML system design problem.
@@ -274,6 +313,8 @@ MONITORING
 | **Personalization** | <50ms | Session modeling, cold start | CTR, Session Depth |
 | **Ads Ranking** | <50ms | Revenue × relevance | AUC, Revenue, Calibration |
 | **Feature Platform** | <5ms (serving) | Train-serve consistency | Feature freshness, Drift rate |
+| **Machine Translation** | <200ms | Low-resource, quality | BLEU, Human eval |
+| **Speech Recognition** | <300ms RTF | Noise, streaming | WER, Latency |
 
 ---
 
@@ -281,8 +322,8 @@ MONITORING
 
 After mastering ML system design:
 
-1. **Go deeper on GenAI** with [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 9 LLM/GenAI systems with interview transcripts
-2. **Review fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) for any gaps
+1. **Go deeper on GenAI** with [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 10 LLM/GenAI systems with interview transcripts
+2. **Review fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) — 7 building blocks including LLM Evaluation and RLHF & Alignment
 3. **Practice with transcripts** — the GenAI section includes full hypothetical interview walkthroughs
 
 {: .note }

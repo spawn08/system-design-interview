@@ -9,7 +9,7 @@ permalink: /software_system_design/
 # System Design Examples
 {: .fs-9 }
 
-Step-by-step walkthroughs of 22 system design interview questions — from classic URL shortener to email delivery systems.
+Step-by-step walkthroughs of 24 system design interview questions — from classic URL shortener to distributed file systems.
 {: .fs-6 .fw-300 }
 
 ---
@@ -64,12 +64,19 @@ Step-by-step walkthroughs of 22 system design interview questions — from class
 | 19 | [Metrics & Monitoring]({{ site.baseurl }}/software_system_design/metrics_monitoring) | Message Queue | Time-series storage, alerting, Gorilla compression |
 | 20 | [Email Delivery System]({{ site.baseurl }}/software_system_design/email_delivery) | Notification System | SMTP, DKIM/SPF, IP reputation, deliverability |
 
-### Tier 6: Search
+### Tier 6: Data Infrastructure
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 21 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
-| 22 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
+| 21 | [Distributed File System (GFS)]({{ site.baseurl }}/software_system_design/distributed_file_system) | KV Store, Cache | Master-chunk, leases, replication, append-only writes |
+| 22 | [Ad Click Aggregator]({{ site.baseurl }}/software_system_design/ad_click_aggregator) | Message Queue, Metrics | Real-time aggregation, exactly-once, click fraud, reconciliation |
+
+### Tier 7: Search
+
+| # | Design | Builds On | New Concepts |
+|---|--------|-----------|--------------|
+| 23 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
+| 24 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
 
 ---
 
@@ -137,6 +144,8 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | [**Distributed Message Queue**]({{ site.baseurl }}/software_system_design/message_queue) | ⭐⭐⭐⭐ Hard | Append-only log, consumer groups |
 | [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) | ⭐⭐⭐ Medium-Hard | Priority queue, leases |
 | [**Metrics & Monitoring**]({{ site.baseurl }}/software_system_design/metrics_monitoring) | ⭐⭐⭐⭐ Hard | Time-series, alerting |
+| [**Distributed File System (GFS)**]({{ site.baseurl }}/software_system_design/distributed_file_system) | ⭐⭐⭐⭐ Hard | Master-chunk, leases, replication |
+| [**Ad Click Aggregator**]({{ site.baseurl }}/software_system_design/ad_click_aggregator) | ⭐⭐⭐⭐ Hard | Real-time aggregation, exactly-once |
 
 ### Communication & Social
 
@@ -197,7 +206,9 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | **State Machine** | Payment System, Ride Sharing, Task Scheduler, Event Booking |
 | **CDN** | Video Streaming, Photo Sharing, Cloud Storage |
 | **Conflict Resolution** | Key-Value Store (vector clocks), Collaborative Editor (OT/CRDT) |
-| **Append-Only Log** | Message Queue, Event Sourcing, Metrics & Monitoring |
+| **Append-Only Log** | Message Queue, Event Sourcing, Metrics & Monitoring, Distributed File System |
+| **Stream Processing** | Ad Click Aggregator, Metrics & Monitoring — windowed aggregation |
+| **Master-Worker** | Distributed File System, Task Scheduler — coordination patterns |
 
 {: .note }
 > Master these patterns and you can apply them to any new problem the interviewer throws at you.
@@ -229,6 +240,8 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | **Task Scheduler** | Write-heavy | Millions of tasks | At-least-once vs exactly-once |
 | **Payment System** | Write-heavy | Financial accuracy | Consistency vs availability |
 | **Proximity Service** | Read-heavy | Millions locations | Precision vs query speed |
+| **Distributed File System** | Write-heavy (append) | Petabytes | Single master vs availability |
+| **Ad Click Aggregator** | Write-heavy | 1M events/sec | Exactness vs latency |
 
 ---
 
@@ -237,6 +250,6 @@ Each example follows a consistent structure that mirrors what interviewers expec
 After mastering these software system designs:
 
 1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts
-2. **Learn ML fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/)
-3. **Tackle ML designs** in [ML System Design]({{ site.baseurl }}/ml_system_design/) — 7 production ML systems
-4. **Master GenAI** in [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 9 LLM/GenAI systems with interview transcripts
+2. **Learn ML fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) — 7 building blocks
+3. **Tackle ML designs** in [ML System Design]({{ site.baseurl }}/ml_system_design/) — 10 production ML systems
+4. **Master GenAI** in [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 10 LLM/GenAI systems with interview transcripts

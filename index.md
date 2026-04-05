@@ -9,7 +9,7 @@ permalink: /
 # System Design Interview Guide
 {: .fs-9 }
 
-Your comprehensive resource for mastering system design interviews — 62 topics across software engineering, ML, and GenAI, with step-by-step walkthroughs, architecture diagrams, code examples, and interview transcripts.
+Your comprehensive resource for mastering system design interviews — 75 topics across software engineering, ML, and GenAI, with step-by-step walkthroughs, architecture diagrams, code examples, and interview transcripts.
 {: .fs-6 .fw-300 }
 
 ---
@@ -54,13 +54,13 @@ Week 1-2: Software Fundamentals (abbreviated)
   Databases → Caching → Distributed Systems → Message Queues
 
 Week 3-4: ML Fundamentals
-  Model Serving → Feature Stores → Data Pipelines → Distributed Training
+  Model Serving → Feature Stores → Data Pipelines → Distributed Training → LLM Evaluation → RLHF & Alignment
 
 Week 5-6: ML Design Problems
-  Recommendation System → Fraud Detection → Search Ranking → Ads Ranking
+  Recommendation System → Fraud Detection → Search Ranking → Ads Ranking → Machine Translation
 
 Week 7-8: Practice
-  Image Search → Real-time Personalization → Mock interviews
+  Image Search → Real-time Personalization → Speech Recognition → Feature Platform → Mock interviews
 ```
 
 ### Path 3: GenAI System Design (GenAI / LLM Engineer)
@@ -68,7 +68,7 @@ Week 7-8: Practice
 ```
 Week 1-2: Foundations
   Distributed Systems → ML Fundamentals (Model Serving, Feature Stores)
-  LLM Systems (RAG, fine-tuning, vector DBs) → Distributed Training
+  LLM Systems (RAG, fine-tuning, vector DBs) → Distributed Training → LLM Evaluation → RLHF & Alignment
 
 Week 3-4: GenAI Design Problems
   LLM Chatbot → Enterprise RAG → AI Code Assistant → LLM Gateway
@@ -142,7 +142,7 @@ Targeting Google, Meta, or other top companies at the **Staff / Principal / L6**
 - **Leadership round:** [Behavioral & Leadership Guide]({{ site.baseurl }}/advanced/behavioral_leadership)
 
 ### [System Design Examples]({{ site.baseurl }}/software_system_design/)
-Step-by-step walkthroughs of classic interview questions — 22 designs.
+Step-by-step walkthroughs of classic interview questions — 24 designs.
 
 **Infrastructure & Data:**
 - [**URL Shortener**]({{ site.baseurl }}/software_system_design/url_shortening) - Hashing, Base62, distributed IDs
@@ -174,21 +174,27 @@ Step-by-step walkthroughs of classic interview questions — 22 designs.
 - [**Event Booking (Ticketmaster)**]({{ site.baseurl }}/software_system_design/event_booking) - Inventory locking, flash crowds
 - [**Payment System**]({{ site.baseurl }}/software_system_design/payment_system) - Idempotency, double-entry ledger
 
+**Data Infrastructure:**
+- [**Distributed File System (GFS)**]({{ site.baseurl }}/software_system_design/distributed_file_system) - Master-chunk architecture, replication, leases
+- [**Ad Click Aggregator**]({{ site.baseurl }}/software_system_design/ad_click_aggregator) - Real-time aggregation, exactly-once, Flink/Kafka
+
 **Search:**
 - [**Web Crawler**]({{ site.baseurl }}/software_system_design/web_crawler) - Concurrency, politeness, dedup
 - [**Search Autocomplete**]({{ site.baseurl }}/software_system_design/search_autocomplete) - Trie, ranking, caching
 
 ### [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/)
-Core building blocks — master these before ML and GenAI design questions.
+Core building blocks — master these before ML and GenAI design questions. 7 topics.
 
 - [**Model Serving**]({{ site.baseurl }}/genai_ml_basics/model_serving) - Inference APIs, versioning, A/B testing, drift detection
 - [**Feature Stores**]({{ site.baseurl }}/genai_ml_basics/feature_stores) - Train-serve consistency, point-in-time joins, Feast
 - [**Data Pipelines for ML**]({{ site.baseurl }}/genai_ml_basics/data_pipelines) - Ingestion, validation, Airflow orchestration
 - [**Large Language Models**]({{ site.baseurl }}/genai_ml_basics/llm_systems) - RAG, prompt engineering, fine-tuning, vector DBs
 - [**Distributed Training**]({{ site.baseurl }}/genai_ml_basics/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
+- [**LLM Evaluation**]({{ site.baseurl }}/genai_ml_basics/llm_evaluation) - BLEU/ROUGE/BERTScore, LLM-as-judge, benchmarks, RAGAS
+- [**RLHF & Alignment**]({{ site.baseurl }}/genai_ml_basics/rlhf_alignment) - PPO, DPO, Constitutional AI, safety alignment
 
 ### [ML System Design]({{ site.baseurl }}/ml_system_design/)
-Production ML systems — 8 designs covering ranking, retrieval, personalization, and feature infrastructure.
+Production ML systems — 10 designs covering ranking, retrieval, personalization, NLP, and feature infrastructure.
 
 - [**Recommendation System**]({{ site.baseurl }}/ml_system_design/recommendation_system) - Collaborative filtering, Two-Tower, cold start
 - [**Fraud Detection**]({{ site.baseurl }}/ml_system_design/fraud_detection) - Real-time ML, class imbalance, velocity features
@@ -198,6 +204,8 @@ Production ML systems — 8 designs covering ranking, retrieval, personalization
 - [**Real-time Personalization**]({{ site.baseurl }}/ml_system_design/realtime_personalization) - Session models, contextual bandits
 - [**Ads Ranking System**]({{ site.baseurl }}/ml_system_design/ads_ranking) - CTR prediction, auction mechanics, budget pacing
 - [**Real-time Feature Platform**]({{ site.baseurl }}/ml_system_design/feature_platform) - Streaming features, PIT joins, train-serve consistency
+- [**Machine Translation**]({{ site.baseurl }}/ml_system_design/machine_translation) - Transformer, multilingual NMT, quality estimation, low-resource
+- [**Speech Recognition**]({{ site.baseurl }}/ml_system_design/speech_recognition) - CTC/RNN-T, streaming ASR, speaker diarization, Whisper
 
 ### [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/)
 Production GenAI systems — 10 designs with Google-style interview transcripts.

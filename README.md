@@ -2,7 +2,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
 
-A comprehensive, interview-ready guide covering **69 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), production-quality code examples in Java, Python, and Go, and hypothetical interview transcripts.
+A comprehensive, interview-ready guide covering **75 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), production-quality code examples in Java, Python, and Go, and hypothetical interview transcripts.
 
 **Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
 
@@ -23,11 +23,11 @@ A comprehensive, interview-ready guide covering **69 system design topics** with
 |---------|--------|--------|
 | Essential System Design | 11 | Complete |
 | Advanced Topics | 13 | Complete |
-| Software System Design | 22 | Complete |
-| GenAI/ML Fundamentals | 5 | Complete |
-| ML System Design | 8 | Complete |
+| Software System Design | 24 | Complete |
+| GenAI/ML Fundamentals | 7 | Complete |
+| ML System Design | 10 | Complete |
 | GenAI System Design | 10 | Complete |
-| **Total** | **69** | **All complete** |
+| **Total** | **75** | **All complete** |
 
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
@@ -228,11 +228,11 @@ These topics are particularly important for system design interviews focused on 
 *   **Model Parallelism**
 *   **Parameter Servers**
 
-## IV. Top 43 System Design Interview Questions
+## IV. Top 49 System Design Interview Questions
 
 These questions are categorized and cover a range of difficulty levels. Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution. All questions have full walkthroughs in this guide.
 
-### General System Design (22 designs)
+### General System Design (24 designs)
 
 1.  **Design a URL Shortener (TinyURL):** Hashing, databases, scaling.
 2.  **Design a Rate Limiter:** Algorithms (token bucket, leaky bucket), distributed systems.
@@ -256,8 +256,10 @@ These questions are categorized and cover a range of difficulty levels. Remember
 20. **Design a Distributed Message Queue (Kafka):** Append-only log, partitioning, consumer groups, zero-copy I/O.
 21. **Design a Metrics & Monitoring System (Datadog):** Time-series storage, Gorilla compression, alerting pipeline, federation.
 22. **Design an Email Delivery System (SendGrid/SES):** SMTP, DKIM/SPF/DMARC, IP reputation, deliverability, bounce handling.
+23. **Design a Distributed File System (GFS/HDFS):** Master-chunk architecture, replication, leases, consistency model, garbage collection.
+24. **Design an Ad Click Event Aggregator:** Real-time aggregation, exactly-once counting, Flink/Kafka, click fraud detection, reconciliation.
 
-### ML System Design (8 designs)
+### ML System Design (10 designs)
 
 22. **Design a Recommendation System (Netflix/Amazon):** Collaborative filtering, Two-Tower models, cold start, A/B testing.
 23. **Design Real-time Fraud Detection:** Feature engineering, velocity features, class imbalance, ensemble models.
@@ -267,6 +269,8 @@ These questions are categorized and cover a range of difficulty levels. Remember
 27. **Design Real-time Personalization:** Session models, contextual bandits, multi-task ranking.
 28. **Design an Ads Ranking System (Google/Meta):** CTR prediction, auction mechanics, budget pacing, calibration.
 29. **Design a Real-time Feature Platform (Feast/Tecton):** Streaming features, point-in-time joins, train-serve consistency, feature monitoring.
+30. **Design a Machine Translation System (Google Translate):** Transformer, multilingual NMT, quality estimation, low-resource languages, beam search.
+31. **Design a Speech Recognition System (Google STT/Whisper):** CTC/RNN-T, streaming ASR, speaker diarization, mel spectrograms, language model fusion.
 
 ### GenAI System Design (10 designs — with interview transcripts)
 
@@ -380,7 +384,7 @@ system-design-interview/
 │   ├── distributed_locking.md  # NEW
 │   ├── observability.md        # NEW
 │   └── event_sourcing_cqrs.md  # NEW
-├── software_system_design/     # System Design Problems (22 designs)
+├── software_system_design/     # System Design Problems (24 designs)
 │   ├── index.md
 │   ├── url_shortening.md
 │   ├── rate_limiter.md
@@ -404,15 +408,19 @@ system-design-interview/
 │   ├── message_queue.md        # NEW - Distributed Message Queue (Kafka)
 │   ├── metrics_monitoring.md   # NEW - Metrics & Monitoring System (Datadog)
 │   ├── email_delivery.md       # NEW - Email Delivery System (SendGrid/SES)
+│   ├── distributed_file_system.md # NEW - Distributed File System (GFS/HDFS)
+│   ├── ad_click_aggregator.md  # NEW - Ad Click Event Aggregator
 │   └── staff_engineer_expectations.md
-├── genai_ml_basics/            # GenAI/ML Fundamentals (5 building blocks)
+├── genai_ml_basics/            # GenAI/ML Fundamentals (7 building blocks)
 │   ├── index.md
 │   ├── model_serving.md
 │   ├── feature_stores.md
 │   ├── data_pipelines.md
 │   ├── llm_systems.md
-│   └── distributed_training.md
-├── ml_system_design/           # ML System Design (8 designs)
+│   ├── distributed_training.md
+│   ├── llm_evaluation.md      # NEW - LLM Evaluation & Benchmarking
+│   └── rlhf_alignment.md      # NEW - RLHF / DPO Alignment
+├── ml_system_design/           # ML System Design (10 designs)
 │   ├── index.md
 │   ├── recommendation_system.md
 │   ├── fraud_detection.md
@@ -421,7 +429,9 @@ system-design-interview/
 │   ├── search_ranking.md
 │   ├── realtime_personalization.md
 │   ├── ads_ranking.md          # NEW - Ads Ranking System (Google/Meta)
-│   └── feature_platform.md    # NEW - Real-time Feature Platform
+│   ├── feature_platform.md    # NEW - Real-time Feature Platform
+│   ├── machine_translation.md # NEW - Machine Translation (Google Translate)
+│   └── speech_recognition.md  # NEW - Speech Recognition (ASR)
 ├── genai_ml_system_design/    # GenAI System Design (10 designs)
 │   ├── index.md
 │   ├── llm_chatbot.md

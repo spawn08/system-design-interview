@@ -9,7 +9,7 @@ permalink: /genai_ml_system_design/
 # GenAI System Design
 {: .fs-9 }
 
-Production system design for Generative AI — 9 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.
+Production system design for Generative AI — 10 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.
 {: .fs-6 .fw-300 }
 
 ---
