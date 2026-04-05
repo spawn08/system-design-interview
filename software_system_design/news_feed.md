@@ -207,7 +207,7 @@ flowchart TB
     PostAPI[Post Service]
     Fanout[Fan-out Service]
     FeedSvc[Feed Service]
-    Kafka{{Kafka}}
+    Kafka[/Kafka/]
     Redis[(Feed cache Redis)]
     DB[(Relational / NoSQL)]
     Obj[(Object storage)]

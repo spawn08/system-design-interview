@@ -947,6 +947,7 @@ class NotificationDeduper:
 
 **Cross-datacenter:** **dual write** or **async replication** with **eventual consistency**; queries may use **local** DC for freshness or **global** view with **staleness** bounds.
 
+{% raw %}
 ```python
 def shard_for_series(series_id: int, num_shards: int) -> int:
     return series_id % num_shards
@@ -957,6 +958,7 @@ def federate_selectors(global_query: str) -> list[str]:
     regions = ["us-east", "eu-west", "ap-south"]
     return [f'{global_query}{{region="{r}"}}' for r in regions]
 ```
+{% endraw %}
 
 ```mermaid
 flowchart TB

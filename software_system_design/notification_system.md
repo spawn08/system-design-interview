@@ -525,16 +525,16 @@ class NotificationTemplate:
 ORDER_SHIPPED_TEMPLATE = {
     "name": "order_shipped",
     "category": "transactional",
-    "push_title": "Your order is on its way! 📦",
-    "push_body": "Order #{{order_id}} has shipped. Track: {{tracking_url}}",
+    "push_title": "Your order is on its way!",
+    "push_body": "Order #{ order_id } has shipped. Track: { tracking_url }",
     "email_subject": "Your order has shipped",
     "email_body": """
-        <h1>Great news, {{user_name}}!</h1>
-        <p>Your order #{{order_id}} has shipped.</p>
-        <p>Tracking number: {{tracking_number}}</p>
-        <a href="{{tracking_url}}">Track your package</a>
+        <h1>Great news, { user_name }!</h1>
+        <p>Your order #{ order_id } has shipped.</p>
+        <p>Tracking number: { tracking_number }</p>
+        <a href="{ tracking_url }">Track your package</a>
     """,
-    "sms_body": "Your order #{{order_id}} shipped! Track: {{tracking_url}}"
+    "sms_body": "Your order #{ order_id } shipped! Track: { tracking_url }"
 }
 ```
 
