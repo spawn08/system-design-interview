@@ -121,6 +121,16 @@ Specialized designs for machine learning and AI systems.
 - [**Search Ranking**]({{ site.baseurl }}/ml_system_design/search_ranking) - Learning-to-rank, retrieval + ranking
 - [**Real-time Personalization**]({{ site.baseurl }}/ml_system_design/realtime_personalization) - Session-based ML, contextual bandits
 
+### [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/)
+Production system design for Generative AI — with hypothetical Google-style interview transcripts.
+
+- [**LLM-Powered Chatbot**]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) - Design Gemini/ChatGPT: KV-cache, PagedAttention, streaming, safety
+- [**Enterprise RAG System**]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) - Retrieval-augmented generation with citations and ACLs
+- [**AI Code Assistant**]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant) - Design Copilot/Gemini Code Assist: FIM, repo context, speculative decoding
+- [**LLM Content Moderation**]({{ site.baseurl }}/genai_ml_system_design/content_moderation) - Cascade architecture, adversarial robustness, human-in-the-loop
+- [**ML Training Platform**]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform) - Design Vertex AI: gang scheduling, checkpointing, GPU clusters
+- [**Multi-Modal Search**]({{ site.baseurl }}/genai_ml_system_design/multimodal_search) - Design Google Lens: CLIP embeddings, cross-modal retrieval
+
 ---
 
 ## 🚀 How to Use This Guide
@@ -189,6 +199,7 @@ Every system design interview touches on these concepts:
 | **System Design Examples** | 20 classic problems (incl. Staff Guide) | ⭐⭐⭐ Intermediate-Hard |
 | **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | ⭐⭐⭐ Medium-Hard |
 | **ML System Design** | 6 ML systems | ⭐⭐⭐⭐ Hard |
+| **GenAI System Design** | 6 GenAI systems (with interview transcripts) | ⭐⭐⭐⭐⭐ Very Hard |
 
 ---
 

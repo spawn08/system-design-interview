@@ -450,13 +450,13 @@ The pipeline uses the following actions:
 
 ### Adding New Content
 
-1. Create a new `.md` file in the appropriate directory (`basics/`, `advanced/`, `genai_ml_basics/`, `software_system_design/`, or `ml_system_design/`)
+1. Create a new `.md` file in the appropriate directory (`basics/`, `advanced/`, `genai_ml_basics/`, `software_system_design/`, `ml_system_design/`, or `genai_ml_system_design/`)
 2. Add the Jekyll front matter:
    ```yaml
    ---
    layout: default
    title: Your Topic Title
-   parent: Fundamentals    # or "Advanced Topics", "GenAI/ML Fundamentals", "System Design Examples", "ML System Design"
+   parent: Fundamentals    # or "Advanced Topics", "GenAI/ML Fundamentals", "System Design Examples", "ML System Design", "GenAI System Design"
    nav_order: N            # determines position in navigation
    ---
    ```
