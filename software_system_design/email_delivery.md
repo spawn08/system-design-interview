@@ -258,6 +258,260 @@ flowchart LR
 
 ---
 
+### Technology Selection & Tradeoffs
+
+A full **ESP / transactional platform** spans **outbound delivery** (this doc’s focus) and often **mailbox + webmail** for reading. The comparisons below separate **pipeline messaging**, **where bytes live**, **how users find mail**, and **how bits leave your network**.
+
+#### Message queue — Kafka vs RabbitMQ vs SQS (email pipeline)
+
+| Dimension | **Apache Kafka** | **RabbitMQ** | **Amazon SQS** |
+|-----------|------------------|--------------|----------------|
+| **Throughput & fan-out** | Very high sustained write/read; consumer groups scale horizontally | High for typical workloads; shovel/federation for cross-DC | Managed, scales with quotas; no ordering partition like Kafka unless FIFO |
+| **Ordering & replay** | Partition-key ordering; **durable log** + offset replay for recovery | Per-queue ordering; replay is **not** a first-class log model | Standard queues best-effort; FIFO adds ordering + dedup window |
+| **Semantics** | At-least-once (exactly-once with transactions/idempotency layers) | Ack/nack, DLX for dead-letter | Visibility timeout + DLQ; at-least-once |
+| **Ops model** | Self-managed cluster or managed (MSK, Confluent) | Mature broker; many hosting options | Fully managed; regional limits and API semantics |
+| **Fit for email** | **Ideal** for **event sourcing** delivery attempts, **cross-service analytics**, **large fan-out** webhooks | **Great** for **work queues** with **priority** and **per-domain** routing rules | **Simple** ingress/drain when you want **no broker ops** and already on AWS |
+
+**Why it matters in interviews:** Email is **at-least-once** at every hop; your queue choice defines **durability**, **replay after incidents**, and **how you shard** (tenant, recipient domain, message class).
+
+#### Email storage — object store vs database BLOBs vs Dovecot-style mail store
+
+| Dimension | **Object store (S3, GCS, Azure Blob)** | **DB BLOBs (Postgres BYTEA, etc.)** | **Dedicated mail store (Dovecot/IMAP server + Maildir)** |
+|-----------|------------------------------------------|--------------------------------------|-----------------------------------------------------------|
+| **Cost at scale** | **Lowest $/GB**; lifecycle tiers | **Highest** — backups and replication amplify cost | Middle — tuned for **many small files** |
+| **Access pattern** | **Write-once**, key by `message_id` / hash; range listing needs **metadata index** | Row + BLOB in one TX for **strong consistency** with metadata | **Mailbox-optimized** — flags, UID, IMAP semantics |
+| **Max message size** | **Multi-GB** practical | DB and driver limits; painful for large attachments | Depends on FS; usually fine |
+| **Operational fit** | **ESP / API sending** — bodies are **blobs** referenced from metadata DB | **Small** inboxes or **strict transactional** “one row = truth” | **Full mailbox product** — when you **run IMAP** for users |
+
+**Interview angle:** ESPs almost always use **object storage + separate metadata DB** so **hot indexes** stay small and **MIME bodies** stay cheap. **Dovecot** is the answer when the product **is** a mailbox server, not only an API sender.
+
+#### Search / indexing — Elasticsearch vs custom inverted index vs PostgreSQL FTS
+
+| Dimension | **Elasticsearch / OpenSearch** | **Custom inverted index** (Lucene embedded, etc.) | **PostgreSQL FTS** (`tsvector`, GIN) |
+|-----------|----------------------------------|---------------------------------------------------|--------------------------------------|
+| **Relevance & facets** | Rich queries, aggregations, sharding | Full control; **you** own ranking and ops | Good for **moderate** scale; **single-DB** simplicity |
+| **Operational cost** | **Clusters** to tune, upgrade, secure | **Highest** engineering cost | **Lowest** infra surface if DB already central |
+| **Scale-out** | Horizontal by index/shard | You design sharding + recovery | Vertical + read replicas; **huge** mail corpus may strain |
+| **Email-specific** | Common for **webmail search** at scale | Vendors / hyperscale **custom** stacks | Strong for **team-size** or **single-tenant** search |
+
+**Interview angle:** **Postgres FTS** wins **simplicity**; **Elasticsearch** wins **scale + analytics**; **custom** only when you have **special constraints** (on-prem, strict latency, or custom security).
+
+#### Delivery — SMTP direct vs relay (SES / SendGrid) vs hybrid
+
+| Dimension | **Direct SMTP from your MTAs** | **Relay via SES / SendGrid / etc.** | **Hybrid** |
+|-----------|----------------------------------|-------------------------------------|------------|
+| **Control** | Full control of **IP pools**, **warming**, **queue discipline** | Provider manages **infra**, **some** IP reputation | **Transactional** via provider; **bulk** on dedicated IPs, or vice versa |
+| **Compliance & certs** | You own **TLS**, **abuse**, **blocklist** remediation | Shared responsibility; **their** dashboards and limits | Split **risk** and **cost** |
+| **Time to market** | **Slow** — build MTA fleet, deliverability team | **Fast** — API + DNS records | **Balanced** |
+| **Interview story** | Hyperscale ESPs **own** the stack | Startups **start** with SES/SendGrid | Enterprises **segment** by brand, region, or data residency |
+
+**Our choice (narrative for this guide):**
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **Pipeline** | **Kafka** (or **Pulsar**) for **delivery events**, **webhooks**, **analytics**; **RabbitMQ** or **SQS** acceptable for **smaller** “work queue only” designs — say **why** you need **log replay** vs **simplicity** | Durability + replay after incidents; **shard** by tenant or domain |
+| **Body storage** | **Object store** + **relational metadata** | Cost, size, and **decoupled** scaling from OLTP |
+| **Search** (if webmail in scope) | **Elasticsearch** at scale; **Postgres FTS** for MVP | Match **query complexity** and **team ops** to pick |
+| **Delivery** | **Hybrid** for most products: **managed relay** early; **dedicated IPs + own MTA tier** when volume and deliverability **justify** ops | Optimizes **speed to market** without blocking a later **direct** path |
+
+{: .tip }
+> In interviews, **state the tradeoff explicitly**: “We pick Kafka over SQS here because we need **ordered per-partition processing** and **infinite replay** for reprocessing bounces — SQS is fine if the problem scope is **smaller**.”
+
+---
+
+### CAP Theorem Analysis
+
+**CAP** (Consistency, Availability, Partition tolerance) forces honesty: in a **network partition**, you cannot have both **strong linearizability** and **perfect availability**. Email systems mix **user-facing** paths (want **availability** for reads) with **money paths** (must **not lose** accepted mail).
+
+| Path | CAP lens | Typical stance | Why |
+|------|----------|----------------|-----|
+| **Mailbox reads (IMAP/webmail)** | Users expect **responsive UI** | **AP** — serve **stale** folder counts or **cached** snippets under partition; **eventual** sync beats hard failure | Better **degraded** service than “503 everywhere” |
+| **Message ingestion (send API → queue)** | **Durability** is non-negotiable for **accepted** sends | **CP** on the **commit boundary** — **replicated log / quorum write** before `202 Accepted` is “safe” | You **trade** a bit of latency for **no silent loss** |
+| **Search index** | Secondary index | **AP** — search can **lag** seconds; **eventual consistency** | **Stale** search is acceptable; **wrong** ranking is less catastrophic than **lost** mail |
+| **Spam / filtering** | Often **probabilistic** | **AP** with **safe defaults** — if classifier unavailable, **quarantine** or **defer** policy is a **business** choice (some choose **fail-open** with risk) | Interviewers want **explicit** failure mode |
+
+**Durability vs CAP:** Strictly speaking **durability** is not the “C” in CAP (that’s **linearizability** of reads/writes). In interviews, connect **“no loss of accepted mail”** to **replicated queues + WAL**, and **“inbox must load”** to **replicas + caches** — and acknowledge **partition** scenarios (e.g., **split-brain** mitigated by **fencing tokens** and **single-writer** per mailbox where needed).
+
+```mermaid
+flowchart TB
+    subgraph cp["CP-biased (strong guarantees)"]
+        Q[Replicated queue / WAL<br/>accept before ACK]
+        M[Metadata primary + sync replica<br/>or quorum writes]
+    end
+    subgraph ap["AP-biased (availability first)"]
+        R[Mailbox read replicas<br/>cached threads]
+        S[Search index<br/>eventual]
+        F[Spam scores<br/>stale OK / policy fallback]
+    end
+    CLIENT[Client / MTA] --> Q
+    Q --> M
+    M --> R
+    M --> S
+    M --> F
+```
+
+{: .note }
+> **Message delivery** to **recipient MX** is **best-effort** in the real world — your SLO is about **your** attempts and **observable** outcomes, not **guaranteed** placement in the user’s inbox.
+
+---
+
+### SLA and SLO Definitions
+
+**SLA** = contract with customers (credits, refunds). **SLO** = internal target; **SLI** = what you measure. Below are **candidate-facing** SLOs for a **serious** ESP; tune numbers to the prompt.
+
+| Area | SLI (indicator) | Example SLO | Notes |
+|------|-----------------|-------------|-------|
+| **Delivery latency** | Time from **successful API accept** to **first SMTP attempt** completed | **p99 < 30s**, **p999 < 120s** | Aligns with **N2** in requirements; **separate** marketing **schedule** SLO |
+| **Inbox / mail UI load** | Time to **first meaningful paint** of thread list | **p99 < 800ms** (if webmail in scope) | Depends on **CDN**, **API**, **DB** — give **ranges** in interviews |
+| **Search latency** | Query → **first page** of results | **p99 < 400ms** (indexed); **p99 < 2s** cold | **Elasticsearch** vs **Postgres** changes tail |
+| **Message durability** | Accepted send **never** dropped before **durable enqueue** | **99.999%** monthly **no loss** of acknowledged accepts | Implemented via **replication**, **fsync** policy, **replay** |
+| **Spam false positive rate** (if you run classifier) | Legitimate mail marked spam / blocked | **< 0.1%** of evaluated ham (example) | Requires **human review** sampling — hard to measure perfectly |
+
+**Error budget policy (interview-ready):**
+
+| Principle | Application |
+|-----------|-------------|
+| **Budget = 1 − SLO** | Example: **99.9%** monthly availability → **43.2 minutes** **allowed** downtime/month |
+| **Spend triggers** | If **burn rate** exceeds threshold: **freeze** non-critical deploys, **shift** capacity to **transactional** lane, **page** on-call |
+| **Product tradeoffs** | When **search** burns budget, **disable** fancy features (highlighting) before **dropping** core **send** path |
+| **Customer comms** | **SLA** may promise **credits** only when **SLA breach** is provable via **your** SLI definitions |
+
+{: .warning }
+> Never promise **inbox placement** as an **SLO** — you don’t control **recipient** systems. Promise **attempts**, **webhooks**, and **suppression** behavior you **own**.
+
+---
+
+### Database Schema
+
+Schemas assume **relational** OLTP (Postgres-like). **IDs** are **UUID** or **snowflake**; **tenant_id** for SaaS. Adjust naming to your style.
+
+**mailboxes** — one row per **user** (logical mailbox); **folders** hang off `mailbox_id`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `mailbox_id` | UUID, PK | |
+| `user_id` | UUID, FK, indexed | Owner |
+| `tenant_id` | UUID, indexed | Multi-tenant isolation |
+| `quota_bytes` | BIGINT | Storage limit |
+| `created_at`, `updated_at` | TIMESTAMPTZ | |
+
+**folders** — hierarchy for **Inbox**, **Sent**, **Trash**, user labels.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `folder_id` | UUID, PK | |
+| `mailbox_id` | UUID, FK | |
+| `name` | TEXT | e.g. `INBOX`, `Sent` |
+| `parent_folder_id` | UUID, nullable | Self-FK for nesting |
+| `uid_validity` | BIGINT | IMAP-style **UIDVALIDITY** if exposing IMAP |
+| `next_uid` | BIGINT | Next **UID** to assign |
+
+**messages** — **metadata** hot path; **body** in object store via `body_ref`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `message_id` | UUID, PK | Internal id |
+| `tenant_id` | UUID | |
+| `mailbox_id` | UUID, FK | Owner mailbox |
+| `folder_id` | UUID, FK | Current folder |
+| `message_id_header` | TEXT | RFC **Message-ID** header (unique per tenant optional) |
+| `from_addr` | TEXT | Serialized **From** |
+| `to_addrs` | TEXT[] or JSONB | **To** list |
+| `cc_addrs`, `bcc_addrs` | TEXT[] or JSONB | Optional |
+| `subject` | TEXT | Truncated for index; full line in **raw** if needed |
+| `body_ref` | TEXT | **s3://** or key for **object storage** |
+| `body_snippet` | TEXT | Preview for list views |
+| `headers_json` | JSONB | Selected **raw** headers for DKIM/display |
+| `flags` | BIT or TEXT[] | **\\Seen**, **\\Answered**, **\\Flagged** |
+| `size_bytes` | BIGINT | |
+| `received_at`, `sent_at` | TIMESTAMPTZ | |
+| `created_at` | TIMESTAMPTZ | |
+
+**attachments**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `attachment_id` | UUID, PK | |
+| `message_id` | UUID, FK → `messages` | ON DELETE CASCADE |
+| `filename` | TEXT | |
+| `content_type` | TEXT | |
+| `size_bytes` | BIGINT | |
+| `storage_key` | TEXT | Object store key |
+| `content_id` | TEXT, nullable | For **CID** embedded images |
+
+**contacts**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `contact_id` | UUID, PK | |
+| `user_id` | UUID, FK | Owner |
+| `tenant_id` | UUID | |
+| `email` | CITEXT or TEXT | Unique per `(user_id, email)` |
+| `display_name` | TEXT | |
+| `created_at`, `updated_at` | TIMESTAMPTZ | |
+
+**Helpful indexes (say in interview):** `(mailbox_id, folder_id, received_at DESC)` for **inbox listing**; GIN on **FTS** column or **Elasticsearch** sidecar for **search**; **hash** on `storage_key` for dedupe if needed.
+
+---
+
+### API Design
+
+REST-shaped **JSON** over **HTTPS**. All paths **tenant-scoped** via **API key** or **OAuth**. **Idempotency-Key** on **mutating** calls.
+
+| Concern | Pattern |
+|---------|---------|
+| **Auth** | `Authorization: Bearer` / API key; **rate limits** per tenant |
+| **Idempotency** | Header `Idempotency-Key` on **POST** send — **24–48h** replay window |
+| **Pagination** | `cursor` on list/search; **limit** max **100** typical |
+| **Errors** | JSON `{ "error": { "code", "message", "request_id" } }` |
+
+#### Sending email
+
+| Method | Path | Body (summary) |
+|--------|------|----------------|
+| `POST` | `/v1/messages:send` | `from`, `to[]`, optional `cc`, `bcc`, `subject`, `text`, `html`, `template_id` + `variables`, `attachments[]` with **refs** after upload |
+| `POST` | `/v1/messages:sendBulk` | Batch of recipients + shared template — **async** **202** + `job_id` |
+
+**Response:** `202` with `{ "message_id", "status": "queued" }` — or `200` with per-recipient ids if synchronous MVP.
+
+#### Listing inbox / folders
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/v1/mailboxes/{mailbox_id}/folders` | List folders + counts |
+| `POST` | `/v1/mailboxes/{mailbox_id}/folders` | Create label/folder `{ "name", "parent_id" }` |
+| `PATCH` | `/v1/folders/{folder_id}` | Rename, move in hierarchy |
+| `DELETE` | `/v1/folders/{folder_id}` | Delete or archive — define **move-to-trash** semantics |
+| `GET` | `/v1/mailboxes/{mailbox_id}/messages` | Query: `folder_id`, `cursor`, `limit`, `unread_only` |
+
+#### Reading a message
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/v1/messages/{message_id}` | Full metadata + **snippet**; optional `?include=raw_headers` |
+| `GET` | `/v1/messages/{message_id}/body` | **HTML or text** — **CDN-signed URL** alternative for large bodies |
+| `PATCH` | `/v1/messages/{message_id}` | Update **flags** — `{ "seen": true, "flagged": false }` |
+
+#### Search
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/v1/mailboxes/{mailbox_id}/messages:search` | Query params: `q`, `folder_id`, `from`, `date_from`, `date_to`, `cursor` |
+
+#### Attachments
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `POST` | `/v1/attachments:upload` | **Presigned URL** flow preferred: **return** `{ "upload_url", "attachment_ref" }` for client PUT to object store |
+| `GET` | `/v1/messages/{message_id}/attachments/{attachment_id}` | Metadata + **presigned GET** or **stream** |
+
+**Webhook (delivery events)** — not REST CRUD but expected in API design answers: `POST` to customer URL with **signed** payload for **delivered**, **deferred**, **bounced**, **complained**.
+
+{: .tip }
+> **Why presigned URLs for attachments?** Keeps **heavy** bytes off **app servers** and matches **object store** as source of truth — interviewers like **separation of control plane and data plane**.
+
+---
+
 ## Step 2: Estimation
 
 **Assumptions:** **100K msgs/sec** peak; average **80 KB** raw MIME (HTML + small assets inlined); **3 days** hot retention of bodies; **30 days** of events in OLAP; replication factor **3**.
