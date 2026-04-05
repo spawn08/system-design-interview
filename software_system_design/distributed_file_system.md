@@ -344,9 +344,9 @@ SLAs are **external promises** (often **contractual**); **SLOs** are **internal*
 
 | SLO | Target | Measurement window | Notes |
 |-----|--------|--------------------|-------|
-| **Read latency (p50 / p99)** | **&lt; 5 ms / &lt; 50 ms** same-rack sequential chunk read | **Rolling 30 days** | Excludes **cross-region**; **cold** EC tail may be **higher**—split SLO by **tier** |
-| **Write / append ack (p99)** | **&lt; 100 ms** intra-cell | **Rolling 30 days** | Dominated by **pipeline** + **disk**; **record append** may **batch** |
-| **Metadata RPC (p99)** | **&lt; 10 ms** for lookup / lease | **Rolling 30 days** | **Spikes** often mean **GC**, **HA** failover, or **hot** directory |
+| **Read latency (p50 / p99)** | **Under 5 ms / under 50 ms** same-rack sequential chunk read | **Rolling 30 days** | Excludes **cross-region**; **cold** EC tail may be **higher**—split SLO by **tier** |
+| **Write / append ack (p99)** | **Under 100 ms** intra-cell | **Rolling 30 days** | Dominated by **pipeline** + **disk**; **record append** may **batch** |
+| **Metadata RPC (p99)** | **Under 10 ms** for lookup / lease | **Rolling 30 days** | **Spikes** often mean **GC**, **HA** failover, or **hot** directory |
 | **Data durability** | **99.999999999%** (11 nines) **annual** object survival | **Yearly** | **Justify** with **3× replication + scrubbing + MTTR**—not magic; **backups** for **metadata** |
 | **Metadata durability** | **No silent loss** of committed namespace; **RPO** **near zero** for edit log | Per incident | **QJM/Raft** **fsync** policy matters |
 | **Availability (data plane reads)** | **99.9%–99.99%** monthly | **Monthly** | **Planned** maintenance windows **excluded** or **budgeted** separately |
@@ -362,7 +362,7 @@ SLAs are **external promises** (often **contractual**); **SLOs** are **internal*
 |---------|--------|
 | **Budget** | **1 - SLO** per month (e.g., **99.99%** → **~4.32 min** bad metadata availability per month) |
 | **Spend** | **Failover**, **GC pauses**, **slow disks** consume budget—track **burn rate** |
-| **Gate releases** | If **burn** &gt; **2×** sustained, **freeze** risky changes; prioritize **reliability** work |
+| **Gate releases** | If **burn** exceeds **2×** sustained, **freeze** risky changes; prioritize **reliability** work |
 | **Degraded modes** | **Read-only metadata** may **preserve** **C** at **cost of A**—document as **acceptable** for **batch** |
 | **Customer comms** | **SLA** credits only if **external** monitoring agrees; **internal** SLOs stricter |
 

@@ -113,6 +113,234 @@ A **photo-sharing platform** lets users upload images (and often short video), f
 {: .tip }
 > Keep **API responses small**: return CDN URLs and dimensions, not image bytes. Use **cursor-based pagination** for feeds.
 
+### Technology Selection & Tradeoffs
+
+Interviews reward **comparing options** and naming **when** each wins—not picking one vendor forever.
+
+#### Photo storage: S3 vs GCS vs custom blob store (erasure coding)
+
+| Dimension | Amazon S3 | Google Cloud Storage | Custom blob + erasure coding |
+|-----------|-----------|----------------------|------------------------------|
+| **Operational burden** | Low; managed durability, lifecycle, replication | Low; similar feature set | High; you own hardware, software upgrades, rack awareness |
+| **Consistency model** | Strong read-after-write for new objects; list eventually consistent | Strong per-object; similar mental model | Depends on implementation; often tunable (CP vs AP) |
+| **Egress / multi-cloud** | Mature; often paired with CloudFront | Strong intra-GCP; cross-cloud is a product decision | You control placement; good for strict data residency |
+| **Erasure coding** | Handled under the hood (11 nines durability tier) | Same | **You** expose EC ratios, repair bandwidth, tail latency |
+| **Interview signal** | Default answer for “object store at scale” | Same, especially if stack is GCP | “Only if regulatory or exabyte economics justify the team” |
+
+**Why it matters:** Photos are **large, immutable blobs**; the hard problems are **durability, cost at rest, and egress to CDN**—not OLTP semantics on bytes.
+
+#### Metadata database: PostgreSQL vs DynamoDB vs Cassandra
+
+| Dimension | PostgreSQL (with sharding / Citus / Aurora) | DynamoDB | Cassandra / Scylla |
+|-----------|---------------------------------------------|----------|---------------------|
+| **Query pattern fit** | Excellent for relational invariants (FKs, transactions for post + media row) | Key-value and GSIs; great when access paths are strict | Wide partitions, time-ordered columns; great for huge fan-out lists |
+| **Scaling story** | Vertical + shard by `user_id` / federation; joins across shards are painful | Scales with provisioned RCU/WCU or on-demand; hot keys need design | Linear scale-out; ops-heavy; tunable consistency |
+| **Transactions** | ACID across related rows (same shard) | Transact writes where modeled; not arbitrary SQL | Lightweight LWT; not a replacement for rich relational model |
+| **Feed / inbox** | Possible with auxiliary tables + careful indexing | Common for `user_id` PK patterns | Natural for “timeline per user” wide rows |
+| **Interview signal** | “Start simple; prove shard boundaries before jumping to Cassandra” | “Fully managed, predictable at massive KV scale” | “When you’ve outgrown SQL for specific hot paths” |
+
+**Why it matters:** **Posts, users, and likes** benefit from relational integrity; **feed materialization** may be better in Redis / Cassandra-style stores—often a **polyglot** answer is strongest.
+
+#### Image processing: Lambda / serverless vs dedicated worker pool vs CDN-edge transform
+
+| Dimension | Serverless (Lambda, Cloud Functions) | Dedicated worker pool (K8s, ASG) | CDN edge image optimization |
+|-----------|-------------------------------------|-----------------------------------|-----------------------------|
+| **Burst handling** | Excellent elasticity; cold starts can hurt tail latency | Steady throughput; you size for peak + queue depth | Offloads resize/crop to edge; vendor-specific |
+| **Cost model** | Pay per invocation; can get expensive at sustained high QPS | Predictable if utilization is high | Often bundled with egress; watch per-transform pricing |
+| **Control** | CPU/memory caps; limited local disk | Full control over codecs, GPU, batching | Limited to supported operations; great for simple resizes |
+| **State / dependencies** | Good for stateless transforms | Best for heavy ImageMagick/FFmpeg pipelines, GPUs | Not a full replacement for virus scan / moderation pipelines |
+| **Interview signal** | “Async, bursty workloads; watch cold start” | “Production default for heavy transcoding” | “Fast path for parameterized transforms; origin still authoritative” |
+
+**Why it matters:** Processing must stay **off the synchronous upload path**; choice is about **tail latency, cost at sustained load, and feature depth** (HDR, stickers, moderation).
+
+#### Feed / timeline: fan-out on write vs fan-out on read
+
+| Dimension | Fan-out on write (push) | Fan-out on read (pull) | Hybrid (production norm) |
+|-----------|-------------------------|------------------------|---------------------------|
+| **Write cost** | O(followers) per post | O(1) for post | Bounded push + celebrity outbox |
+| **Read cost** | O(1) to read inbox | O(following) merge | Sublinear with caching + pre-merge |
+| **Staleness** | Inbox may lag seconds (async) | Always merges latest | Tuned per product |
+| **Failure modes** | Backlog on fan-out workers | Hot follow lists stress read | Isolate celebs from push storms |
+
+**Why it matters:** Same trade-off as **news feed** systems: push optimizes **read latency**; pull optimizes **write amplification** for mega-followed accounts.
+
+#### CDN: CloudFront vs Fastly vs Akamai vs multi-CDN
+
+| Dimension | Amazon CloudFront | Fastly | Akamai | Multi-CDN |
+|-----------|-------------------|--------|--------|-----------|
+| **Origin integration** | Native with S3/API Gateway; AWS ecosystem | Programmable edge (VCL); instant purge semantics | Massive edge footprint; enterprise features | Resilience + price arbitrage + regional performance |
+| **Purging / invalidation** | Eventually consistent; paths well understood | Fine-grained surrogate keys | Mature; may vary by product | Orchestration complexity (DNS steering, health checks) |
+| **Lock-in vs portability** | Higher if deep AWS | Configuration portability moderate | Contract and feature driven | Lowest single-vendor risk; highest ops burden |
+| **Interview signal** | “Default with S3” | “When you need programmable edge logic” | “Global scale and compliance-heavy enterprises” | “When downtime or regional issues are unacceptable” |
+
+**Our choice (example you can defend in an interview)**
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| **Blob storage** | **S3** (or GCS on GCP) | Managed durability and lifecycle; pre-signed uploads; no custom EC unless economics force it |
+| **Metadata** | **PostgreSQL** (sharded by `user_id`) + **Redis** for hot feed/id lists | Relational model for posts/users/likes; Redis for low-latency feed pages |
+| **Processing** | **Dedicated worker pool** + optional **Lambda** for spiky aux jobs | Predictable heavy image work on workers; serverless for occasional tasks |
+| **Feed** | **Hybrid fan-out** | Push for typical accounts; outbox + read merge for celebrities |
+| **CDN** | **CloudFront + second provider** (multi-CDN) at very large scale | Start single-CDN; add multi-CDN when availability or egress negotiation matters |
+
+---
+
+### CAP Theorem Analysis
+
+CAP is a **mental model**, not a literal database knob: in practice you choose **per operation** between strong consistency (CP-like behavior) and high availability with eventual convergence (AP-like behavior), bounded by network partitions.
+
+| Path | Primary concern | Typical CAP posture | Notes |
+|------|-----------------|---------------------|--------|
+| **Photo upload** | **No acknowledged loss** of user media | **CP-leaning** for “commit” boundaries | Once the client is told “posted,” metadata and object must not disagree; use idempotent IDs and reconciliation |
+| **Feed read** | **Availability + latency** | **AP-leaning** | Stale feed by seconds is acceptable; show cached feed if ranking service lags |
+| **Engagement (likes/comments)** | **Correctness** visible to user | **CP-leaning** per post | Double-tap should not “lose” a like silently; use counters with CAS or serializable shards |
+| **User profiles** | **Readable even under partial failures** | **AP-leaning** with cache | Slight staleness on follower count acceptable; not for billing |
+
+**Why uploads favor consistency:** Losing a photo after a success response destroys trust; **durability + metadata agreement** outweigh shaving milliseconds. **Feeds** can degrade to **last known good** cache.
+
+**Why engagement needs care:** A user who sees “Liked” expects **monotonic** behavior; **eventual** is fine for **aggregated counts** on non-critical surfaces if product allows **approximate** counts—not for the user’s own action confirmation.
+
+```mermaid
+flowchart TB
+  subgraph UploadPath["Upload path — CP-leaning"]
+    U1[Pre-signed PUT to object store]
+    U2[POST /posts — metadata txn]
+    U3[Async pipeline — at-least-once jobs]
+    U1 --> U2
+    U2 --> U3
+  end
+  subgraph FeedPath["Feed read — AP-leaning"]
+    F1[Feed service]
+    F2[Materialized ids + cache]
+    F3[Ranking optional]
+    F1 --> F2 --> F3
+  end
+  subgraph EngagePath["Likes/comments — strong per action"]
+    E1[Like/comment API]
+    E2[(Shard by post_id or user)]
+    E1 --> E2
+  end
+  subgraph ProfilePath["Profile — available, softly consistent"]
+    P1[Profile API]
+    P2[Cache + origin DB]
+    P1 --> P2
+  end
+```
+
+{: .note }
+> In interviews, say: **“We don’t choose one letter globally; we isolate consistency requirements to the write path and tolerate eventual freshness on reads.”**
+
+---
+
+### SLA and SLO Definitions
+
+**SLA** = contract with users/customers. **SLO** = internal target; **SLI** = what we measure. **Error budget** = allowable unreliability within a window (often monthly).
+
+#### Suggested SLOs (tune to product tier)
+
+| SLI | Target (example) | Measurement window | Why candidates care |
+|-----|------------------|--------------------|---------------------|
+| **Upload API success** | 99.9% successful `POST /posts` (after valid upload) | 30-day rolling | Separates API from client/network failures |
+| **Upload latency (API ack)** | p95 &lt; 300 ms, p99 &lt; 800 ms | Rolling | Metadata only; bytes bypass API |
+| **Feed load latency** | p99 &lt; 400–800 ms for JSON **excluding** image download | Rolling | Aligns with NFR table; CDN carries bytes |
+| **Photo serve latency (CDN)** | p95 TTFB &lt; 50–100 ms edge regions | Weekly | Cache hit ratio drives this; origin slow path excluded |
+| **Data durability** | 99.999999999% object durability (vendor tier) | Annual | Eleven nines on S3/GCS is standard talking point |
+| **Image processing lag** | p95 &lt; 30 s from post create to “ready” | Rolling | Async path; communicate SLA as user-visible state |
+
+#### Error budget policy (example)
+
+| Principle | Policy |
+|-----------|--------|
+| **Budget consumption** | If feed p99 misses SLO for 7 consecutive days, freeze **non-critical** releases (Explore tweaks, new ranking experiments) |
+| **Burn alerts** | Page on-call if **burn rate** &gt; 14× (multi-window) for core paths (upload, feed read) |
+| **Feature flags** | Dark-launch ranking changes; roll back if error budget burns during rollout |
+| **User-facing honesty** | If processing SLO slips, UI shows **“Processing”**—don’t fake “posted” with broken images |
+
+{: .tip }
+> Tie **SLOs to architecture**: feed latency SLO justifies **materialized feeds + CDN**; durability SLO justifies **object storage**, not “database BLOBs.”
+
+---
+
+### Database Schema
+
+Schemas below are **illustrative** for interviews—production adds **partitioning**, **soft deletes**, **GDPR** exports, and **regional** considerations.
+
+#### `users`
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | UUID / BIGINT PK | Opaque public id |
+| `username` | VARCHAR(30) UNIQUE | Normalized; case-insensitive collation |
+| `email` | VARCHAR(255) UNIQUE | Hashed/indexed per privacy policy |
+| `display_name` | VARCHAR(100) | |
+| `bio` | TEXT | Optional |
+| `avatar_media_id` | UUID NULL | FK to `photos` or dedicated `media_assets` |
+| `is_private` | BOOLEAN | Default false |
+| `created_at` | TIMESTAMPTZ | |
+| `updated_at` | TIMESTAMPTZ | |
+
+Indexes: `username`; optionally `created_at` for backfill jobs.
+
+#### `photos` (posts’ media; one row per image)
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | UUID PK | |
+| `user_id` | UUID / BIGINT FK → `users.id` | Author |
+| `post_id` | UUID FK | One post may have many `photos` (carousel) |
+| `storage_key` | VARCHAR(512) | Immutable object key in blob store |
+| `width` | INT | Pixels |
+| `height` | INT | |
+| `caption` | TEXT NULL | Often on **post**; duplicate here only if denormalized |
+| `location_lat` | DOUBLE NULL | Stripped EXIF in many apps |
+| `location_lng` | DOUBLE NULL | |
+| `tags` | TEXT[] or join table | Denormalized array vs `photo_tags` for search |
+| `status` | ENUM | `pending`, `processing`, `active`, `failed` |
+| `created_at` | TIMESTAMPTZ | |
+| `processed_at` | TIMESTAMPTZ NULL | When renditions ready |
+
+Indexes: `(user_id, created_at DESC)` for profile grid; `(post_id)`; `storage_key` UNIQUE.
+
+#### `likes`
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `photo_id` | UUID FK → `photos.id` | Or `post_id` if likes apply to whole post—**be consistent** |
+| `user_id` | UUID FK → `users.id` | |
+| `created_at` | TIMESTAMPTZ | |
+
+**Primary key:** `(photo_id, user_id)` — natural uniqueness; prevents double-like.
+
+Indexes: `(user_id, created_at)` for “likes I gave”; counter cache on `photos` / `posts` updated asynchronously.
+
+#### `comments`
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | UUID / BIGINT PK | |
+| `photo_id` or `post_id` | UUID FK | Match product: comment on **post** vs **asset** |
+| `user_id` | UUID FK | Author |
+| `body` | TEXT | Moderation, max length enforced at API |
+| `parent_comment_id` | UUID NULL | Threaded replies |
+| `created_at` | TIMESTAMPTZ | |
+| `deleted_at` | TIMESTAMPTZ NULL | Soft delete |
+
+Indexes: `(post_id_or_photo_id, created_at)` for chronological listing.
+
+#### `followers` (social graph edges)
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `follower_id` | UUID FK | Who follows |
+| `followee_id` | UUID FK | Whom they follow |
+| `created_at` | TIMESTAMPTZ | |
+| **PK** | `(follower_id, followee_id)` | Prevents duplicate edges |
+
+Indexes: `(followee_id, follower_id)` for “who follows this user” (follower lists); `(follower_id)` for “who I follow.”
+
+{: .note }
+> **Interview tip:** State whether **likes** attach to `post_id` or `photo_id`; either is valid if the model stays consistent across API and fan-out.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation

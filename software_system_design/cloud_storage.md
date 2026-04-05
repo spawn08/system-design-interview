@@ -116,6 +116,174 @@ Representative **REST-style** surface (names illustrative). Many products also u
 {: .tip }
 > Treat **block uploads** as idempotent by **hash**. Treat **file commits** as idempotent with a **client mutation id** to avoid duplicate revisions on retries.
 
+### Technology Selection & Tradeoffs
+
+Cloud storage stacks in three planes: **immutable bytes** (object/block layer), **authoritative metadata** (tree, versions, ACLs), and **sync semantics** (how clients converge). Interviewers expect you to name realistic building blocks and justify trade-offs—not to pick one vendor dogmatically.
+
+#### Object storage backend
+
+| Option | Pros | Cons | When it wins |
+|--------|------|------|----------------|
+| **Custom chunk store** (hash-partitioned volumes, EC, scrubbers) | Full control over placement, cost, on-prem; can co-design with dedup/GC | Years of engineering; you own reliability, upgrades, and incident response | Hyperscaler or regulated environments building a proprietary plane |
+| **Ceph / MinIO (S3-compatible cluster)** | Mature replication/EC; ops patterns exist; self-hostable | Operability at exabyte scale is non-trivial; feature gaps vs public cloud (multi-region, compliance SKUs) | Private cloud, hybrid, or teams that want S3 API without AWS |
+| **Managed S3-compatible (e.g., S3, GCS, Azure Blob)** | Durability/availability SLAs, global replication, lifecycle tiers, compliance certs | Cost at scale; less control over internals; egress/operation pricing | Fastest path for most products; default in interviews unless “on-prem” is stated |
+
+**Why it matters:** Metadata references chunks by **hash**; the object layer only needs **PUT-by-hash**, **GET-by-hash**, **lifecycle/GC hooks**, and **strong durability**. The hard part is **reference counting** and **async deletion** in your metadata plane—not the raw blob PUT.
+
+#### Metadata store
+
+| Option | Pros | Cons | When it wins |
+|--------|------|------|----------------|
+| **PostgreSQL** (sharded) | ACID, constraints (`UNIQUE (parent_id, name)`), rich queries, mature tooling | Cross-shard transactions painful; need careful shard key (`owner_id` / `namespace_id`) | **Default interview answer** for tree + ACLs + transactional commits |
+| **etcd** (or similar consistent KV) | Strong consistency, watches for coordination | Poor fit for large trees, heavy listing queries, and billions of rows—designed for **small** critical state | **Locks, quotas, rate-limit counters**, not the full file catalog |
+| **Custom B-tree / LSM on disk** | Ultimate performance/cost tuning | You reimplement SQL, migrations, backup—rarely justified | Extreme embedded or legacy systems; not a typical greenfield choice |
+
+**Why it matters:** File **names and hierarchy** need **transactional invariants**; search/list workloads need **secondary indexes**. A relational model maps cleanly; pure KV is usually paired with **another** system for graph/path queries unless you accept heavy client-side logic.
+
+#### Sync protocol
+
+| Approach | Pros | Cons | When it wins |
+|----------|------|------|----------------|
+| **Rsync-like delta sync** (rolling hash, send missing segments) | Minimizes bytes on **repeated similar** files; great for low uplink | Complex client; server may still be chunk/manifest based—align with CDC policy | Bandwidth-sensitive clients; backup tools; complement to chunk stores |
+| **Full file replace** | Simple mental model | Wastes bandwidth on large files; fights user expectations for “sync” | Small files only; rarely the main strategy at scale |
+| **Block-level + content-defined chunking + manifest commit** | Stable dedup, resumable uploads, idempotent **PUT(hash)** | Requires manifest versioning and GC | **Industry-typical** for Drive/Dropbox-class products |
+
+**Why it matters:** Interviews reward **CDC + content-addressed blocks** because edits localize to a few chunks; “upload whole file every time” fails the efficiency bar unless scope is explicitly tiny files.
+
+#### Conflict resolution
+
+| Strategy | Pros | Cons | When it wins |
+|----------|------|------|--------------|
+| **Last-writer-wins (LWW)** | Simple; single head revision | Silent overwrite—bad for shared folders and offline | Low-stakes caches; **not** ideal as the only story for collaboration |
+| **Version vectors / DAG** | Captures **causality**; enables merge tools and audit | UX complexity; still need policy for binaries | Advanced sync; technical users; foundation for **branch + merge** flows |
+| **User manual merge / conflict copies** | Safe for **binary**; clear accountability | Noisy folders; user burden | **Default** for generic cloud drives on binary files |
+
+**Our choice (interview narrative):**
+
+- **Bytes:** Managed **S3-compatible object storage** (or Ceph/MinIO if hybrid/on-prem) for durability and operational leverage; **content-addressed** chunks with **erasure coding** behind the API.
+- **Metadata:** **PostgreSQL** (or sharded Spanner/Cockroach-class SQL) for transactional tree + ACL + revision history; **etcd** only for **coordination** (locks, leases), not the main catalog.
+- **Sync:** **CDC chunking + block upload + manifest commit** with **cursor-based change feed** and **push** notifications; optional **rsync-style** second pass only for niche bandwidth savings—not as the primary store of truth.
+- **Conflicts:** **Optimistic concurrency** on commit (`etag`/base revision); for binaries, **conflict copies** or **explicit user resolution**; reserve **LWW** for clearly defined single-writer resources.
+
+**Rationale:** Optimize for **deduplicated storage**, **clear consistency story on metadata**, and **honest conflict UX**—without building a custom object store unless the prompt demands it.
+
+### CAP Theorem Analysis
+
+**CAP** (Consistency, Availability, Partition tolerance) says that under a **network partition**, you cannot have both **strong linearizability** and **full read/write availability** for the same data plane. Real products **partition responsibilities**: different subsystems pick different points on the spectrum.
+
+For **cloud storage**:
+
+- **File reads (content)** should stay **highly available**: clients can often read **replicated** chunks; temporary metadata staleness may block “latest” path resolution, but bytes addressed by **known hash** remain readable (**AP**-leaning for immutable blobs).
+- **Sync conflicts** need **careful consistency** on **metadata** (which revision is head, who is allowed to commit)—typically **CP**-leaning for the **commit path** (reject or branch on conflict), while **notifications** and **change feeds** are **eventually consistent** with bounded lag.
+
+| Subsystem | Typical CAP stance | Interview phrasing |
+|-----------|--------------------|------------------|
+| **File metadata** (path, size, head revision) | **CP** on commit: transactional updates, version checks | “We serialize commits per file or use compare-and-swap on revision.” |
+| **File content** (immutable chunks by hash) | **AP** for read: multiple replicas; **eventual** visibility of new hashes after commit | “Chunks are immutable; once committed, reads don’t need quorum metadata.” |
+| **Sync state** (per-device cursor, local vs server revision) | **AP** with **eventual** convergence; **repair** via change feed | “Devices are sources of truth for *pending work*; server is source of truth for *committed* state.” |
+| **Sharing permissions** | **CP** when enforcing on sensitive operations; cached reads may be **eventually** fresh | “Writes to ACLs go through authoritative store; reads may use cached policy with short TTL.” |
+
+```mermaid
+flowchart TB
+  subgraph cp [CP-leaning paths]
+    M[Metadata commit\nfile tree + revision]
+    A[ACL grant/revoke]
+  end
+
+  subgraph ap [AP-leaning paths]
+    B[Block read by hash\nreplicated objects]
+    N[Notify / change feed delivery]
+  end
+
+  subgraph part [Partition]
+    P[Network split\nclients cannot reach all replicas]
+  end
+
+  P -->|choose| M
+  P -->|choose| B
+  M -->|may fail closed\nreject ambiguous commits| X[Consistent tree]
+  B -->|still serve\nknown hashes| Y[Available reads]
+```
+
+{: .note }
+> **PACELC** extension: even **without** a partition, you trade **latency (L)** vs **consistency (C)**—e.g., reading ACL from a cache is faster but may be briefly stale. Mentioning PACELC signals seniority.
+
+### SLA and SLO Definitions
+
+**SLA** = contract with customers (credits, legal). **SLO** = internal target; **SLI** = what you measure. Below: illustrative **SLOs** for a consumer/enterprise-grade drive; tune numbers to the prompt.
+
+| Category | SLI | Example SLO | Measurement window |
+|----------|-----|-------------|---------------------|
+| **Upload latency** | Time from **last byte** of chunk received to **ack** (or from **commit request** to **success**) | P99 &lt; 500 ms for **commit**; chunk PUT P99 &lt; 1 s for **≤ 32 MB** chunk under normal load | 30-day rolling |
+| **Download latency** | Time to **first byte** (TTFB) for signed URL or gateway stream | P99 TTFB &lt; 300 ms **same region**; higher cross-region (disclose) | 30-day rolling |
+| **Sync latency** | Wall-clock from **server commit** to **change visible** on subscribed client (feed or push) | P95 &lt; 10 s; P99 &lt; 60 s (mobile/long-poll may widen tail) | 30-day rolling |
+| **Data durability** | Probability of **permanent loss** of committed user object | **11 nines** for committed bytes after **ack** (provider-style claim; explain replication + EC + repair) | Annual / incident-based review |
+| **Availability** | Successful **metadata** read/write and **auth** checks vs all attempts | **99.9%** monthly (consumer); **99.95%+** (business)—exclude customer-caused throttling if defined | Monthly |
+| **Conflict resolution accuracy** | Share of conflicts **correctly classified** (no silent wrong winner) vs detected conflicts | **99.99%** **detection** rate for concurrent commits to same base revision; **0** silent LWW on shared folders if policy forbids | Per release + sampled audits |
+
+**Error budget policy (how teams operate):**
+
+| Element | Policy |
+|---------|--------|
+| **Budget** | e.g., **0.1%** monthly unavailability = ~43 minutes/month at 99.9% |
+| **Burn alerts** | Page on **fast burn** (budget exhausted in days); ticket on **slow burn** |
+| **Trade-offs** | If sync latency SLO slips, **throttle** non-critical features (preview gen) before dropping **durability** paths |
+| **Freeze** | If budget exhausted, **freeze launches** until reliability work ships |
+
+{: .warning }
+> **Never** conflate **durability** (bits not lost) with **availability** (API up). You can be **available** and **wrong** if you serve stale metadata—separate SLIs.
+
+### Database Schema
+
+Logical schema (illustrative SQL-oriented). Adjust types (`UUID`, `BIGINT`), indexing, and soft-delete to your scale story.
+
+**`files`** — one row per **logical file** (node); `path` may be **materialized** for perf or **derived** from closure table—not both without a clear source of truth.
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | UUID / BIGINT | Primary key; stable across renames |
+| `name` | VARCHAR | Display name; sibling uniqueness with `parent_id` |
+| `path` | TEXT | Optional **denormalized** path for fast listing; or omit and use `parent_id` chain |
+| `parent_id` | FK → `files.id` | **NULL** or sentinel for root |
+| `size` | BIGINT | Logical size (bytes) for latest committed revision |
+| `content_hash` | BYTEA / CHAR(64) | **Hash** of content (manifest root or whole-file); aligns with dedup story |
+| `version` / `head_revision` | BIGINT | Monotonic revision for optimistic locking |
+| `owner_id` | UUID | Billing / primary owner |
+| `permissions` | ENUM / JSONB | **Default** visibility (e.g. `private`, `anyone_with_link`) or bitmask; **fine-grained** grants live in `sharing` |
+| `created_at`, `updated_at` | TIMESTAMPTZ | Audit |
+| `deleted_at` | TIMESTAMPTZ | Soft delete for sync trash |
+
+**`file_versions`** — immutable **snapshots** for history and GC.
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `id` | BIGINT | Surrogate PK |
+| `file_id` | FK → `files.id` | |
+| `version` | BIGINT | Matches commit; **UNIQUE (file_id, version)** |
+| `storage_key` | TEXT | Manifest id, or **pointer** to manifest table row |
+| `timestamp` | TIMESTAMPTZ | Commit time (server authoritative) |
+
+**`sharing`** — ACL edges.
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `file_id` | FK → `files.id` | Resource (file or folder node) |
+| `user_id` | UUID | Principal |
+| `permission_level` | ENUM / SMALLINT | `viewer`, `commenter`, `editor`, `owner` |
+| `granted_by`, `granted_at` | UUID, TIMESTAMPTZ | Audit |
+
+**`sync_state`** — **per device** convergence (optional **per file** row, or **summary + separate** pending table).
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `device_id` | UUID | Client-registered device |
+| `file_id` | FK → `files.id` | |
+| `local_version` | BIGINT | Last **known applied** server revision on device |
+| `synced_at` | TIMESTAMPTZ | Last successful reconcile |
+
+{: .tip }
+> At scale, **`sync_state`** is often **sharded** with the user or stored **client-side** (SQLite) with server **cursors**—the table above is the **server-side** model when you track enterprise devices centrally.
+
 ---
 
 ## Step 2: Back-of-the-Envelope Estimation
