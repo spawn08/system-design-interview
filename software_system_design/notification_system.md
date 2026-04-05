@@ -140,6 +140,349 @@ User preferences: 500M users × 200 bytes = 100 GB
 
 ---
 
+## Technology Selection & Tradeoffs
+
+A notification system touches many infrastructure components. This section explains **why** each technology was chosen and what alternatives were considered.
+
+### Message queue
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka** | High throughput; durable log; replay capability; partition-based parallelism; exactly-once semantics | Operational overhead (KRaft/ZooKeeper); higher latency than in-memory queues; overkill for low-volume channels | High-throughput channels (push, email); need replay for reprocessing failed batches; multiple consumer groups (delivery + analytics) |
+| **SQS** | Managed; auto-scaling; built-in DLQ; no ops burden; FIFO queues for ordering | Limited throughput per FIFO queue (300 msg/s); standard queues have no ordering; vendor lock-in; no replay | AWS-native; moderate volume; team prefers managed services |
+| **RabbitMQ** | Low latency; flexible routing (topic, fanout, headers); priority queues native; mature | Less throughput than Kafka; clustering is fragile; no built-in replay | Low-latency priority-based routing; complex routing topologies; moderate scale |
+| **Redis Streams** | Sub-ms latency; consumer groups; acknowledgment; already in stack if using Redis | Memory-bound; less durable than Kafka; limited ecosystem for stream processing | Simple queuing needs; already running Redis; want to avoid adding another system |
+
+**Our choice:** **Kafka** with one topic per channel (push, email, SMS, in-app), each with multiple partitions. Rationale:
+- **Push and email** channels generate the highest volume (3,480/s and 1,450/s respectively) — Kafka handles this comfortably.
+- **Replay** is critical: if a provider outage causes failures, we can reprocess the failed window without re-sending the API request.
+- **Consumer groups** allow independent scaling of delivery workers per channel.
+- **Priority** is handled by separate topics per priority level (critical, high, normal, low) rather than in-queue ordering.
+
+### Notification storage (history + tracking)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL** | ACID; rich queries for analytics; familiar tooling; good for structured notification records | Vertical scaling limits; high write volume (500M/day) stresses single instance | Moderate scale; need complex queries (join with user data); structured analytics |
+| **Cassandra / ScyllaDB** | Linear write scaling; excellent for append-heavy workloads; tunable TTL per row | No transactions; query patterns must be modeled upfront; denormalization required | High write volume (500M+ records/day); time-series-like access (recent notifications per user); auto-expiry via TTL |
+| **DynamoDB** | Managed; single-digit ms latency; auto-scaling; TTL support | Cost at high throughput; 400 KB item limit; limited query flexibility | AWS-native; predictable access patterns; pay-per-request pricing model |
+| **ClickHouse** | Columnar; excellent for analytical queries (delivery rates, open rates); high compression | Not designed for point lookups; batch-oriented ingestion | Analytics pipeline only; notification analytics dashboard; not for serving in-app notifications |
+
+**Our choice:** **Cassandra** for notification history (write-optimized, TTL-based retention, partition by `user_id` for "my notifications" queries) + **ClickHouse** for analytics (delivery rates, open/click tracking, A/B test results). Rationale:
+- 500M notifications/day × 90-day retention = 45B rows — too much for PostgreSQL; Cassandra handles this natively.
+- In-app notifications need fast per-user lookups — Cassandra partition by `user_id` with clustering by `created_at DESC`.
+- Analytics queries (e.g., "what was the delivery rate for campaign X?") are aggregation-heavy — ClickHouse excels here.
+
+### User preferences and metadata
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL** | ACID; rich queries; JOINs with user tables; schema enforcement | Must shard for 500M+ users; schema migrations at scale | Preferences, templates, routing rules — low-volume, high-consistency data |
+| **Redis** | Sub-ms reads; perfect for hot cache of frequently-accessed preferences | Memory cost; not a durable primary store | Cache layer for preferences; rate limit counters; idempotency keys |
+
+**Our choice:** **PostgreSQL** as source of truth for preferences, templates, and routing rules. **Redis** as a read-through cache (5-minute TTL) for preferences on the hot path.
+
+### Push notification provider
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **FCM (Firebase Cloud Messaging)** | Free; Android coverage; web push support; topic messaging | Google dependency; rate limits; no guaranteed delivery SLA | Android and web push |
+| **APNS (Apple Push Notification Service)** | Required for iOS; reliable; priority support | Apple ecosystem only; certificate management; HTTP/2 required | iOS push (mandatory) |
+| **OneSignal / Airship** | Managed; cross-platform; analytics built-in; A/B testing | Cost at scale; another dependency; less control | Team without push expertise; rapid prototyping |
+
+**Our choice:** Direct integration with **FCM + APNS** (no intermediary). At our scale, the per-message cost of third-party push platforms is significant, and direct integration gives us full control over retry logic and token management.
+
+---
+
+## CAP Theorem Analysis
+
+| Data store | CAP choice | Rationale |
+|------------|------------|-----------|
+| **Notification history (Cassandra)** | **AP** — Availability over consistency | Missing a notification record in the history is tolerable (can be reconciled); an unavailable notification history breaks the in-app notification inbox |
+| **User preferences (PostgreSQL)** | **CP** — Consistency over availability | Stale preferences could cause sending to a channel the user opted out of — a compliance violation (CAN-SPAM, GDPR). Brief unavailability of the preferences API is acceptable (queue messages until resolved) |
+| **Idempotency store (Redis)** | **AP** — Availability over consistency | If Redis is briefly inconsistent, the worst case is a duplicate notification (which idempotent providers can handle). If Redis is unavailable, we cannot check dedup and risk duplicates — unacceptable for critical notifications |
+| **Template store (PostgreSQL)** | **CP** — Consistency over availability | Templates change infrequently; stale templates could send wrong content. Cache with short TTL mitigates read latency |
+| **Rate limit counters (Redis)** | **AP** — Best-effort consistency | Slightly inaccurate rate limit counts are acceptable; missing a rate limit check is better than blocking all notifications |
+| **Kafka (message queue)** | **AP within partition** | Kafka prioritizes availability and partition tolerance; within a partition, ordering is guaranteed; across partitions, messages are independent |
+
+```mermaid
+flowchart TB
+  subgraph cap["CAP Classification"]
+    NH["Notification history<br/>(Cassandra) — AP"]
+    UP["User preferences<br/>(PostgreSQL) — CP"]
+    ID["Idempotency<br/>(Redis) — AP"]
+    RL["Rate limits<br/>(Redis) — AP"]
+    TM["Templates<br/>(PostgreSQL) — CP"]
+    KF["Message queue<br/>(Kafka) — AP"]
+  end
+```
+
+{: .warning }
+> User preferences being **CP** is a deliberate choice with compliance implications. If you use an AP store for preferences and serve a stale "opted-in" state after a user opts out, you may violate **CAN-SPAM** or **GDPR**. In interviews, connecting CAP decisions to business/legal constraints is a strong signal.
+
+---
+
+## SLA and SLO Definitions
+
+### Internal SLOs
+
+| Capability | SLI | SLO | Error budget | Consequence of miss |
+|------------|-----|-----|-------------|---------------------|
+| **API availability** | % of `POST /notifications` returning non-5xx | 99.95% | 21.9 min/month | Callers must retry; events may be delayed |
+| **Critical notification delivery** | % of critical notifications (OTP, security) delivered within 10s | 99.9% | 43.2 min/month | Users locked out; security events missed |
+| **Non-critical delivery latency** | p99 time from API accept to provider hand-off | < 30 s | — | Engagement notifications delayed |
+| **Deduplication accuracy** | % of notifications correctly deduplicated (no duplicates) | 99.99% | — | User annoyance; unsubscribes |
+| **Preference enforcement** | % of notifications correctly filtered by user preferences | 100% (hard requirement) | 0 tolerance | Compliance violation (CAN-SPAM, GDPR) |
+| **Provider delivery success** | % of messages accepted by FCM/APNS/SES/Twilio | 99.5% per provider | — | Invalid tokens, bounced emails (expected churn) |
+
+### SLA tiers (by notification type)
+
+| Type | Delivery SLA | Latency target | Channel priority |
+|------|-------------|----------------|------------------|
+| **Transactional (OTP, security)** | 99.9% | < 10 s | SMS → Push → Email |
+| **Engagement (likes, comments)** | 99.0% | < 60 s | Push → In-app |
+| **Promotional (campaigns)** | 95.0% | < 5 min (batched) | Email → Push |
+| **System (maintenance)** | 99.5% | < 30 s | All channels |
+
+### Error budget policy
+
+| Budget state | Action |
+|-------------|--------|
+| **> 50% remaining** | Normal velocity; A/B test new notification formats |
+| **25–50%** | Reduce blast radius; canary campaigns to 1% before full send |
+| **< 25%** | Freeze promotional campaigns; focus on delivery reliability |
+| **Exhausted** | Incident review; pause all non-transactional notifications |
+
+{: .tip }
+> In interviews, separate SLAs by **notification type**. Applying a single 99.9% SLA to promotional emails is wasteful; applying 95% to OTPs is dangerous. This nuance shows mature system thinking.
+
+---
+
+## Database Schema
+
+### PostgreSQL (metadata — user preferences, templates, routing)
+
+```sql
+-- User notification preferences
+CREATE TABLE user_preferences (
+    user_id             UUID PRIMARY KEY,
+    enabled_channels    TEXT[] NOT NULL DEFAULT '{push,email,in_app}',
+    muted_categories    TEXT[] NOT NULL DEFAULT '{}',
+    quiet_hours_start   TIME,               -- NULL = no quiet hours
+    quiet_hours_end     TIME,
+    quiet_hours_tz      TEXT DEFAULT 'UTC',
+    frequency_cap       INT NOT NULL DEFAULT 100,   -- max per hour
+    language            TEXT NOT NULL DEFAULT 'en',
+    email               TEXT,
+    phone               TEXT,
+    phone_verified      BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Device tokens for push notifications
+CREATE TABLE device_tokens (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id             UUID NOT NULL,
+    platform            TEXT NOT NULL,       -- ios | android | web
+    token               TEXT NOT NULL UNIQUE,
+    app_version         TEXT,
+    last_active_at      TIMESTAMPTZ,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_device_tokens_user ON device_tokens(user_id);
+
+-- Notification templates
+CREATE TABLE notification_templates (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name                TEXT NOT NULL UNIQUE,
+    category            TEXT NOT NULL,       -- transactional | engagement | promotional | system
+    push_title          TEXT,
+    push_body           TEXT,
+    email_subject       TEXT,
+    email_body_html     TEXT,
+    sms_body            TEXT,
+    in_app_title        TEXT,
+    in_app_body         TEXT,
+    variables           TEXT[] NOT NULL DEFAULT '{}',  -- expected template variables
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Notification routing rules
+CREATE TABLE routing_rules (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category            TEXT NOT NULL,       -- matches template.category
+    severity            TEXT NOT NULL DEFAULT 'normal',
+    channels            TEXT[] NOT NULL,     -- ordered list of channels to try
+    fallback_channels   TEXT[] NOT NULL DEFAULT '{}',
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### Cassandra (notification history — high-volume writes, per-user reads)
+
+```sql
+-- CQL schema
+CREATE TABLE notification_history (
+    user_id         UUID,
+    created_at      TIMESTAMP,
+    notification_id UUID,
+    channel         TEXT,
+    category        TEXT,
+    title           TEXT,
+    body            TEXT,
+    status          TEXT,           -- sent | delivered | failed | opened | clicked
+    provider_msg_id TEXT,
+    PRIMARY KEY (user_id, created_at, notification_id)
+) WITH CLUSTERING ORDER BY (created_at DESC)
+  AND default_time_to_live = 7776000;  -- 90-day retention
+
+-- For analytics: query by notification_id
+CREATE TABLE notification_events (
+    notification_id UUID,
+    event_type      TEXT,          -- sent | delivered | opened | clicked | failed
+    event_at        TIMESTAMP,
+    metadata        TEXT,          -- JSON blob
+    PRIMARY KEY (notification_id, event_at)
+) WITH CLUSTERING ORDER BY (event_at ASC)
+  AND default_time_to_live = 7776000;
+
+-- In-app unread notifications (fast lookup)
+CREATE TABLE in_app_notifications (
+    user_id         UUID,
+    created_at      TIMESTAMP,
+    notification_id UUID,
+    title           TEXT,
+    body            TEXT,
+    read_at         TIMESTAMP,
+    action_url      TEXT,
+    PRIMARY KEY (user_id, created_at)
+) WITH CLUSTERING ORDER BY (created_at DESC)
+  AND default_time_to_live = 2592000;  -- 30-day retention
+```
+
+### Storage sizing by table
+
+| Store | Row size | Daily rows | 90-day size | Notes |
+|-------|----------|-----------|-------------|-------|
+| **user_preferences** (PG) | ~200 B | — (500M total) | ~100 GB | Rarely changes |
+| **device_tokens** (PG) | ~150 B | — (avg 2 devices × 500M users) | ~150 GB | Churn from expired tokens |
+| **notification_templates** (PG) | ~5 KB | — (~10K templates) | ~50 MB | Negligible |
+| **notification_history** (C*) | ~500 B | 500M/day | ~22.5 TB | TTL auto-prunes; RF=3 → 67.5 TB |
+| **notification_events** (C*) | ~200 B | 1.5B/day (avg 3 events/notification) | ~27 TB | RF=3 → 81 TB |
+| **in_app_notifications** (C*) | ~300 B | 25M/day (5% of total) | ~675 GB | RF=3 → 2 TB |
+
+{: .note }
+> Cassandra storage dominates the system. Plan for **~150 TB total** across Cassandra with RF=3 and 90-day retention. Use **LeveledCompactionStrategy** for read-heavy tables (`in_app_notifications`) and **TimeWindowCompactionStrategy** for write-heavy tables (`notification_history`).
+
+---
+
+## API Design
+
+### Notification API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `POST` | `/v1/notifications` | Send notification(s) to user(s) | API key (service-to-service) |
+| `POST` | `/v1/notifications/batch` | Send campaign to many users | API key + campaign permissions |
+| `GET` | `/v1/notifications/{id}` | Get notification status | API key |
+| `GET` | `/v1/notifications/{id}/events` | Get delivery events timeline | API key |
+
+### User preference API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/v1/users/{id}/preferences` | Get notification preferences | User JWT |
+| `PUT` | `/v1/users/{id}/preferences` | Update preferences | User JWT |
+| `POST` | `/v1/users/{id}/devices` | Register device token | User JWT |
+| `DELETE` | `/v1/users/{id}/devices/{tokenId}` | Remove device token | User JWT |
+
+### In-app notification API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/v1/users/{id}/inbox` | Get unread in-app notifications (paginated) | User JWT |
+| `POST` | `/v1/users/{id}/inbox/{notifId}/read` | Mark notification as read | User JWT |
+| `POST` | `/v1/users/{id}/inbox/read-all` | Mark all as read | User JWT |
+| `GET` | `/v1/users/{id}/inbox/count` | Get unread count | User JWT |
+
+### Template management API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/v1/templates` | List templates | Admin API key |
+| `POST` | `/v1/templates` | Create template | Admin API key |
+| `PUT` | `/v1/templates/{id}` | Update template | Admin API key |
+| `DELETE` | `/v1/templates/{id}` | Delete template | Admin API key |
+| `POST` | `/v1/templates/{id}/preview` | Preview rendered template with sample data | Admin API key |
+
+### Webhook API (provider callbacks)
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `POST` | `/v1/webhooks/ses` | SES delivery/bounce notifications | SES signature verification |
+| `POST` | `/v1/webhooks/twilio` | Twilio SMS status callbacks | Twilio signature verification |
+| `GET` | `/v1/track/open/{notifId}.gif` | Email open tracking pixel | None (tracking) |
+| `GET` | `/v1/track/click/{notifId}` | Email click tracking redirect | None (tracking) |
+
+### Example request/response
+
+```json
+// POST /v1/notifications
+{
+  "user_ids": ["u_abc123", "u_def456"],
+  "template_id": "order_shipped",
+  "channels": ["push", "email"],
+  "priority": "high",
+  "data": {
+    "order_id": "ORD-789",
+    "tracking_url": "https://track.example.com/ORD-789",
+    "user_name": "Alice"
+  },
+  "idempotency_key": "ship-ORD-789-v1"
+}
+
+// Response: 202 Accepted
+{
+  "notification_id": "n_a1b2c3d4",
+  "status": "accepted",
+  "recipients": 2
+}
+
+// GET /v1/notifications/n_a1b2c3d4
+{
+  "notification_id": "n_a1b2c3d4",
+  "status": "partially_delivered",
+  "recipients": 2,
+  "delivery": {
+    "push": {"sent": 2, "delivered": 1, "failed": 0, "pending": 1},
+    "email": {"sent": 2, "delivered": 2, "failed": 0, "pending": 0}
+  }
+}
+
+// GET /v1/users/u_abc123/inbox?limit=20&cursor=eyJjIjoifQ
+{
+  "notifications": [
+    {
+      "id": "n_a1b2c3d4",
+      "title": "Your order is on its way!",
+      "body": "Order #ORD-789 has shipped.",
+      "read": false,
+      "action_url": "https://track.example.com/ORD-789",
+      "created_at": "2026-04-05T10:00:00Z"
+    }
+  ],
+  "unread_count": 3,
+  "next_cursor": "eyJjIjoifQ"
+}
+```
+
+{: .tip }
+> In interviews, highlight the **`idempotency_key`** field in the API — it prevents duplicate notifications on client retries. Also note the **202 Accepted** response (async processing), not 200 OK (which would imply synchronous delivery).
+
+---
+
 ## Step 3: High-Level Design
 
 ### 3.1 Notification Types and Priorities
@@ -1611,6 +1954,21 @@ async def send_notification(channel, notification):
 
 ---
 
+### Security, Compliance, and Data Privacy
+
+| Concern | Design decision | Implementation |
+|---------|----------------|----------------|
+| **CAN-SPAM compliance** | Every marketing email must include an unsubscribe link; honor opt-out within 10 business days | Template system auto-appends unsubscribe link; opt-out webhook triggers immediate preference update |
+| **GDPR right to erasure** | Users can request deletion of all notification history | Async deletion job purges from Cassandra + ClickHouse; confirm deletion within 30 days |
+| **SMS consent** | Only send SMS to users who explicitly opted in with verified phone | `phone_verified` flag in preferences; SMS worker checks before sending |
+| **Push token rotation** | Handle token expiry and device changes | Remove invalid tokens on `410 Gone` (APNS) or `NotRegistered` (FCM); periodic token refresh job |
+| **Secrets management** | Provider API keys, APNS certificates, signing keys | Vault/AWS Secrets Manager; rotate on schedule; never in code or config files |
+| **Rate limiting** | Prevent abuse from internal callers and protect providers | Per-caller API rate limits (token bucket); per-provider connection pool limits |
+| **Audit logging** | Track who sent what notification and when | Immutable audit log in append-only store; retained for compliance period |
+| **Content sanitization** | Prevent XSS in email HTML and injection in SMS | Template engine escapes variables; CSP headers on tracking endpoints |
+
+---
+
 ## Interview Checklist
 
 - [ ] **Clarified requirements** (channels, scale, priorities)
@@ -1623,6 +1981,11 @@ async def send_notification(channel, notification):
 - [ ] **Covered analytics** (open/click tracking)
 - [ ] **Mentioned scaling** (horizontal, batching)
 - [ ] **Addressed monitoring** (metrics, alerting)
+- [ ] **Explained technology choices** (why Kafka, why Cassandra, why PostgreSQL)
+- [ ] **Discussed CAP tradeoffs** (per data store, not blanket)
+- [ ] **Defined SLAs** (by notification type, not one-size-fits-all)
+- [ ] **Presented database schema** (separate concerns: metadata vs history)
+- [ ] **Covered compliance** (CAN-SPAM, GDPR, SMS consent)
 
 ---
 
@@ -1656,15 +2019,19 @@ Want me to dive into any specific component?"
 
 ## Summary
 
-| Component | Technology | Rationale |
-|-----------|------------|-----------|
-| **API** | REST with async processing | Fast response, reliable delivery |
-| **Queues** | Kafka per channel | Independent scaling, ordering |
-| **Push** | FCM + APNS | Android + iOS coverage |
-| **Email** | AWS SES | High deliverability, scalable |
-| **SMS** | Twilio | Reliable, global coverage |
-| **In-App** | WebSocket + Redis PubSub | Real-time delivery |
-| **Storage** | PostgreSQL + Redis | Preferences, tracking, caching |
+| Component | Technology | Why this choice | Alternative considered |
+|-----------|-----------|-----------------|----------------------|
+| **API** | REST with async processing (202 Accepted) | Decouple acceptance from delivery; callers don't wait | Synchronous delivery (blocks caller; poor latency at scale) |
+| **Queues** | Kafka per channel + per priority | Independent scaling; replay on failure; partition-based parallelism | SQS (no replay), RabbitMQ (lower throughput) |
+| **Push** | FCM + APNS (direct) | Full control over retry logic; no per-message cost from intermediary | OneSignal (managed but expensive at scale) |
+| **Email** | AWS SES | High deliverability; scalable; built-in bounce handling | SendGrid (more features but higher cost) |
+| **SMS** | Twilio | Reliable; global coverage; status callbacks | AWS SNS (limited international coverage) |
+| **In-App** | WebSocket + Redis PubSub | Real-time delivery to connected clients; Redis fan-out | SSE (simpler but one-directional); polling (higher latency) |
+| **Preferences** | PostgreSQL (CP) + Redis cache (AP) | Strong consistency for compliance; low-latency reads via cache | DynamoDB (vendor lock-in; eventual consistency risky for opt-out) |
+| **History** | Cassandra (AP) | Write-optimized; TTL-based retention; partition by user_id | PostgreSQL (won't scale to 500M records/day) |
+| **Analytics** | ClickHouse | Columnar; fast aggregations for delivery rate dashboards | PostgreSQL (too slow for analytical queries at scale) |
+| **CAP** | Mixed: CP for preferences/templates; AP for history/cache | Compliance-driven: user opt-out must be immediately consistent | Single-mode AP (compliance risk) |
+| **SLAs** | Tiered by notification type | OTPs need 99.9% / <10s; promotions need 95% / <5min | Single SLA (wastes resources or misses critical notifications) |
 
 A notification system is a classic example of event-driven architecture. The key challenges are multi-channel delivery, user preference management, and reliable delivery at scale. Master these patterns, and you'll be well-equipped for similar distributed systems problems.
 
