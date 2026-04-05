@@ -252,6 +252,365 @@ If you add **`trace_id`** (high cardinality) on a metric scraped every **15 s**:
 
 ---
 
+## Technology Selection & Tradeoffs
+
+Choosing the right components for a metrics system is not about picking "the best" technology—it is about understanding **why** each choice fits the workload's access patterns, consistency needs, and operational cost. This section maps each major component to the alternatives considered and the rationale for selection.
+
+### Time-Series Database (TSDB) selection
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Custom TSDB (Prometheus TSDB-style)** | Purpose-built for `(series_id, t, v)` scans; Gorilla compression; LSM-like block layout; no external deps | Must build compaction, retention, index from scratch; single-node unless you add remote write | You need tight control over block format and compression; interview default |
+| **InfluxDB** | Built-in retention policies, continuous queries, Flux language; time-aware schema | Cardinality limits in OSS; commercial clustering; different query ecosystem from PromQL | InfluxDB-native stack; moderate cardinality; team already operates it |
+| **TimescaleDB (PostgreSQL extension)** | Full SQL; joins with relational metadata; familiar pg tooling; hypertable partitioning | Higher per-sample overhead than columnar TSDB; compression is good but not Gorilla-level; scaling requires Citus or manual sharding | You already run PostgreSQL; need SQL joins (e.g., alert definitions in same DB); moderate scale |
+| **ClickHouse / Apache Druid** | Columnar OLAP; excellent for aggregation-heavy queries; high compression on sorted columns | Not purpose-built for per-series streaming appends; ingestion model differs from TSDB; more complex ops | Analytics-heavy workloads; long-range aggregations; you already have a streaming pipeline into OLAP |
+| **Cassandra / ScyllaDB wide-column** | Proven linear horizontal scale; write-optimized LSM; tunable consistency | No native time-series compression; cardinality = partition key explosion; range scans less efficient than TSDB block format | Already operating C* at scale; willing to trade query expressiveness for write throughput |
+
+**Our choice for this design:** Custom TSDB block format (Prometheus-compatible) for **hot data** + **object storage** (S3/GCS) for **cold blocks**. Rationale:
+- Access pattern is **append-only writes** + **range scans** on `(series, time_range)` — fits TSDB block layout perfectly.
+- Gorilla compression gives **~10x** space savings over general-purpose columnar.
+- PromQL compatibility means drop-in support for Grafana dashboards — the de facto visualization standard.
+- Object storage for cold tiers removes the need for a separate OLAP cluster for long-range queries.
+
+### Message queue / ingestion pipeline
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka** | High throughput; durable log; replay capability; mature ecosystem | Operational overhead (ZooKeeper/KRaft); latency floor ~5–50 ms per batch | High-throughput ingestion; need replay for reprocessing; multi-consumer fan-out |
+| **gRPC direct push (Prometheus remote write)** | Simple; no intermediate broker; low latency | No buffering if ingester is down; back-pressure must be handled at the agent | Prometheus ecosystem; agents handle local WAL and retry |
+| **NATS / NATS JetStream** | Lightweight; low latency; simple ops | Smaller ecosystem; less mature persistence guarantees than Kafka | Latency-sensitive ingestion; smaller scale; simpler ops team |
+| **AWS Kinesis / GCP Pub/Sub** | Managed; auto-scaling; integrated with cloud ecosystem | Vendor lock-in; cost at very high throughput; latency varies | Cloud-native deployment; team prefers managed services |
+
+**Our choice:** **gRPC remote write** for the primary push path (Prometheus-compatible, low latency, agents buffer locally) + **Kafka** as an optional fan-out layer for consumers that need replay (alerting, analytics). This avoids adding a mandatory broker on the hot ingestion path while providing durability through the agent's local WAL.
+
+### Metadata and rule storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL** | ACID; rich queries for alert rules, dashboards, user configs; mature tooling | Not suited for high-cardinality time-series data; separate from TSDB | Alert rules, dashboard definitions, tenant configs — low-volume, high-consistency data |
+| **etcd / Consul** | Distributed KV with strong consistency; watch primitives for config propagation | Limited query capability; not designed for large datasets | Ring membership, service discovery, small config blobs |
+| **Object storage (S3)** | Cheap; durable; works for block metadata | High latency for point reads; no transactions | Block meta.json, compacted index files |
+
+**Our choice:** **PostgreSQL** for alert rules, dashboard definitions, and tenant metadata. **etcd** for ingester ring membership and distributed coordination. **Object storage** for TSDB block metadata and archived blocks.
+
+### Cache layer
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis** | Sub-ms latency; rich data structures (sorted sets, streams); cluster mode | Memory-bound cost; persistence is secondary | Query result caching; recent alert state; tenant limit counters |
+| **Memcached** | Simple; multi-threaded; good for uniform key-value caching | No data structures beyond key-value; no persistence | Simple query result caching at high throughput |
+| **In-process LRU (e.g., Ristretto, groupcache)** | No network hop; lowest latency | Limited to single-process memory; cache coherence across replicas | Posting list caches; chunk header caches in store-gateway |
+
+**Our choice:** **In-process LRU** for hot posting lists and chunk headers in store-gateways (avoids network hop on every query), **Redis** for query frontend result caching and tenant rate-limit counters.
+
+---
+
+## CAP Theorem Analysis
+
+The monitoring system spans multiple data paths, each with different consistency requirements. Rather than applying CAP uniformly, we analyze each path:
+
+### Write path (ingestion)
+
+| CAP property | Choice | Rationale |
+|--------------|--------|-----------|
+| **Consistency** | Eventual | Replicated ingesters may have slightly different head blocks; queries merge and deduplicate |
+| **Availability** | Prioritized | Dropping samples during ingestion is worse than temporarily inconsistent reads — samples are **irrecoverable** |
+| **Partition tolerance** | Required | Multi-AZ deployment means network partitions are expected |
+
+**Classification: AP system** — Availability over Consistency. Ingesters accept writes independently; replication is async within the ring. During a partition, both sides continue accepting samples; deduplication at query time resolves overlaps.
+
+### Read path (queries)
+
+| CAP property | Choice | Rationale |
+|--------------|--------|-----------|
+| **Consistency** | Tunable | Dashboard queries tolerate staleness (seconds); SLO queries may need tighter bounds |
+| **Availability** | Prioritized | A monitoring dashboard that is down during an incident is **worse** than showing slightly stale data |
+
+**Classification: AP with tunable staleness** — Queriers merge results from ingesters and store-gateways; if one source is partitioned, results may be partial but the query still returns (with a staleness annotation).
+
+### Alerting path
+
+| CAP property | Choice | Rationale |
+|--------------|--------|-----------|
+| **Consistency** | Stronger preference | Missed alerts have direct business impact; duplicate alerts are tolerable |
+| **Availability** | High | Alert evaluation must run even during partial failures |
+
+**Classification: AP with compensating mechanisms** — Alert rules are evaluated against the available data; if data is missing, rules may use `absent()` or `for` duration to require sustained conditions before firing. This prevents false negatives from transient partitions.
+
+### Metadata (alert rules, dashboards)
+
+| CAP property | Choice | Rationale |
+|--------------|--------|-----------|
+| **Consistency** | Strong (CP) | Alert rule changes must be consistently applied; a stale rule could suppress a critical alert |
+| **Availability** | Acceptable degradation during partition | Alert rules change infrequently; brief unavailability of the rule API is acceptable |
+
+**Classification: CP** — PostgreSQL with synchronous replication for alert rules; etcd for ring membership with Raft consensus.
+
+```mermaid
+flowchart TB
+  subgraph cap["CAP Classification by Path"]
+    W["Write path<br/>AP — accept samples,<br/>dedupe later"]
+    R["Read path<br/>AP — serve stale over<br/>refusing queries"]
+    A["Alerting<br/>AP + compensating<br/>(for duration, absent)"]
+    M["Metadata<br/>CP — strong consistency<br/>for rule changes"]
+  end
+```
+
+{: .note }
+> In interviews, **do not say "we pick AP"** without specifying which data path. Monitoring systems are **mixed-mode**: AP for samples, CP for configuration. This nuance is what separates senior answers.
+
+---
+
+## SLA and SLO Definitions
+
+A monitoring system is **infrastructure for other systems' SLOs** — its own reliability must exceed the systems it monitors. Define **separate SLAs** for each capability:
+
+### Internal SLOs (engineering targets)
+
+| Capability | SLI (what we measure) | SLO (target) | Error budget | Consequence of miss |
+|------------|-----------------------|--------------|--------------|---------------------|
+| **Ingestion availability** | % of valid samples accepted (non-4xx, non-5xx) | 99.99% | 4.32 min/month downtime equivalent | Gaps in dashboards; SLO miscalculation |
+| **Ingestion latency** | p99 time from agent push to WAL ack | < 500 ms | — | Agent buffers grow; back-pressure |
+| **Query availability** | % of queries returning non-5xx | 99.9% | 43.2 min/month | Dashboard outages during incidents |
+| **Query latency** | p99 for dashboard-sized queries (< 10K series, < 24h range) | < 1 s | — | Slow incident response |
+| **Alert evaluation lag** | Time between scheduled eval and actual eval completion | < 30 s | — | Late pages; missed SLO violations |
+| **Alert notification delivery** | % of firing alerts that reach at least one notification channel | 99.9% | — | Silent failures; incidents go unnoticed |
+| **Data durability** | % of acknowledged samples retrievable after 1 hour | 99.999% | — | Trust in historical data |
+
+### External SLA (customer-facing, if SaaS)
+
+| Tier | Availability | Query latency (p99) | Retention | Price signal |
+|------|-------------|---------------------|-----------|--------------|
+| **Free** | 99.5% | < 5 s | 15 days | — |
+| **Pro** | 99.9% | < 2 s | 90 days | Per-host |
+| **Enterprise** | 99.99% | < 1 s | 1 year+ | Per-host + custom metrics |
+
+### Error budget policy
+
+| Error budget state | Action |
+|--------------------|--------|
+| **> 50% remaining** | Normal velocity; deploy freely |
+| **25–50% remaining** | Reduce risky deploys; increase canary soak time |
+| **< 25% remaining** | Feature freeze; focus on reliability work |
+| **Exhausted** | Incident review required; no non-critical changes |
+
+{: .tip }
+> In interviews, mention **error budgets** and **burn rate alerts** (e.g., "if we burn 10% of monthly budget in 1 hour, page immediately"). This shows you understand SLO-driven operations, not just uptime numbers.
+
+---
+
+## Database Schema and Data Model
+
+### Time-series storage (internal block format)
+
+The TSDB does not use a traditional relational schema — it uses a **block-based** file format. However, the logical data model is:
+
+```
+Series:
+  series_id    uint64    (hash of metric name + sorted labels)
+  metric_name  string    ("http_request_duration_seconds")
+  labels       map[string]string  ({"job":"api", "method":"GET", "status":"200"})
+
+Sample:
+  series_id    uint64
+  timestamp_ms int64
+  value        float64
+```
+
+### Symbol table and posting lists (index structure)
+
+```
+SymbolTable:
+  symbol_id    uint32
+  value        string    (interned label key or value)
+
+PostingList:
+  label_key    symbol_id
+  label_value  symbol_id
+  series_ids   []uint64  (sorted, compressed with delta encoding)
+```
+
+### Relational schema (PostgreSQL — metadata)
+
+```sql
+-- Tenant / organization
+CREATE TABLE tenants (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            TEXT NOT NULL,
+    plan            TEXT NOT NULL DEFAULT 'free',   -- free | pro | enterprise
+    max_series      BIGINT NOT NULL DEFAULT 100000,
+    max_samples_sec BIGINT NOT NULL DEFAULT 10000,
+    retention_days  INT NOT NULL DEFAULT 15,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Alert rule definitions
+CREATE TABLE alert_rules (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL REFERENCES tenants(id),
+    name            TEXT NOT NULL,
+    expr            TEXT NOT NULL,          -- PromQL expression
+    for_duration    INTERVAL NOT NULL DEFAULT '5 minutes',
+    severity        TEXT NOT NULL DEFAULT 'warning', -- critical | warning | info
+    labels          JSONB NOT NULL DEFAULT '{}',
+    annotations     JSONB NOT NULL DEFAULT '{}',     -- runbook_url, dashboard_url
+    eval_interval   INTERVAL NOT NULL DEFAULT '1 minute',
+    enabled         BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_alert_rules_tenant ON alert_rules(tenant_id) WHERE enabled;
+
+-- Dashboard definitions
+CREATE TABLE dashboards (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL REFERENCES tenants(id),
+    title           TEXT NOT NULL,
+    panels          JSONB NOT NULL DEFAULT '[]',     -- array of panel definitions
+    variables       JSONB NOT NULL DEFAULT '[]',     -- template variables
+    refresh_sec     INT NOT NULL DEFAULT 30,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Notification channels (PagerDuty, Slack, email)
+CREATE TABLE notification_channels (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL REFERENCES tenants(id),
+    name            TEXT NOT NULL,
+    type            TEXT NOT NULL,          -- pagerduty | slack | email | webhook
+    config          JSONB NOT NULL,         -- encrypted at rest; channel-specific config
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Alert routing rules
+CREATE TABLE alert_routes (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL REFERENCES tenants(id),
+    match_labels    JSONB NOT NULL DEFAULT '{}',     -- e.g., {"severity": "critical"}
+    channel_id      UUID NOT NULL REFERENCES notification_channels(id),
+    group_wait      INTERVAL NOT NULL DEFAULT '30 seconds',
+    group_interval  INTERVAL NOT NULL DEFAULT '5 minutes',
+    repeat_interval INTERVAL NOT NULL DEFAULT '4 hours',
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Silence rules (temporary suppression)
+CREATE TABLE silences (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL REFERENCES tenants(id),
+    matchers        JSONB NOT NULL,         -- label matchers to silence
+    starts_at       TIMESTAMPTZ NOT NULL,
+    ends_at         TIMESTAMPTZ NOT NULL,
+    created_by      TEXT NOT NULL,
+    comment         TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_silences_active ON silences(tenant_id, ends_at) WHERE ends_at > now();
+```
+
+### Storage sizing by table
+
+| Table | Row size (est.) | Rows at scale | Total size | Growth rate |
+|-------|----------------|---------------|------------|-------------|
+| `tenants` | ~200 B | 10K | ~2 MB | Negligible |
+| `alert_rules` | ~500 B | 500K (50 per tenant) | ~250 MB | Slow |
+| `dashboards` | ~5 KB (panels JSONB) | 100K | ~500 MB | Slow |
+| `notification_channels` | ~300 B | 50K | ~15 MB | Negligible |
+| `silences` | ~300 B | 10K active | ~3 MB | Self-pruning (TTL) |
+
+{: .note }
+> The **metadata store is tiny** compared to time-series data. PostgreSQL handles this comfortably on a single primary + replica. The real storage challenge is the TSDB blocks in object storage.
+
+---
+
+## API Design
+
+### Ingestion API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `POST` | `/api/v1/push` | Remote write (Prometheus-compatible protobuf) | API key / mTLS |
+| `POST` | `/api/v1/otlp/v1/metrics` | OTLP metrics ingestion (gRPC or HTTP) | API key |
+| `GET` | `/metrics` | Scrape endpoint (pull model — target exposes this) | — |
+
+### Query API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/api/v1/query` | Instant query: `?query=up&time=<ts>` | API key |
+| `GET` | `/api/v1/query_range` | Range query: `?query=rate(http_requests_total[5m])&start=&end=&step=` | API key |
+| `GET` | `/api/v1/series` | Find series matching label selectors | API key |
+| `GET` | `/api/v1/labels` | List all label names | API key |
+| `GET` | `/api/v1/label/{name}/values` | List values for a label | API key |
+
+### Alert management API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/api/v1/rules` | List alert rules (paginated) | API key |
+| `POST` | `/api/v1/rules` | Create alert rule | API key |
+| `PUT` | `/api/v1/rules/{id}` | Update alert rule | API key |
+| `DELETE` | `/api/v1/rules/{id}` | Delete alert rule | API key |
+| `GET` | `/api/v1/alerts` | List currently firing alerts | API key |
+| `POST` | `/api/v1/silences` | Create silence | API key |
+| `DELETE` | `/api/v1/silences/{id}` | Expire silence early | API key |
+
+### Dashboard API
+
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `GET` | `/api/v1/dashboards` | List dashboards | API key |
+| `POST` | `/api/v1/dashboards` | Create dashboard | API key |
+| `PUT` | `/api/v1/dashboards/{id}` | Update dashboard | API key |
+| `DELETE` | `/api/v1/dashboards/{id}` | Delete dashboard | API key |
+
+### Example request/response
+
+```json
+// POST /api/v1/push (simplified JSON representation of protobuf payload)
+{
+  "timeseries": [
+    {
+      "labels": [
+        {"name": "__name__", "value": "http_requests_total"},
+        {"name": "method", "value": "GET"},
+        {"name": "status", "value": "200"}
+      ],
+      "samples": [
+        {"timestamp_ms": 1712000000000, "value": 42.0},
+        {"timestamp_ms": 1712000015000, "value": 43.0}
+      ]
+    }
+  ]
+}
+// Response: 200 OK (empty body on success)
+// Response: 429 Too Many Requests (rate limited)
+// Response: 400 Bad Request {"error": "max_series_limit_exceeded", "limit": 100000}
+
+// GET /api/v1/query_range?query=rate(http_requests_total[5m])&start=1712000000&end=1712003600&step=60
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {"__name__": "http_requests_total", "method": "GET"},
+        "values": [
+          [1712000000, "1.5"],
+          [1712000060, "1.7"]
+        ]
+      }
+    ]
+  }
+}
+```
+
+{: .tip }
+> In interviews, mention that the **push API uses protobuf + snappy compression** for efficiency (not JSON). The JSON examples above are for readability. Prometheus remote write protocol is the de facto standard.
+
+---
+
 ## Step 2: Estimation
 
 ### Assumptions (adjust in the interview)
@@ -1248,6 +1607,37 @@ Monitor the monitors: **ingestion lag**, **WAL age**, **compaction backlog**, **
 
 ---
 
+## Capacity Planning and Storage Sizing (Extended)
+
+This section consolidates the storage and infrastructure planning into a single reference, building on the estimation in Step 2.
+
+### Storage breakdown by tier (1 year projection)
+
+| Tier | Data type | Resolution | Compression | Size per replica | Replicas | Total physical |
+|------|-----------|------------|-------------|-----------------|----------|---------------|
+| **Hot (SSD)** | Raw samples, 0–7 days | 15 s native | Gorilla ~10x | ~98 GB | 3 | ~294 GB |
+| **Warm (object store)** | Compacted blocks, 7–90 days | 15 s native | Gorilla + ZSTD | ~1.1 TB | 2 (erasure coded) | ~2.2 TB |
+| **Cold (object store)** | Downsampled, 90 d–1 year | 5 min | ZSTD | ~80 GB | 2 | ~160 GB |
+| **Metadata (PostgreSQL)** | Rules, dashboards, tenants | — | — | ~1 GB | 2 | ~2 GB |
+| **Index (posting lists)** | Label → series mappings | — | Delta encoded | ~20 GB per shard | 3 | ~60 GB |
+
+**Total year-1 envelope: ~2.7 TB** (dominated by warm-tier object storage). At **$0.023/GB/month** for S3 standard: **~$62/month** for warm storage — monitoring storage is **cheap** relative to its value.
+
+### Infrastructure sizing (illustrative cluster)
+
+| Component | Instance type | Count | Key resource | Notes |
+|-----------|--------------|-------|-------------|-------|
+| **Ingester** | 8 vCPU, 32 GB RAM, 500 GB SSD | 3–6 | RAM (active series), SSD (WAL) | Scale with ingestion rate |
+| **Querier** | 8 vCPU, 16 GB RAM | 2–4 | CPU (query evaluation) | Scale with concurrent queries |
+| **Store-gateway** | 4 vCPU, 16 GB RAM, 200 GB SSD cache | 2–3 | SSD (block cache), RAM (index cache) | Scale with query range depth |
+| **Compactor** | 4 vCPU, 8 GB RAM | 1–2 | CPU, temp disk | Runs periodically |
+| **Query frontend** | 2 vCPU, 4 GB RAM | 2 | Stateless; query splitting and caching | Behind LB |
+| **Alerting ruler** | 4 vCPU, 8 GB RAM | 2 | CPU (rule evaluation) | HA pair |
+| **PostgreSQL** | 4 vCPU, 16 GB RAM, 100 GB SSD | 2 (primary + replica) | Storage, IOPS | Metadata only |
+| **Redis** | 4 GB RAM | 1–2 | RAM | Query cache + rate limits |
+
+---
+
 ## Summary
 
 | Layer | Core idea |
@@ -1257,5 +1647,7 @@ Monitor the monitors: **ingestion lag**, **WAL age**, **compaction backlog**, **
 | **Read** | Label index → posting lists; **fan-out** + merge; **PromQL** planning |
 | **Alerts** | **Pending → firing** with **`for`**; dedupe + routes |
 | **Scale** | **Shard** by series/tenant; **federation** for hierarchy |
+| **Technology** | Custom TSDB + object store (AP for samples, CP for config); PostgreSQL for metadata; Redis for caching |
+| **SLAs** | 99.99% ingestion; 99.9% query; separate SLOs per capability with error budgets |
 
 This walkthrough is a **structured narrative** for system design interviews—not a production architecture for any one product. Adapt numbers, **SLAs**, and **compliance** to the prompt and your experience.

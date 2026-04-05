@@ -120,6 +120,209 @@ flowchart LR
 {: .tip }
 > Use **cursor-based pagination** for feeds (opaque token), not offset, for stable pages under concurrent writes.
 
+### Technology Selection & Tradeoffs
+
+#### Post storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL** | ACID transactions; rich indexing (B-tree, GIN for JSONB); mature ecosystem; strong consistency for writes | Vertical scaling limits; sharding requires pgCat/Citus; JOIN-heavy queries can become bottlenecks at extreme scale | Primary post storage at moderate scale (< 1B posts); strong consistency for post creation; metadata queries |
+| **MySQL (Vitess-sharded)** | Battle-tested at Twitter/YouTube scale via Vitess; well-understood sharding by `user_id`; strong consistency within shard | Cross-shard queries are expensive; schema migrations across shards are complex | Very large scale with experienced MySQL ops team; Vitess provides horizontal scaling |
+| **Cassandra / ScyllaDB** | Linear write scaling; tunable consistency; great for write-heavy workloads (fan-out writes) | No transactions; no JOINs; data modeling is query-driven (denormalization required); eventual consistency by default | Write-heavy fan-out storage; timeline materialization; > 1B posts with high write throughput |
+| **DynamoDB** | Managed; single-digit ms latency; auto-scaling; pay-per-request | Expensive at high throughput; 400 KB item limit; limited query flexibility; vendor lock-in | AWS-native stack; predictable access patterns; team prefers managed services |
+
+**Our choice:** **PostgreSQL (Citus-sharded by `user_id`)** for post metadata + **Cassandra** for materialized feed timelines. Rationale:
+- Post creation is **transactional** (text + media refs in one operation) — PostgreSQL provides ACID guarantees.
+- Feed timelines are **write-heavy** (fan-out) and **read-heavy** (feed loads) — Cassandra's wide-row model (`partition_key=user_id, clustering_key=created_at DESC`) is ideal.
+- Separating concerns: **source of truth** (PostgreSQL) vs **materialized view** (Cassandra/Redis).
+
+#### Feed cache
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis Sorted Sets** | O(log N) insert; O(log N + M) range query; sub-ms latency; cluster mode for sharding | Memory-bound (~100 bytes per entry × 2K entries × 500M users = ~100 TB RAM at full scale); eviction under pressure | Hot feed cache for active users; cap list length aggressively; rely on DB fallback for cold users |
+| **Cassandra wide rows** | Disk-backed; handles full user base without memory pressure; natural TTL support | Higher latency than Redis (~5–20 ms); more complex read path | Persistent feed materialization; all users (not just active); longer retention |
+| **Redis + Cassandra hybrid** | Redis for hot users (recent DAU); Cassandra for cold users; best of both | Operational complexity; cache coherence between layers | Production systems at scale; two-tier architecture |
+
+**Our choice:** **Redis Sorted Sets** for active users' feed caches (last 30 days DAU) + **Cassandra** fallback for cold users. Redis entries are `(post_id, score=created_at_ms)` capped at 2K per user.
+
+#### Message queue
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka** | High throughput; durable; replay; exactly-once semantics; partition-based parallelism | Operational overhead; latency floor per batch; overkill for simple fan-out | Fan-out event processing; need replay capability; multiple downstream consumers |
+| **SQS** | Managed; no ops; dead-letter queues built-in; scales automatically | No ordering guarantee (standard); limited throughput per FIFO queue; vendor lock-in | AWS-native; simple fan-out; team prefers managed |
+| **RabbitMQ** | Low latency; flexible routing; mature; priority queues | Less throughput than Kafka; clustering can be fragile | Low-latency event routing; complex routing patterns |
+
+**Our choice:** **Kafka** partitioned by `author_id` (preserves per-author ordering for fan-out consumers; scales horizontally by adding partitions and consumer instances).
+
+#### CDN and media storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **S3 + CloudFront** | Durable; lifecycle policies; integrated CDN; pre-signed URLs | Regional latency without multi-region replication; CloudFront cold-start | AWS stack; most common choice |
+| **GCS + Cloud CDN** | Similar to S3/CloudFront; strong consistency on reads after write | GCP lock-in | GCP stack |
+| **Multi-CDN (Fastly + CloudFront)** | Resilience; failover; geographic optimization | Complexity; cache invalidation across CDNs | Large-scale media-heavy platforms |
+
+**Our choice:** **S3** for durable blob storage + **CloudFront** CDN with content-hash-based cache keys for immutable media.
+
+---
+
+### CAP Theorem Analysis
+
+A news feed system spans multiple data stores, each with different consistency needs:
+
+| Data path | CAP choice | Rationale |
+|-----------|------------|-----------|
+| **Post creation (PostgreSQL)** | **CP** — Strong consistency | A post must be durably committed before we acknowledge to the user and trigger fan-out. Losing a post is unacceptable. |
+| **Social graph (follows)** | **CP** — Strong consistency | Follow/unfollow must be immediately consistent — a race condition could cause a post to fan out to an unfollowed user or miss a new follower. Eventual consistency leads to confusing UX. |
+| **Feed cache (Redis)** | **AP** — Availability over consistency | A slightly stale feed is acceptable; an unavailable feed is not. Redis replication is async; during partition, serve from the available replica. |
+| **Feed materialization (Cassandra)** | **AP** — Availability over consistency | Cassandra with `LOCAL_QUORUM` reads provides strong-enough consistency within a datacenter while maintaining availability across regions. |
+| **Engagement counts (likes, comments)** | **AP** — Eventual consistency | Exact real-time counts are not critical for UX. CRDTs or periodic aggregation provide good-enough accuracy with high availability. |
+
+```mermaid
+flowchart TB
+  subgraph cap["CAP by Data Store"]
+    PG["Post DB (PostgreSQL)<br/>CP — strong consistency"]
+    GR["Social graph<br/>CP — follow/unfollow<br/>must be immediate"]
+    RC["Feed cache (Redis)<br/>AP — stale feed OK,<br/>downtime not OK"]
+    CA["Feed store (Cassandra)<br/>AP — LOCAL_QUORUM<br/>within region"]
+    EN["Engagement counts<br/>AP — eventual,<br/>CRDTs or batch sync"]
+  end
+```
+
+{: .warning }
+> A common interview mistake: saying "the whole system is AP." A news feed is **mixed-mode** — the source-of-truth stores (posts, graph) need consistency; the derived stores (feed cache, engagement counts) prioritize availability. Articulate this per-store.
+
+---
+
+### SLA and SLO Definitions
+
+| Capability | SLI | SLO | Error budget |
+|------------|-----|-----|-------------|
+| **Feed read availability** | % of `GET /feed` returning non-5xx | 99.99% (52.6 min/year downtime) | Degrade to reverse-chronological if ranking service is down |
+| **Feed read latency** | p99 latency of `GET /feed` | < 500 ms | Excludes CDN time for media; JSON response only |
+| **Post creation availability** | % of `POST /posts` returning 2xx for valid requests | 99.95% | Posts are the write path; brief unavailability during deploys is acceptable |
+| **Post creation latency** | p99 latency of `POST /posts` (metadata only, excludes media upload) | < 300 ms | Synchronous DB write + Kafka publish |
+| **Fan-out latency** | p99 time from post creation to appearance in followers' feed cache | < 30 s for regular users; < 5 min for celebrities (read-path merge) | Best-effort; not guaranteed for all followers simultaneously |
+| **Feed freshness** | Median age of newest post in a user's feed at load time | < 60 s | Stale feed is acceptable; missing posts are not |
+| **Data durability** | % of created posts that are retrievable after 1 hour | 99.999% | PostgreSQL with synchronous replication |
+
+### Error budget policy
+
+| Budget state | Action |
+|-------------|--------|
+| **> 50% remaining** | Ship new features (ranking model updates, UI changes) |
+| **25–50%** | Canary all ranking model changes; limit blast radius |
+| **< 25%** | Freeze non-critical changes; focus on reliability |
+| **Exhausted** | Incident review; no deploys until budget replenishes |
+
+{: .tip }
+> In interviews, tie SLOs to **user-visible impact**: "Our feed read SLO is 99.99% because feed is the primary screen — every second of downtime affects millions of sessions." This shows product-aware engineering.
+
+---
+
+### Database Schema (Extended)
+
+The illustrative schema in Step 4 is expanded here with indexes, constraints, and rationale:
+
+```sql
+-- ==========================================
+-- Source of truth: PostgreSQL (Citus, sharded by user_id / author_id)
+-- ==========================================
+
+CREATE TABLE users (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username        TEXT NOT NULL UNIQUE,
+    display_name    TEXT,
+    avatar_url      TEXT,
+    follower_count  BIGINT NOT NULL DEFAULT 0,  -- denormalized, updated async
+    is_celebrity    BOOLEAN NOT NULL DEFAULT FALSE,  -- follower_count > threshold
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE posts (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id       UUID NOT NULL REFERENCES users(id),
+    text            TEXT,
+    visibility      TEXT NOT NULL DEFAULT 'public',  -- public | followers_only | private
+    media_count     SMALLINT NOT NULL DEFAULT 0,
+    is_deleted      BOOLEAN NOT NULL DEFAULT FALSE,  -- soft delete
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- Shard key: author_id (co-locate author's posts)
+-- Index for profile timeline (reverse chronological)
+CREATE INDEX idx_posts_author_time ON posts(author_id, created_at DESC) WHERE NOT is_deleted;
+
+CREATE TABLE post_media (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id         UUID NOT NULL REFERENCES posts(id),
+    storage_key     TEXT NOT NULL,           -- S3 object key
+    media_type      TEXT NOT NULL,           -- image | video | gif
+    width           INT,
+    height          INT,
+    duration_sec    REAL,                    -- video only
+    mime_type       TEXT NOT NULL,
+    processing_status TEXT NOT NULL DEFAULT 'pending',  -- pending | ready | failed
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_post_media_post ON post_media(post_id);
+
+CREATE TABLE follows (
+    follower_id     UUID NOT NULL REFERENCES users(id),
+    followee_id     UUID NOT NULL REFERENCES users(id),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (follower_id, followee_id)
+);
+-- "Who do I follow?" — for feed generation
+CREATE INDEX idx_follows_follower ON follows(follower_id);
+-- "Who follows me?" — for fan-out
+CREATE INDEX idx_follows_followee ON follows(followee_id);
+
+CREATE TABLE engagement (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id         UUID NOT NULL REFERENCES posts(id),
+    user_id         UUID NOT NULL REFERENCES users(id),
+    type            TEXT NOT NULL,           -- like | comment | share | bookmark
+    comment_text    TEXT,                    -- only for type=comment
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(post_id, user_id, type)           -- one like per user per post
+);
+CREATE INDEX idx_engagement_post ON engagement(post_id, type);
+
+-- ==========================================
+-- Materialized feed: Cassandra
+-- ==========================================
+-- CQL (Cassandra Query Language)
+-- Partition key: user_id (all feed entries for one user in one partition)
+-- Clustering key: created_at DESC (most recent first)
+--
+-- CREATE TABLE user_feed (
+--     user_id     UUID,
+--     created_at  TIMESTAMP,
+--     post_id     UUID,
+--     author_id   UUID,
+--     PRIMARY KEY (user_id, created_at)
+-- ) WITH CLUSTERING ORDER BY (created_at DESC)
+--   AND default_time_to_live = 2592000;  -- 30-day TTL
+```
+
+### Storage sizing by table (at scale)
+
+| Store | Row size | Rows (year 1) | Raw size | With indexes/replication | Notes |
+|-------|----------|---------------|----------|--------------------------|-------|
+| **posts** (PG) | ~500 B | 912B (2.5B/day × 365) | ~456 TB | ~1.4 PB (3x replication + indexes) | Shard by author_id; archive old posts |
+| **follows** (PG) | ~48 B | 150B (500M users × 300 avg) | ~7.2 TB | ~22 TB | Rarely changes; compact |
+| **engagement** (PG) | ~100 B | 9.1T (10 engagements/post avg) | ~910 TB | ~2.7 PB | Heaviest table; consider separate cluster |
+| **user_feed** (Cassandra) | ~64 B per entry | 500M users × 2K cap = 1T entries max | ~64 TB | ~192 TB (RF=3) | TTL auto-prunes; actual active much smaller |
+| **feed cache** (Redis) | ~100 B per entry | 100M DAU × 2K cap = 200B entries | ~20 TB RAM (worst case) | — | Only cache active users; cold users fall back to Cassandra |
+| **media** (S3) | ~2 MB avg | 456B media objects (50% of posts) | ~912 PB | Erasure coded by S3 | Lifecycle to Glacier after 1 year |
+
+{: .warning }
+> These numbers are **order-of-magnitude** for interview purposes. In practice, not all 500M users are active, media is highly skewed (most users post rarely), and compression helps significantly. Always state assumptions when presenting estimates.
+
 **Example request/response sketches:**
 
 ```json
@@ -1557,6 +1760,21 @@ func MergeByScore(a, b []ScoredID, limit int) []string {
 
 ---
 
+### Security, Data Privacy, and Compliance
+
+| Concern | Design decision | Implementation |
+|---------|----------------|----------------|
+| **Authentication** | OAuth 2.0 / JWT tokens on all API endpoints | API gateway validates JWT; short-lived access tokens (15 min) + refresh tokens |
+| **Authorization** | Post visibility (`public`, `followers_only`, `private`) enforced at read time | Feed service filters posts based on follow relationship and visibility field |
+| **Block/mute** | Blocked users' posts never appear in feed; muted users' posts are suppressed | Block list cached in Redis; checked during feed assembly |
+| **Data residency** | EU users' data stays in EU region (GDPR) | Shard by region; regional PostgreSQL clusters; CDN serves from nearest edge |
+| **Right to erasure (GDPR)** | User deletion removes all posts, engagements, and fan-out entries | Async deletion job: soft-delete immediately, hard-delete within 30 days; cascade to Cassandra feed entries |
+| **Media content moderation** | Detect NSFW, violence, copyright in uploaded media | Async pipeline: upload → ML classifier → flag for review or auto-reject |
+| **Rate limiting** | Prevent spam posts and follow abuse | Per-user rate limits: 50 posts/day, 1000 follows/day; sliding window in Redis |
+| **Pre-signed URL security** | Prevent unauthorized uploads and hotlinking | Short TTL (10 min); content-type restriction; max file size; signed with rotating keys |
+
+---
+
 ## Quick Reference Tables
 
 ### Comparison: Fan-out Models
@@ -1567,6 +1785,26 @@ func MergeByScore(a, b []ScoredID, limit int) []string {
 | Read cost | Low | High | Medium |
 | Complexity | Medium | Medium | High |
 
+### Technology Choices Summary
+
+| Component | Technology | Why this choice | Alternative considered |
+|-----------|-----------|-----------------|----------------------|
+| **Post storage** | PostgreSQL (Citus) | ACID for post creation; rich queries; sharding via Citus | Cassandra (no transactions), DynamoDB (vendor lock-in) |
+| **Feed materialization** | Cassandra | Write-optimized; wide-row model fits timeline pattern; TTL support | Redis only (memory-bound at full scale) |
+| **Feed cache** | Redis Sorted Sets | Sub-ms reads; O(log N) operations; cluster sharding | Memcached (no sorted sets), DynamoDB (higher latency) |
+| **Message queue** | Kafka | High throughput; durable; replay; partition by author_id | SQS (no ordering), RabbitMQ (lower throughput) |
+| **Media storage** | S3 + CloudFront | Durable; lifecycle policies; integrated CDN | GCS (GCP lock-in), MinIO (self-managed) |
+| **Search (optional)** | Elasticsearch | Full-text search on posts; hashtag discovery | Solr (less ecosystem), PostgreSQL FTS (limited at scale) |
+
+### CAP Summary
+
+| Store | CAP | Notes |
+|-------|-----|-------|
+| PostgreSQL (posts, graph) | CP | Source of truth; strong consistency |
+| Redis (feed cache) | AP | Stale feed OK; downtime not OK |
+| Cassandra (feed store) | AP | LOCAL_QUORUM for regional consistency |
+| Engagement counts | AP | Eventual; CRDTs or batch sync |
+
 ### API Summary
 
 | Endpoint | Purpose |
@@ -1574,6 +1812,9 @@ func MergeByScore(a, b []ScoredID, limit int) []string {
 | `POST /v1/posts` | Create |
 | `GET /v1/feed` | Paginated feed |
 | `POST /v1/follow` | Follow |
+| `DELETE /v1/follow/{userId}` | Unfollow |
+| `POST /v1/posts/{id}/like` | Like |
+| `POST /v1/media/upload-url` | Pre-signed upload URL |
 
 ---
 
