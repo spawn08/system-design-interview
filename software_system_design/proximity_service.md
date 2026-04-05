@@ -151,18 +151,18 @@ flowchart TB
 **Terminology (for interviews):**
 
 - **SLI** (Service Level Indicator): a measurable metric (e.g., “share of successful nearby requests under 200 ms”).
-- **SLO** (Service Level Objective): a **target** for an SLI over a window (e.g., “99% of requests &lt; 200 ms per month”).
+- **SLO** (Service Level Objective): a **target** for an SLI over a window (e.g., “99% of requests < 200 ms per month”).
 - **SLA** (Service Agreement): a **contract** with users/partners; often includes **credits** if SLOs are missed—many internal tiers use **SLOs only** until revenue depends on them.
 
 **Example SLOs** (tune to product; numbers are illustrative for a consumer maps app):
 
 | Area | SLI | SLO (monthly) | Why candidates care |
 |------|-----|----------------|----------------------|
-| **Search latency** | Nearby `GET` **server-side** latency | **P99 &lt; 200 ms**, **P50 &lt; 50 ms** | Matches interactive map expectations; separates **client** paint from **backend** work. |
+| **Search latency** | Nearby `GET` **server-side** latency | **P99 < 200 ms**, **P50 < 50 ms** | Matches interactive map expectations; separates **client** paint from **backend** work. |
 | **Search availability** | Ratio of **2xx** vs all attempts (excluding client cancel) | **≥ 99.9%** monthly (tier **99.95%** if premium) | Maps feel “broken” when search fails; **degraded** (stale cache) still counts as success if defined in SLI. |
 | **Geospatial accuracy** | Share of returned POIs with **Haversine distance ≤ radius × (1 + ε)** after refine | **≥ 99.99%** of results within **ε = 1%** radius slack | Catches index bugs, wrong **WGS84** handling, or missing **neighbor** cells. |
-| **Data freshness** (new/updated businesses **visible** in nearby) | Time from **commit** in OLTP to **searchable** in index | **P95 &lt; 60 s**, **P99 &lt; 5 min** | Balances **ingest** cost vs “I just added my store” expectations. |
-| **Index update latency** | Lag between **change event** and **materialized** row in geo shard / Redis | **P99 &lt; 2 min** | Distinct from user-visible freshness if you batch; matters for **ops** dashboards and **replay** alerts. |
+| **Data freshness** (new/updated businesses **visible** in nearby) | Time from **commit** in OLTP to **searchable** in index | **P95 < 60 s**, **P99 < 5 min** | Balances **ingest** cost vs “I just added my store” expectations. |
+| **Index update latency** | Lag between **change event** and **materialized** row in geo shard / Redis | **P99 < 2 min** | Distinct from user-visible freshness if you batch; matters for **ops** dashboards and **replay** alerts. |
 
 **Error budget policy:**
 
@@ -822,6 +822,9 @@ func (n *Node) Search(cx, cy, rad float64, out *[]Point) {
 | Topic | Covered? |
 |-------|----------|
 | Functional + non-functional requirements | Yes |
+| CAP split: geo reads (AP), metadata (CP), aggregates (eventual) | Yes |
+| SLI/SLO/SLA + error budgets (latency, availability, freshness, index lag) | Yes |
+| DB schema: places, reviews, geo index role | Yes |
 | REST API + pagination | Yes |
 | Traffic + storage estimates | Yes |
 | High-level components (API, index, cache, async ingest) | Yes |
