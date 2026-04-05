@@ -2,7 +2,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
 
-A comprehensive, interview-ready guide covering **66 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), production-quality code examples in Java, Python, and Go, and hypothetical interview transcripts.
+A comprehensive, interview-ready guide covering **69 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), production-quality code examples in Java, Python, and Go, and hypothetical interview transcripts.
 
 **Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
 
@@ -23,11 +23,11 @@ A comprehensive, interview-ready guide covering **66 system design topics** with
 |---------|--------|--------|
 | Essential System Design | 11 | Complete |
 | Advanced Topics | 13 | Complete |
-| Software System Design | 21 | Complete |
+| Software System Design | 22 | Complete |
 | GenAI/ML Fundamentals | 5 | Complete |
-| ML System Design | 7 | Complete |
-| GenAI System Design | 9 | Complete |
-| **Total** | **66** | **All complete** |
+| ML System Design | 8 | Complete |
+| GenAI System Design | 10 | Complete |
+| **Total** | **69** | **All complete** |
 
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
@@ -228,11 +228,11 @@ These topics are particularly important for system design interviews focused on 
 *   **Model Parallelism**
 *   **Parameter Servers**
 
-## IV. Top 40 System Design Interview Questions
+## IV. Top 43 System Design Interview Questions
 
 These questions are categorized and cover a range of difficulty levels. Remember that the *process* of how you approach the problem is often more important than finding a "perfect" solution. All questions have full walkthroughs in this guide.
 
-### General System Design (21 designs)
+### General System Design (22 designs)
 
 1.  **Design a URL Shortener (TinyURL):** Hashing, databases, scaling.
 2.  **Design a Rate Limiter:** Algorithms (token bucket, leaky bucket), distributed systems.
@@ -255,8 +255,9 @@ These questions are categorized and cover a range of difficulty levels. Remember
 19. **Design a Proximity Service:** Geohash, quadtree, spatial indexing.
 20. **Design a Distributed Message Queue (Kafka):** Append-only log, partitioning, consumer groups, zero-copy I/O.
 21. **Design a Metrics & Monitoring System (Datadog):** Time-series storage, Gorilla compression, alerting pipeline, federation.
+22. **Design an Email Delivery System (SendGrid/SES):** SMTP, DKIM/SPF/DMARC, IP reputation, deliverability, bounce handling.
 
-### ML System Design (7 designs)
+### ML System Design (8 designs)
 
 22. **Design a Recommendation System (Netflix/Amazon):** Collaborative filtering, Two-Tower models, cold start, A/B testing.
 23. **Design Real-time Fraud Detection:** Feature engineering, velocity features, class imbalance, ensemble models.
@@ -265,8 +266,9 @@ These questions are categorized and cover a range of difficulty levels. Remember
 26. **Design Search Ranking:** BM25, LambdaMART, retrieval + ranking + re-ranking, NDCG.
 27. **Design Real-time Personalization:** Session models, contextual bandits, multi-task ranking.
 28. **Design an Ads Ranking System (Google/Meta):** CTR prediction, auction mechanics, budget pacing, calibration.
+29. **Design a Real-time Feature Platform (Feast/Tecton):** Streaming features, point-in-time joins, train-serve consistency, feature monitoring.
 
-### GenAI System Design (9 designs — with interview transcripts)
+### GenAI System Design (10 designs — with interview transcripts)
 
 29. **Design an LLM-Powered Chatbot:** KV-cache, PagedAttention, speculative decoding, RLHF, guardrails, streaming.
 30. **Design an Enterprise RAG System:** Chunking, hybrid retrieval, re-ranking, ACL-aware search, citation grounding.
@@ -277,6 +279,7 @@ These questions are categorized and cover a range of difficulty levels. Remember
 35. **Design an AI Agent System:** ReAct pattern, tool calling, planning, memory architecture, multi-agent orchestration.
 36. **Design an LLM Gateway / AI Proxy:** Multi-model routing, semantic caching, cost control, PII scrubbing.
 37. **Design a Text-to-Image Generation System:** Diffusion models, latent space, CFG, safety, content provenance.
+38. **Design a Vector Database (Pinecone/Qdrant):** HNSW, IVF-PQ, hybrid search, billion-scale ANN, sharding.
 
 ### Senior Software Engineer System Design (Focus on Architecture & Trade-offs)
 
@@ -377,7 +380,7 @@ system-design-interview/
 │   ├── distributed_locking.md  # NEW
 │   ├── observability.md        # NEW
 │   └── event_sourcing_cqrs.md  # NEW
-├── software_system_design/     # System Design Problems (21 designs)
+├── software_system_design/     # System Design Problems (22 designs)
 │   ├── index.md
 │   ├── url_shortening.md
 │   ├── rate_limiter.md
@@ -400,6 +403,7 @@ system-design-interview/
 │   ├── proximity_service.md
 │   ├── message_queue.md        # NEW - Distributed Message Queue (Kafka)
 │   ├── metrics_monitoring.md   # NEW - Metrics & Monitoring System (Datadog)
+│   ├── email_delivery.md       # NEW - Email Delivery System (SendGrid/SES)
 │   └── staff_engineer_expectations.md
 ├── genai_ml_basics/            # GenAI/ML Fundamentals (5 building blocks)
 │   ├── index.md
@@ -408,7 +412,7 @@ system-design-interview/
 │   ├── data_pipelines.md
 │   ├── llm_systems.md
 │   └── distributed_training.md
-├── ml_system_design/           # ML System Design (7 designs)
+├── ml_system_design/           # ML System Design (8 designs)
 │   ├── index.md
 │   ├── recommendation_system.md
 │   ├── fraud_detection.md
@@ -416,8 +420,9 @@ system-design-interview/
 │   ├── image_caption_generator.md
 │   ├── search_ranking.md
 │   ├── realtime_personalization.md
-│   └── ads_ranking.md          # NEW - Ads Ranking System (Google/Meta)
-├── genai_ml_system_design/    # GenAI System Design (9 designs)
+│   ├── ads_ranking.md          # NEW - Ads Ranking System (Google/Meta)
+│   └── feature_platform.md    # NEW - Real-time Feature Platform
+├── genai_ml_system_design/    # GenAI System Design (10 designs)
 │   ├── index.md
 │   ├── llm_chatbot.md
 │   ├── enterprise_rag.md
@@ -427,7 +432,8 @@ system-design-interview/
 │   ├── multimodal_search.md
 │   ├── ai_agent_system.md      # NEW - AI Agent System (ReAct, tools, memory)
 │   ├── llm_gateway.md          # NEW - LLM Gateway / AI Proxy
-│   └── text_to_image.md        # NEW - Text-to-Image Generation (Imagen/DALL-E)
+│   ├── text_to_image.md        # NEW - Text-to-Image Generation (Imagen/DALL-E)
+│   └── vector_database.md     # NEW - Vector Database (Pinecone/Qdrant)
 ├── _config.yml                 # Jekyll site configuration
 ├── Gemfile                     # Ruby dependencies
 ├── index.md                    # Home page

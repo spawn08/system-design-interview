@@ -200,6 +200,23 @@ Design an ML training platform like Vertex AI / SageMaker — job scheduling, di
 
 ---
 
+### [Vector Database]({{ site.baseurl }}/genai_ml_system_design/vector_database)
+{: .d-inline-block }
+
+AI Infrastructure
+{: .label .label-yellow }
+
+NEW
+{: .label .label-blue }
+
+Design a vector database purpose-built for AI applications — HNSW, IVF-PQ indexing, hybrid search with metadata filtering, and billion-scale ANN at sub-10ms latency.
+
+**Key concepts:** HNSW graph traversal, IVF-PQ quantization, distance metrics (cosine, L2, IP), hybrid pre/post-filtering, vector-space-aware sharding, memory-mapped indexes, tiered storage
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
+
+---
+
 ## Quick Reference: System Comparison
 
 | System | Latency Target | Key Challenge | Primary Metric |
@@ -211,6 +228,7 @@ Design an ML training platform like Vertex AI / SageMaker — job scheduling, di
 | **AI Agent System** | < 5min per task | Planning, tool reliability | Task completion rate |
 | **Content Moderation** | < 500ms | Adversarial attacks, fairness | Precision, Recall, FPR |
 | **Text-to-Image** | < 10s per image | Safety, quality | FID, CLIP score, Human preference |
+| **Vector Database** | < 10ms P99 | Billion-scale ANN, recall | Recall@K, QPS |
 | **Multi-Modal Search** | < 300ms | Cross-modal alignment | NDCG@K, Recall@K |
 | **ML Training Platform** | N/A (throughput) | GPU utilization, fault tolerance | MFU, Job completion rate |
 

@@ -602,6 +602,162 @@ def assign_slots(ads: list[dict]) -> list[dict]:
 {: .note }
 > Tie **quality score** to **predicted engagement** and **landing page signals** — interviewers like **multi-sided** reasoning.
 
+#### Multi-slot GSP walkthrough (worked example)
+
+In **multi-slot GSP**, advertisers are sorted by a **rank score** (e.g. expected revenue per impression). Each winner pays a **CPC** (or per-action price) derived from the **next** competitor’s externality — *not* simply “second bid” in dollars, because **quality** and **predicted CTR** enter both **ranking** and **minimum bid to retain position**.
+
+**Setup:** 5 advertisers compete for **3** sponsored slots on one query. Let **bid** \(b_i\) be max CPC in currency units, **quality** \(q_i\) aggregate relevance / landing-page factors (platform-defined, positive), and **pCTR** \(p_i\) the model’s click probability for this \((\text{ad}, \text{query})\) pair. Define the **rank score** (eCPM-style, CPC normalized):
+
+\[
+\text{score}_i = b_i \cdot q_i \cdot p_i
+\]
+
+| Advertiser | \(b_i\) | \(q_i\) | \(p_i\) | \(\text{score}_i = b_i q_i p_i\) |
+|------------|--------:|--------:|--------:|--------------------------------:|
+| **A1** | 4.00 | 1.00 | 0.050 | **0.2000** |
+| **A2** | 3.50 | 0.90 | 0.060 | **0.1890** |
+| **A3** | 6.00 | 0.50 | 0.055 | **0.1650** |
+| **A4** | 2.00 | 1.10 | 0.070 | **0.1540** |
+| **A5** | 5.00 | 0.40 | 0.045 | **0.0900** |
+
+**Sort** by \(\text{score}_i\) descending → slot order: **A1 (slot 0), A2 (slot 1), A3 (slot 2)**; A4 and A5 do not win a slot.
+
+**GSP CPC pricing (standard externality form):** for the advertiser in **slot** \(k\) with index \(i\) among the sorted winners, let \(j\) be the advertiser who would occupy that slot if \(i\) were removed (the **next** competitor in the total ordering). A common GSP CPC formula is the **minimum bid** needed to *just* keep the slot, holding others fixed:
+
+\[
+\text{CPC}_i = \frac{\text{score}_{j}}{\,q_i \cdot p_i\,}
+\]
+
+Here \(\text{score}_{j}\) is the rank score of the **first loser** relative to the winner list — i.e. for three slots, the fourth-highest score overall (A4) sets the externality for the last winner, and similarly the next score down sets each higher slot.
+
+Using the full ordering **A1, A2, A3, A4, A5**:
+
+| Winner slot | Advertiser | Next relevant score for pricing | Denominator \(q_i p_i\) | **CPC\(_i\)** |
+|-------------|------------|----------------------------------|-------------------------|---------------|
+| 0 | A1 | \(\text{score}_{\text{A2}} = 0.1890\) | \(1.00 \times 0.050 = 0.050\) | \(0.1890 / 0.050 = \mathbf{3.78}\) |
+| 1 | A2 | \(\text{score}_{\text{A3}} = 0.1650\) | \(0.90 \times 0.060 = 0.054\) | \(0.1650 / 0.054 \approx \mathbf{3.06}\) |
+| 2 | A3 | \(\text{score}_{\text{A4}} = 0.1540\) | \(0.50 \times 0.055 = 0.0275\) | \(0.1540 / 0.0275 \approx \mathbf{5.60}\) |
+
+**Interpretation:** A3 pays the highest **CPC** among winners here because its **quality × pCTR** is weak — to *stay* in slot 2, it must compensate with a high per-click price. **Platform revenue** on the page (ignoring reserves) is \(\sum_i \text{CPC}_i \cdot p_i\) in **expected cost per impression** terms for CPC billing (exact cashflow depends on auction instance and accounting).
+
+{: .tip }
+> In interviews, state clearly: **rank score** uses **predictions** (\(p_i\)); **GSP** maps the **next** score into a **CPC** using the winner’s **\(q_i p_i\)** — this couples **ML** and **mechanism**.
+
+#### VCG: marginal contribution pricing
+
+**VCG** (Vickrey–Clarke–Groves) charges each winner their **externality**: how much **others’ total welfare** would drop if this bidder disappeared.
+
+Let **social welfare** of an allocation be \(\sum \text{value}\) of assigned bidders (in a simplified model, **value** might be \(\text{score}\) or utility). For bidder \(i\), the VCG payment is:
+
+\[
+p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
+\]
+
+where \(W_{-i}\) is optimal welfare of **other** bidders when \(i\) participates and \(W_{-i}^{*}\) is optimal welfare of others when \(i\) is **removed** and slots re-optimized.
+
+**Tiny numeric sketch (single slot, values = bids, truthfulness intuition):** three bidders, values \(v_1=10, v_2=7, v_3=4\). One item. Efficient allocation: give item to bidder 1.
+
+- Welfare of others **with** bidder 1 present (winner): others get 0 → \(W_{-1}=0\).
+- If bidder 1 **removed**, best other is bidder 2 with value 7 → \(W_{-1}^{*}=7\).
+
+VCG price for bidder 1: \(p_1 = 7 - 0 = 7\) (classic second-price). Bidder 2, if they won in another construction, would pay **externality** on bidder 3, etc.
+
+**Multi-slot VCG** assigns slots to maximize \(\sum v_{i,s}\) (values per slot) and charges each winner the harm to others — **efficient** and **truthful** under private values, but **harder to explain** to advertisers and **heavier to compute** at billion-QPS than GSP. That is why **GSP-style** rules remain common in search, while **VCG** appears in theory courses and some **niche** markets.
+
+#### First-price vs second-price: incentives and equilibrium
+
+| Mechanism | Winner pays | Strategic behavior |
+|-----------|-------------|--------------------|
+| **Second-price / Vickrey (single item)** | Next price | **Dominant strategy:** bid true value (private values, independence) |
+| **GSP (multi-slot)** | Derived from next score | **Not** truthful; **Nash equilibrium** typically involves **bid shading** relative to value |
+| **First-price (FP)** | Own bid (often scaled by quality) | **Shade** aggressively; equilibrium bids **below** value; sensitive to **competition** and **uncertainty** |
+
+**Equilibrium intuition:** In FP, if everyone bids truthfully, you overpay — so bids adjust downward until **best-response** stability. In SP, truth-telling is stable in simple single-item models — but **GSP** is **not** SP when multiple slots exist, so **auction design + auto-bids** jointly determine empirical outcomes.
+
+{: .warning }
+> Production **hybrid** rules (reserves, floors, first-price layers in open auctions, quality thresholds) mean **“the”** auction is rarely pure textbook GSP or pure FP — say you’d **verify** with **ads economics** / **product** docs.
+
+#### Reserve price: mechanism and revenue
+
+A **reserve** \(r\) is a **minimum** winning score or **minimum CPC** floor. Effects:
+
+| Effect | Notes |
+|--------|--------|
+| **Revenue** | Can **increase** publisher revenue when competition is thin (extracts more from high-valuation winners) |
+| **Efficiency** | May **exclude** low-value ads → fewer filled impressions |
+| **Advertiser UX** | Sudden jumps near reserve → **calibration** of bid simulators matters |
+
+Reserves interact with **quality**: a **score reserve** \(\text{score}_i \ge r_s\) differs from a **CPC floor** after dividing by \(q_i p_i\).
+
+**Reference implementation — multi-slot GSP with quality and pCTR:**
+
+```python
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import List, Sequence, Tuple
+
+
+@dataclass(frozen=True)
+class AdCandidate:
+    ad_id: str
+    max_cpc: float  # bid (currency / click)
+    quality: float  # > 0
+    pctr: float  # in (0, 1]
+
+
+def rank_score(ad: AdCandidate) -> float:
+    return ad.max_cpc * ad.quality * ad.pctr
+
+
+def multislot_gsp_cpc(
+    ads: Sequence[AdCandidate],
+    num_slots: int,
+    score_reserve: float = 0.0,
+) -> Tuple[List[Tuple[AdCandidate, int, float]], List[AdCandidate]]:
+    """
+    Sort by rank score, take top `num_slots` as winners.
+    GSP CPC for winner in slot k uses the (k+1)-th highest score in the *full* list
+    as externality (next competitor's rank score), divided by q*p of the winner.
+    """
+    ordered = sorted(ads, key=rank_score, reverse=True)
+    scores = [rank_score(a) for a in ordered]
+
+    winners: List[Tuple[AdCandidate, int, float]] = []
+    for slot in range(min(num_slots, len(ordered))):
+        w = ordered[slot]
+        next_score = scores[slot + 1] if slot + 1 < len(scores) else score_reserve
+        eff = max(next_score, score_reserve)
+        denom = max(w.quality * w.pctr, 1e-9)
+        cpc = eff / denom
+        winners.append((w, slot, cpc))
+
+    losers = ordered[len(winners) :]
+    return winners, losers
+
+
+def expected_cost_per_impression(cpc: float, pctr: float) -> float:
+    """Advertiser expected payment per impression under CPC (toy, no fraud)."""
+    return cpc * pctr
+
+
+if __name__ == "__main__":
+    demo = [
+        AdCandidate("A1", 4.0, 1.0, 0.05),
+        AdCandidate("A2", 3.5, 0.9, 0.06),
+        AdCandidate("A3", 6.0, 0.5, 0.055),
+        AdCandidate("A4", 2.0, 1.1, 0.07),
+        AdCandidate("A5", 5.0, 0.4, 0.045),
+    ]
+    w, losers = multislot_gsp_cpc(demo, num_slots=3, score_reserve=0.0)
+    for ad, slot, cpc in w:
+        ecpm = expected_cost_per_impression(cpc, ad.pctr)
+        print(f"slot {slot}: {ad.ad_id} CPC={cpc:.4f} E[cost/imp]={ecpm:.5f}")
+```
+
+{: .note }
+> This matches the **worked table** above when `score_reserve=0`: next score is the next row’s \(\text{score}\). Setting **`score_reserve`** models a **publisher floor** on **externality** from the competitor below the last visible slot.
+
 ---
 
 ### 4.5 Budget pacing and delivery
@@ -784,6 +940,206 @@ def update_beta(prior: tuple[float, float], clicked: bool) -> tuple[float, float
 
 ---
 
+### 4.9 Auto-bidding and smart campaigns
+
+**Smart campaigns** and **automated bidding** move optimization from static **manual CPC** to **closed-loop** control: the platform adjusts **effective bids** (or **bid multipliers**) so that **delivery**, **cost**, and **value** targets stay on track across **time-of-day**, **competition**, and **model drift**.
+
+#### Target CPA (tCPA)
+
+**Goal:** Spend the budget while achieving **cost per acquisition** \(\approx\) **target CPA** \(c^\*\), where an **acquisition** is a conversion the advertiser cares about (purchase, lead, install).
+
+| Component | Role |
+|-----------|------|
+| **Conversion model** | pCVR (and **delayed** conversion modeling) |
+| **Bid controller** | Maps error \(( \text{CPA}_{\text{obs}} - c^\* )\) to **bid delta** |
+| **Pacing** | Ensures **spend rate** matches **budget curve** — separate but **coupled** to bids |
+
+**Control intuition:** If **observed CPA** over the last window is **above** target (too expensive), **lower** effective bids; if **below**, **raise** bids to capture volume — subject to **budget** and **inventory** constraints.
+
+{: .warning }
+> **Non-stationarity:** competitors, seasonality, and **creative fatigue** change the **bid → CPA** mapping — controllers need **guards** (max step size, min/max bid floors).
+
+#### Target ROAS (return on ad spend)
+
+**Goal:** Maximize **conversion value** while maintaining **value / spend** \(\approx\) **target ROAS** \(\rho^\*\).
+
+| Quantity | Meaning |
+|----------|---------|
+| **Bid signal** | Often tied to **predicted conversion value** × **pCVR** / **CPA** target |
+| **Value optimization** | Requires **value labels** (or **predicted LTV**) — sparser than binary conversions |
+
+tROAS is **value-weighted**: two clicks are not interchangeable if **expected order value** differs.
+
+#### Bid landscape estimation
+
+**Bid landscape** = mapping from **bid** (or multiplier) to **outcomes**: **impressions**, **clicks**, **cost**, **conversions**.
+
+| Approach | Idea |
+|----------|------|
+| **Parametric curve** | Fit **S-curve** or **log-linear** model from **historical** (bid, volume) buckets |
+| **Simulation / replay** | Offline counterfactual using **logged** propensities (IPS-style caution) |
+| **Shaded exploration** | Tiny **randomized** bid perturbations to **refresh** slope estimates |
+
+Interview phrase: **“We need the local derivative \(d(\text{CPA})/d(\text{bid})\) or \(d(\text{spend})/d(\text{bid})\) to tune auto-bids without oscillation.”**
+
+#### Auction ↔ pacing feedback loop
+
+| Direction | Effect |
+|-----------|--------|
+| **Auction outcomes** (CPC, clears, losses) | Update **spend accounting** and **CPA estimates** |
+| **Pacing** | **Throttles** participation or **scales** effective bid to hit **delivery curve** |
+| **Auto-bid** | Adjusts **bid** to hit **tCPA/tROAS** — can fight pacing if mis-tuned → **product** integrates both |
+
+```mermaid
+flowchart LR
+    subgraph Goals [Advertiser goals]
+        T[tCPA / tROAS target]
+        B[Budget + schedule]
+    end
+
+    subgraph Control [Bid control]
+        L[Bid landscape / response model]
+        PID[Controller e.g. PID or online learner]
+        EB[Effective bid multiplier]
+    end
+
+    subgraph Auction [Live auction]
+        R[Ranker + pCTR/pCVR]
+        AUC[Auction + pricing]
+        SP[Spend + outcomes]
+    end
+
+    subgraph Pace [Pacing]
+        P[Pacing state vs curve]
+    end
+
+    T --> PID
+    B --> P
+    L --> PID
+    PID --> EB
+    EB --> AUC
+    R --> AUC
+    AUC --> SP
+    SP --> L
+    SP --> PID
+    P --> EB
+    SP --> P
+```
+
+#### tCPA optimization — PID-style controller (toy)
+
+**PID** (proportional–integral–derivative) is a **common engineering baseline**: **P** reacts to current CPA error, **I** removes steady-state offset (persistent “too expensive”), **D** dampens oscillation when CPA **spikes**.
+
+```python
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class PIDState:
+    integral: float = 0.0
+    prev_error: float | None = None
+
+
+@dataclass
+class TCPAController:
+    """Toy: adjust log-bid multiplier to steer observed CPA toward target_cpa."""
+
+    target_cpa: float
+    kp: float = 0.15
+    ki: float = 0.02
+    kd: float = 0.05
+    log_bid_multiplier: float = 0.0
+    state: PIDState = field(default_factory=PIDState)
+    log_min: float = -1.5
+    log_max: float = 1.5
+
+    def step(self, observed_cpa_window: float, dt_hours: float = 1.0) -> float:
+        if observed_cpa_window <= 0:
+            observed_cpa_window = self.target_cpa
+        # Positive error => CPA too high => lower bids
+        err = (observed_cpa_window - self.target_cpa) / max(self.target_cpa, 1e-6)
+        self.state.integral += err * dt_hours
+        deriv = 0.0 if self.state.prev_error is None else (err - self.state.prev_error) / max(dt_hours, 1e-6)
+        self.state.prev_error = err
+        delta = -(self.kp * err + self.ki * self.state.integral + self.kd * deriv)
+        self.log_bid_multiplier = max(
+            self.log_min, min(self.log_max, self.log_bid_multiplier + delta)
+        )
+        return float(10 ** self.log_bid_multiplier)
+
+
+# Online learning variant: stochastic gradient on squared CPA error w.r.t. log multiplier
+def tcpa_sgd_step(log_mult: float, lr: float, observed_cpa: float, target: float) -> float:
+    err = observed_cpa - target
+    grad = 2 * err * 1.0  # chain rule on toy identity mapping
+    return log_mult - lr * grad
+```
+
+{: .note }
+> Production systems add **constraints** (min ROAS, max CPC), **per-segment** landscapes, and **exploration** — the interview win is **closed-loop** structure, not PID tuning constants.
+
+---
+
+### 4.10 Privacy-preserving ads
+
+Modern **ads interviews** increasingly expect fluency in **identity deprecation**, **on-device** computation, and **aggregate** measurement — not just **GDPR** one-liners.
+
+#### Cookie deprecation and identity
+
+| Shift | Impact on ads |
+|-------|----------------|
+| **Third-party cookie loss** | Weaker **cross-site** user graphs → **retargeting** and **frequency** across sites harder |
+| **App tracking transparency (ATT)** | **iOS** limits IDFA-style signals for **measurement** and **app** remarketing |
+| **First-party data** | **Advertiser** CRM + **publisher** login become **more** valuable (with consent) |
+
+#### Privacy Sandbox (browser APIs — concepts)
+
+| API | Role |
+|-----|------|
+| **Topics API** | Browser infers **coarse interest topics** on-device; sites **read** limited topic history for **contextual-ish** targeting without **per-site** tracking |
+| **Protected Audience API (FLEDGE)** | **On-device** auction among **interest groups** previously joined — supports **remarketing-style** use cases with **restricted** cross-site data flow |
+| **Attribution Reporting API (ARA)** | **Conversion measurement** with **noise**, **delays**, and **limits** — **no** raw cross-site identifiers in reports |
+
+{: .warning }
+> Names and details **evolve** — cite **“Privacy Sandbox documentation”** and **principles** in interviews rather than pinning a single deprecated acronym.
+
+#### Differential privacy for aggregate measurement
+
+**DP** adds **calibrated noise** to **aggregates** (campaign totals, cohort conversions) so **individual** rows are **plausibly deniable**. Trade-off: **utility** vs **privacy budget** — too much noise **hurts** optimization and **reporting**.
+
+#### On-device inference for targeting
+
+| Idea | Benefit |
+|------|---------|
+| **Local models** | Score **candidate ads** or **topics** without shipping **raw** history to the network |
+| **Federated** updates | Improve **global** models without centralizing **per-user** interaction logs |
+
+#### Federated learning (FL) for ad models
+
+**FL** trains models where **gradients** or **updates** come from **many devices** with **aggregation** + **DP** — useful for **keyboard / browser** cohorts. Constraints: **communication**, **stragglers**, **non-IID** data — **not** a drop-in replacement for **datacenter** training on full logs.
+
+#### Conversion measurement without cross-site tracking (ARA-style)
+
+| Property | Interview talking point |
+|----------|-------------------------|
+| **Event-level vs aggregate** | Platforms move toward **noisy**, **delayed**, **capped** reports |
+| **Attribution windows** | Still matter for **labels** — aligns with **delayed conversion** modeling in ML |
+
+#### Trade-offs: privacy vs personalization vs revenue
+
+| Axis | Tension |
+|------|---------|
+| **Privacy ↑** | **Signal ↓** → **CTR/CVR** models less sharp; **RPM** pressure unless compensated |
+| **Personalization** | Needs **signals** — move to **contextual**, **first-party**, **on-device**, **cohort** |
+| **Revenue** | **Publisher** and **advertiser** both need **measurable** outcomes — **aggregate noisy** metrics + **modeled** lift |
+
+{: .tip }
+> Strong L5/L6 answer: **“We separate **targeting eligibility** (what’s allowed to run) from **auction value** (pCTR × bid) and invest in **calibrated** models on **available** signals plus **incrementality** studies for **true** ROI.”**
+
+---
+
 ## Step 5: Scaling and Production
 
 ### Failure handling
@@ -904,3 +1260,182 @@ flowchart TB
 | **Systems** | **Inverted index**, **feature store**, **&lt;50ms** path, **pacing** |
 
 This walkthrough is intentionally dense: use it as a **checklist** in mock interviews and expand only the sections your target company emphasizes (e.g. **auction theory** vs **large-scale training**).
+
+---
+
+## Hypothetical interview transcript (≈45 minutes)
+
+**Setting:** Staff-level system design on **sponsored search–style ads**. **Interviewer:** Staff Engineer on the **Google Ads** serving / ranking side. **Candidate:** L5/L6 experienced ML engineer. Dialogue is **illustrative**, not proprietary.
+
+### Opening (5 min)
+
+**Interviewer:** Let’s design the system that picks which ads to show for a query and how we charge. Start with goals and constraints.
+
+**Candidate:** I’ll separate **user**, **advertiser**, and **platform** objectives. We want **relevant** ads, **profitable** auctions, and **latency** on the order of tens of milliseconds. I’d clarify **billing** — CPC vs tCPA — and **geo / policy** constraints.
+
+**Interviewer:** Assume **CPC** billing with a **quality score** in the rank function. Where does ML sit?
+
+**Candidate:** **pCTR** is the main click model; we may also have **pCVR** for downstream optimization. The **auction** usually ranks on something like **expected revenue per impression**, e.g. **pCTR × max CPC × quality**, then runs **GSP-style** pricing.
+
+### CTR architecture (12 min)
+
+**Interviewer:** Walk through **serving** for one request.
+
+**Candidate:** **Retrieval** from an **inverted index** keyed by keywords, negatives, geo — maybe **thousands** of candidates. **Feature assembly**: user, query, ad, context — **batch** RPC to a **feature store**. **Deep ranker** scores **pCTR**; we take **top-K** into the **auction**. Parallelism is critical: **retrieval** and **features** often dominate latency.
+
+**Interviewer:** Where does the **model** run?
+
+**Candidate:** **Regional** **GPU** or **high-core** **CPU** pools **co-located** with **index** shards where possible. **Batching** across candidates in a request amortizes **kernel** launch. **Fallback**: **linear** or **GBDT** if the **neural** path **timeouts**.
+
+**Interviewer:** How do you represent **query–ad** interaction?
+
+**Candidate:** **Hashed crosses** for sparse pairs, **embeddings** for high-cardinality IDs — **query tokens** crossed with **keyword** or **creative** embeddings in a **DLRM-like** architecture. We might add **transformer** layers for **query encoding** if latency allows, or **distill** to a smaller student.
+
+**Interviewer:** **Multi-task** heads?
+
+**Candidate:** Often **pCTR** plus **auxiliary** tasks — **dwell**, **bounce**, **long-term** quality — to improve **representation**. **Loss weighting** matters; **gradNorm**-style balancing if **heads** fight.
+
+**Interviewer:** What’s in the **negative sampling** story?
+
+**Candidate:** Impressions without clicks dominate. We **downsample negatives** or **reweight** so the model doesn’t collapse. We must preserve **calibration** after reweighting — sometimes **post-hoc calibration** or **proper** loss weighting.
+
+**Interviewer:** **Training data** — **click** only?
+
+**Candidate:** **Impression** logs with **delayed** **click** join. **Position** and **selection bias** mean naive logs aren’t **IID** — we discuss **IPS** or **randomized** **exploration** for **unbiased** learning when stakes are high.
+
+### Feature engineering depth (6 min)
+
+**Interviewer:** Give me **three** concrete features and why they help or hurt.
+
+**Candidate:** (1) **Exact match** between query and keyword — strong signal but sparse. (2) **Advertiser ID embedding** — helps **cold** ads via **hierarchy**, but risks **memorization**. (3) **Slot position** — improves fit but causes **position bias**; I’d rather **debias** training than blindly feed position.
+
+**Interviewer:** **Privacy** on **user** features?
+
+**Candidate:** **Consent** gates **personalized** fields; otherwise **coarse** **geo**, **device**, **context** only. **No** raw **PII** in **logs** — **hashed** buckets.
+
+**Interviewer:** How do you handle **new ads**?
+
+**Candidate:** **Exploration budget**, **hierarchical priors** from account/campaign, **Thompson** or **epsilon-greedy** on eligible traffic, capped by **policy** and **spend** limits.
+
+**Interviewer:** **Frequency capping** — where does it live?
+
+**Candidate:** **Before** or **after** deep scoring depending on cost — often **pre-auction** **filter** with a **low-latency** **store** (**Redis**-like) keyed by **user × ad**.
+
+### Auction design (8 min)
+
+**Interviewer:** Why **GSP** instead of **first-price**?
+
+**Candidate:** Historically **GSP** gave **transparent** pricing tied to the **next** competitor and a large literature on **equilibrium**. **First-price** is common elsewhere; bidders **shade**. In practice we’d say **product** chooses rules per surface — I wouldn’t claim one global auction.
+
+**Interviewer:** Walk through **multi-slot** intuition in one sentence.
+
+**Candidate:** Sort by **rank score**, allocate **slots** in order; **CPC** for each winner uses the **next** **score** **externality**, divided by **quality × pCTR** so **minimum bid** to retain **slot** is well-defined.
+
+**Interviewer:** **Reserve** price?
+
+**Candidate:** **Floor** on **score** or **CPC** — raises **revenue** when **competition** is thin but can **suppress** **fill**; **trade-off** between **RPM** and **auction** **depth**.
+
+**Interviewer:** Where does **quality score** enter **price**?
+
+**Candidate:** It affects **rank** and often the **minimum bid** needed to maintain position — **ML** and **mechanism** are coupled. Mis-calibrated **pCTR** shifts **who wins**, not just side payments.
+
+**Interviewer:** **VCG** ever?
+
+**Candidate:** **Efficient** and **truthful** in theory — **expensive** to explain and **compute** at scale. **Interesting** for **niche** markets; **GSP**-style rules dominate **search** **display** **hybrids** in practice.
+
+### Budget pacing (5 min)
+
+**Interviewer:** Tie **pacing** to the auction.
+
+**Candidate:** **Pacing** tracks **spend vs time-of-day curve**. If we’re **ahead** of schedule, we **throttle** participation or **lower** effective bid multipliers; if **behind**, we **boost** within caps. **Race conditions** across servers mean we need **conservative** budgets and **reconciliation**.
+
+**Interviewer:** How do you **estimate** “expected spend by now”?
+
+**Candidate:** **Historical** **traffic** **shape** by **hour-of-week**, **seasonality**, and **campaign** **type** — **not** uniform. **Safety margin** so we don’t **exhaust** at **noon**.
+
+**Interviewer:** Does **auto-bidding** fight pacing?
+
+**Candidate:** Yes if mis-integrated. **tCPA** controllers adjust bids using **observed CPA**; **pacing** adjusts delivery — they need **shared state** and **priorities** so we don’t oscillate.
+
+**Interviewer:** **Bid landscape** for **tCPA**?
+
+**Candidate:** We need **local** **sensitivity** of **spend** and **conversions** to **bid** — **historical** buckets or **controlled** **perturbations**. **Wrong slope** → **hunt** or **stall**.
+
+### Position bias & evaluation (6 min)
+
+**Interviewer:** Say your **offline AUC** looks great but **online** RPM is flat.
+
+**Candidate:** Could be **calibration** drift, **selection bias** in logs, **non-stationary** traffic, or **position** — model **learned placement** not relevance. I’d check **ECE**, **reliability curves**, **slice** by **head/tail** queries, and **counterfactual** exploration where feasible.
+
+**Interviewer:** **Online** metrics beyond **RPM**?
+
+**Candidate:** **Advertiser** **ROI**, **coverage**, **policy** **violations**, **latency** **SLOs**. **Long-term**: **churn** — if we **extract** short-term **revenue** but **burn** **trust**, **LTV** drops.
+
+**Interviewer:** **Interleaving** vs **A/B**?
+
+**Candidate:** **Interleaving** can be **sensitive** for **ranking** **changes** with **paired** **exposure**; **A/B** for **full** **system** **launches** including **latency** and **pacing** **effects**.
+
+**Interviewer:** Expand on **calibration**.
+
+**Candidate:** Among impressions with **pCTR ≈ 0.05**, empirical CTR should be **~5%**. If we’re **overconfident**, we **overrank** bad ads — **auction** and **auto-bid** break. **Isotonic** or **Platt** scaling, **temperature**, or **distribution** matching in training.
+
+**Interviewer:** **Position** **bias** fix?
+
+**Candidate:** **IPS** **reweighting**, **propensity** of **observed** **slot**, or **randomized** **slot** **assignments** in **small** **fractions** of **traffic** — **expensive** but **gold** for **unbiased** **labels**.
+
+### Privacy (5 min)
+
+**Interviewer:** Third-party cookies are **gone** in many browsers — what changes?
+
+**Candidate:** Less **cross-site** identity for **frequency** and **attribution**. We lean on **contextual** signals, **first-party** data with consent, **Topics**-style **coarse** interests, and **on-device** pieces of **Protected Audience**. **Measurement** moves to **noisy**, **delayed** **aggregate** reports — **labels** for **CVR** become harder; we invest in **modeling** and **incrementality**.
+
+**Interviewer:** **Differential** **privacy** on **reports**?
+
+**Candidate:** **Noise** protects **individuals** but **blurs** **small** **campaigns** — **product** must **communicate** **uncertainty** to **advertisers**. **Tension** with **optimization** **precision**.
+
+**Interviewer:** **Federated** **learning**?
+
+**Candidate:** Useful when **raw** **logs** **can’t** **centralize** — **aggregate** **updates** with **DP**. **Not** a **full** **replacement** for **datacenter** **training** at **ads** **scale**; **hybrid** **story**.
+
+**Interviewer:** **Attribution** **Reporting** **API** in one line?
+
+**Candidate:** **Conversion** **measurement** **without** **per-user** **cross-site** **identifiers** — **delayed**, **noisy**, **capped** — **feeds** **aggregate** **ML** **labels**, not **perfect** **joins**.
+
+### Probing follow-ups: calibration & delayed conversions (4 min)
+
+**Interviewer:** **Delayed conversions** — how do you train **pCVR**?
+
+**Candidate:** **Wait** the **attribution window** for batch labels, or use **partial labels** with **hazard** models / **survival** framing. **Training-serving skew** if features at click time don’t match **delayed** conversion time — we log **timestamps** and **backfill**.
+
+**Interviewer:** **Imputation** for **recent** **clicks** **without** **labels** yet?
+
+**Candidate:** **Exclude** from **supervised** **loss** until **window** **closes**, or **model** **expected** **conversion** **probability** **over** **time** — **engineering** **cost** vs **bias** **trade-off**.
+
+**Interviewer:** **Click fraud** and **IVT**?
+
+**Candidate:** **Pre-auction** filters — rate limits, **bot** scores, **publisher** quality. **Post-click** invalidation for billing. **Training** should **downweight** or **exclude** **suspicious** clicks so we don’t **optimize** fraud.
+
+**Interviewer:** **Conversion** **fraud**?
+
+**Candidate:** **Partner** **signals**, **velocity** **checks**, **duplicate** **suppression**. **Hurts** **advertisers** and **platform** **trust** — **separate** **models** from **CTR** **fraud** because **economics** differ.
+
+### Probing follow-ups: invalid traffic depth (3 min)
+
+**Interviewer:** How do you **evaluate** fraud detectors without **hurting** real advertisers?
+
+**Candidate:** **Precision/recall** on **labeled** sets, **shadow** mode, **gradual** rollout, **appeals** pipeline. Business metric: **refund rate** vs **false positives** on **legitimate** small advertisers.
+
+### Closing (1 min)
+
+**Interviewer:** One thing you’d **monitor** week one after a **model** launch?
+
+**Candidate:** **Calibration** drift and **pacing** error — they show up before **long-term** advertiser churn. And **latency** P99 by stage so we don’t **starve** retrieval.
+
+**Interviewer:** Good. That’s time — any questions for me?
+
+**Candidate:** How do you **balance** **exploration** for new creatives against **RPM** in **production** — is there a **global** explore budget per **surface**?
+
+**Interviewer:** There’s usually a **budget** and **safety** layers — details vary by **format**. Thanks for the structured walkthrough.
+
+{: .note }
+> Use this transcript as a **timing** template: **architecture** first, then **economics**, **bias**, **privacy**, and **sharp** follow-ups — typical for **staff** loops.

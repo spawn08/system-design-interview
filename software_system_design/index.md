@@ -9,7 +9,7 @@ permalink: /software_system_design/
 # System Design Examples
 {: .fs-9 }
 
-Step-by-step walkthroughs of 21 system design interview questions — from classic URL shortener to distributed message queues.
+Step-by-step walkthroughs of 22 system design interview questions — from classic URL shortener to email delivery systems.
 {: .fs-6 .fw-300 }
 
 ---
@@ -62,13 +62,14 @@ Step-by-step walkthroughs of 21 system design interview questions — from class
 | 17 | [Event Booking (Ticketmaster)]({{ site.baseurl }}/software_system_design/event_booking) | Rate Limiter | Inventory locking, flash sales |
 | 18 | [Payment System]({{ site.baseurl }}/software_system_design/payment_system) | Event Booking | Double-entry ledger, idempotency |
 | 19 | [Metrics & Monitoring]({{ site.baseurl }}/software_system_design/metrics_monitoring) | Message Queue | Time-series storage, alerting, Gorilla compression |
+| 20 | [Email Delivery System]({{ site.baseurl }}/software_system_design/email_delivery) | Notification System | SMTP, DKIM/SPF, IP reputation, deliverability |
 
 ### Tier 6: Search
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 20 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
-| 21 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
+| 21 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
+| 22 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
 
 ---
 
@@ -145,6 +146,7 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) | ⭐⭐⭐ Medium-Hard | Multi-channel routing |
 | [**News Feed / Timeline**]({{ site.baseurl }}/software_system_design/news_feed) | ⭐⭐⭐⭐ Hard | Fan-out strategies |
 | [**Voting System**]({{ site.baseurl }}/software_system_design/voting-system-design) | ⭐⭐⭐ Medium-Hard | Idempotency, consistency |
+| [**Email Delivery System**]({{ site.baseurl }}/software_system_design/email_delivery) | ⭐⭐⭐⭐ Hard | SMTP, DKIM/SPF, deliverability |
 
 ### Media & Content
 

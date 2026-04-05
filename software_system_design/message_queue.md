@@ -50,6 +50,122 @@ A **distributed message queue** (or **log-centric streaming platform**) decouple
 
 ---
 
+## Key Concepts Primer
+
+Before diving into requirements, align on a few primitives that recur in **log-centric** systems. They separate a **Kafka-like** design from a **classic broker queue**.
+
+### Append-only log vs traditional queue
+
+A **traditional queue** removes a message once a consumer **acks** it; other consumers never see it. An **append-only log** **never deletes on read**—it appends records in order, and **consumers advance cursors (offsets)**. The same retained data can be read by **many consumer groups**, **replayed**, and processed at different speeds.
+
+```
+Traditional queue (consume destroys or hides for others)
+  PROD --> [ M1 ][ M2 ][ M3 ] --> CONSUMER_A (ack M1) --> M1 gone for this queue
+                    |
+                    +--> CONSUMER_B may never see M1 if already taken
+
+Append-only partitioned log (retain + independent offsets)
+  PROD --> PARTITION P2:  [o0][o1][o2][o3]...  (immutable past; tail grows)
+                    |              |
+                    |              +-- ConsumerGroup B reads o0.. (its offset)
+                    +-- ConsumerGroup A reads o0.. (same bytes, different cursor)
+```
+
+{: .tip }
+> The mental model is **Git for events**: commits stay in history until **retention** or **compaction** policies trim them—not because someone “finished reading.”
+
+### Partition as the unit of parallelism
+
+**Topics** are split into **partitions**. Each partition is a totally ordered log; **ordering is not guaranteed across partitions**. Throughput scales by **adding partitions** and **parallel consumers** (one consumer thread/process typically owns a partition in a group, up to `#partitions` members).
+
+**Python: stable partition choice from key (illustrative hash)**
+
+```python
+def partition_for_key(key: bytes | None, num_partitions: int) -> int:
+    """Kafka uses murmur2 for keys; use any stable hash for demos."""
+    if num_partitions <= 0:
+        return 0
+    if key is None:
+        # Round-robin or random when no key — no per-key order guarantee
+        return 0
+    h = hash(key)
+    # Ensure non-negative modulus (Python hash can be negative)
+    return h % num_partitions
+
+
+def assign_partitions_round_robin(member_ids: list[str], partitions: list[int]) -> dict[str, list[int]]:
+    """Greedy assignment: P consumers, N partitions — each gets ~N/P partitions."""
+    out: dict[str, list[int]] = {m: [] for m in member_ids}
+    for i, p in enumerate(sorted(partitions)):
+        out[member_ids[i % len(member_ids)]].append(p)
+    return out
+```
+
+Hot keys that map to one partition become **hot partitions**—the unit of parallelism is also the unit of **skew**.
+
+### Consumer group model: rebalancing and offsets
+
+A **consumer group** is a logical subscriber name. The cluster tracks **which group member reads which partition**; on **join/leave/crash**, the group **rebalances**—partitions may move, in-flight work must be handled carefully.
+
+| Idea | Meaning |
+|------|---------|
+| **Committed offset** | Persisted checkpoint (“we processed up to *o*”). Survives restarts. |
+| **Current position / uncommitted** | In-memory fetch position; **lost on crash** unless committed. |
+| **Rebalance** | Revoke partitions, reassign—**stop-the-world** (eager) or **incremental** (cooperative). |
+
+**At-least-once** is common: process records, then **commit** the offset. If you crash **after** processing but **before** commit, you **reprocess** (duplicates). If you commit **before** processing, you can **skip** work on crash (at-most-once).
+
+```
+Member A crashes
+  Coordinator detects missed heartbeat
+  -> rebalance
+  -> partitions from A reassigned to B
+  -> B may re-read from last COMMITTED offset (duplicates possible)
+```
+
+{: .warning }
+> **Uncommitted** offsets are **not** durable progress—only **committed** offsets define restart behavior unless you use an **external** store for idempotency keys.
+
+### ISR, LEO, and high watermark (HW)
+
+Each partition has a **leader** and **followers**. Each replica has a **log end offset (LEO)**—the next offset it would assign. The **high watermark** is the **first offset not yet safe** for all in-sync replicas in the usual story: consumers reading “committed” data typically **do not read past HW** (Kafka’s exact rules evolved with transactions and leader epochs; interviews use this sketch).
+
+```
+Replica R0 (leader)     LEO=10   log: ... [8][9] |
+Replica R1 (follower)   LEO=10   replicated through 9, catching up
+Replica R2 (follower)   LEO=8    lagging
+
+HW = min(LEO across ISR) adjusted so only fully replicated records are "committed"
+     (conceptually: followers must fetch and append before HW advances past them)
+
+     offsets:  0 1 2 3 4 5 6 7 8 9
+               |<--- readable by consumer up to HW-1 (committed) --->|
+```
+
+{: .note }
+> **LEO** is per-replica progress; **HW** is the **replication barrier** for **visibility**—they differ on every broker during catch-up.
+
+### Exactly-once semantics: decomposition
+
+Brokers cannot magically make **your database** exactly-once. **EOS** is usually decomposed as:
+
+1. **Idempotent producer** — `Producer ID` + per-partition **sequence numbers**; retries dedupe at the log.
+2. **Transactions** — atomic **write to multiple partitions** and/or **commit consumer offsets** with produced output (**read-process-write**).
+3. **Idempotent consumer / sink** — downstream **upsert by id**, **dedupe table**, or **effectively-once** handling of duplicates.
+
+```mermaid
+flowchart LR
+  IP[Idempotent producer]
+  TX[Transactions / atomic read-process-write]
+  IC[Idempotent consumer or sink]
+  IP --> TX --> IC
+```
+
+{: .note }
+> In interviews, say **exactly-once *effects*** require **all three layers** in the path of side effects—not just broker flags.
+
+---
+
 ## Step 1: Requirements Clarification
 
 ### Questions to Ask
@@ -322,30 +438,107 @@ sequenceDiagram
 
 **Write path:** producer → leader appends batch to **page cache**, eventually flushed/fsync per durability settings; followers pull in **fetch** requests from the leader (Kafka replication).
 
-**Python: simplified segment layout**
+**Python: segment file + sparse index with binary-search floor lookup**
+
+Each record is `length-prefixed` payload bytes. The **sparse index** stores `(relative_offset → physical_position)` every `INDEX_EVERY` records; lookup uses **binary search** for the **floor** entry, then **linear scan** within the segment (same idea as Kafka’s `.index` + scan in `.log`).
 
 ```python
 import os
+import struct
+from bisect import bisect_right
 from dataclasses import dataclass
-from typing import BinaryIO
 
-@dataclass
+_LEN = struct.Struct(">I")
+
+
+@dataclass(frozen=True)
+class IndexEntry:
+    relative_offset: int
+    physical_position: int
+
+
 class Segment:
-    base_offset: int
-    log_path: str
-    index_path: str
+    """One on-disk segment: append-only log + sidecar sparse offset index."""
+
+    INDEX_EVERY = 4  # demo: index every N records; production uses byte stride
+
+    def __init__(self, base_offset: int, log_path: str, index_path: str):
+        self.base_offset = base_offset
+        self.log_path = log_path
+        self.index_path = index_path
+        self._entries: list[IndexEntry] = []
+        self._record_count = 0
+        self._rebuild_meta_from_log()
+
+    def _rebuild_meta_from_log(self) -> None:
+        self._entries = []
+        if not os.path.exists(self.log_path):
+            self._load_index_file()
+            return
+        with open(self.log_path, "rb") as log:
+            pos = 0
+            rel = 0
+            while True:
+                hdr = log.read(4)
+                if len(hdr) < 4:
+                    break
+                (ln,) = _LEN.unpack(hdr)
+                if rel % self.INDEX_EVERY == 0:
+                    self._entries.append(IndexEntry(rel, pos))
+                log.read(ln)
+                pos += 4 + ln
+                rel += 1
+        self._record_count = rel
+
+    def _load_index_file(self) -> None:
+        if not os.path.exists(self.index_path) or self._entries:
+            return
+        with open(self.index_path, "rb") as f:
+            raw = f.read()
+        self._entries = []
+        for i in range(0, len(raw), 8):
+            rel, pos = struct.unpack_from(">ii", raw, i)
+            self._entries.append(IndexEntry(rel, pos))
+
+    def _persist_index(self) -> None:
+        with open(self.index_path, "wb") as f:
+            for e in self._entries:
+                f.write(struct.pack(">ii", e.relative_offset, e.physical_position))
 
     def append(self, record_bytes: bytes) -> int:
-        """Returns offset assigned (simplified — real Kafka has batching & CRC)."""
+        physical = os.path.getsize(self.log_path) if os.path.exists(self.log_path) else 0
+        rel = self._record_count
+        if rel % self.INDEX_EVERY == 0:
+            self._entries.append(IndexEntry(rel, physical))
         with open(self.log_path, "ab") as log:
-            pos = log.tell()
+            log.write(_LEN.pack(len(record_bytes)))
             log.write(record_bytes)
-        # Sparse index: sample every N offsets
-        self._maybe_index(pos)
-        return self.base_offset + pos  # illustrative only
+        self._record_count += 1
+        self._persist_index()
+        return self.base_offset + rel
 
-    def _maybe_index(self, physical_pos: int) -> None:
-        ...
+    def _floor_entry(self, target_rel: int) -> tuple[int, int]:
+        if not self._entries:
+            return (0, 0)
+        keys = [e.relative_offset for e in self._entries]
+        i = bisect_right(keys, target_rel) - 1
+        if i < 0:
+            return (0, 0)
+        e = self._entries[i]
+        return (e.relative_offset, e.physical_position)
+
+    def read_at_relative(self, target_rel: int) -> bytes | None:
+        if target_rel < 0 or target_rel >= self._record_count:
+            return None
+        cur_rel, pos = self._floor_entry(target_rel)
+        with open(self.log_path, "rb") as log:
+            log.seek(pos)
+            while cur_rel < target_rel:
+                (ln,) = _LEN.unpack(log.read(4))
+                log.read(ln)
+                cur_rel += 1
+            (ln,) = _LEN.unpack(log.read(4))
+            return log.read(ln)
 ```
 
 **Java (memory-mapped index sketch):**
@@ -376,6 +569,61 @@ func SegmentName(baseOffset uint64) string {
     return fmt.Sprintf("%020d.log", baseOffset)
 }
 ```
+
+### Log compaction preview: tombstones and key-based deduplication
+
+**Log compaction** (for **changelog** topics) keeps the **latest value per key** and drops older versions in the background. A **tombstone** is a record with **null/empty value** meaning “delete this key”; it must be retained until the compaction policy removes it (Kafka: `delete.retention.ms` after compaction).
+
+**Python: in-memory simulation of compaction** — walk ordered records, keep **last write wins** per key; tombstones participate in deduplication so an older value cannot “come back.”
+
+```python
+from dataclasses import dataclass
+from typing import Iterator
+
+# Sentinel: producer writes empty payload to mean "delete key" (tombstone)
+TOMBSTONE = b""
+
+
+@dataclass(frozen=True)
+class LogRecord:
+    offset: int
+    key: bytes
+    value: bytes  # TOMBSTONE means delete marker
+
+
+def compact_records_by_key(records: list[LogRecord]) -> list[LogRecord]:
+    """
+    Merge-sort style single pass: for each key, only the last record survives.
+    Tombstone last => key absent from output (Kafka still retains tombstone until
+    delete retention; this models the key map after compaction).
+    """
+    last_by_key: dict[bytes, LogRecord] = {}
+    for r in records:
+        last_by_key[r.key] = r
+    # Emit in offset order of surviving records (by key's last offset)
+    survivors = sorted(last_by_key.values(), key=lambda x: x.offset)
+    out: list[LogRecord] = []
+    for r in survivors:
+        if r.value == TOMBSTONE:
+            continue  # key removed from log; tombstone elided after retention window
+        out.append(r)
+    return out
+
+
+def stream_compact_segment(
+    records: Iterator[LogRecord],
+) -> Iterator[LogRecord]:
+    """Streaming variant for large segments: bounded memory if keys shard per cleaner pass."""
+    last_by_key: dict[bytes, LogRecord] = {}
+    for r in records:
+        last_by_key[r.key] = r
+    for r in sorted(last_by_key.values(), key=lambda x: x.offset):
+        if r.value != TOMBSTONE:
+            yield r
+```
+
+{: .tip }
+> Interview line: compaction is **not** “delete random rows”—it is **key-ordered merging** of segments so the **tail** of the log for each key wins; tombstones **suppress** older values until garbage-collected.
 
 {: .note }
 > **Why segments?** Limit file size, bound recovery, allow **delete by whole file** on retention, and enable **compacted topics** (Kafka log compaction) to rewrite segments in the background.
@@ -673,6 +921,123 @@ props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
 // With idempotence, max.in.flight is capped to 5 in modern Kafka
 ```
 
+### 4.7 Log Compaction
+
+**Why compaction matters:** Default **time/size retention** keeps a **append history** (great for replay). **Compaction** is for **changelog** topics where each **key** represents entity state: you want **“latest value per key”** to fit in disk, not infinite history. **Kafka Streams** **KTable** semantics assume a **compacted changelog** backing store—materialized state is **key → latest value**.
+
+| Use case | Retention story |
+|----------|-----------------|
+| **CDC / config / state topics** | Compact so brokers store **current** key set, not every revision forever |
+| **Event sourcing with snapshots** | Often combine **compaction** + **snapshots** in the app layer |
+
+**Compaction algorithm (conceptual):**
+
+1. **Split** the log into **segments**; classify segments as **clean** (already compacted) vs **dirty** (ratio of obsolete records high).
+2. **Dirty ratio** / size thresholds trigger **cleaner threads** (Kafka: `log.cleaner.*`, `min.cleanable.dirty.ratio`).
+3. Cleaners **merge** segments: for each key, **only the last record** in offset order is kept in the output segment; **tombstones** (null value) **delete** the key from the compacted view but may be **retained** briefly so replicas/consumers observe the delete.
+4. **Inter-segment** order is preserved by **merge-sort style** iteration by offset.
+
+{: .note }
+> Real brokers **schedule** cleaner I/O to avoid starving produce/fetch; **throttle** and **buffer** settings matter on SSD-heavy clusters.
+
+**Python: compact one segment’s records by key** (same idea as a cleaner pass merging in-order iterators):
+
+```python
+from dataclasses import dataclass
+from heapq import merge
+
+
+@dataclass(frozen=True)
+class KV:
+    offset: int
+    key: bytes
+    value: bytes | None  # None = tombstone
+
+
+def merge_sorted_segments(*segments: list[KV]) -> list[KV]:
+    """
+    Each segment list is sorted by offset. K-way merge preserves global offset order,
+    then we collapse to last-write-wins per key (cleaner merge pass).
+    """
+    ordered = list(merge(*segments))
+    last: dict[bytes, KV] = {}
+    for r in ordered:
+        last[r.key] = r
+    return sorted(last.values(), key=lambda r: r.offset)
+
+
+def compact_dirty_segment(records: list[KV]) -> list[KV]:
+    """Single segment: keep last KV per key; drop superseded rows."""
+    last: dict[bytes, KV] = {}
+    for r in sorted(records, key=lambda x: x.offset):
+        last[r.key] = r
+    return sorted(last.values(), key=lambda r: r.offset)
+```
+
+**Tombstone records and delete markers:** A **tombstone** is a record with **null value** (Kafka: `null` payload). It tells compaction and consumers “this key is deleted.” **Compaction** eventually removes the tombstone after **`delete.retention.ms`** so the key does not stay in the log forever—until then, replicas must **replicate** tombstones for correctness.
+
+{: .warning }
+> If you **never** emit tombstones for deleted keys, **old values** can **reappear** after failover or when a consumer reads from an **uncompacted** tail—design deletes explicitly in compacted topics.
+
+**Trade-offs:**
+
+| Factor | Effect |
+|--------|--------|
+| **Compaction I/O** | Background **read+rewrite** of segments; competes with produce/fetch |
+| **Storage savings** | Large for high-churn keys with small latest state |
+| **Read path** | Consumers of **changelog** see **key-level** truth faster than scanning full history |
+| **Ordering** | Still **per-partition** total order in the **uncompacted** log; compacted file is **per-key latest** view |
+
+{: .tip }
+> Mention **"dirty ratio"** in interviews: the cleaner prioritizes segments where **obsolete** records are a **large fraction** of bytes—**maximizing reclaim per I/O dollar**.
+
+### 4.8 Multi-Region Replication
+
+**Problem:** One cluster lives in **us-east**; disaster recovery, low-latency local reads, or **geo routing** need **copies** of streams elsewhere. Offsets and **metadata** are **cluster-local**—clients cannot assume **same numeric offset** means the same record in another cluster.
+
+**MirrorMaker 2 (MM2)** / **Cluster Linking** (Confluent) / **geo-replication** products: run **connectors** that **consume** from a **source** cluster and **produce** to a **target**, preserving **topic names** (optionally prefixed), **partitioning** (best-effort), and **ordering per partition** on the target. **Cluster Linking** is often **broker-native** with stronger offset/ACL semantics—position as **product-specific** in interviews.
+
+**Offset translation across clusters:** There is **no universal offset mapping**—a record at **offset 9001** in cluster A is **not** the same byte offset in cluster B. Replication tracks **progress** via **consumer offsets** in the **replication flow** (MM2 internal topics) or **byte checkpoints**. Application-level **idempotency keys** in the **payload** beat trying to sync raw offsets for business logic.
+
+| Pattern | Behavior | Typical use |
+|---------|----------|-------------|
+| **Active-passive** | One cluster **primary** for writes; standby **consumes** replica for DR readiness | RPO via replication lag; **failover** promotes passive |
+| **Active-active** | **Both** regions **produce**; replication **bidirectional** | Low-latency local writes; **conflicts** must be designed |
+
+```mermaid
+flowchart LR
+  subgraph Region_A[Region A]
+    PA[Producers]
+    CA[Consumers]
+    BA[Brokers cluster A]
+    PA --> BA
+    BA --> CA
+  end
+  subgraph Region_B[Region B]
+    PB[Producers]
+    CB[Consumers]
+    BB[Brokers cluster B]
+    PB --> BB
+    BB --> CB
+  end
+  BA <-->|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB
+```
+
+**Conflict resolution (active-active):** If the **same key** can be written in **both** regions, you need **deterministic merge** rules: **last-write-wins (LWW)** with **vector clocks** / **version fields**, **CRDTs**, or **region-owned key prefixes** (`us-east-{id}` vs `eu-west-{id}`) so keys **don’t collide**. The log **does not** magically merge business conflicts.
+
+**RPO / RTO:**
+
+| Metric | Meaning for replication |
+|--------|-------------------------|
+| **RPO** | Data **lost** on disaster = **replication lag** + **unreplicated** in-flight produce; **sync** cross-region is rare (latency) |
+| **RTO** | Time to **redirect** clients / **promote** secondary; includes **DNS**, **metadata**, and **consumer** restart |
+
+{: .note }
+> State **RPO ≠ 0** for async geo replication unless you pay **cross-region sync** latency and **durability** costs on every write.
+
+{: .warning }
+> **Exactly-once** across regions is **harder**: idempotence and transactions are **per cluster**—end-to-end pipelines need **dedupe** at sinks or **external** coordination.
+
 ---
 
 ## Step 5: Scaling & Production
@@ -757,6 +1122,8 @@ props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
 | **Idempotent producer** | Safe retries without duplicate sequence numbers |
 | **Zero-copy** | Cheap fan-out from page cache to network |
 | **Hot partitions** | Key skew is the enemy of estimation and latency |
+| **Log compaction** | Latest value per key; tombstones + cleaner I/O trade-offs |
+| **Multi-region** | MM2 / linking; offsets not portable; active-active needs merge rules |
 
 ---
 

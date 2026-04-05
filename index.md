@@ -142,7 +142,7 @@ Targeting Google, Meta, or other top companies at the **Staff / Principal / L6**
 - **Leadership round:** [Behavioral & Leadership Guide]({{ site.baseurl }}/advanced/behavioral_leadership)
 
 ### [System Design Examples]({{ site.baseurl }}/software_system_design/)
-Step-by-step walkthroughs of classic interview questions — 21 designs.
+Step-by-step walkthroughs of classic interview questions — 22 designs.
 
 **Infrastructure & Data:**
 - [**URL Shortener**]({{ site.baseurl }}/software_system_design/url_shortening) - Hashing, Base62, distributed IDs
@@ -158,6 +158,7 @@ Step-by-step walkthroughs of classic interview questions — 21 designs.
 - [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) - Multi-channel, push vs pull
 - [**News Feed / Timeline**]({{ site.baseurl }}/software_system_design/news_feed) - Fan-out strategies, ranking
 - [**Voting System**]({{ site.baseurl }}/software_system_design/voting-system-design) - Consistency, duplicate prevention
+- [**Email Delivery System**]({{ site.baseurl }}/software_system_design/email_delivery) - SMTP, DKIM/SPF, IP reputation, deliverability
 
 **Media & Content:**
 - [**Video Streaming (YouTube)**]({{ site.baseurl }}/software_system_design/video_streaming) - CDN, transcoding, adaptive bitrate
@@ -187,7 +188,7 @@ Core building blocks — master these before ML and GenAI design questions.
 - [**Distributed Training**]({{ site.baseurl }}/genai_ml_basics/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
 
 ### [ML System Design]({{ site.baseurl }}/ml_system_design/)
-Production ML systems — 7 designs covering ranking, retrieval, and personalization.
+Production ML systems — 8 designs covering ranking, retrieval, personalization, and feature infrastructure.
 
 - [**Recommendation System**]({{ site.baseurl }}/ml_system_design/recommendation_system) - Collaborative filtering, Two-Tower, cold start
 - [**Fraud Detection**]({{ site.baseurl }}/ml_system_design/fraud_detection) - Real-time ML, class imbalance, velocity features
@@ -196,9 +197,10 @@ Production ML systems — 7 designs covering ranking, retrieval, and personaliza
 - [**Search Ranking**]({{ site.baseurl }}/ml_system_design/search_ranking) - BM25, LambdaMART, NDCG, retrieval + ranking
 - [**Real-time Personalization**]({{ site.baseurl }}/ml_system_design/realtime_personalization) - Session models, contextual bandits
 - [**Ads Ranking System**]({{ site.baseurl }}/ml_system_design/ads_ranking) - CTR prediction, auction mechanics, budget pacing
+- [**Real-time Feature Platform**]({{ site.baseurl }}/ml_system_design/feature_platform) - Streaming features, PIT joins, train-serve consistency
 
 ### [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/)
-Production GenAI systems — 9 designs with Google-style interview transcripts.
+Production GenAI systems — 10 designs with Google-style interview transcripts.
 
 - [**LLM-Powered Chatbot**]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) - KV-cache, PagedAttention, streaming, safety
 - [**Enterprise RAG System**]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) - Chunking, hybrid retrieval, ACLs, citations
@@ -209,6 +211,7 @@ Production GenAI systems — 9 designs with Google-style interview transcripts.
 - [**AI Agent System**]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system) - ReAct, tool use, planning, memory, multi-agent
 - [**LLM Gateway**]({{ site.baseurl }}/genai_ml_system_design/llm_gateway) - Multi-model routing, semantic caching, cost control
 - [**Text-to-Image Generation**]({{ site.baseurl }}/genai_ml_system_design/text_to_image) - Diffusion models, latent space, safety, CFG
+- [**Vector Database**]({{ site.baseurl }}/genai_ml_system_design/vector_database) - HNSW, IVF-PQ, hybrid search, billion-scale ANN
 
 ---
 
@@ -250,15 +253,15 @@ Follow the [Learning Path](#recommended-learning-paths) for your target role abo
 
 ## Content Overview
 
-| Section | Topics | Difficulty | New |
-|---------|--------|------------|-----|
-| **Fundamentals** | 11 essential topics | Beginner-Advanced | |
-| **Advanced Topics** | 13 deep-dive topics (incl. L6 track) | Advanced-Expert | |
-| **System Design Examples** | 21 classic problems (incl. Staff Guide) | Intermediate-Hard | +2 |
-| **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | Medium-Hard | |
-| **ML System Design** | 7 ML systems | Hard | +1 |
-| **GenAI System Design** | 9 GenAI systems (with interview transcripts) | Very Hard | +3 |
-| **Total** | **66** | | |
+| Section | Topics | Difficulty |
+|---------|--------|------------|
+| **Fundamentals** | 11 essential topics | Beginner-Advanced |
+| **Advanced Topics** | 13 deep-dive topics (incl. L6 track) | Advanced-Expert |
+| **System Design Examples** | 22 classic problems (incl. Staff Guide) | Intermediate-Hard |
+| **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | Medium-Hard |
+| **ML System Design** | 8 ML systems | Hard |
+| **GenAI System Design** | 10 GenAI systems (with interview transcripts) | Very Hard |
+| **Total** | **69** | |
 
 ---
 

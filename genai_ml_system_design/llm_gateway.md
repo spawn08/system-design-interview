@@ -95,6 +95,81 @@ Production systems log for **debugging, audit, and cost attribution**. Raw promp
 
 Every request should carry **tenant** (and optionally **team, product, environment**). The gateway records **provider, model, input/output tokens**, applies **list or negotiated pricing**, and aggregates for **chargeback** dashboards and **budget alerts**.
 
+### Token Counting vs Request-Based Limits
+
+Providers bill and throttle in **tokens** (often **TPM** / **TPD**), not HTTP calls. Two `POST /chat/completions` requests can be **100× apart** in tokens (one-line FAQ vs 50-page RAG dump). **Request-based (RPM) limits** catch abuse and connection storms but **do not** approximate cost or fairness when payload sizes vary.
+
+| Dimension | Request-based (RPM) | Token-based (TPM) |
+|-----------|---------------------|-------------------|
+| **What it bounds** | Call frequency | Work units consumed upstream |
+| **Fairness** | Two users with same RPM can have wildly different spend | Aligns with provider meters and $ |
+| **When both matter** | Burst of tiny calls can still DDOS an API | Long prompts need **input** TPM; long answers need **output** caps |
+
+**Pre-counting:** Use the **provider’s tokenizer** when available (e.g. `tiktoken` for OpenAI-compatible models), or a **cheap heuristic** (chars/4) only for **admission control** — reconcile with **actual** usage from the response for billing.
+
+```python
+from __future__ import annotations
+
+import tiktoken
+
+
+def count_message_tokens(
+    messages: list[dict[str, str]],
+    model: str = "gpt-4o",
+) -> int:
+    """
+    Approximate input tokens for rate-limit admission.
+    Map model name to encoding; fall back to cl100k_base for unknown IDs.
+    """
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except KeyError:
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    # Provider-specific chat templates differ; this pattern matches common OpenAI-style framing.
+    num_tokens = 0
+    for m in messages:
+        num_tokens += 4  # message overhead (approximate)
+        num_tokens += len(enc.encode(m.get("content") or ""))
+    num_tokens += 2  # assistant priming
+    return num_tokens
+
+
+def tpm_bucket_key(tenant_id: str, window_start_epoch: int) -> str:
+    return f"rl:tpm:{tenant_id}:{window_start_epoch}"
+```
+
+{: .note }
+> **Interview nuance:** Say you use **estimated** tokens for *reject/admit* and **actual** tokens from the provider response for **billing** — mismatches happen when the provider’s tokenizer differs slightly from yours.
+
+### Streaming Proxy Challenges
+
+**SSE relay:** Browsers and mobile clients often consume **Server-Sent Events** (`text/event-stream`). The gateway must **parse** provider-specific chunk formats (OpenAI `data: {...}\n\n`, Anthropic event types), **re-emit** a **single** internal schema, and handle **keep-alives**, **mid-stream errors**, and **connection drops** without corrupting JSON lines.
+
+| Challenge | What breaks | Mitigation |
+|-----------|-------------|------------|
+| **Chunk fragmentation** | Half a JSON delta across TCP packets | Buffer until parseable; normalize `delta` fields |
+| **Provider error mid-stream** | HTTP 200 then error object in-stream | Map to one error event; close cleanly |
+| **Caching / logging** | No single “response body” until stream ends | **Accumulate** assistant text (and tool call args) in a **stream buffer** with **size cap**; flush to async log/cache worker |
+| **Backpressure** | Slow client blocks gateway threads | Bounded queues; drop or pause upstream read per policy |
+
+**Partial response accumulation:** Maintain `accumulated_text`, `tool_call_buffers[id]`, and `finish_reason`. Only **after** `[DONE]` (or equivalent) can you run **semantic cache write**, **full PII scan**, and **exact token counts** for some providers.
+
+### Model Capability Matrix (Illustrative)
+
+Capabilities diverge by **model id** and **API version**. The gateway should treat this as **data** (config / registry), not hardcoded `if` chains.
+
+| Capability | Typical support | Gateway implication |
+|------------|-----------------|---------------------|
+| **Function / tool calling** | Frontier chat models; not all small models | Route away or reject if `tools` non-empty |
+| **Vision (multimodal)** | Separate model families / `vision` flags | Validate `image_url` messages against registry |
+| **JSON mode / constrained output** | Provider-specific (`response_format`, `tool` tricks) | Adapter maps unified flag → provider params |
+| **Long context (>128K)** | Model-specific | Split RAG or route to long-context SKU |
+| **Streaming + tools** | Most modern APIs | Merge parallel tool call deltas in adapter |
+
+{: .tip }
+> In interviews, mention a **capability registry** versioned with your **unified API** — when a team requests `json_mode=true`, the router **filters** to models where `json_mode=true` is **verified** for that provider’s API revision.
+
 ---
 
 ## Step 1: Requirements
@@ -213,6 +288,48 @@ flowchart TB
     GOO --> PII
     SH --> PII
     PII --> COST --> LOG --> CW
+```
+
+### Streaming Request Lifecycle (Sequence)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as LLM Gateway
+    participant RL as Rate Limiter
+    participant CC as Cache (Exact + Semantic)
+    participant R as Router / Policy
+    participant P as Provider API
+    participant SCR as PII Scrub / Audit
+
+    C->>G: POST /v1/chat/completions (stream=true)
+    G->>G: AuthN/Z + tenant resolve
+    G->>RL: Check RPM + TPM (pre-count)
+    alt over budget
+        RL-->>G: deny
+        G-->>C: 429 + Retry-After
+    end
+    RL-->>G: allow
+    G->>CC: Lookup (exact hash → semantic ANN)
+    alt cache hit
+        CC-->>G: cached completion
+        G->>SCR: Scrub + structured log (cache_hit)
+        SCR-->>C: SSE stream of cached tokens
+    else cache miss
+        CC-->>G: miss
+        G->>R: Select provider/model
+        R-->>G: RouteTarget
+        G->>P: Open streaming request
+        loop stream
+            P-->>G: chunk (delta / tool / error)
+            G->>G: Normalize SSE + accumulate for logging
+            G->>SCR: Optional hot-path mask on deltas
+            G-->>C: Forward gateway SSE
+        end
+        P-->>G: stream end + usage (tokens)
+        G->>SCR: Final scrub + audit record + cache write (if eligible)
+    end
 ```
 
 ### Request Path (Narrative)
@@ -406,73 +523,221 @@ class DefaultPolicyEngine:
 
 **Pipeline:** canonicalize prompt → **embed query** (same or smaller embedding model) → **ANN search** (FAISS, ScaNN, pgvector) → if **score ≥ threshold**, return cached completion; else miss.
 
-**Invalidation:** TTL (e.g. 24h), explicit version bumps for policy/model changes, **per-tenant** namespaces.
+#### Embedding pipeline and cosine similarity
+
+1. **Normalize text for embedding** — collapse whitespace, optionally strip boilerplate, optionally **remove system prompt** from the embedding string if you cache “user intent” only (see below).  
+2. **Encode** to a dense vector \(e \in \mathbb{R}^d\) with a **fixed** embedding model version (`embed_model_id`).  
+3. **ANN** retrieves top‑k neighbors; **re-rank** with exact **cosine similarity** on the candidate set if your ANN returns approximate scores.  
+4. **Decision:** accept hit iff \(\cos(e, e') \ge \tau\) **and** metadata gates pass.
+
+For **L2-normalized** vectors, cosine similarity equals the **dot product**. Threshold \(\tau\) trades **recall** vs **precision**:
+
+| \(\tau\) (cosine) | Typical effect |
+|-------------------|----------------|
+| **0.97–0.99** | Conservative; fewer wrong-cache incidents; lower $ savings |
+| **0.90–0.96** | Common band for internal assistants; monitor false-hit rate |
+| **&lt; 0.90** | Risky unless domain is narrow (single intent class) |
+
+Tune using **offline** labeled pairs (paraphrase → same answer?) plus **online** shadow scoring: log “would-have-hit” without serving.
+
+#### Cache warming strategies
+
+| Strategy | When | Caveat |
+|----------|------|--------|
+| **FAQ / doc ingestion** | Known question bank | Refresh when source docs change |
+| **Replay from warehouse** | High-$ historical prompts | Privacy review; sample, don’t dump PII |
+| **Synthetic paraphrases** | Expand coverage | Can amplify bad answers if not validated |
+| **Per-tenant bootstrap** | New tenant onboarding | Seed from approved templates only |
+
+#### Partial prompt matching and system prompt normalization
+
+Users paste different **system** instructions around the same **user** question. Options:
+
+- **Embed user-only** for support-style bots where system is static per tenant.  
+- **Canonicalize system**: trim, stable ordering of tool definitions, replace volatile dates with placeholders.  
+- **Two-stage key**: `hash(system_normalized) + ANN(user)` so you do not collapse different policies into one bucket.
+
+#### Invalidation and model version changes
+
+Store **`cache_schema_version`**, **`embed_model_id`**, and **`completion_model_id`** (or provider revision) on each entry. On **model upgrade** (behavior shift), bump **`completion_model_id`** in the **namespace** or **global epoch** so old vectors do not serve under a new model contract. Pair with **TTL** and **manual purge** for regulated tenants.
+
+**Invalidation summary:** TTL (e.g. 24h), **per-tenant** namespaces, **explicit epoch** on model/embedder change, optional **event-driven** purge when upstream knowledge bases change.
+
+#### Full cache lookup + store pipeline (Python)
+
+Combine **exact hash**, **cosine similarity**, **metadata gates**, and **similarity score** for observability.
 
 ```python
+from __future__ import annotations
+
 import hashlib
+import math
 import time
 from dataclasses import dataclass
+from typing import Any, Protocol
+
+
+class Embedder(Protocol):
+    model_id: str
+
+    async def encode(self, text: str) -> list[float]
+
+
+class VectorIndex(Protocol):
+    async def get_exact(self, key: str) -> CacheEntry | None: ...
+    async def ann_search(
+        self, vector: list[float], top_k: int, namespace: str
+    ) -> list["Neighbor"]: ...
+    async def upsert(self, namespace: str, key: str, entry: CacheEntry) -> None: ...
+
+
+@dataclass
+class Neighbor:
+    key: str
+    score: float  # cosine or ANN distance mapped to similarity
+    entry: CacheEntry
 
 
 @dataclass
 class CacheEntry:
     embedding: list[float]
     completion: str
-    model: str
+    completion_model_id: str
+    embed_model_id: str
     created_ts: float
     ttl_sec: int
+    tools_present: bool
+    metadata: dict[str, Any]
 
 
-class SemanticCache:
-    def __init__(self, embedder, index, similarity_threshold: float = 0.92):
+def cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    if na == 0 or nb == 0:
+        return 0.0
+    return dot / (na * nb)
+
+
+def normalize_messages_for_cache(messages: list[UnifiedMessage]) -> str:
+    """Example: embed last user turn only; extend to full-dialog hashing as needed."""
+    for m in reversed(messages):
+        if m.role.value == "user":
+            return " ".join(m.content.split())
+    return ""
+
+
+def stable_system_fingerprint(messages: list[UnifiedMessage]) -> str:
+    sys_chunks = [m.content for m in messages if m.role.value == "system"]
+    joined = "\n".join(sorted(s.strip() for s in sys_chunks))
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:16]
+
+
+class SemanticCachePipeline:
+    def __init__(
+        self,
+        embedder: Embedder,
+        index: VectorIndex,
+        similarity_threshold: float = 0.93,
+        min_margin: float = 0.02,
+    ):
         self.embedder = embedder
         self.index = index
         self.similarity_threshold = similarity_threshold
+        self.min_margin = min_margin  # best - second_best
 
-    def _canonical_key(self, tenant_id: str, messages: list[UnifiedMessage]) -> str:
+    def exact_key(
+        self, tenant_id: str, sys_fp: str, messages: list[UnifiedMessage]
+    ) -> str:
         body = "\n".join(f"{m.role}:{m.content}" for m in messages)
         digest = hashlib.sha256(body.encode("utf-8")).hexdigest()
-        return f"{tenant_id}:{digest}"
+        return f"{tenant_id}:{sys_fp}:{digest}"
 
-    async def lookup(self, tenant_id: str, req: UnifiedRequest) -> str | None:
-        key = self._canonical_key(tenant_id, req.messages)
-        if exact := await self.index.get_exact(key):
-            return exact.completion
+    async def lookup(
+        self,
+        tenant_id: str,
+        req: UnifiedRequest,
+        route_model_id: str,
+    ) -> tuple[str | None, dict[str, float]]:
+        """
+        Returns (completion or None, scores for telemetry).
+        """
+        sys_fp = stable_system_fingerprint(req.messages)
+        user_text = normalize_messages_for_cache(req.messages)
+        ex_key = self.exact_key(tenant_id, sys_fp, req.messages)
+        scores: dict[str, float] = {}
 
-        q_emb = await self.embedder.encode(req.messages[-1].content)
-        neighbors = await self.index.ann_search(q_emb, top_k=5, namespace=tenant_id)
-        best = neighbors[0] if neighbors else None
-        if best and best.score >= self.similarity_threshold:
-            if self._fresh(best.entry):
-                return best.entry.completion
-        return None
+        if hit := await self.index.get_exact(ex_key):
+            if self._fresh(hit) and hit.completion_model_id == route_model_id:
+                scores["exact"] = 1.0
+                return hit.completion, scores
+            if hit.completion_model_id != route_model_id:
+                scores["exact_stale_model"] = 1.0
+
+        q_emb = await self.embedder.encode(user_text)
+        neighbors = await self.index.ann_search(
+            q_emb, top_k=8, namespace=f"{tenant_id}:{sys_fp}"
+        )
+        reranked: list[tuple[float, Neighbor]] = []
+        for n in neighbors:
+            sim = cosine_similarity(q_emb, n.entry.embedding)
+            reranked.append((sim, n))
+        reranked.sort(key=lambda t: t[0], reverse=True)
+
+        if len(reranked) < 1:
+            return None, scores
+
+        best_sim, best = reranked[0]
+        second = reranked[1][0] if len(reranked) > 1 else 0.0
+        scores["best_cosine"] = best_sim
+        scores["margin"] = best_sim - second
+
+        gates_ok = (
+            best.entry.tools_present == bool(req.tools)
+            and best.entry.embed_model_id == self.embedder.model_id
+            and best.entry.completion_model_id == route_model_id
+        )
+        if (
+            gates_ok
+            and self._fresh(best.entry)
+            and best_sim >= self.similarity_threshold
+            and (best_sim - second) >= self.min_margin
+        ):
+            return best.entry.completion, scores
+
+        return None, scores
 
     def _fresh(self, entry: CacheEntry) -> bool:
         return (time.time() - entry.created_ts) < entry.ttl_sec
 
-    async def maybe_store(
+    async def store(
         self,
         tenant_id: str,
         req: UnifiedRequest,
         completion: str,
-        model: str,
+        route_model_id: str,
+        accumulated_from_stream: bool,
     ) -> None:
-        if req.stream:
-            return  # often skip or buffer with care
-        emb = await self.embedder.encode(req.messages[-1].content)
+        if accumulated_from_stream is False and req.stream:
+            return
+        sys_fp = stable_system_fingerprint(req.messages)
+        user_text = normalize_messages_for_cache(req.messages)
+        emb = await self.embedder.encode(user_text)
         entry = CacheEntry(
             embedding=emb,
             completion=completion,
-            model=model,
+            completion_model_id=route_model_id,
+            embed_model_id=self.embedder.model_id,
             created_ts=time.time(),
             ttl_sec=86_400,
+            tools_present=bool(req.tools),
+            metadata={},
         )
-        await self.index.upsert(
-            namespace=tenant_id, key=self._canonical_key(tenant_id, req.messages), entry=entry
-        )
+        ex_key = self.exact_key(tenant_id, sys_fp, req.messages)
+        await self.index.upsert(namespace=f"{tenant_id}:{sys_fp}", key=ex_key, entry=entry)
 ```
 
-**Partial match scoring:** combine **cosine similarity** with **metadata gates** (same `model family`, same `tool` presence) to avoid wrong answers.
+**Partial match scoring:** combine **cosine similarity**, **margin vs runner-up**, and **metadata gates** (tools, embedder id, completion model id) to avoid wrong answers and **stale** completions after upgrades.
 
 ---
 
@@ -540,15 +805,44 @@ class CostTracker:
 
 **Patterns:**
 
-- **Circuit breaker** per provider/region: open after error rate &gt; threshold.  
+- **Circuit breaker** per provider/region: open after error rate &gt; threshold; **half-open** probes before full recovery.  
 - **Automatic failover** to next hop in chain when breaker open or HTTP 429/5xx.  
-- **Retries** with exponential backoff + jitter only for **idempotent** safe failures (not for partial streams without resume tokens).  
-- **Health scoring** from rolling latency/error metrics to deprioritize unhealthy endpoints.
+- **Retries** with exponential backoff + jitter only for **idempotent** safe failures — **respect a retry budget** so one bad tenant cannot amplify load.  
+- **Health scoring** from rolling latency/error metrics to deprioritize unhealthy endpoints.  
+- **Streaming** failures need special casing: you generally **cannot** safely retry mid-stream without idempotent generation or user-visible duplication.
+
+#### Circuit breaker state machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Closed
+    Closed --> Open : failures >= threshold\nor error_rate > limit
+    Open --> HalfOpen : cooldown elapsed
+    HalfOpen --> Closed : probe success
+    HalfOpen --> Open : probe failure
+    Closed --> Closed : success resets failure window
+```
+
+#### Provider health scoring (weighted error rate + latency)
+
+Maintain a rolling window per **(provider, region, model)**. Example **score** in \([0,100]\) — higher is healthier:
+
+\[
+\text{health} = 100 \cdot \bigl( w_e \cdot (1 - \text{err\_rate}) + w_l \cdot (1 - \min(1, \frac{p95}{SLO\_ms})) \bigr)
+\]
+
+- **err_rate:** fraction of failed requests (5xx, timeouts, stream abort) in the window.  
+- **p95:** gateway-observed latency to first token or full response, depending on policy.  
+- **Weights:** e.g. \(w_e = 0.6\), \(w_l = 0.4\) when errors dominate; increase \(w_l\) for latency-sensitive routes.
+
+Use **health** to **sort** fallback chains and to **shed** load (send only a fraction of traffic to sub-threshold endpoints).
 
 ```python
+from __future__ import annotations
+
 import random
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -560,37 +854,138 @@ class BreakerState(str, Enum):
 
 @dataclass
 class CircuitBreaker:
+    """
+    Counts consecutive failures in CLOSED; OPEN after threshold.
+    HALF_OPEN allows a single trial request; success -> CLOSED, failure -> OPEN.
+    """
+
     failure_threshold: int = 5
     cool_down_sec: int = 30
+    half_open_max_attempts: int = 1
     failure_count: int = 0
     opened_at: float | None = None
     state: BreakerState = BreakerState.CLOSED
+    half_open_in_flight: int = 0
+
+    def allow(self, now: float | None = None) -> bool:
+        t = time.time() if now is None else now
+        if self.state == BreakerState.CLOSED:
+            return True
+        if self.state == BreakerState.OPEN:
+            assert self.opened_at is not None
+            if t - self.opened_at <= self.cool_down_sec:
+                return False
+            self.state = BreakerState.HALF_OPEN
+            self.half_open_in_flight = 0
+        if self.state == BreakerState.HALF_OPEN:
+            if self.half_open_in_flight < self.half_open_max_attempts:
+                self.half_open_in_flight += 1
+                return True
+            return False
+        return True
 
     def record_success(self) -> None:
         self.failure_count = 0
-        self.state = BreakerState.CLOSED
         self.opened_at = None
+        self.half_open_in_flight = 0
+        self.state = BreakerState.CLOSED
 
     def record_failure(self) -> None:
+        if self.state == BreakerState.HALF_OPEN:
+            self.state = BreakerState.OPEN
+            self.opened_at = time.time()
+            self.half_open_in_flight = 0
+            return
         self.failure_count += 1
         if self.failure_count >= self.failure_threshold:
             self.state = BreakerState.OPEN
             self.opened_at = time.time()
 
-    def allow(self) -> bool:
-        if self.state == BreakerState.CLOSED:
-            return True
-        assert self.opened_at is not None
-        if time.time() - self.opened_at > self.cool_down_sec:
-            self.state = BreakerState.HALF_OPEN
-            return True
-        return False
+
+@dataclass
+class ProviderHealthTracker:
+    window_sec: int = 120
+    w_err: float = 0.6
+    w_lat: float = 0.4
+    slo_ms: float = 2000.0
+    latencies_ms: list[float] = field(default_factory=list)
+    errors: int = 0
+    total: int = 0
+    window_start: float = field(default_factory=time.time)
+
+    def record(self, latency_ms: float, ok: bool) -> None:
+        now = time.time()
+        if now - self.window_start > self.window_sec:
+            self._roll_window(now)
+        self.total += 1
+        if ok:
+            self.latencies_ms.append(latency_ms)
+        else:
+            self.errors += 1
+
+    def _roll_window(self, now: float) -> None:
+        self.latencies_ms.clear()
+        self.errors = 0
+        self.total = 0
+        self.window_start = now
+
+    def score(self) -> float:
+        if self.total == 0:
+            return 100.0
+        err_rate = self.errors / self.total
+        p95 = percentile(self.latencies_ms, 95) if self.latencies_ms else 0.0
+        lat_penalty = min(1.0, p95 / self.slo_ms) if self.slo_ms else 0.0
+        return 100.0 * (self.w_err * (1.0 - err_rate) + self.w_lat * (1.0 - lat_penalty))
+
+
+def percentile(sorted_vals: list[float], p: float) -> float:
+    if not sorted_vals:
+        return 0.0
+    xs = sorted(sorted_vals)
+    k = (len(xs) - 1) * (p / 100.0)
+    f = int(k)
+    c = min(f + 1, len(xs) - 1)
+    return xs[f] + (k - f) * (xs[c] - xs[f])
 
 
 def exp_backoff_sleep(attempt: int, base_ms: int = 50, cap_ms: int = 2000) -> None:
     sleep_ms = min(cap_ms, base_ms * 2**attempt)
     time.sleep(sleep_ms / 1000.0 + random.random() * 0.05)
 ```
+
+#### Streaming failover mid-response
+
+| Challenge | Why it hurts | Practical strategies |
+|-----------|--------------|----------------------|
+| **No idempotent stream** | Retrying duplicates partial tokens to the user | **Buffer** until first sentence / tool boundary **or** fail the stream and **restart non-streaming** with a “retrying…” UX |
+| **Client already rendered** | New provider may contradict partial text | Prefer **fail closed** for regulated flows; **append correction** only with product approval |
+| **Different tokenization** | Cannot resume byte-for-byte | **Abort** stream; send structured error with `retry_hint=non_stream` |
+| **Billing** | Partial usage on A + full on B | Attribute **partial tokens** to A; complete on B; reconcile in **metering** layer |
+
+**Strategies:** maintain a **generation_id**; only allow failover **before** first byte; after first byte, **truncate** and retry only if product accepts **replacement completion**; for **tool calls**, fail if partial JSON was already sent.
+
+#### Retry budget management
+
+```python
+from dataclasses import dataclass
+
+
+@dataclass
+class RetryBudget:
+    max_attempts: int = 2
+    attempts_used: int = 0
+
+    def can_retry(self) -> bool:
+        return self.attempts_used < self.max_attempts
+
+    def consume(self) -> bool:
+        if not self.can_retry():
+            return False
+        self.attempts_used += 1
+        return True
+```
+
+Attach a **RetryBudget** per **request_id** (and optionally per **tenant** global token bucket). **Do not retry** if `not budget.consume()` — surface **429/503** with actionable `retry_after_ms`. Combine with **jitter** so thundering herds do not synchronize.
 
 ---
 
@@ -680,47 +1075,151 @@ class AuditRecord:
 
 ---
 
-**Alex:** Today I want you to design an **LLM gateway** — the thing teams hit instead of calling OpenAI or Vertex directly. Think multi-tenant, many apps, many models. Where do you start?
+**Alex:** Let’s design an **LLM gateway** — a single internal endpoint our product teams call instead of wiring OpenAI, Anthropic, Vertex, and self-hosted stacks directly. It has to be **multi-tenant**, **cost-aware**, and **safe**. How do you open?
 
-**Candidate:** I’d clarify **tenants**, **traffic**, **compliance**, and whether we need **unified billing**. At a high level I’d place a **stateless gateway** in front of providers with **auth**, **rate limiting**, **routing**, **caching**, and a **response pipeline** for **PII** and **cost**. I’d draw the data plane vs control plane: runtime path stays hot; policies and pricebooks update asynchronously.
+**Candidate:** I’d start with **clarifications**: peak **RPS**, mix of **streaming vs batch**, **compliance** tier (HIPAA, EU residency), whether **prompts may contain PII**, and whether we need **chargeback** to teams or products. I’d separate **data plane** — request path through auth, limits, routing, providers — from **control plane** — policies, pricebooks, model registry, cache TTLs — updated asynchronously so the hot path stays lean.
 
-**Alex:** How do you unify APIs without drowning in glue code?
+**Alex:** Assume **10K gateway RPS** peak, **60% streaming**, finance and healthcare tenants on the same cluster but **logical isolation** required. Does that change your first diagram?
 
-**Candidate:** I’d define a **canonical request** — messages, tools, stream flag — and implement **adapters** per provider behind an interface. Streaming is the hard part: normalize **delta events**, buffer **tool call fragments**, and expose **one SSE format** to clients. I’d version the unified API so we can evolve without breaking apps.
+**Candidate:** Yes — I’d draw **edge → gateway pool → Redis** for budgets/limiters → **optional cache tier** → **provider adapters**. I’d show **tenant_id** on every hop and **no shared mutable state** inside gateway pods. For healthcare, I’d call out **encryption in transit**, **audit logging**, and **region pinning** as non-negotiable overlays on the same core.
 
-**Alex:** Talk about **routing**. Why not always use the best model?
+**Alex:** Walk me through **routing** and **caching** together — they interact, right?
 
-**Candidate:** “Best” is not just quality — it’s **cost**, **latency**, and **capabilities**. I’d use a **policy engine**: constraints first — e.g. if tools are requested, only models that support tools with acceptable reliability. Then optimize for **$/token** within an SLA window. For global services, **region** matters for latency. I’d also support **experiments** — route a slice of traffic to a challenger model with guardrails.
+**Candidate:** **Routing** picks **provider, model, region, credential** under constraints: tools requested → only models with **verified** tool support; SLA deadline → smaller or regional model; cost tier → prefer cheaper SKU. **Caching** sits **before** the expensive hop: **exact hash** of normalized messages first, then **semantic ANN** on an embedding of the user turn (or full dialog, policy-dependent). On **hit**, we skip the provider entirely for that completion; on **miss**, we execute the routed target and optionally **write** to cache if the response is eligible.
 
-**Alex:** How does **semantic caching** work, and when is it dangerous?
+**Alex:** Why not embed the **entire** conversation every time?
 
-**Candidate:** We embed a **canonical representation** of the user message or the full prompt, search **ANN** for neighbors above a **similarity threshold**, and return the cached completion on hit. Risks: **false positives** — similar wording but different required answer. Mitigations: **higher threshold**, **TTL**, **namespace per tenant**, and **disable** caching for regulated intents. Optionally return **soft hits** with a banner — usually product-specific.
+**Candidate:** Cost and noise. Long chats dilute the vector; **last user turn + stable system fingerprint** is a common compromise. For agents with heavy **tool** traces, you might embed **user intent** only and gate cache hits on **tool parity** — if tools differ, you refuse semantic hits.
 
-**Alex:** Rate limiting: RPS isn’t enough, right?
+**Alex:** Deep dive on **semantic similarity**. How do you pick a **threshold**, and how do you know it’s not lying?
 
-**Candidate:** Correct — providers meter **TPM** and **RPM**. I’d do **token buckets per tenant**, using a **cheap tokenizer** for pre-counting. Burst traffic should consume **burst allowance** but still respect **sustained** TPM. For **cost**, I’d track **USD** from a **pricebook** and enforce **monthly budgets** with alerts.
+**Candidate:** Cosine similarity on **L2-normalized** embeddings is standard. I’d start conservative — **0.93–0.97** depending on domain — and require **margin** against the second neighbor so you don’t pick ambiguous ties. Offline, I’d evaluate **labeled paraphrase sets**; online, I’d **shadow-score** “would have hit” without serving and track **human thumbs-down** on cached answers. If **false positives** spike, raise threshold or **narrow eligibility** — e.g. disable semantic cache for regulated intents.
 
-**Alex:** Provider goes hard 500 — what happens?
+**Alex:** **Invalidation** when we upgrade **GPT-4.1** to **4.2** — what breaks?
 
-**Candidate:** **Retries** with backoff for safe, idempotent failures. For streaming, retries are trickier — you may need **non-streaming fallback** or **replay from checkpoint** if the product allows. Longer term: **circuit breaker** per provider/region, **failover chain**, and **health scores** from synthetic checks. We should **tag errors** so SLOs distinguish gateway bugs from vendor outages.
+**Candidate:** Behavior shifts even at the same API name. I’d include **`completion_model_id`** in the cache namespace or maintain a **global epoch** that flips on model change. Same for **embedding model** swaps — vectors aren’t comparable across embedders, so you **re-embed or cold-start** that tier. Pair with **TTL** and manual purge for tenants under change control.
 
-**Alex:** Compliance — logs are full of secrets and PII.
+**Alex:** **Cache warming** — isn’t that just “preload FAQs”?
 
-**Candidate:** **Minimize retention** by default — structured metadata always; **payload logging** opt-in. On the hot path, run **fast detectors** for emails/tokens; heavier ML/LLM classifiers async. **Role-based access** to raw traces. For EU data, **region pinning** and **DPA** with each provider when payloads leave our boundary.
+**Candidate:** FAQs are one lever. There’s also **curated paraphrases**, **synthetic QA** with review, and **sampled replay** from a warehouse — with privacy review. I’d avoid blind replay of production prompts containing PII unless **redacted**. For new tenants, **template bootstrapping** from approved content is safer than copying prod traffic.
 
-**Alex:** How do you hit **&lt;20 ms p99** overhead at 10K RPS?
+**Alex:** **System prompt** varies; users paste junk. How does **partial matching** not explode?
 
-**Candidate:** Keep the gateway **stateless** — limiter checks via **Redis** with pipeline batching, **connection pooling** to providers, **zero-copy** where possible, and **avoid heavy JSON** on hot path. Semantic cache: **ANN** on a separate service; optionally **exact-only** in-process LRU for hottest keys. Measure with **distributed tracing** — break out **auth**, **router**, **cache**, **serialization**.
+**Candidate:** **Normalize** whitespace and strip volatile timestamps where possible. Optionally **hash** normalized system text separately and scope ANN to **`tenant + system_fingerprint`**. That stops “same question, different system policy” collisions. If two system prompts differ materially, they should **not** share a semantic bucket.
 
-**Alex:** Last trade-off question: would you ever **terminate TLS** inside the gateway vs pass-through?
+**Alex:** Where does the **embedding service** live relative to the gateway — same pod?
 
-**Candidate:** For a real gateway, **terminate at the edge** / gateway for **inspection, policy, and WAF**. Re-encrypt to providers. Pass-through TLS **blinds** you to content for policy — rarely acceptable for enterprise. If needed, use **mTLS** to providers and strict **cipher suites**.
+**Candidate:** Usually **not**. I’d run it as a **sidecar or small regional service** with autoscaling. If embedding adds tens of milliseconds, you either **async** semantic lookup off the critical path for ultra-low SLA routes — fall back to exact-only — or **batch** embeds for non-latency-sensitive workloads. Never block the **synchronous** path on a **cold** embedder without timeouts.
 
-**Alex:** Good. In production I’d want to see **runbooks** for provider brownouts, **load tests** on cache stampede, and **FinOps dashboards** per tenant. That’s time — any questions for me?
+**Alex:** **pgvector** vs **managed vector DB** — pick one for v1.
 
-**Candidate:** How do you balance **central governance** vs **team autonomy** for routing policies?
+**Candidate:** **pgvector** if we already operate Postgres at scale and can tolerate **ANN** latency under a few ms with proper indexes — simpler ops. A **managed** vector store wins when we need **multi-million** vectors per tenant, **sub-ms** ANN at high QPS, or **managed** replication. I’d prototype on **pgvector**, load-test, then migrate hot tenants if we hit **recall** or **latency** walls.
 
-**Alex:** We usually give **safe defaults** and let teams **override within guardrails** — cap max spend, approved model lists, and required **data residency**. The gateway enforces **non-negotiables**; everything else is **policy-as-code** with audit trails.
+**Alex:** Back to the **architecture** — how do apps **authenticate**?
+
+**Candidate:** **API keys** scoped to tenant, or **OAuth2** client credentials for first-party services; **mTLS** for service-to-service in regulated environments. The gateway resolves **tenant → policy profile → limits**. I’d avoid passing **raw provider keys** to clients — the gateway holds **vaulted** credentials and **rotates** them.
+
+**Alex:** **Idempotency** — two retries submit the same prompt twice; do we double-bill?
+
+**Candidate:** For **completions**, providers are not strictly idempotent unless they support **request IDs**. I’d expose **`client_request_id`** to the gateway, hash it with tenant for **short TTL dedupe** in Redis — return the **same completion** if a duplicate lands within the window. Billing should still reflect **actual** provider usage; dedupe is a **UX** and **cost** guardrail, not a substitute for provider guarantees.
+
+**Alex:** Let’s go deep on **streaming**. What’s hard about being an **SSE relay**?
+
+**Candidate:** Providers emit different **chunk shapes** — OpenAI `delta`, Anthropic event types — and **tool call JSON** may arrive in slices. The gateway must **parse**, **buffer until JSON-safe**, re-emit a **single** internal SSE schema, and handle **mid-stream errors** — sometimes HTTP 200 with an error object. You also need **backpressure** so a slow mobile client does not stall upstream reads indefinitely.
+
+**Alex:** Where do **caching and full logging** happen if there is no final body until EOF?
+
+**Candidate:** You **accumulate** assistant text and tool args in bounded buffers; on completion, you run **PII scrub** for persistence, **token metering** from provider usage fields, and **cache write** if policy allows. Hot path might only do **light regex**; heavier classifiers run **async**. Streaming means you **cannot** cheaply cache mid-flight without risking partial wrong answers — usually **write-after-complete**.
+
+**Alex:** How do you **unit-test** streaming adapters when every vendor’s fixtures differ?
+
+**Candidate:** **Golden files** per provider — recorded **chunk sequences** — replay through the adapter and assert **canonical** events. **Property tests** on **JSON tool fragments** — concatenated deltas must parse. **Fuzz** weird chunk boundaries. Integration tests hit **provider sandboxes** on a schedule, not every PR.
+
+**Alex:** **Cost control** in a **multi-tenant** world — what do you meter?
+
+**Candidate:** **Per tenant** — and optionally **team / product** dimensions from headers. Meter **input tokens, output tokens**, map to **USD** via a **pricebook**, enforce **TPM/RPM** token buckets, and maintain **monthly budget counters** in Redis with **async** reconciliation to a warehouse. **Alerts** at 80% soft warn; **hard block** only if business wants hard stops versus friction.
+
+**Alex:** A tenant hits **budget** mid-day during a marketing launch — kill traffic?
+
+**Candidate:** Product decision. Platformically I’d support **soft deny** — allow with **throttled** throughput or **downgraded model** — versus **hard deny**. I’d never silently switch models without **headers** or **audit** trails indicating **degraded tier**.
+
+**Alex:** **Billing reconciliation** — Redis says one thing; Snowflake says another. Who wins?
+
+**Candidate:** **Provider invoices** and **logged usage** are the **source of truth** for finance. Gateway meters are **real-time signals** for **gating** and **alerts**; nightly jobs **reconcile** deltas — pricing changes, tokenizer drift, retries. Discrepancies beyond tolerance **page** FinOps. Tenants see **estimated** vs **finalized** charges in the UI.
+
+**Alex:** **Noisy neighbor** — one tenant spikes TPM and starves others on shared Redis.
+
+**Candidate:** **Per-tenant** buckets with **guaranteed minimum** headroom for premium tiers, **weighted fair queuing** at the gateway edge for extreme cases, and **separate Redis clusters** for largest customers. **Observability** on **limiter wait time** per tenant catches abuse early.
+
+**Alex:** **Provider outage mid-stream** — can you **fail over** to another vendor?
+
+**Candidate:** Rarely cleanly. After bytes hit the user, **retrying** risks **duplicate** or **contradictory** text. Best practice: **failover before first token** using health scores and circuit breakers. Mid-stream, prefer **abort** with a structured error and **non-streaming retry** on a backup, or **product UX** that shows “retrying” with explicit replacement. For **tool calls**, if partial JSON went out, failover is **unsafe** — fail closed.
+
+**Alex:** Speak **circuit breaker** — when does it **open**, and how does it **recover**?
+
+**Candidate:** Per **provider/region** track failures and latency. After **N** failures or high error rate, **open** — fast-fail locally. After **cooldown**, transition to **half-open** and allow **one probe**; success **closes**, failure **reopens**. That stops hammering a sick endpoint while giving recovery a path.
+
+**Alex:** **Retries** — unlimited?
+
+**Candidate:** No — attach a **retry budget** per request and **jitter** backoff. Don’t retry **non-idempotent** side effects; for LLMs, treat **streaming** as non-retryable unless you have **generation IDs** and provider support. Expose **429/503** with **`retry_after`** when budget is exhausted.
+
+**Alex:** **Cache poisoning** — what’s the threat model?
+
+**Candidate:** If someone **pollutes** embeddings with a wrong completion, similar queries **inherit** the error. Mitigations: **tenant isolation**, **write gates** only after **PII scan**, optional **human review** for corpora caches, **canary** reads after writes, and **versioned** cache epochs on policy change. Monitor **sudden drift** in downstream quality metrics.
+
+**Alex:** **PII** and **audit** — regulators will ask **who saw what**.
+
+**Candidate:** Store **structured metadata** on every call: `trace_id`, `tenant_id`, `model`, `route`, `tokens`, **`cache_status`**, **`redaction_profile`**. Payloads: **minimize** by default; **mask** emails, phone, IDs on hot path; deeper **NER** async. **Access** to raw prompts is **RBAC** with **justification** logging. Retention tiers — hot for days, cold for years in **immutable** store for audits.
+
+**Alex:** **Sampling** — do you log **every** prompt at full fidelity?
+
+**Candidate:** **No** by default. **100%** structured metadata; **payload** sampling — e.g. 1–5% for debug — with **tenant opt-in** for higher verbosity during incidents. **Errors** might capture **more** context but still **masked**. Reduces **storage** and **exposure surface**.
+
+**Alex:** **Cross-border** — EU user, US provider. What do you log where?
+
+**Candidate:** **Data residency** policy decides. If prompts **cannot** leave the EU, route to **EU-approved** endpoints and store **audit** in **EU** buckets. If they **may** transit with **DPA** in place, still **minimize** what hits US analytics. The gateway tags **`data_region`** on every record for **query scoping**.
+
+**Alex:** How do you **evaluate** whether the gateway is “working”?
+
+**Candidate:** **North stars:** **$/successful task**, **p95 time-to-first-token**, **error rate** split gateway vs provider, **cache hit rate** with **false-positive** sampling, **budget compliance**, and **customer-reported** quality. **Synthetic probes** per provider/model. **SLO** on **gateway overhead** excluding LLM — e.g. **p99 &lt; 20 ms** on miss path. **Experimentation** hooks to measure **routing** changes with **guardrails**.
+
+**Alex:** **Distributed tracing** — one span or many?
+
+**Candidate:** **Many** — `auth`, `rate_limit`, `cache_lookup`, `embed`, `router`, `provider_ttfb`, `stream_pump`, `scrub`, `meter`. Propagate **`trace_id`** to **provider headers** where supported. Tag **cache_outcome** and **fallback_generation** so you can slice **p99** by path. Avoid **giant** spans on the entire LLM call — it hides gateway overhead.
+
+**Alex:** **False negatives** in semantic cache — users pay more but get the same answer they could have cached. How do you detect that?
+
+**Candidate:** **Shadow** hits — compare **embed similarity** to served responses without returning cache — track **regret** in $. **Periodic** audits: sample high-similarity misses and **auto-promote** rules if safe. It’s a **business** trade-off: aggressive cache saves money but risks wrong answers.
+
+**Alex:** **Security** angle — keys, data in flight?
+
+**Candidate:** **Terminate TLS** at the gateway or edge, **WAF**, **mTLS** to providers where supported. **API keys** in vault, **short-lived** credentials, **per-tenant** key routing. **No secrets** in logs. **Field-level** encryption for sensitive metadata if required.
+
+**Alex:** You mentioned **10K RPS** — where does it **bottleneck**?
+
+**Candidate:** Often **Redis** for limits, **embedding QPS** for semantic cache, or **egress** to providers. Mitigate with **sharding** tenant keys, **batching** Redis, **async** embedding on a separate pool, and **regional** gateway fleets close to tenants and providers.
+
+**Alex:** Last stretch — **multi-region**. Does semantic cache replicate globally?
+
+**Candidate:** Tricky. **Read-local** replicas reduce latency but complicate **invalidation**. I’d prefer **namespace per region** with **async** replication only for **non-controversial** entries, or **route** users to a **home region** for cache coherence. **Compliance** may forbid cross-border **prompt** storage altogether.
+
+**Alex:** If you had **one** week before launch, what do you **load test**?
+
+**Candidate:** **Limiter correctness** under burst, **cache stampede** on hot keys, **SSE** churn with slow clients, **failover** drills with provider **blackholes**, and **Redis** failure modes — **fail-open** vs **fail-closed** per tenant class.
+
+**Alex:** **Runbooks** — provider posts “elevated errors” on status page. What’s **first**?
+
+**Candidate:** Confirm with **internal metrics** — not every brownout is global. **Raise** circuit sensitivity temporarily, **drain** traffic to secondary routes, **communicate** to tenants if **latency SLO** is at risk. Post-mortem: did **health scores** lag reality — tune windows.
+
+**Alex:** **Feature flags** — can a PM turn on **semantic cache** for one tenant at midnight?
+
+**Candidate:** **Yes**, via **control plane** — but **flag** should roll out with **percentage** canary and **automatic** rollback on **error-rate** or **quality** regressions tied to **cache hits**. **No** unguarded global toggles for **cost-saving** features that affect correctness.
+
+**Alex:** Closing — what would **you** ask us?
+
+**Candidate:** How do you balance **central governance** with **team-owned** routing policies today — and where have **policy mistakes** burned you in prod?
+
+**Alex:** We bias to **safe defaults** and **policy-as-code** with **audit** — teams propose routes within **approved model lists** and **spend caps**. The painful incidents were **semantic cache** thresholds tuned on dev data that didn’t match prod distributions — we now **shadow-test** and **per-tenant** thresholds for big customers. Thanks — this was a solid Staff-level pass through the stack.
 
 ---
 

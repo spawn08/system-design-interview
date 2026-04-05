@@ -44,6 +44,7 @@ ML system design interviews focus on the **full ML lifecycle**, not just the mod
 | 5 | [Fraud Detection]({{ site.baseurl }}/ml_system_design/fraud_detection) | Real-time features, class imbalance, ensembles | Search Ranking (ranking) |
 | 6 | [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization) | Session models, bandits, exploration | Recommendation + Fraud |
 | 7 | [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking) | CTR prediction, auctions, budget pacing | All of the above |
+| 8 | [Real-time Feature Platform]({{ site.baseurl }}/ml_system_design/feature_platform) | Streaming features, PIT joins, drift | Infra for all above |
 
 ---
 
@@ -147,6 +148,23 @@ Design an ads ranking system — the core revenue engine at Google, Meta, Amazon
 **Key concepts:** CTR prediction (DCN/DLRM), second-price/GSP auctions, budget pacing, position bias correction, calibration, exploration for new ads, near-real-time training
 
 **Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
+
+---
+
+### [Real-time Feature Platform]({{ site.baseurl }}/ml_system_design/feature_platform)
+{: .d-inline-block }
+
+ML Infrastructure
+{: .label .label-red }
+
+NEW
+{: .label .label-yellow }
+
+Design a real-time feature platform that computes, stores, and serves ML features with sub-millisecond latency — solving train-serve skew, point-in-time joins, and feature freshness at scale.
+
+**Key concepts:** Batch vs streaming vs on-demand features, train-serve consistency, point-in-time joins, sliding window aggregations, feature drift monitoring, online/offline store architecture
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
 
 ---
 
@@ -255,6 +273,7 @@ MONITORING
 | **Search Ranking** | <200ms | Retrieval + rank budgets | NDCG@K, CTR |
 | **Personalization** | <50ms | Session modeling, cold start | CTR, Session Depth |
 | **Ads Ranking** | <50ms | Revenue × relevance | AUC, Revenue, Calibration |
+| **Feature Platform** | <5ms (serving) | Train-serve consistency | Feature freshness, Drift rate |
 
 ---
 
