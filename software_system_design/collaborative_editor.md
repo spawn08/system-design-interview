@@ -606,4 +606,95 @@ Presence is **ephemeral** and **high volume**. Typical strategies:
 
 ---
 
-_Last updated: 2026-04-03_
+## Staff Engineer (L6) Deep Dive
+
+The sections above cover the standard collaborative editor design. The sections below cover **Staff-level depth** that distinguishes an L6 answer. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+
+### OT vs CRDT: The Decision Framework (Beyond "Pros and Cons")
+
+At L6, don't just list trade-offs. Articulate a **decision framework** based on your system's constraints:
+
+| Constraint | Favors OT | Favors CRDT |
+|------------|-----------|-------------|
+| **Offline editing is a core product requirement** | | Strong choice: CRDTs merge offline edits naturally |
+| **Rich text with complex schema (tables, embeds)** | OT can leverage simpler transform functions on structured ops | CRDTs for complex schemas are still an active research area |
+| **Team has OT expertise** | Lower risk; known bugs and mitigations | |
+| **Peer-to-peer architecture** | Requires central server for total ordering | Designed for decentralized merge |
+| **Undo/redo semantics matter** | Well-understood in OT literature | CRDT undo is subtle; may require "undo CRDTs" |
+| **Audit trail / compliance** | Central log with server-assigned sequence | Requires additional logging layer |
+
+{: .tip }
+> **Staff-level answer:** *"For a greenfield product targeting enterprises with offline editing requirements, I'd choose CRDTs (e.g., Yjs or Automerge). For a product extending an existing OT-based editor like Google Docs, the cost of migration outweighs the architectural benefit—I'd invest in hardening the OT transform functions and adding better offline queuing."*
+
+### WebSocket Connection Management at Scale
+
+| Challenge | L5 Answer | L6 Answer |
+|-----------|-----------|-----------|
+| **Connection routing** | "Sticky sessions via load balancer" | "Consistent hash on `doc_id` for gateway affinity; drain connections on deploy with 30s grace period; clients reconnect with jittered backoff" |
+| **Connection limit** | "Use more servers" | "Each gateway handles ~50K connections (kernel tuning: `net.core.somaxconn`, `ulimit -n`); autoscale on connection count; connection memory = ~10KB/conn × 50K = 500MB per node" |
+| **Reconnect storms** | "Retry" | "After a gateway crash, 50K clients reconnect simultaneously. Use jittered exponential backoff (base 500ms, max 30s) and a token bucket at the gateway to admit reconnections gradually" |
+| **Cross-gateway fan-out** | Not discussed | "If collaborators on the same doc land on different gateways, use Redis Pub/Sub or a Kafka topic partitioned by `doc_id` for inter-gateway broadcast" |
+
+```mermaid
+flowchart TB
+  subgraph GW1 [Gateway 1 - 50K conns]
+    C1[Client A - doc_123]
+    C2[Client B - doc_456]
+  end
+  subgraph GW2 [Gateway 2 - 50K conns]
+    C3[Client C - doc_123]
+    C4[Client D - doc_789]
+  end
+  subgraph Backbone
+    K[Kafka partition: doc_123]
+  end
+  C1 -->|op| K
+  K -->|fan-out| C3
+```
+
+### Hot Document Problem (Celebrity Document)
+
+When a single document has thousands of concurrent editors (e.g., a company all-hands notes doc):
+
+| Mitigation | Mechanism |
+|------------|-----------|
+| **Read-only fan-out** | Promote doc to read-only for most; only designated editors can write |
+| **Batched broadcasts** | Coalesce ops into 100ms batches before fan-out; reduces per-op overhead |
+| **Hierarchical fan-out** | Single sequencer → N relay nodes → clients; avoids single-node fan-out bottleneck |
+| **Presence throttling** | Reduce cursor update frequency from 10Hz to 2Hz for docs with > 100 editors |
+| **Document sharding** | For structured docs (blocks/pages), shard sequencing by section |
+
+### Multi-Region Deployment
+
+| Model | Description | Trade-off |
+|-------|-------------|-----------|
+| **Single-region primary** | All writes route to one region; replicas serve read-only catches up | Higher write latency for remote users; simpler consistency |
+| **Follow-the-leader per document** | Each doc's primary region is the creator's region; migrate on ownership change | Low write latency for active editors; migration complexity |
+| **CRDT with regional merge** | Each region accepts writes locally; merge asynchronously | True multi-region writes; conflict-free but higher storage overhead |
+| **Active-active with OT** | Requires cross-region consensus per op | Highest correctness; highest latency; usually impractical at scale |
+
+{: .note }
+> Google Docs uses a form of single-region primary per document with regional routing. This is a pragmatic choice—most documents have collaborators in the same timezone.
+
+### Operational Excellence
+
+| SLI | Target | Why |
+|-----|--------|-----|
+| Op apply latency (client-perceived) | < 150ms p95 | Above 200ms typing feels laggy |
+| Op persistence latency | < 50ms p99 | Ack must be durable before confirming to client |
+| Reconnect success rate | > 99.5% within 10s | Lost reconnects = lost edits |
+| Transform error rate | 0 | Any transform bug = data corruption |
+| Snapshot freshness | < 5 minutes | Stale snapshots increase replay time on reconnect |
+
+### System Evolution
+
+| Phase | Architecture |
+|-------|-------------|
+| **Year 0** | Single-region OT with central sequencer per doc; PostgreSQL for metadata; S3 for snapshots |
+| **Year 1** | Add WebSocket gateway tier; Kafka for op log; snapshot workers for compaction |
+| **Year 2** | Multi-region with follow-the-leader routing; add offline support with local IndexedDB queue |
+| **Year 3** | Evaluate CRDT migration for offline-first mobile experience; block-level sharding for large docs |
+
+---
+
+_Last updated: 2026-04-05_

@@ -116,7 +116,7 @@ Design training infrastructure that scales deep learning across hundreds of GPUs
 
 ---
 
-## How These Connect to ML System Design
+## How These Connect to System Design Questions
 
 ```
 GenAI/ML Fundamentals              ML System Design Questions
@@ -124,9 +124,14 @@ GenAI/ML Fundamentals              ML System Design Questions
 Model Serving          ──────►     Image Caption Generator
 Feature Stores         ──────►     Recommendation System
 Data Pipelines         ──────►     Fraud Detection System
-LLM Systems            ──────►     LLM Chatbot / RAG App
-Distributed Training   ──────►     LLM Pre-training Platform
+
+GenAI/ML Fundamentals              GenAI System Design Questions
+─────────────────────              ─────────────────────────────
+LLM Systems            ──────►     LLM Chatbot, Enterprise RAG, Code Assistant
+Model Serving          ──────►     LLM Chatbot, Code Assistant
+Distributed Training   ──────►     ML Training Platform
+Feature Stores         ──────►     Content Moderation
 ```
 
 {: .tip }
-> Master the fundamentals first, then apply them in the [ML System Design]({{ site.baseurl }}/ml_system_design/) section where you'll design complete end-to-end systems.
+> Master the fundamentals first, then apply them in the [ML System Design]({{ site.baseurl }}/ml_system_design/) and [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) sections where you'll design complete end-to-end systems.

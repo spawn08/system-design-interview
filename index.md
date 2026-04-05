@@ -28,7 +28,8 @@ We take complex systems and explain them step-by-step, from "what is this?" all 
 
 | You Are | You'll Learn |
 |---------|--------------|
-| **Software Engineer** preparing for FAANG interviews | Core system design patterns and trade-offs |
+| **Staff / L6 Engineer** targeting Google, Meta, etc. | Multi-region architecture, SLOs, consensus, leadership signals |
+| **Senior Software Engineer** preparing for FAANG interviews | Core system design patterns and trade-offs |
 | **ML/AI Engineer** designing production systems | ML-specific architectures and serving patterns |
 | **Student or Junior Dev** wanting to level up | Foundational concepts with clear explanations |
 | **Experienced Engineer** needing a refresher | Quick reference for common patterns |
@@ -64,6 +65,19 @@ Deep dives for Senior and Staff-level interviews — the systems behind the syst
 - [**Distributed Locking**]({{ site.baseurl }}/advanced/distributed_locking) - Redlock, fencing tokens, ZooKeeper, lease-based locks
 - [**Observability**]({{ site.baseurl }}/advanced/observability) - Logging, metrics, tracing, OpenTelemetry, ELK stack
 - [**Event Sourcing & CQRS**]({{ site.baseurl }}/advanced/event_sourcing_cqrs) - Append-only logs, read/write separation, projections
+- [**Consensus Algorithms (Raft/Paxos)**]({{ site.baseurl }}/advanced/consensus_algorithms) - Leader election, log replication, when to use consensus
+- [**Distributed Transactions**]({{ site.baseurl }}/advanced/distributed_transactions) - 2PC, Saga pattern, transactional outbox, Spanner
+- [**Sharding & Partitioning**]({{ site.baseurl }}/advanced/sharding_partitioning) - Partition keys, hot spots, resharding strategies
+- [**Behavioral & Leadership (L6)**]({{ site.baseurl }}/advanced/behavioral_leadership) - STAR for Staff, conflict resolution, technical vision
+
+### Staff Engineer (L6) Interview Track
+
+Targeting Google, Meta, or other top companies at the **Staff / Principal / L6** level? This curated track covers the elevated expectations:
+
+- [**Staff Engineer Interview Guide**]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) - L5 vs L6 expectations, 5 pillars, anti-patterns
+- **Priority designs** with L6 deep dives: [Key-Value Store]({{ site.baseurl }}/software_system_design/key_value_store), [Rate Limiter]({{ site.baseurl }}/software_system_design/rate_limiter), [Collaborative Editor]({{ site.baseurl }}/software_system_design/collaborative_editor), [Task Scheduler]({{ site.baseurl }}/software_system_design/task_scheduler), [Notification System]({{ site.baseurl }}/software_system_design/notification_system)
+- **Advanced foundations:** [Consensus]({{ site.baseurl }}/advanced/consensus_algorithms), [Distributed Transactions]({{ site.baseurl }}/advanced/distributed_transactions), [Sharding]({{ site.baseurl }}/advanced/sharding_partitioning)
+- **Leadership round:** [Behavioral & Leadership Guide]({{ site.baseurl }}/advanced/behavioral_leadership)
 
 ### [System Design Examples]({{ site.baseurl }}/software_system_design/)
 Step-by-step walkthroughs of classic interview questions.
@@ -171,8 +185,8 @@ Every system design interview touches on these concepts:
 | Section | Topics | Difficulty |
 |---------|--------|------------|
 | **Fundamentals** | 11 essential topics | ⭐⭐ Beginner-Advanced |
-| **Advanced Topics** | 9 deep-dive topics | ⭐⭐⭐ Advanced-Expert |
-| **System Design Examples** | 19 classic problems | ⭐⭐⭐ Intermediate-Hard |
+| **Advanced Topics** | 13 deep-dive topics (incl. L6 track) | ⭐⭐⭐ Advanced-Expert |
+| **System Design Examples** | 20 classic problems (incl. Staff Guide) | ⭐⭐⭐ Intermediate-Hard |
 | **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | ⭐⭐⭐ Medium-Hard |
 | **ML System Design** | 6 ML systems | ⭐⭐⭐⭐ Hard |
 

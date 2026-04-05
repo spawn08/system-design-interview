@@ -2,7 +2,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml/badge.svg)](https://github.com/spawn08/system-design-interview/actions/workflows/deploy.yml)
 
-A comprehensive, interview-ready guide covering **50 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples in Java, Python, and Go.
+A comprehensive, interview-ready guide covering **56 system design topics** with step-by-step walkthroughs, architecture diagrams (Mermaid), and production-quality code examples in Java, Python, and Go.
 
 **Live Site:** [https://spawn08.github.io/system-design-interview](https://spawn08.github.io/system-design-interview)
 
@@ -13,6 +13,7 @@ A comprehensive, interview-ready guide covering **50 system design topics** with
 | **Essential Topics** (`basics/`) | Java | Core CS concepts with Java idioms |
 | **Software System Design** (`software_system_design/`) | Java, Python, Go | Multi-language production examples |
 | **ML System Design** (`ml_system_design/`) | Python | ML ecosystem standard |
+| **GenAI System Design** (`genai_ml_system_design/`) | Python | GenAI/LLM system design |
 | **GenAI/ML Fundamentals** (`genai_ml_basics/`) | Python | ML/AI ecosystem standard |
 | **Advanced Topics** (`advanced/`) | Java, Go, Python | Infrastructure-focused examples |
 
@@ -25,7 +26,8 @@ A comprehensive, interview-ready guide covering **50 system design topics** with
 | Software System Design | 19 | Complete |
 | GenAI/ML Fundamentals | 5 | Complete |
 | ML System Design | 6 | Complete |
-| **Total** | **50** | **All complete** |
+| GenAI System Design | 6 | Complete |
+| **Total** | **56** | **All complete** |
 
 This guide provides a comprehensive overview of topics and example questions for system design interviews, particularly for roles in GenAI/ML and Senior Software Engineering.
 
@@ -252,18 +254,23 @@ These questions are categorized and cover a range of difficulty levels. Remember
 18. **Design a Payment System (NEW):** Idempotency, double-entry ledger, PCI compliance.
 19. **Design a Proximity Service (NEW):** Geohash, quadtree, spatial indexing.
 
-### GenAI/ML Specific System Design
+### ML System Design
 
 13. **Design a Recommendation System (e.g., for Netflix, Amazon):** Collaborative filtering, content-based filtering, hybrid approaches, cold start.
 14. **Design a System for Real-time Fraud Detection:** Feature engineering, model serving, low-latency.
 15. **Design a System for Image Search:** Feature extraction, similarity search, indexing, vector databases.
-16. **Design a System for Training Large Language Models:** Distributed training, data pipelines, model parallelism.
-17. **Design a System for Serving LLM Predictions:** Model deployment, scaling, caching, prompt engineering.
-18. **Design a Feature Store:** Feature management, consistency, versioning, serving.
-19. **Design a system for A/B testing different ML models:** Experiment tracking, metrics, traffic splitting.
-20. **Design a system for detecting and mitigating model drift:** Monitoring, retraining, data validation.
-21. **Design a system for personalized search:** User profiling, query understanding, ranking models.
-22. **Design a system for generating captions for images:** Image understanding, text generation, model evaluation.
+16. **Design a system for personalized search:** User profiling, query understanding, ranking models.
+17. **Design a system for generating captions for images:** Image understanding, text generation, model evaluation.
+18. **Design a Real-time Personalization System:** Session models, contextual bandits, multi-task ranking.
+
+### GenAI System Design (NEW — with interview transcripts)
+
+19. **Design an LLM-Powered Chatbot (NEW):** KV-cache, PagedAttention, speculative decoding, RLHF, guardrails, streaming.
+20. **Design an Enterprise RAG System (NEW):** Chunking, hybrid retrieval, re-ranking, ACL-aware search, citation grounding, hallucination mitigation.
+21. **Design an AI Code Assistant (NEW):** Fill-in-the-middle, speculative decoding, repository-level context, telemetry-driven evaluation.
+22. **Design an LLM Content Moderation System (NEW):** Cascade architecture, adversarial robustness, human-in-the-loop, fairness monitoring.
+23. **Design an ML Training Platform (NEW):** Gang scheduling, checkpointing, distributed training, experiment tracking, GPU cluster management.
+24. **Design a Multi-Modal Search System (NEW):** CLIP/SigLIP embeddings, cross-modal retrieval, ScaNN, query fusion, video search.
 
 ### Senior Software Engineer System Design (Focus on Architecture & Trade-offs)
 
@@ -400,6 +407,14 @@ system-design-interview/
 │   ├── image_caption_generator.md
 │   ├── search_ranking.md
 │   └── realtime_personalization.md
+├── genai_ml_system_design/    # GenAI System Design (6 designs, NEW)
+│   ├── index.md
+│   ├── llm_chatbot.md         # NEW - Design LLM Chatbot (Gemini/ChatGPT)
+│   ├── enterprise_rag.md      # NEW - Design Enterprise RAG System
+│   ├── ai_code_assistant.md   # NEW - Design AI Code Assistant
+│   ├── content_moderation.md  # NEW - Design LLM Content Moderation
+│   ├── ml_training_platform.md # NEW - Design ML Training Platform
+│   └── multimodal_search.md   # NEW - Design Multi-Modal Search
 ├── _config.yml                 # Jekyll site configuration
 ├── Gemfile                     # Ruby dependencies
 ├── index.md                    # Home page
@@ -498,6 +513,16 @@ Each system design topic follows a consistent interview-ready structure:
 5. **Step 3: High-Level Design** — online + offline pipeline diagrams
 6. **Step 4: Deep Dive** — 8-10 subsections with Python code examples
 7. **Step 5: Scaling & Production** — failure handling, privacy, monitoring
+
+**GenAI System Design pages** include:
+1. **What We're Building** — problem statement with Google-scale metrics
+2. **Key Concepts Primer** — GenAI-specific concepts (KV-cache, PagedAttention, CLIP, etc.)
+3. **Step 1: Requirements** — functional/non-functional with GenAI-specific NFRs
+4. **Step 2: Estimation** — GPU compute, KV-cache memory, inference cost modeling
+5. **Step 3: High-Level Design** — Mermaid architecture diagrams
+6. **Step 4: Deep Dive** — 6-8 subsections with Python code examples
+7. **Step 5: Scaling & Production** — failure handling, monitoring, trade-offs
+8. **Hypothetical Interview Transcript** — full 45-minute Google-style interview simulation
 
 ### Contributing
 

@@ -1668,3 +1668,105 @@ Want me to dive into any specific component?"
 
 A notification system is a classic example of event-driven architecture. The key challenges are multi-channel delivery, user preference management, and reliable delivery at scale. Master these patterns, and you'll be well-equipped for similar distributed systems problems.
 
+---
+
+## Staff Engineer (L6) Deep Dive
+
+The sections above cover the standard notification system design. The sections below cover **Staff-level depth** that separates an L6 answer. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+
+### Exactly-Once Delivery Semantics
+
+At L5, candidates say "use an idempotency key." At L6, articulate the full end-to-end chain:
+
+| Layer | Deduplication Mechanism |
+|-------|------------------------|
+| **API ingestion** | Client-supplied idempotency key with Redis `SET NX` (TTL 24h); reject duplicate submissions |
+| **Queue consumption** | Consumer tracks `(notification_id, channel)` in a dedup store; skip if already processed |
+| **Provider delivery** | Most providers (FCM, APNS, SES) accept a client-provided message ID for dedup on their side |
+| **Application effect** | For critical notifications (OTPs), the downstream service should verify the token was not already consumed |
+
+{: .warning }
+> **True exactly-once is impossible** across distributed systems without unbounded cost. The practical approach: at-least-once delivery with idempotent consumers at every layer. A Staff engineer states this explicitly and designs the dedup chain.
+
+### Transactional Outbox Pattern
+
+For notifications triggered by a database event (e.g., "order placed"), avoid the dual-write problem:
+
+```mermaid
+flowchart LR
+  subgraph Transaction
+    DB[(Orders DB)]
+    OB[(Outbox Table)]
+  end
+  CDC[CDC / Poller] --> OB
+  CDC --> K[Kafka]
+  K --> NW[Notification Worker]
+```
+
+| Step | What Happens |
+|------|-------------|
+| 1. Business transaction | `INSERT INTO orders` and `INSERT INTO outbox` in **one DB transaction** |
+| 2. CDC or poller | Reads new outbox rows; publishes to Kafka; marks row as published |
+| 3. Notification worker | Consumes from Kafka; sends notification; commits consumer offset |
+
+This guarantees that a notification is sent **if and only if** the business event was committed.
+
+### Load Shedding During Traffic Spikes
+
+| Scenario | Strategy |
+|----------|----------|
+| **Flash sale (predictable)** | Pre-warm worker pool; increase Kafka partitions; switch promotional notifications to batch mode |
+| **Breaking news (unpredictable)** | Priority queues ensure transactional (OTPs) are unaffected; drop promotional notifications entirely |
+| **Provider outage (e.g., FCM down)** | Circuit breaker on FCM sender; queue notifications for retry; alert ops; do not retry immediately (retry amplification) |
+| **Queue backlog** | Autoscale workers on Kafka consumer lag; if lag exceeds 30-minute threshold, shed low-priority messages |
+
+```mermaid
+flowchart TD
+  Q[Kafka Queue] --> W{Worker}
+  W -->|FCM healthy| FCM[FCM Provider]
+  W -->|FCM circuit open| DQ[Delayed Retry Queue]
+  W -->|Max retries| DLQ[Dead Letter Queue]
+  DQ -->|After cooldown| W
+```
+
+### Multi-Region Notification Delivery
+
+| Strategy | Description | Trade-off |
+|----------|-------------|-----------|
+| **Regional queues + regional workers** | Each region processes notifications for local users; providers are called from the nearest region | Lowest latency; requires user-to-region mapping |
+| **Global queue + regional workers** | Single Kafka cluster; workers in each region consume and deliver locally | Simpler queue management; cross-region consumer lag |
+| **Follow-the-user** | Route notification to the region where the user's device is currently connected | Best for push and in-app; requires real-time presence tracking |
+
+{: .tip }
+> **Staff-level answer:** *"For SMS and email, I'd use regional queues because latency is not critical and it simplifies compliance (e.g., EU SMS must originate from EU Twilio numbers). For push notifications, I'd route to the region closest to the user's last known location to minimize FCM/APNS latency."*
+
+### Notification Aggregation and Batching
+
+Sending 50 individual "X liked your photo" notifications is a bad UX. At L6, discuss aggregation:
+
+| Technique | Description |
+|-----------|-------------|
+| **Count-based batching** | After N events of the same type within a window, send one summary notification: "5 people liked your photo" |
+| **Time-based batching** | Buffer engagement notifications for 5 minutes; merge into a single notification |
+| **Digest mode** | User preference: receive a daily email digest instead of individual notifications |
+| **Suppression** | If a user opens the app within the buffer window, suppress the push notification entirely |
+
+### Operational Excellence
+
+| SLI | Target | Alert |
+|-----|--------|-------|
+| Notification delivery latency (p99) | < 2s for transactional, < 30s for promotional | > 5s for transactional indicates queue backlog |
+| Provider success rate | > 99.5% per provider | < 98% indicates provider issue or invalid token backlog |
+| Duplicate delivery rate | < 0.01% | Any spike indicates dedup store failure |
+| DLQ depth | < 1000 messages | Growing trend indicates systematic delivery failure |
+| User opt-out rate after notification | < 2% per campaign | > 5% indicates notification fatigue or poor targeting |
+
+### System Evolution
+
+| Phase | Architecture | Key Change |
+|-------|-------------|------------|
+| **Year 0** | Single region; Kafka per channel; manual template management | Ship core channels; validate delivery |
+| **Year 1** | Add analytics pipeline; self-service template UI; A/B testing for notification content | Measure open/click rates; optimize send times |
+| **Year 2** | Multi-region with regional Kafka; transactional outbox for event-driven notifications | Add compliance controls (GDPR right-to-erasure for notification history) |
+| **Year 3** | ML-driven send-time optimization; intelligent aggregation; per-user channel preference prediction | Reduce notification fatigue; increase engagement; cost optimization via channel selection |
+

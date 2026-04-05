@@ -245,3 +245,6 @@ As you study these designs, look for patterns that repeat:
 4. Not discussing how to measure success
 5. Ignoring operational concerns (monitoring, retraining)
 
+{: .note }
+> Looking for **LLM Chatbot, RAG, Code Assistant, Content Moderation, or Multi-Modal Search** designs? These GenAI-specific system designs live in the dedicated [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) section — complete with hypothetical interview transcripts.
+

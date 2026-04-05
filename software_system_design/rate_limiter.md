@@ -1398,3 +1398,83 @@ Let me draw the architecture..."
 
 Rate limiting is deceptively simple in concept but requires careful handling of distributed systems challenges. The key is choosing the right algorithm for your use case and ensuring atomicity in a distributed environment.
 
+---
+
+## Staff Engineer (L6) Deep Dive
+
+The sections above cover the fundamentals. The sections below cover the **Staff-level depth** that distinguishes an L6 answer from an L5 one. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for what L6 interviewers look for.
+
+### Global Rate Limiting Across Regions
+
+At L5, candidates design a rate limiter backed by a single Redis cluster. At L6, you must address: **what happens when your API serves users from 5 regions?**
+
+| Strategy | How It Works | Trade-off |
+|----------|-------------|-----------|
+| **Centralized Redis** | All regions call a single Redis cluster | High latency for distant regions (100–300ms cross-region RTT); single point of failure |
+| **Local counters + async sync** | Each region has local Redis; periodically sync counts via gossip or Kafka | Allows temporary over-limit (burst tolerance); eventually consistent |
+| **Partitioned global limit** | Divide the global limit (e.g., 1000/min) across N regions proportionally (e.g., 200/min each) | Simple but wastes capacity in quiet regions; requires dynamic rebalancing |
+| **Token bucket with central refill** | Local bucket per region; a central service periodically refills tokens | Good balance; central service is a dependency but not on hot path |
+
+{: .tip }
+> **Staff-level answer:** *"I'd start with partitioned limits per region with a central rebalancing loop that runs every 30 seconds. This avoids cross-region latency on the hot path and handles the 95% case. For the top-tier enterprise clients who need a strict global limit, I'd route them to a single authoritative region with a slightly higher latency budget."*
+
+### Race Conditions and Atomicity Deep Dive
+
+The naive `GET → check → INCR` pattern has a well-known TOCTOU race. The Lua script approach solves this, but Staff candidates must also address:
+
+| Problem | Impact | Solution |
+|---------|--------|----------|
+| **Redis pipeline non-atomicity** | `INCR` and `GET` in a pipeline aren't transactional across keys | Use single-key Lua scripts for atomicity |
+| **Clock skew across API servers** | Different servers compute different window keys | Use `REDIS TIME` command for canonical time, or accept bounded skew |
+| **Redis replica lag** | Read from replica returns stale count; request bypasses limit | Write and read to the same master; or accept eventual consistency for rate limiting |
+| **Thundering herd on window rollover** | All counters reset simultaneously; burst at window boundary | Sliding window counter eliminates this; or stagger windows with client-specific offsets |
+
+### Cascading Failure and Load Shedding
+
+At L6, connect rate limiting to broader system resilience:
+
+```mermaid
+flowchart TD
+  RL[Rate Limiter] -->|Rejects excess| Client
+  RL -->|Admits requests| API[API Server]
+  API -->|Overloaded| CB[Circuit Breaker]
+  CB -->|Open| Fallback[Degraded Response]
+  CB -->|Closed| Backend[Backend Service]
+  Backend -->|Backpressure signal| API
+  API -->|Adaptive limit| RL
+```
+
+| Concept | How It Applies |
+|---------|----------------|
+| **Adaptive rate limiting** | Reduce limits dynamically when backend health degrades (CPU > 80%, p99 > threshold) |
+| **Load shedding** | When rate limiter Redis is down, shed low-priority traffic; admit only critical endpoints |
+| **Priority-aware limiting** | Separate limits for `/health` (unlimited), `/v1/payments` (high limit), `/v1/search` (lower limit) |
+| **Retry amplification** | Clients retrying 429s amplify load; add `Retry-After` with jitter to spread retry storms |
+
+### Multi-Tenant Fairness (Noisy Neighbor Problem)
+
+| Approach | Description |
+|----------|-------------|
+| **Per-tenant quotas** | Each tenant has an independent limit; simple but wastes capacity |
+| **Weighted fair queuing** | Tenants share a pool; weights prevent any single tenant from consuming > X% |
+| **Token bucket per tenant + global bucket** | Tenant bucket limits individual consumption; global bucket caps total system load |
+| **Hierarchical rate limiting** | Global → Organization → User → Endpoint: each layer has its own budget |
+
+### SLO and Observability for Rate Limiters
+
+| SLI | Target | Alert |
+|-----|--------|-------|
+| Rate limit check latency (p99) | < 1ms | > 5ms for 5 minutes |
+| False rejection rate | < 0.1% | Any spike correlates with Redis partition |
+| Redis availability | 99.99% | Failover triggered; check fallback mode |
+| Limit accuracy (actual vs. configured) | Within 2% | Cross-region sync lag > 30s |
+
+### System Evolution (Year 0 → Year 3)
+
+| Year | State | Action |
+|------|-------|--------|
+| **Year 0** | Single-region, single Redis | Ship fast; manual tuning per client |
+| **Year 1** | Multi-region with per-region Redis | Add async sync; build admin UI for limit management |
+| **Year 2** | Self-service rate limit policies via API | Tenants configure their own sub-limits; metering for billing |
+| **Year 3** | ML-driven adaptive limits | Anomaly detection adjusts limits based on traffic patterns; auto-scale Redis fleet |
+

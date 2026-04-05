@@ -14,6 +14,40 @@ Step-by-step walkthroughs of the most common system design interview questions.
 
 ---
 
+## Staff Engineer (L6) Track
+
+Preparing for a **Staff / Principal / L6** role? Start here. These resources are specifically designed for the elevated expectations at Staff level.
+
+{: .important }
+> At L6, the interviewer gives you a vague prompt and expects you to **define the problem, drive the whiteboard, and discuss multi-year evolution**. The designs below include dedicated "Staff Engineer Deep Dive" sections with multi-region strategies, operational excellence (SLOs), failure analysis, and system evolution.
+
+### Must-Read First
+
+- [**Staff Engineer Interview Guide**]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) - L5 vs L6 expectations, the 5 pillars, anti-patterns that get you down-leveled
+
+### Priority Design Problems (80/20 Rule)
+
+These 5 designs cover 80% of distributed systems concepts tested at L6:
+
+| Design | Staff-Level Concepts Covered |
+|--------|-----------------------------|
+| [**Key-Value Store**]({{ site.baseurl }}/software_system_design/key_value_store) | CAP theorem, consistent hashing, quorum, vector clocks, Spanner/TrueTime, multi-region replication |
+| [**Rate Limiter**]({{ site.baseurl }}/software_system_design/rate_limiter) | Global rate limiting, race conditions, cascading failures, load shedding, adaptive limits |
+| [**Collaborative Editor**]({{ site.baseurl }}/software_system_design/collaborative_editor) | OT vs CRDTs decision framework, WebSocket scaling, hot document problem, multi-region deployment |
+| [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) | Fencing tokens, zombie workers, multi-tenant fairness, cron correctness at scale |
+| [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) | Exactly-once delivery chain, transactional outbox, load shedding, notification aggregation |
+
+### Supporting Advanced Topics
+
+| Topic | Why It Matters for L6 |
+|-------|-----------------------|
+| [**Consensus Algorithms (Raft/Paxos)**]({{ site.baseurl }}/advanced/consensus_algorithms) | Foundation for every strongly consistent system |
+| [**Distributed Transactions (2PC/Saga/Outbox)**]({{ site.baseurl }}/advanced/distributed_transactions) | Cross-service consistency patterns |
+| [**Sharding & Partitioning**]({{ site.baseurl }}/advanced/sharding_partitioning) | Partition key selection, hot spots, resharding |
+| [**Behavioral & Leadership (L6)**]({{ site.baseurl }}/advanced/behavioral_leadership) | The dealbreaker round: STAR stories, conflict resolution, technical vision |
+
+---
+
 ## How to Use These Examples
 
 Each example follows a consistent structure that mirrors what interviewers expect:
@@ -32,6 +66,20 @@ Each example follows a consistent structure that mirrors what interviewers expec
 ---
 
 ## Available Designs
+
+### [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations)
+{: .d-inline-block }
+
+Staff L6
+{: .label .label-red }
+
+The definitive guide for Staff / L6 system design interviews. Covers L5 vs L6 expectations, the 5 pillars of a Staff-level answer, and anti-patterns that get you down-leveled.
+
+**Key concepts:** Multi-region architecture, SLOs/SLIs, system evolution, driving consensus, CAP positioning
+
+**Difficulty:** N/A (Meta-guide)
+
+---
 
 ### [URL Shortener (TinyURL)]({{ site.baseurl }}/software_system_design/url_shortening)
 {: .d-inline-block }

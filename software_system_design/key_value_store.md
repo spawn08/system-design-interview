@@ -755,3 +755,98 @@ public class Coordinator {
 
 {: .tip }
 > Practice drawing **one ring**, **one write sequence**, and **one read with repair** under time pressure; that trio covers most follow-up questions.
+
+---
+
+## Staff Engineer (L6) Deep Dive
+
+The sections above cover the standard Dynamo-style KV store design. The sections below elevate the answer to **Staff-level depth**. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+
+### Strong Consistency vs. Eventual Consistency: The Full Trade-off
+
+At L5, candidates say "we use quorum." At L6, you must articulate the gap between quorum and linearizability:
+
+| Property | Quorum (W+R>N) | Linearizable (Raft/Paxos per shard) |
+|----------|-----------------|--------------------------------------|
+| **Concurrent writes** | Siblings possible; application resolves | Single leader serializes; no conflicts |
+| **Partition behavior** | Sloppy quorum allows writes to "wrong" nodes | Leader on minority side rejects writes |
+| **Read-after-write** | Not guaranteed if R hits stale replicas | Guaranteed via leader read or read index |
+| **Cross-key transactions** | Not supported | Requires 2PC or Spanner-style TrueTime |
+| **Latency** | Lower (any N nodes) | Higher (leader round-trip + consensus) |
+
+{: .warning }
+> **Staff-level nuance:** Google Spanner achieves externally consistent reads using **TrueTime** (GPS + atomic clocks) to bound clock uncertainty. If the interviewer asks "how would you make this strongly consistent?", discuss Spanner's approach: commit-wait ensures that any read at time T sees all commits before T.
+
+### Clock Skew and Ordering
+
+| Approach | Mechanism | Risk |
+|----------|-----------|------|
+| **Wall clock (NTP)** | System clock with NTP sync | Drift causes LWW anomalies; two writes 50ms apart may be misordered |
+| **Hybrid Logical Clock (HLC)** | `max(physical, logical)` with causality tracking | Better than pure physical; still not perfect across partitions |
+| **Google TrueTime** | GPS + atomic clocks; returns `[earliest, latest]` interval | Requires specialized hardware; commit-wait adds latency = uncertainty interval |
+| **Vector clocks** | Per-replica counters | Detects concurrency but grows with replica count; needs pruning |
+| **Lamport timestamps** | Single monotonic counter | Total order but no concurrency detection |
+
+### Multi-Region Replication Strategies
+
+| Strategy | Description | Use Case |
+|----------|-------------|----------|
+| **Single-leader per partition** | One region owns writes; async replication to followers | Low write contention; acceptable RPO > 0 |
+| **Multi-leader (conflict-free)** | Each region has a leader; CRDTs or LWW for merges | Global writes with eventual convergence |
+| **Consensus group per partition** | Raft group spans regions; leader elected from any region | Strong consistency globally; high write latency |
+| **Geo-partitioning** | Data pinned to a region by policy (e.g., EU data stays in EU) | Compliance (GDPR); reduced cross-region traffic |
+
+```mermaid
+flowchart LR
+  subgraph US-East
+    L1[Leader Partition 1]
+    F2[Follower Partition 2]
+  end
+  subgraph EU-West
+    F1[Follower Partition 1]
+    L2[Leader Partition 2]
+  end
+  L1 -->|async replication| F1
+  L2 -->|async replication| F2
+```
+
+### Compaction Strategy Deep Dive
+
+| Strategy | Write Amplification | Read Amplification | Space Amplification |
+|----------|--------------------|--------------------|---------------------|
+| **Size-tiered (STCS)** | Low (fewer merges) | High (many SSTables to check) | High (temporary during compaction) |
+| **Leveled (LCS)** | High (more frequent merges) | Low (bounded SSTables per level) | Low (less temporary space) |
+| **Time-window (TWCS)** | Low for time-series | Varies | Best for TTL-heavy workloads |
+| **Hybrid** | Tuned per workload | Tuned per workload | Moderate |
+
+{: .tip }
+> **Staff-level answer:** *"For a mixed read/write workload, I'd start with leveled compaction for predictable read latency. For a write-heavy analytics pipeline, I'd switch to size-tiered to reduce write amplification. I'd monitor compaction backlog as a key SLI and alert if pending bytes exceed 2x the steady-state."*
+
+### Operational Excellence
+
+| SLI | Target | Alert Condition |
+|-----|--------|-----------------|
+| Read latency (p99, local quorum) | < 5ms | > 10ms sustained for 5 min |
+| Write latency (p99, W=2) | < 10ms | > 25ms sustained for 5 min |
+| Gossip convergence time | < 30s for membership change | > 60s (possible network partition) |
+| Compaction pending bytes | < 2x steady-state | Growing trend over 1 hour |
+| Disk utilization | < 70% (headroom for compaction) | > 80% on any node |
+| Repair lag (Merkle tree check) | < 24 hours | > 48 hours indicates divergence |
+
+### System Evolution
+
+| Phase | Architecture | Key Migration |
+|-------|-------------|---------------|
+| **Year 0** | Single-region, 3-node Cassandra cluster | Validate data model under production traffic |
+| **Year 1** | Multi-AZ within one region; rack-aware replication | Zero-downtime addition of AZ3 |
+| **Year 2** | Multi-region async replication; read-local, write-remote | Dual-write migration with reconciliation job |
+| **Year 3** | Geo-partitioned keyspaces; per-tenant isolation | Schema evolution via online migration (ghost tables) |
+
+### Cost Optimization
+
+| Cost Driver | Optimization |
+|-------------|-------------|
+| **Storage** | Compression in SSTables (LZ4/Zstd); tiered storage (hot SSD, warm HDD, cold object store) |
+| **Replication** | N=3 for hot data; N=2 with erasure coding for archival |
+| **Compaction CPU** | Off-peak scheduling; dedicated compaction threads; throttling during peak |
+| **Cross-region egress** | Batch replication; compress replication streams; avoid replicating cold data |

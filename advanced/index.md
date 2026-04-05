@@ -34,6 +34,15 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | [Observability]({{ site.baseurl }}/advanced/observability) | Logging, metrics, tracing, OpenTelemetry, alerting | ⭐⭐⭐ Advanced |
 | [Event Sourcing & CQRS]({{ site.baseurl }}/advanced/event_sourcing_cqrs) | Append-only logs, projections, read/write separation | ⭐⭐⭐⭐ Expert |
 
+### Staff Engineer (L6) Track
+
+| Topic | Description | Difficulty |
+|-------|-------------|------------|
+| [Consensus Algorithms (Raft/Paxos)]({{ site.baseurl }}/advanced/consensus_algorithms) | Leader election, log replication, safety properties, Paxos vs Raft | ⭐⭐⭐⭐ Expert |
+| [Distributed Transactions (2PC/Saga)]({{ site.baseurl }}/advanced/distributed_transactions) | Two-phase commit, Saga orchestration/choreography, transactional outbox | ⭐⭐⭐⭐ Expert |
+| [Sharding & Partitioning]({{ site.baseurl }}/advanced/sharding_partitioning) | Partition key selection, hot spots, resharding, cross-shard operations | ⭐⭐⭐ Advanced |
+| [Behavioral & Leadership (L6)]({{ site.baseurl }}/advanced/behavioral_leadership) | STAR method for Staff, conflict resolution, technical vision, Googliness | ⭐⭐⭐⭐ Expert |
+
 ---
 
 ## How These Relate to Interviews
@@ -49,6 +58,10 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 | "How do you prevent race conditions across services?" | Distributed Locking |
 | "How do you monitor and debug distributed systems?" | Observability |
 | "How do you maintain a complete audit trail?" | Event Sourcing & CQRS |
+| "How does your database stay consistent during a leader failover?" | Consensus Algorithms |
+| "How do you keep order + payment + inventory consistent?" | Distributed Transactions |
+| "How do you scale this to billions of rows?" | Sharding & Partitioning |
+| "Tell me about a time you resolved a technical disagreement" | Behavioral & Leadership |
 
 ---
 
@@ -124,4 +137,23 @@ EVENT SOURCING & CQRS
 ├── Projections   → Materialized views, async rebuild
 ├── CQRS          → Separate read/write models, eventual consistency
 └── Use cases     → Financial ledger, order lifecycle, audit trail
+
+CONSENSUS ALGORITHMS (Staff L6)
+├── Paxos         → Prepare/Accept phases, proposer dueling
+├── Raft          → Leader election, log replication, safety
+├── Applications  → etcd, ZooKeeper, Spanner, CockroachDB
+└── When to use   → Coordination plane, not data plane
+
+DISTRIBUTED TRANSACTIONS (Staff L6)
+├── 2PC           → Prepare/Commit phases, blocking problem
+├── Sagas         → Orchestration vs choreography, compensation
+├── Outbox        → Atomic business write + event, CDC/polling
+└── Spanner       → Paxos + 2PC + TrueTime
+
+SHARDING & PARTITIONING (Staff L6)
+├── Strategies    → Hash, range, consistent hashing, directory
+├── Key selection → Cardinality, query patterns, write distribution
+├── Hot spots     → Salting, splitting, caching
+├── Resharding    → Logical shards, dual-write migration
+└── Cross-shard   → Scatter-gather, denormalization, materialized views
 ```

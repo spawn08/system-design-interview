@@ -683,4 +683,82 @@ A **distributed task scheduler** combines **durable metadata**, **partitioned sc
 
 ---
 
-*Document version: interview study guide. Align numbers with the interviewer’s scenario.*
+## Staff Engineer (L6) Deep Dive
+
+The sections above cover the standard task scheduler design. The sections below cover **Staff-level depth** that separates an L6 answer from an L5. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+
+### Distributed Locking and Fencing Tokens
+
+The core correctness problem in a distributed scheduler: **preventing two workers from executing the same task concurrently**. Leases alone are insufficient due to GC pauses and clock skew.
+
+| Problem | Description | Mitigation |
+|---------|-------------|------------|
+| **GC pause exceeds lease** | Worker A's lease expires during a long GC pause; Worker B acquires the lease; A wakes up and continues executing | **Fencing tokens**: each lease issuance increments a monotonic token; downstream operations reject writes from stale tokens |
+| **Clock skew** | Worker thinks its lease is valid but the scheduler's clock has already expired it | Use **server-side time** for all lease decisions; never trust client clocks |
+| **Split brain** | Two scheduler shards both think they own a partition after a network partition heals | Use **epoch-based fencing**: each scheduler leadership term has a monotonic epoch; stale-epoch writes are rejected |
+
+
+
+{: .warning }
+> **Staff-level insight:** Redis  leases (Redlock) are insufficient for correctness when downstream state is involved. You need fencing tokens propagated to every stateful operation. Reference: Martin Kleppmann's critique of Redlock.
+
+### Zombie Worker Detection
+
+A "zombie" worker is one that continues executing after its lease has expired. At L6, discuss systematic detection:
+
+| Detection Method | Mechanism |
+|------------------|-----------|
+| **Heartbeat timeout** | If no heartbeat for , mark worker suspect; if no heartbeat for , kill task |
+| **Lease version check** | Worker includes lease version in every heartbeat; reject heartbeats with stale versions |
+| **Process-level watchdog** | Sidecar monitors worker process health; kills and restarts on hang detection |
+| **Network partition detection** | Worker pings scheduler; if unreachable for > threshold, worker self-terminates (fail-fast) |
+
+### Multi-Tenant Isolation and Fairness
+
+| Strategy | Description |
+|----------|-------------|
+| **Per-tenant queue** | Each tenant has its own ready queue; scheduler round-robins across tenants |
+| **Weighted fair scheduling** | Tenants have weights proportional to their SLA tier; scheduler dispatches proportionally |
+| **Quota enforcement** | Hard limit on concurrent running tasks per tenant; excess tasks wait in READY |
+| **Blast radius isolation** | High-value tenants get dedicated scheduler partitions; noisy neighbors cannot starve them |
+
+### Multi-Region Task Scheduling
+
+| Topology | Description | Trade-off |
+|----------|-------------|-----------|
+| **Regional schedulers, regional tasks** | Tasks execute in the region where they were created | Simple; no cross-region coordination |
+| **Global scheduler, regional workers** | Central scheduler assigns tasks to workers in specific regions | Cross-region latency for scheduling; best for tasks near specific data |
+| **Follow-the-data** | Task routes to the region where its input data resides | Minimizes data transfer; requires data locality metadata |
+| **Active-active with fencing** | Each region has a scheduler; dedup via global idempotency store | Highest availability; most complex; needs distributed fencing |
+
+### Cron Correctness at Scale
+
+| Problem | Description | Solution |
+|---------|-------------|----------|
+| **Double-fire on failover** | Old and new scheduler both evaluate "time to fire" | Use a **lease on the schedule row** with fencing token; only the lease holder can materialize |
+| **DST transitions** | 2:30 AM fires twice (fall back) or never (spring forward) | Always store schedules in **UTC** with IANA timezone; compute next fire using a timezone-aware cron library |
+| **Backlog after outage** | Scheduler was down for 2 hours; 120 missed firings | **Catch-up policy** per schedule:  (single catch-up),  (replay each), or  (resume from now) |
+| **High-frequency cron** | Every 5 minutes across 100K schedules = 20K firings/min | Batch materialization; partition schedules across scheduler shards by hash of schedule_id |
+
+### Operational Excellence
+
+| SLI | Target | Alert |
+|-----|--------|-------|
+| Schedule skew (actual fire - intended fire) | < 5s p95 | > 30s for 3 consecutive firings |
+| Task enqueue-to-start latency | < 1s p95 for high priority | > 10s indicates worker starvation |
+| Lease expiry rate | < 1% of running tasks | > 5% indicates tasks are too slow or lease_ttl is too short |
+| DLQ ingestion rate | < 0.01% of tasks | Any sustained increase indicates bad deploy or downstream outage |
+| Scheduler partition lag | 0 (all partitions assigned) | Any unowned partition means tasks are not being ticked |
+
+### System Evolution
+
+| Phase | Architecture | Key Change |
+|-------|-------------|------------|
+| **Year 0** | Single PostgreSQL + Redis ZSET for ready queue; single scheduler process | Validate semantics; manual monitoring |
+| **Year 1** | Shard by hash(task_id) across 16 partitions; Kafka for ready queue; multiple scheduler instances | Add observability dashboard; SLO alerting |
+| **Year 2** | Multi-region with regional schedulers; cron schedules pinned to primary region | Zero-downtime partition rebalancing on node add/remove |
+| **Year 3** | Platform extraction: self-service API; per-tenant quotas and billing; workflow (DAG) support as opt-in layer | API versioning; backward-compatible schema migrations |
+
+---
+
+*Document version: interview study guide. Align numbers with the interviewer's scenario.*
