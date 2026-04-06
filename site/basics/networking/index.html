@@ -1,0 +1,4224 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/basics/networking/">
+      
+      
+        <link rel="prev" href="../estimation/">
+      
+      
+        <link rel="next" href="../databases/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Networking - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#networking" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Networking
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-networking-matters-in-system-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Networking Matters in System Design
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Fundamentals
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network Fundamentals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-speed-of-light-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Speed of Light Problem
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bandwidth-vs-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bandwidth vs Latency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tcp-vs-udp" class="md-nav__link">
+    <span class="md-ellipsis">
+      TCP vs UDP
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-and-https" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP and HTTPS
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HTTP and HTTPS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#http-requestresponse-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Request/Response Cycle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Methods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Status Codes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http11-vs-http2-vs-http3" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP/1.1 vs HTTP/2 vs HTTP/3
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#https-and-tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTPS and TLS
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dns-domain-name-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      DNS (Domain Name System)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DNS (Domain Name System)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-dns-resolution-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How DNS Resolution Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-and-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      DNS and Latency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-for-load-balancing" class="md-nav__link">
+    <span class="md-ellipsis">
+      DNS for Load Balancing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rest-api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST API Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="REST API Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rest-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST Principles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#designing-good-rest-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Designing Good REST APIs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Versioning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grpc-and-protocol-buffers" class="md-nav__link">
+    <span class="md-ellipsis">
+      gRPC and Protocol Buffers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="gRPC and Protocol Buffers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-grpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why gRPC?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-buffers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Protocol Buffers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grpc-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      gRPC Streaming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-grpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use gRPC
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websockets" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSockets
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WebSockets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#http-vs-websocket" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP vs WebSocket
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#websocket-handshake" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Handshake
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-websockets" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use WebSockets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#websocket-scaling-challenges" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Scaling Challenges
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#polling-long-polling-and-server-sent-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Polling, Long Polling, and Server-Sent Events
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Polling, Long Polling, and Server-Sent Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#short-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Short Polling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Long Polling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-sent-events-sse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server-Sent Events (SSE)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proxies-and-load-balancers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Proxies and Load Balancers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proxies and Load Balancers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#forward-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Forward Proxy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reverse-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reverse Proxy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-balancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Balancer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-security-basics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network Security Basics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network Security Basics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-attacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Attacks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-cross-origin-resource-sharing" class="md-nav__link">
+    <span class="md-ellipsis">
+      CORS (Cross-Origin Resource Sharing)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interview Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-interview-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Interview Questions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further Reading
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../software_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="networking">Networking<a class="headerlink" href="#networking" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="why-networking-matters-in-system-design">Why Networking Matters in System Design<a class="headerlink" href="#why-networking-matters-in-system-design" title="Permanent link">&para;</a></h2>
+<p>Every distributed system is fundamentally a network of computers communicating with each other. Understanding networking is crucial because:</p>
+<ol>
+<li><strong>Network is often the bottleneck:</strong> CPU and memory are fast; networks are slow and unreliable</li>
+<li><strong>Latency kills user experience:</strong> A 100ms delay feels instant, 1 second feels slow, 10 seconds and users leave</li>
+<li><strong>Networks fail in weird ways:</strong> Packets get lost, connections hang, routers crash</li>
+<li><strong>Protocol choice affects everything:</strong> REST vs gRPC, HTTP/1.1 vs HTTP/2, WebSocket vs polling</li>
+</ol>
+<p>When you design a system, you're really designing how machines talk to each other over a network.</p>
+<hr />
+<h2 id="network-fundamentals">Network Fundamentals<a class="headerlink" href="#network-fundamentals" title="Permanent link">&para;</a></h2>
+<h3 id="the-speed-of-light-problem">The Speed of Light Problem<a class="headerlink" href="#the-speed-of-light-problem" title="Permanent link">&para;</a></h3>
+<p>Data travels at the speed of light through fiber optic cables—but even light isn't fast enough for global systems.</p>
+<p><strong>Round-trip times (RTT) for light in fiber:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Distance</th>
+<th>RTT (minimum)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Same data center</td>
+<td>&lt; 1 km</td>
+<td>&lt; 0.01 ms</td>
+</tr>
+<tr>
+<td>Same region (East Coast)</td>
+<td>500 km</td>
+<td>3.3 ms</td>
+</tr>
+<tr>
+<td>Cross-country (NY to LA)</td>
+<td>4,000 km</td>
+<td>27 ms</td>
+</tr>
+<tr>
+<td>Transatlantic (NY to London)</td>
+<td>5,500 km</td>
+<td>37 ms</td>
+</tr>
+<tr>
+<td>Around the world</td>
+<td>40,000 km</td>
+<td>267 ms</td>
+</tr>
+</tbody>
+</table>
+<p>These are <strong>theoretical minimums</strong>. Real latencies are 2-5x higher due to routing, processing, and non-straight paths.</p>
+<p><strong>What this means for system design:</strong>
+- If your server is in Virginia and your user is in Tokyo, minimum latency is ~150ms per round trip
+- A typical HTTP request involves 3+ round trips (DNS, TCP handshake, TLS handshake, actual request)
+- This is why CDNs, edge computing, and regional deployments matter</p>
+<h3 id="bandwidth-vs-latency">Bandwidth vs Latency<a class="headerlink" href="#bandwidth-vs-latency" title="Permanent link">&para;</a></h3>
+<p><strong>Bandwidth:</strong> How much data you can transfer per unit time (e.g., 1 Gbps)
+<strong>Latency:</strong> How long it takes for a single piece of data to get there (e.g., 50ms)</p>
+<p>Think of it like a highway:
+- <strong>Bandwidth</strong> = Number of lanes (how many cars per hour)
+- <strong>Latency</strong> = Distance to destination (how long one car takes)</p>
+<p>A 10 Gbps connection with 100ms latency might be worse for interactive applications than a 100 Mbps connection with 10ms latency.</p>
+<p><strong>For most web applications, latency matters more than bandwidth.</strong> Users care about how fast the page starts loading, not how fast a 10GB file transfers.</p>
+<h3 id="tcp-vs-udp">TCP vs UDP<a class="headerlink" href="#tcp-vs-udp" title="Permanent link">&para;</a></h3>
+<p>These are the two main transport protocols. Understanding their differences is essential.</p>
+<h4 id="tcp-transmission-control-protocol">TCP (Transmission Control Protocol)<a class="headerlink" href="#tcp-transmission-control-protocol" title="Permanent link">&para;</a></h4>
+<p>TCP provides reliable, ordered delivery of data. If you send bytes 1, 2, 3, the receiver gets 1, 2, 3—in that order, guaranteed.</p>
+<p><strong>How TCP ensures reliability:</strong></p>
+<ol>
+<li>
+<p><strong>Three-way handshake (connection establishment):</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Client: SYN (Hey, want to talk?)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Server: SYN-ACK (Sure, I&#39;m ready)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Client: ACK (Great, let&#39;s go)
+</span></code></pre></div>
+This adds 1 round-trip before any data can flow.</p>
+</li>
+<li>
+<p><strong>Acknowledgments:</strong> Receiver confirms each packet. If no ACK, sender retransmits.</p>
+</li>
+<li>
+<p><strong>Ordering:</strong> Each packet has a sequence number. Out-of-order packets are reordered.</p>
+</li>
+<li>
+<p><strong>Flow control:</strong> Receiver tells sender how much data it can handle (prevents overwhelming slow receivers).</p>
+</li>
+<li>
+<p><strong>Congestion control:</strong> Sender slows down if network is congested (prevents network collapse).</p>
+</li>
+</ol>
+<p><strong>TCP's problem: Head-of-line blocking</strong></p>
+<p>If packet 1 is lost, the receiver must wait for retransmission before processing packets 2, 3, 4... even if they've already arrived.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Sent: [1] [2] [3] [4] [5]
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Received: [ ] [2] [3] [4] [5]
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Application sees: waiting... waiting... [1] [2] [3] [4] [5]
+</span></code></pre></div>
+<p><strong>When to use TCP:</strong>
+- Web traffic (HTTP/HTTPS)
+- File transfers
+- Email
+- Any time you need reliability</p>
+<h4 id="udp-user-datagram-protocol">UDP (User Datagram Protocol)<a class="headerlink" href="#udp-user-datagram-protocol" title="Permanent link">&para;</a></h4>
+<p>UDP is "fire and forget." Send a packet and hope it arrives. No guarantees.</p>
+<p><strong>UDP provides:</strong>
+- No connection setup (faster first message)
+- No ordering guarantees
+- No delivery guarantees
+- No congestion control</p>
+<p><strong>Why would anyone use UDP?</strong></p>
+<ol>
+<li><strong>Speed:</strong> No handshake, no waiting for ACKs</li>
+<li><strong>Real-time applications:</strong> For video calls, a late packet is useless. Better to skip it than wait.</li>
+<li><strong>Application-level reliability:</strong> Sometimes you want custom reliability logic</li>
+</ol>
+<p><strong>When to use UDP:</strong>
+- Video/audio streaming
+- Online gaming
+- DNS queries
+- VPN tunnels
+- IoT sensors (high volume, loss tolerance)</p>
+<p><strong>Modern protocols built on UDP:</strong>
+- QUIC (used by HTTP/3): Adds reliability and encryption on top of UDP
+- WebRTC: Real-time video/audio</p>
+<hr />
+<h2 id="http-and-https">HTTP and HTTPS<a class="headerlink" href="#http-and-https" title="Permanent link">&para;</a></h2>
+<p>HTTP (Hypertext Transfer Protocol) is the foundation of web communication. Every time you load a website or make an API call, you're using HTTP.</p>
+<h3 id="http-requestresponse-cycle">HTTP Request/Response Cycle<a class="headerlink" href="#http-requestresponse-cycle" title="Permanent link">&para;</a></h3>
+<p><strong>Request:</strong>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nf">GET</span> <span class="nn">/api/users/123</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">api.example.com</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="na">Authorization</span><span class="o">:</span> <span class="l">Bearer eyJhbGciOiJIUzI1NiIs...</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="na">Accept</span><span class="o">:</span> <span class="l">application/json</span>
+</span></code></pre></div></p>
+<p><strong>Response:</strong>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="na">Cache-Control</span><span class="o">:</span> <span class="l">max-age=3600</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alice@example.com&quot;</span><span class="p">}</span>
+</span></code></pre></div></p>
+<h3 id="http-methods">HTTP Methods<a class="headerlink" href="#http-methods" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+<th>Idempotent?</th>
+<th>Safe?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>Retrieve data</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>Create new resource</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>Replace entire resource</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td>Partial update</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>Remove resource</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>HEAD</td>
+<td>GET without body (check existence)</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>OPTIONS</td>
+<td>Get allowed methods</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Idempotent:</strong> Calling multiple times has same effect as once. GET, PUT, DELETE are idempotent. POST is not.</p>
+<p><strong>Safe:</strong> Doesn't modify server state. GET and HEAD are safe.</p>
+<p><strong>Why idempotency matters:</strong></p>
+<p>If a network request times out, should you retry? With idempotent methods, yes—worst case you do the same thing twice. With POST, you might create duplicate records.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Safe to retry (idempotent)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">PUT</span> <span class="o">/</span><span class="n">orders</span><span class="o">/</span><span class="mi">123</span>  <span class="c1"># Same order created/updated</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Dangerous to retry (not idempotent)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">POST</span> <span class="o">/</span><span class="n">orders</span>  <span class="c1"># Might create duplicate orders!</span>
+</span></code></pre></div>
+<h3 id="http-status-codes">HTTP Status Codes<a class="headerlink" href="#http-status-codes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Range</th>
+<th>Category</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2xx</td>
+<td>Success</td>
+<td>200 OK, 201 Created, 204 No Content</td>
+</tr>
+<tr>
+<td>3xx</td>
+<td>Redirection</td>
+<td>301 Moved Permanently, 304 Not Modified</td>
+</tr>
+<tr>
+<td>4xx</td>
+<td>Client Error</td>
+<td>400 Bad Request, 401 Unauthorized, 404 Not Found</td>
+</tr>
+<tr>
+<td>5xx</td>
+<td>Server Error</td>
+<td>500 Internal Error, 502 Bad Gateway, 503 Service Unavailable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Common codes and when to use them:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td>OK</td>
+<td>Successful GET, PUT, PATCH</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Created</td>
+<td>Successful POST that created a resource</td>
+</tr>
+<tr>
+<td>204</td>
+<td>No Content</td>
+<td>Successful DELETE</td>
+</tr>
+<tr>
+<td>400</td>
+<td>Bad Request</td>
+<td>Invalid request syntax or parameters</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Unauthorized</td>
+<td>Authentication required or failed</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Forbidden</td>
+<td>Authenticated but not allowed</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Not Found</td>
+<td>Resource doesn't exist</td>
+</tr>
+<tr>
+<td>409</td>
+<td>Conflict</td>
+<td>Conflict with current state (e.g., duplicate)</td>
+</tr>
+<tr>
+<td>429</td>
+<td>Too Many Requests</td>
+<td>Rate limited</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Internal Server Error</td>
+<td>Unexpected server error (catch-all)</td>
+</tr>
+<tr>
+<td>502</td>
+<td>Bad Gateway</td>
+<td>Upstream service failed</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Service Unavailable</td>
+<td>Server temporarily overloaded</td>
+</tr>
+<tr>
+<td>504</td>
+<td>Gateway Timeout</td>
+<td>Upstream service timed out</td>
+</tr>
+</tbody>
+</table>
+<h3 id="http11-vs-http2-vs-http3">HTTP/1.1 vs HTTP/2 vs HTTP/3<a class="headerlink" href="#http11-vs-http2-vs-http3" title="Permanent link">&para;</a></h3>
+<p><strong>HTTP/1.1 (1997):</strong>
+- One request per connection at a time
+- To parallelize, browsers open 6+ connections per domain
+- Plain text headers (verbose, repeated)
+- No compression for headers</p>
+<p><strong>HTTP/2 (2015):</strong>
+- Multiple requests over single connection (multiplexing)
+- Binary protocol (more efficient parsing)
+- Header compression (HPACK)
+- Server push (server can send resources before client asks)
+- Still uses TCP</p>
+<p><strong>HTTP/3 (2022):</strong>
+- Uses QUIC (over UDP) instead of TCP
+- Eliminates head-of-line blocking at transport layer
+- Faster connection establishment (0-RTT possible)
+- Better mobile performance (handles network switching)</p>
+<p><strong>Performance comparison:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Loading 50 small resources:
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>HTTP/1.1: 6 connections × 8 requests/connection = 48 round trips
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>HTTP/2: 1 connection, all requests multiplexed = 1 round trip (mostly)
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>HTTP/3: Same as HTTP/2 but no HOL blocking
+</span></code></pre></div>
+<p><strong>When to use which:</strong>
+- HTTP/2 is the default choice today—widely supported, significant benefits
+- HTTP/3 for mobile-heavy or latency-critical applications
+- HTTP/1.1 only for legacy compatibility</p>
+<h3 id="https-and-tls">HTTPS and TLS<a class="headerlink" href="#https-and-tls" title="Permanent link">&para;</a></h3>
+<p>HTTPS = HTTP over TLS (Transport Layer Security). All traffic is encrypted.</p>
+<p><strong>TLS Handshake (simplified):</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>1. Client: &quot;Hello, I support these cipher suites&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>2. Server: &quot;Let&#39;s use TLS 1.3 with AES-256-GCM. Here&#39;s my certificate.&quot;
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>3. Client: &quot;Certificate is valid. Here&#39;s my key share.&quot;
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>4. Server: &quot;Here&#39;s my key share. Let&#39;s encrypt!&quot;
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>5. (Encrypted communication begins)
+</span></code></pre></div>
+<p><strong>TLS 1.3 improvements:</strong>
+- 1-RTT handshake (instead of 2)
+- 0-RTT resumption for returning clients
+- Removed legacy insecure cipher suites
+- Encrypted more of the handshake</p>
+<p><strong>Certificates and Trust:</strong></p>
+<p>Your browser trusts a set of Certificate Authorities (CAs). When a server presents a certificate:</p>
+<ol>
+<li>Is it signed by a trusted CA?</li>
+<li>Is the domain name in the certificate correct?</li>
+<li>Is the certificate not expired?</li>
+<li>Is it not revoked?</li>
+</ol>
+<p>If all checks pass, connection is trusted. This is how you know you're talking to the real google.com.</p>
+<hr />
+<h2 id="dns-domain-name-system">DNS (Domain Name System)<a class="headerlink" href="#dns-domain-name-system" title="Permanent link">&para;</a></h2>
+<p>DNS translates human-readable domain names (google.com) to IP addresses (142.250.80.46).</p>
+<h3 id="how-dns-resolution-works">How DNS Resolution Works<a class="headerlink" href="#how-dns-resolution-works" title="Permanent link">&para;</a></h3>
+<p>When you type <code>www.example.com</code> in your browser:</p>
+<pre class="mermaid"><code>flowchart LR
+    Browser[Browser] --&gt; Resolver[DNS Resolver]
+    Resolver --&gt; Root[Root DNS Server]
+    Root --&gt; TLD[.com TLD Server]
+    TLD --&gt; Auth[example.com Authoritative Server]
+    Auth --&gt; Resolver
+    Resolver --&gt; Browser</code></pre>
+<p><strong>Step by step:</strong></p>
+<ol>
+<li><strong>Browser cache:</strong> Check if we recently resolved this domain</li>
+<li><strong>OS cache:</strong> Check operating system's DNS cache</li>
+<li><strong>Recursive resolver:</strong> Query your ISP's (or configured) DNS resolver</li>
+<li><strong>Root servers:</strong> Resolver asks root server "Who handles .com?"</li>
+<li><strong>TLD servers:</strong> Root points to .com TLD servers</li>
+<li><strong>Authoritative servers:</strong> TLD points to example.com's nameservers</li>
+<li><strong>Answer:</strong> Authoritative server returns the IP address</li>
+<li><strong>Caching:</strong> Result is cached at each level</li>
+</ol>
+<p><strong>DNS Record Types:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>IPv4 address</td>
+<td><code>example.com → 93.184.216.34</code></td>
+</tr>
+<tr>
+<td>AAAA</td>
+<td>IPv6 address</td>
+<td><code>example.com → 2606:2800:220:1:248:1893:25c8:1946</code></td>
+</tr>
+<tr>
+<td>CNAME</td>
+<td>Alias to another domain</td>
+<td><code>www.example.com → example.com</code></td>
+</tr>
+<tr>
+<td>MX</td>
+<td>Mail server</td>
+<td><code>example.com → mail.example.com</code></td>
+</tr>
+<tr>
+<td>TXT</td>
+<td>Arbitrary text</td>
+<td>Used for verification, SPF records</td>
+</tr>
+<tr>
+<td>NS</td>
+<td>Nameserver</td>
+<td><code>example.com → ns1.example.com</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns-and-latency">DNS and Latency<a class="headerlink" href="#dns-and-latency" title="Permanent link">&para;</a></h3>
+<p>DNS resolution adds latency to the first request to any domain. Typically 20-100ms, but can be 200ms+ if caches are cold.</p>
+<p><strong>Optimization strategies:</strong></p>
+<ol>
+<li>
+<p><strong>DNS prefetching:</strong> Tell the browser to resolve domains early
+<div class="language-html highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;dns-prefetch&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;//api.example.com&quot;</span><span class="p">&gt;</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Minimize third-party domains:</strong> Each new domain = another DNS lookup</p>
+</li>
+<li>
+<p><strong>Use a fast DNS provider:</strong> Cloudflare (1.1.1.1), Google (8.8.8.8)</p>
+</li>
+<li>
+<p><strong>Low TTLs have a cost:</strong> Lower TTL = more DNS queries</p>
+</li>
+</ol>
+<h3 id="dns-for-load-balancing">DNS for Load Balancing<a class="headerlink" href="#dns-for-load-balancing" title="Permanent link">&para;</a></h3>
+<p>DNS can distribute traffic across multiple servers:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>example.com → [93.184.216.34, 93.184.216.35, 93.184.216.36]
+</span></code></pre></div>
+<p><strong>Round-robin DNS:</strong> Return IPs in rotating order.</p>
+<p><strong>GeoDNS:</strong> Return different IPs based on client location.</p>
+<p><strong>Limitations:</strong>
+- No health checking (DNS doesn't know if a server is down)
+- TTL delays (takes time for clients to see changes)
+- Client caching (clients may hold onto old IPs)
+- Uneven distribution (one IP might get more traffic)</p>
+<p>For production load balancing, use a proper load balancer, not DNS alone.</p>
+<hr />
+<h2 id="rest-api-design">REST API Design<a class="headerlink" href="#rest-api-design" title="Permanent link">&para;</a></h2>
+<p>REST (Representational State Transfer) is an architectural style for designing networked applications. Most web APIs today are RESTful.</p>
+<h3 id="rest-principles">REST Principles<a class="headerlink" href="#rest-principles" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Stateless:</strong> Each request contains all information needed. Server doesn't store client state.</p>
+</li>
+<li>
+<p><strong>Resource-based:</strong> Everything is a resource identified by a URL.</p>
+</li>
+<li>
+<p><strong>HTTP methods as verbs:</strong> GET, POST, PUT, DELETE map to CRUD operations.</p>
+</li>
+<li>
+<p><strong>Representations:</strong> Resources can have multiple representations (JSON, XML).</p>
+</li>
+</ol>
+<h3 id="designing-good-rest-apis">Designing Good REST APIs<a class="headerlink" href="#designing-good-rest-apis" title="Permanent link">&para;</a></h3>
+<p><strong>Resources, not actions:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Bad:  GET /getUser?id=123
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Bad:  POST /createOrder
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Bad:  GET /getAllProducts
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>Good: GET /users/123
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>Good: POST /orders
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>Good: GET /products
+</span></code></pre></div>
+<p><strong>Use nouns for resources:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Bad:  GET /getUserOrders/123
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Good: GET /users/123/orders
+</span></code></pre></div>
+<p><strong>Pluralize resource names:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>GET /users        # List all users
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>GET /users/123    # Get user 123
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>POST /users       # Create new user
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>PUT /users/123    # Update user 123
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>DELETE /users/123 # Delete user 123
+</span></code></pre></div>
+<p><strong>Nest related resources:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>GET /users/123/orders       # Orders for user 123
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>GET /orders/456/items       # Items in order 456
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>POST /users/123/orders      # Create order for user 123
+</span></code></pre></div>
+<p><strong>Use query parameters for filtering, sorting, pagination:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>GET /products?category=electronics&amp;sort=price&amp;order=asc
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>GET /orders?status=pending&amp;page=2&amp;limit=20
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>GET /users?search=john&amp;fields=id,name,email
+</span></code></pre></div>
+<h3 id="api-versioning">API Versioning<a class="headerlink" href="#api-versioning" title="Permanent link">&para;</a></h3>
+<p>APIs evolve. How do you handle breaking changes?</p>
+<p><strong>Option 1: URL path versioning (most common)</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>GET /v1/users/123
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>GET /v2/users/123
+</span></code></pre></div></p>
+<p><strong>Option 2: Header versioning</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>GET /users/123
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>Accept: application/vnd.api+json; version=2
+</span></code></pre></div></p>
+<p><strong>Option 3: Query parameter</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>GET /users/123?version=2
+</span></code></pre></div></p>
+<p><strong>Best practice:</strong> Use URL versioning. It's explicit and easy to understand.</p>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
+<p>Return meaningful errors with:
+- Appropriate status code
+- Human-readable message
+- Machine-parseable error code
+- Optional: details for debugging</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;VALIDATION_ERROR&quot;</span><span class="p">,</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Invalid request parameters&quot;</span><span class="p">,</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;email&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Invalid email format&quot;</span><span class="p">},</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;age&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Must be a positive integer&quot;</span><span class="p">}</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="p">],</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc123&quot;</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="grpc-and-protocol-buffers">gRPC and Protocol Buffers<a class="headerlink" href="#grpc-and-protocol-buffers" title="Permanent link">&para;</a></h2>
+<p>gRPC is a high-performance RPC (Remote Procedure Call) framework from Google.</p>
+<h3 id="why-grpc">Why gRPC?<a class="headerlink" href="#why-grpc" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>REST/JSON</th>
+<th>gRPC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protocol</td>
+<td>HTTP/1.1 or HTTP/2</td>
+<td>HTTP/2 only</td>
+</tr>
+<tr>
+<td>Format</td>
+<td>JSON (text)</td>
+<td>Protocol Buffers (binary)</td>
+</tr>
+<tr>
+<td>Schema</td>
+<td>Optional (OpenAPI)</td>
+<td>Required (.proto files)</td>
+</tr>
+<tr>
+<td>Streaming</td>
+<td>Complex</td>
+<td>Native support</td>
+</tr>
+<tr>
+<td>Browser support</td>
+<td>Native</td>
+<td>Requires proxy</td>
+</tr>
+<tr>
+<td>Typical size</td>
+<td>Larger</td>
+<td>3-10x smaller</td>
+</tr>
+<tr>
+<td>Typical speed</td>
+<td>Slower</td>
+<td>3-10x faster</td>
+</tr>
+</tbody>
+</table>
+<h3 id="protocol-buffers">Protocol Buffers<a class="headerlink" href="#protocol-buffers" title="Permanent link">&para;</a></h3>
+<p>Protocol Buffers (protobuf) is a binary serialization format.</p>
+<p><strong>Define your schema (.proto file):</strong></p>
+<div class="language-protobuf highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">syntax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;proto3&quot;</span><span class="p">;</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="kd">service</span><span class="w"> </span><span class="n">UserService</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="k">rpc</span><span class="w"> </span><span class="n">GetUser</span><span class="w"> </span><span class="p">(</span><span class="n">GetUserRequest</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">User</span><span class="p">);</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="k">rpc</span><span class="w"> </span><span class="n">ListUsers</span><span class="w"> </span><span class="p">(</span><span class="n">ListUsersRequest</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="n">User</span><span class="p">);</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">  </span><span class="k">rpc</span><span class="w"> </span><span class="n">CreateUser</span><span class="w"> </span><span class="p">(</span><span class="n">CreateUserRequest</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">User</span><span class="p">);</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="p">}</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="kd">message</span><span class="w"> </span><span class="nc">GetUserRequest</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">  </span><span class="kt">int64</span><span class="w"> </span><span class="na">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="p">}</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="kd">message</span><span class="w"> </span><span class="nc">User</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">  </span><span class="kt">int64</span><span class="w"> </span><span class="na">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">  </span><span class="k">repeated</span><span class="w"> </span><span class="n">Order</span><span class="w"> </span><span class="na">orders</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="p">}</span>
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>
+</span><span id="__span-18-20"><a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="kd">message</span><span class="w"> </span><span class="nc">Order</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-21"><a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">  </span><span class="kt">int64</span><span class="w"> </span><span class="na">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</span><span id="__span-18-22"><a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="na">amount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+</span><span id="__span-18-23"><a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Generate code from schema:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>protoc<span class="w"> </span>--python_out<span class="o">=</span>.<span class="w"> </span>--grpc_python_out<span class="o">=</span>.<span class="w"> </span>user.proto
+</span></code></pre></div>
+<p>This generates client and server stubs in your language.</p>
+<h3 id="grpc-streaming">gRPC Streaming<a class="headerlink" href="#grpc-streaming" title="Permanent link">&para;</a></h3>
+<p>gRPC supports four communication patterns:</p>
+<ol>
+<li>
+<p><strong>Unary:</strong> Single request, single response (like REST)
+<div class="language-protobuf highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">rpc</span><span class="w"> </span><span class="n">GetUser</span><span class="p">(</span><span class="n">GetUserRequest</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">User</span><span class="p">);</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Server streaming:</strong> Single request, stream of responses
+<div class="language-protobuf highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">rpc</span><span class="w"> </span><span class="n">ListUsers</span><span class="p">(</span><span class="n">ListUsersRequest</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="n">User</span><span class="p">);</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Client streaming:</strong> Stream of requests, single response
+<div class="language-protobuf highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">rpc</span><span class="w"> </span><span class="n">UploadFile</span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="n">Chunk</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">UploadResponse</span><span class="p">);</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Bidirectional streaming:</strong> Both sides stream
+<div class="language-protobuf highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">rpc</span><span class="w"> </span><span class="n">Chat</span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="n">Message</span><span class="p">)</span><span class="w"> </span><span class="k">returns</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="n">Message</span><span class="p">);</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="when-to-use-grpc">When to Use gRPC<a class="headerlink" href="#when-to-use-grpc" title="Permanent link">&para;</a></h3>
+<p><strong>Use gRPC when:</strong>
+- Internal microservice communication
+- High throughput, low latency requirements
+- You control both client and server
+- You need streaming
+- Payload size matters (mobile, IoT)</p>
+<p><strong>Use REST when:</strong>
+- Public APIs (browser compatibility)
+- Simple CRUD operations
+- Team familiarity with REST
+- Debugging ease (human-readable)</p>
+<hr />
+<h2 id="websockets">WebSockets<a class="headerlink" href="#websockets" title="Permanent link">&para;</a></h2>
+<p>WebSockets provide full-duplex, persistent connections between client and server.</p>
+<h3 id="http-vs-websocket">HTTP vs WebSocket<a class="headerlink" href="#http-vs-websocket" title="Permanent link">&para;</a></h3>
+<p><strong>HTTP:</strong> Client initiates request, server responds, connection closes.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Client: &quot;Give me data&quot;
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>Server: &quot;Here&#39;s data&quot;
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>(Connection closed)
+</span></code></pre></div></p>
+<p><strong>WebSocket:</strong> Persistent connection, either side can send at any time.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Client: &quot;Let&#39;s stay connected&quot;
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>Server: &quot;OK&quot;
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>(Connection stays open)
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>Server: &quot;Here&#39;s an update&quot;
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>Server: &quot;Another update&quot;
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>Client: &quot;Sending some data&quot;
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>Server: &quot;Got it, here&#39;s more&quot;
+</span></code></pre></div></p>
+<h3 id="websocket-handshake">WebSocket Handshake<a class="headerlink" href="#websocket-handshake" title="Permanent link">&para;</a></h3>
+<p>WebSocket starts as an HTTP request, then upgrades:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nf">GET</span> <span class="nn">/chat</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">example.com</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="na">Upgrade</span><span class="o">:</span> <span class="l">websocket</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="na">Connection</span><span class="o">:</span> <span class="l">Upgrade</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="na">Sec-WebSocket-Key</span><span class="o">:</span> <span class="l">dGhlIHNhbXBsZSBub25jZQ==</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="na">Sec-WebSocket-Version</span><span class="o">:</span> <span class="l">13</span>
+</span></code></pre></div>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">101</span> <span class="ne">Switching Protocols</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="na">Upgrade</span><span class="o">:</span> <span class="l">websocket</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="na">Connection</span><span class="o">:</span> <span class="l">Upgrade</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="na">Sec-WebSocket-Accept</span><span class="o">:</span> <span class="l">s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</span>
+</span></code></pre></div>
+<p>After this, the connection uses the WebSocket protocol.</p>
+<h3 id="when-to-use-websockets">When to Use WebSockets<a class="headerlink" href="#when-to-use-websockets" title="Permanent link">&para;</a></h3>
+<p><strong>Good for:</strong>
+- Real-time notifications
+- Chat applications
+- Live sports scores / stock tickers
+- Collaborative editing
+- Online gaming
+- Live dashboards</p>
+<p><strong>Not good for:</strong>
+- Simple request/response
+- Infrequent updates (polling is simpler)
+- Stateless servers (WebSockets are stateful)</p>
+<h3 id="websocket-scaling-challenges">WebSocket Scaling Challenges<a class="headerlink" href="#websocket-scaling-challenges" title="Permanent link">&para;</a></h3>
+<p><strong>Problem 1: Sticky sessions</strong></p>
+<p>WebSocket connections are stateful. If you have multiple servers, you need to route the same client to the same server.</p>
+<p><strong>Solution:</strong> Use a load balancer with sticky sessions, or use a pub/sub system (Redis, Kafka) so any server can send to any client.</p>
+<pre class="mermaid"><code>flowchart TD
+    Client1[Client 1] --&gt; LB[Load Balancer]
+    Client2[Client 2] --&gt; LB
+    Client3[Client 3] --&gt; LB
+
+    LB --&gt; Server1[Server 1]
+    LB --&gt; Server2[Server 2]
+
+    Server1 --&gt; Redis[(Redis Pub/Sub)]
+    Server2 --&gt; Redis</code></pre>
+<p><strong>Problem 2: Connection limits</strong></p>
+<p>Each WebSocket connection uses a file descriptor. Servers have limits on open file descriptors.</p>
+<p><strong>Solution:</strong> Tune OS limits, use connection pooling, or use multiple server instances.</p>
+<p><strong>Problem 3: Reconnection handling</strong></p>
+<p>Connections drop. Clients need to reconnect and resync state.</p>
+<p><strong>Solution:</strong> Use libraries like Socket.IO that handle reconnection, or implement exponential backoff.</p>
+<hr />
+<h2 id="polling-long-polling-and-server-sent-events">Polling, Long Polling, and Server-Sent Events<a class="headerlink" href="#polling-long-polling-and-server-sent-events" title="Permanent link">&para;</a></h2>
+<p>When you need real-time updates but can't use WebSockets.</p>
+<h3 id="short-polling">Short Polling<a class="headerlink" href="#short-polling" title="Permanent link">&para;</a></h3>
+<p>Client repeatedly asks "Any updates?"</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nx">setInterval</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/notifications&#39;</span><span class="p">);</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">    </span><span class="nx">displayNotifications</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="p">},</span><span class="w"> </span><span class="mf">5000</span><span class="p">);</span><span class="w">  </span><span class="c1">// Every 5 seconds</span>
+</span></code></pre></div>
+<p><strong>Pros:</strong> Simple, works everywhere
+<strong>Cons:</strong> Wasteful (mostly empty responses), higher latency (up to polling interval)</p>
+<h3 id="long-polling">Long Polling<a class="headerlink" href="#long-polling" title="Permanent link">&para;</a></h3>
+<p>Server holds the request until there's data to send.</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">poll</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/notifications?wait=true&#39;</span><span class="p">);</span>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="w">    </span><span class="nx">displayNotifications</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="w">    </span><span class="nx">poll</span><span class="p">();</span><span class="w">  </span><span class="c1">// Immediately poll again</span>
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="p">}</span>
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="nx">poll</span><span class="p">();</span>
+</span></code></pre></div>
+<p><strong>Server side:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/notifications&#39;</span><span class="p">)</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">notifications</span><span class="p">():</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>    <span class="c1"># Wait up to 30 seconds for new data</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">wait_for_notifications</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>    <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span></code></pre></div></p>
+<p><strong>Pros:</strong> Real-time feel, no wasted requests
+<strong>Cons:</strong> Holds server resources, connection reestablishment overhead</p>
+<h3 id="server-sent-events-sse">Server-Sent Events (SSE)<a class="headerlink" href="#server-sent-events-sse" title="Permanent link">&para;</a></h3>
+<p>Server pushes updates over a persistent HTTP connection. One-way only (server to client).</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">eventSource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">EventSource</span><span class="p">(</span><span class="s1">&#39;/api/stream&#39;</span><span class="p">);</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Received:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="p">};</span>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Connection lost, reconnecting...&#39;</span><span class="p">);</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><strong>Server side:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/stream&#39;</span><span class="p">)</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">stream</span><span class="p">():</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">():</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>            <span class="n">data</span> <span class="o">=</span> <span class="n">get_next_update</span><span class="p">()</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>            <span class="k">yield</span> <span class="sa">f</span><span class="s2">&quot;data: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">generate</span><span class="p">(),</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;text/event-stream&#39;</span><span class="p">)</span>
+</span></code></pre></div></p>
+<p><strong>Pros:</strong> Native browser support, auto-reconnect, simpler than WebSocket
+<strong>Cons:</strong> One-way only, limited browser connections per domain</p>
+<h3 id="comparison">Comparison<a class="headerlink" href="#comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Real-time</th>
+<th>Bidirectional</th>
+<th>Complexity</th>
+<th>Server Load</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Short Polling</td>
+<td>No (delay)</td>
+<td>Yes</td>
+<td>Low</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Long Polling</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Medium</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>Yes</td>
+<td>No</td>
+<td>Low</td>
+<td>Low</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="proxies-and-load-balancers">Proxies and Load Balancers<a class="headerlink" href="#proxies-and-load-balancers" title="Permanent link">&para;</a></h2>
+<h3 id="forward-proxy">Forward Proxy<a class="headerlink" href="#forward-proxy" title="Permanent link">&para;</a></h3>
+<p>A forward proxy sits between clients and the internet. Clients talk to the proxy, proxy talks to servers.</p>
+<pre class="mermaid"><code>flowchart LR
+    Client1[Client] --&gt; Proxy[Forward Proxy]
+    Client2[Client] --&gt; Proxy
+    Proxy --&gt; Internet[Internet]
+    Internet --&gt; Server1[Server]
+    Internet --&gt; Server2[Server]</code></pre>
+<p><strong>Use cases:</strong>
+- <strong>Privacy:</strong> Hide client IP from servers
+- <strong>Filtering:</strong> Block certain sites (corporate/school)
+- <strong>Caching:</strong> Cache responses for multiple clients
+- <strong>Bypass restrictions:</strong> Access geo-blocked content</p>
+<h3 id="reverse-proxy">Reverse Proxy<a class="headerlink" href="#reverse-proxy" title="Permanent link">&para;</a></h3>
+<p>A reverse proxy sits between clients and your servers. Clients talk to the proxy, proxy routes to servers.</p>
+<pre class="mermaid"><code>flowchart LR
+    Internet[Internet] --&gt; Proxy[Reverse Proxy]
+    Proxy --&gt; Server1[Server 1]
+    Proxy --&gt; Server2[Server 2]
+    Proxy --&gt; Server3[Server 3]</code></pre>
+<p><strong>Use cases:</strong>
+- <strong>Load balancing:</strong> Distribute requests across servers
+- <strong>SSL termination:</strong> Handle HTTPS, send HTTP to backend
+- <strong>Caching:</strong> Cache responses
+- <strong>Security:</strong> Hide server details, block attacks
+- <strong>Compression:</strong> Compress responses</p>
+<p><strong>Popular reverse proxies:</strong> Nginx, HAProxy, Traefik, Envoy</p>
+<h3 id="load-balancer">Load Balancer<a class="headerlink" href="#load-balancer" title="Permanent link">&para;</a></h3>
+<p>A load balancer distributes traffic across multiple servers to improve reliability and performance.</p>
+<p><strong>Load balancing algorithms:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Algorithm</th>
+<th>How it Works</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Round Robin</td>
+<td>Rotate through servers</td>
+<td>Equal capacity servers</td>
+</tr>
+<tr>
+<td>Weighted Round Robin</td>
+<td>Rotate with weights</td>
+<td>Different capacity servers</td>
+</tr>
+<tr>
+<td>Least Connections</td>
+<td>Send to server with fewest connections</td>
+<td>Long-running requests</td>
+</tr>
+<tr>
+<td>IP Hash</td>
+<td>Hash client IP to server</td>
+<td>Session affinity</td>
+</tr>
+<tr>
+<td>Random</td>
+<td>Random server selection</td>
+<td>Simple, even distribution</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Health checks:</strong></p>
+<p>Load balancers regularly check if servers are healthy:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>Every 5 seconds, send GET /health to each server.
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>If server fails 3 checks in a row, remove from pool.
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>When server passes 2 checks, add back to pool.
+</span></code></pre></div>
+<p><strong>Layer 4 vs Layer 7:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>OSI Layer</th>
+<th>Operates On</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L4</td>
+<td>Transport</td>
+<td>TCP/UDP</td>
+<td>HAProxy (TCP mode), AWS NLB</td>
+</tr>
+<tr>
+<td>L7</td>
+<td>Application</td>
+<td>HTTP/HTTPS</td>
+<td>Nginx, HAProxy (HTTP mode), AWS ALB</td>
+</tr>
+</tbody>
+</table>
+<p>L7 can make routing decisions based on URL, headers, cookies. L4 is faster but less flexible.</p>
+<hr />
+<h2 id="network-security-basics">Network Security Basics<a class="headerlink" href="#network-security-basics" title="Permanent link">&para;</a></h2>
+<h3 id="common-attacks">Common Attacks<a class="headerlink" href="#common-attacks" title="Permanent link">&para;</a></h3>
+<p><strong>DDoS (Distributed Denial of Service):</strong>
+Overwhelm servers with traffic from many sources.</p>
+<p><em>Mitigations:</em>
+- CDN (absorbs traffic)
+- Rate limiting
+- DDoS protection services (Cloudflare, AWS Shield)
+- Auto-scaling</p>
+<p><strong>Man-in-the-Middle (MITM):</strong>
+Attacker intercepts communication between client and server.</p>
+<p><em>Mitigations:</em>
+- Always use HTTPS
+- Certificate pinning (mobile apps)
+- HSTS (force HTTPS)</p>
+<p><strong>SQL Injection / XSS:</strong>
+Injecting malicious code through user input.</p>
+<p><em>Mitigations:</em>
+- Parameterized queries
+- Input validation
+- Content Security Policy (CSP)
+- Output encoding</p>
+<h3 id="cors-cross-origin-resource-sharing">CORS (Cross-Origin Resource Sharing)<a class="headerlink" href="#cors-cross-origin-resource-sharing" title="Permanent link">&para;</a></h3>
+<p>Browsers block requests from one origin (domain) to another by default. CORS allows controlled cross-origin access.</p>
+<p><strong>How it works:</strong></p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="err"># Request from example.com to api.other.com</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="err">Origin: https://example.com</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="err"># Response from api.other.com</span>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="err">Access-Control-Allow-Origin: https://example.com</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="err">Access-Control-Allow-Methods: GET, POST, PUT</span>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="err">Access-Control-Allow-Headers: Content-Type, Authorization</span>
+</span></code></pre></div>
+<p><strong>Preflight requests:</strong></p>
+<p>For "complex" requests (non-GET with custom headers), browser first sends OPTIONS:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="nf">OPTIONS</span> <span class="nn">/api/data</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="na">Origin</span><span class="o">:</span> <span class="l">https://example.com</span>
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="na">Access-Control-Request-Method</span><span class="o">:</span> <span class="l">POST</span>
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="na">Access-Control-Request-Headers</span><span class="o">:</span> <span class="l">Content-Type</span>
+</span></code></pre></div>
+<p>Server responds with what's allowed. If allowed, browser sends actual request.</p>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<h3 id="common-interview-questions">Common Interview Questions<a class="headerlink" href="#common-interview-questions" title="Permanent link">&para;</a></h3>
+<p><strong>Q: "How would you design a real-time notification system?"</strong></p>
+<p><em>Good answer:</em></p>
+<blockquote>
+<p>"I'd use WebSockets for clients that support them, with SSE as fallback. For scaling, I'd have notification servers subscribe to a Redis Pub/Sub channel. When a notification is created, it's published to Redis, and all servers forward it to connected clients. For offline users, notifications are stored in a database and delivered when they reconnect."</p>
+</blockquote>
+<p><strong>Q: "Why is HTTP/2 faster than HTTP/1.1?"</strong></p>
+<p><em>Good answer:</em></p>
+<blockquote>
+<p>"HTTP/2 introduces multiplexing—multiple requests share a single TCP connection. HTTP/1.1 requires one request at a time per connection, so browsers open 6+ connections in parallel. HTTP/2 also compresses headers (HPACK) since headers are often repetitive, and uses binary framing which is more efficient to parse than text."</p>
+</blockquote>
+<p><strong>Q: "Explain what happens when you type a URL in your browser."</strong></p>
+<p><em>Good answer (abbreviated):</em></p>
+<blockquote>
+<p>"First, DNS resolution to get the IP address. Then TCP three-way handshake, followed by TLS handshake for HTTPS. The browser sends an HTTP GET request. The server processes it and returns a response. The browser parses HTML, discovers additional resources (CSS, JS, images), and makes additional requests (often in parallel via HTTP/2). The DOM is constructed, CSS is applied, JavaScript executes, and the page renders."</p>
+</blockquote>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Key Takeaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TCP vs UDP</strong></td>
+<td>TCP: reliable, ordered. UDP: fast, unreliable. Use TCP for most apps.</td>
+</tr>
+<tr>
+<td><strong>HTTP/2</strong></td>
+<td>Multiplexing, header compression. Default choice today.</td>
+</tr>
+<tr>
+<td><strong>HTTPS/TLS</strong></td>
+<td>Always use it. TLS 1.3 for speed.</td>
+</tr>
+<tr>
+<td><strong>DNS</strong></td>
+<td>Adds latency. Use fast resolvers, prefetching, low TTLs carefully.</td>
+</tr>
+<tr>
+<td><strong>REST</strong></td>
+<td>Resource-based URLs, HTTP methods as verbs, proper status codes.</td>
+</tr>
+<tr>
+<td><strong>gRPC</strong></td>
+<td>Binary, fast, typed. Great for microservices.</td>
+</tr>
+<tr>
+<td><strong>WebSockets</strong></td>
+<td>Full-duplex, persistent. For real-time bidirectional communication.</td>
+</tr>
+<tr>
+<td><strong>SSE</strong></td>
+<td>Simple one-way server push. Good for notifications.</td>
+</tr>
+<tr>
+<td><strong>Proxies</strong></td>
+<td>Forward (client-side), Reverse (server-side).</td>
+</tr>
+<tr>
+<td><strong>Load Balancers</strong></td>
+<td>Distribute traffic, health checks, L4 vs L7.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://http2-explained.haxx.se/">HTTP/2 Explained</a> — Daniel Stenberg's guide to HTTP/2</li>
+<li><a href="https://hpbn.co/">High Performance Browser Networking</a> by Ilya Grigorik — free online book</li>
+<li><a href="https://grpc.io/docs/">gRPC Documentation</a> — protocol buffers and service definitions</li>
+<li><em>Computer Networking: A Top-Down Approach</em> by Kurose &amp; Ross</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc6455">RFC 6455: The WebSocket Protocol</a></li>
+<li><a href="https://www.cloudflare.com/learning/">Cloudflare Learning Center</a> — DNS, CDN, TLS explained clearly</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For deeper coverage of REST API design, versioning, and authentication, see also <a href="../api_design/">API Design</a>. For TLS and encryption details, see <a href="../security/">Security</a>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../estimation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Estimation &amp; Planning">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Estimation & Planning
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../databases/" class="md-footer__link md-footer__link--next" aria-label="Next: Databases">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Databases
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

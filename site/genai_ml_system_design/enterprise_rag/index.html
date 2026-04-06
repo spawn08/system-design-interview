@@ -1,0 +1,4109 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/genai_ml_system_design/enterprise_rag/">
+      
+      
+        <link rel="prev" href="../llm_chatbot/">
+      
+      
+        <link rel="next" href="../ai_code_assistant/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Enterprise RAG System - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#design-an-enterprise-rag-system" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Enterprise RAG System
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../software_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-rag-beats-fine-tuning-for-enterprise" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why RAG Beats Fine-Tuning for Enterprise
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-world-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-World Scale
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-concepts-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Concepts Primer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Concepts Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-rag-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      The RAG Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chunking-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chunking Strategies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-retrieval-bm25-dense" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hybrid Retrieval (BM25 + Dense)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements-clarification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements Clarification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements Clarification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#questions-to-ask" class="md-nav__link">
+    <span class="md-ellipsis">
+      Questions to Ask
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Back-of-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Traffic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ingestion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latency-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency Budget
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-ingestion-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Ingestion Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-acl-aware-retrieval" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 ACL-Aware Retrieval
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-query-understanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Query Understanding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-prompt-assembly-and-citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Prompt Assembly and Citation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-evaluation-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Evaluation Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-incremental-index-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 Incremental Index Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: Scaling & Production">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#failure-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failure Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trade-offs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trade-offs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothetical-interview-transcript" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hypothetical Interview Transcript
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="design-an-enterprise-rag-system">Design an Enterprise RAG System<a class="headerlink" href="#design-an-enterprise-rag-system" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>A <strong>Retrieval-Augmented Generation (RAG)</strong> system for enterprise knowledge bases — think Google's internal knowledge search, Notion AI, or Glean. The system answers natural language questions by retrieving relevant documents from a company's knowledge base and generating grounded, cited answers using an LLM.</p>
+<p><strong>The key difference from a chatbot:</strong> Every claim must be traceable to a source document. Hallucination is not just annoying — it's a business risk.</p>
+<h3 id="why-rag-beats-fine-tuning-for-enterprise">Why RAG Beats Fine-Tuning for Enterprise<a class="headerlink" href="#why-rag-beats-fine-tuning-for-enterprise" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fine-tuning</strong></td>
+<td>Fast inference, no retrieval latency</td>
+<td>Stale knowledge, expensive retraining, hallucination</td>
+</tr>
+<tr>
+<td><strong>RAG</strong></td>
+<td>Up-to-date knowledge, citations, ACL-aware</td>
+<td>Retrieval latency, chunking complexity</td>
+</tr>
+<tr>
+<td><strong>RAG + Fine-tuning</strong></td>
+<td>Best quality + grounding</td>
+<td>Most complex, highest cost</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>"Just fine-tune" is the wrong answer for enterprise. Documents change daily, access controls matter, and auditability (citations) is mandatory. RAG is the right foundation.</p>
+</div>
+<h3 id="real-world-scale">Real-World Scale<a class="headerlink" href="#real-world-scale" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Documents</strong></td>
+<td>10M–100M (wiki pages, PDFs, Slack, Docs, code)</td>
+</tr>
+<tr>
+<td><strong>Users</strong></td>
+<td>100K employees</td>
+</tr>
+<tr>
+<td><strong>Queries/day</strong></td>
+<td>500K</td>
+</tr>
+<tr>
+<td><strong>Data sources</strong></td>
+<td>15+ (Google Drive, Confluence, Slack, Jira, GitHub, etc.)</td>
+</tr>
+<tr>
+<td><strong>Update frequency</strong></td>
+<td>Thousands of document changes per hour</td>
+</tr>
+<tr>
+<td><strong>Access control</strong></td>
+<td>Per-document ACLs with group inheritance</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
+<h3 id="the-rag-pipeline">The RAG Pipeline<a class="headerlink" href="#the-rag-pipeline" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    Q[User Query] --&gt; QU[Query&lt;br/&gt;Understanding]
+    QU --&gt; Retrieval[Retrieval&lt;br/&gt;BM25 + Dense]
+    Retrieval --&gt; Rerank[Re-Ranking&lt;br/&gt;Cross-Encoder]
+    Rerank --&gt; Prompt[Prompt&lt;br/&gt;Assembly]
+    Prompt --&gt; LLM[LLM&lt;br/&gt;Generation]
+    LLM --&gt; Citation[Citation&lt;br/&gt;Injection]
+    Citation --&gt; Answer[Cited&lt;br/&gt;Answer]</code></pre>
+<h3 id="chunking-strategies">Chunking Strategies<a class="headerlink" href="#chunking-strategies" title="Permanent link">&para;</a></h3>
+<p>Documents must be split into chunks for embedding. Chunking quality directly determines retrieval quality.</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>How It Works</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fixed-size</strong></td>
+<td>Split every 512 tokens with overlap</td>
+<td>Simple, baseline</td>
+</tr>
+<tr>
+<td><strong>Recursive</strong></td>
+<td>Split by paragraph → sentence → word</td>
+<td>Structured text</td>
+</tr>
+<tr>
+<td><strong>Semantic</strong></td>
+<td>Group sentences by embedding similarity</td>
+<td>Varied documents</td>
+</tr>
+<tr>
+<td><strong>Document-aware</strong></td>
+<td>Respect headers, sections, tables</td>
+<td>Technical docs, wikis</td>
+</tr>
+<tr>
+<td><strong>Parent-child</strong></td>
+<td>Embed small chunks, retrieve parent context</td>
+<td>Long documents</td>
+</tr>
+</tbody>
+</table>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SemanticChunker</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Split document into semantically coherent chunks.&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedding_model</span><span class="p">,</span> <span class="n">max_chunk_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> 
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                 <span class="n">similarity_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">):</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_model</span> <span class="o">=</span> <span class="n">embedding_model</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_chunk_tokens</span> <span class="o">=</span> <span class="n">max_chunk_tokens</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">similarity_threshold</span> <span class="o">=</span> <span class="n">similarity_threshold</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Chunk</span><span class="p">]:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">sentences</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_sentences</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">sentences</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[</span><span class="n">sentences</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="n">current_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_tokens</span><span class="p">(</span><span class="n">sentences</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentences</span><span class="p">)):</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="n">similarity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cosine_similarity</span><span class="p">(</span><span class="n">embeddings</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">embeddings</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>            <span class="n">sentence_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_tokens</span><span class="p">(</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>            <span class="k">if</span> <span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                <span class="n">similarity</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">similarity_threshold</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                <span class="ow">and</span> <span class="n">current_tokens</span> <span class="o">+</span> <span class="n">sentence_tokens</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_chunk_tokens</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>            <span class="p">):</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                <span class="n">current_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                <span class="n">current_tokens</span> <span class="o">+=</span> <span class="n">sentence_tokens</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Chunk</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">),</span> <span class="n">token_count</span><span class="o">=</span><span class="n">current_tokens</span><span class="p">))</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                <span class="n">current_tokens</span> <span class="o">=</span> <span class="n">sentence_tokens</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="k">if</span> <span class="n">current_chunk</span><span class="p">:</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Chunk</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">),</span> <span class="n">token_count</span><span class="o">=</span><span class="n">current_tokens</span><span class="p">))</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="k">return</span> <span class="n">chunks</span>
+</span></code></pre></div>
+<h3 id="hybrid-retrieval-bm25-dense">Hybrid Retrieval (BM25 + Dense)<a class="headerlink" href="#hybrid-retrieval-bm25-dense" title="Permanent link">&para;</a></h3>
+<p>Neither sparse nor dense retrieval alone is sufficient:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BM25 (sparse)</strong></td>
+<td>Exact keyword match, rare terms</td>
+<td>Misses synonyms, no semantic understanding</td>
+</tr>
+<tr>
+<td><strong>Dense (embedding)</strong></td>
+<td>Semantic similarity, synonyms</td>
+<td>Struggles with rare terms, entity names</td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong></td>
+<td>Best of both</td>
+<td>More complex, needs score fusion</td>
+</tr>
+</tbody>
+</table>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">HybridRetriever</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine BM25 and dense retrieval with Reciprocal Rank Fusion.&quot;&quot;&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bm25_index</span><span class="p">,</span> <span class="n">vector_index</span><span class="p">,</span> <span class="n">reranker</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">):</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">bm25</span> <span class="o">=</span> <span class="n">bm25_index</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dense</span> <span class="o">=</span> <span class="n">vector_index</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">reranker</span> <span class="o">=</span> <span class="n">reranker</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retrieve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_acl</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">]:</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="n">bm25_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bm25</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="n">query_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="n">dense_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        <span class="n">fused</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_rank_fusion</span><span class="p">(</span><span class="n">bm25_results</span><span class="p">,</span> <span class="n">dense_results</span><span class="p">)</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>        <span class="n">acl_filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fused</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">acl_groups</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">user_acl</span><span class="p">)]</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>        <span class="n">reranked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reranker</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">acl_filtered</span><span class="p">[:</span><span class="mi">30</span><span class="p">])</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>        <span class="k">return</span> <span class="n">reranked</span><span class="p">[:</span><span class="n">top_k</span><span class="p">]</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_reciprocal_rank_fusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">result_lists</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">]:</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>        <span class="n">scores</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>        <span class="n">chunk_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ScoredChunk</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>        <span class="k">for</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">result_lists</span><span class="p">:</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>            <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>                <span class="n">scores</span><span class="p">[</span><span class="n">chunk</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>                <span class="n">chunk_map</span><span class="p">[</span><span class="n">chunk</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>        <span class="n">sorted_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">scores</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">chunk_map</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">sorted_ids</span><span class="p">]</span>
+</span></code></pre></div>
+<hr />
+<h2 id="step-1-requirements-clarification">Step 1: Requirements Clarification<a class="headerlink" href="#step-1-requirements-clarification" title="Permanent link">&para;</a></h2>
+<h3 id="questions-to-ask">Questions to Ask<a class="headerlink" href="#questions-to-ask" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Why It Matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>How many data sources?</td>
+<td>Determines connector complexity</td>
+</tr>
+<tr>
+<td>Document types?</td>
+<td>PDF, wiki, Slack, code — different parsing</td>
+</tr>
+<tr>
+<td>Access control model?</td>
+<td>Per-doc ACLs? Group-based? Role-based?</td>
+</tr>
+<tr>
+<td>Freshness requirement?</td>
+<td>Minutes? Hours? Near-real-time?</td>
+</tr>
+<tr>
+<td>Answer quality bar?</td>
+<td>Must cite sources? Confidence threshold?</td>
+</tr>
+<tr>
+<td>Multi-language?</td>
+<td>Multilingual embeddings needed?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Priority</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Natural language Q&amp;A</td>
+<td>Must have</td>
+<td>Answer questions using knowledge base</td>
+</tr>
+<tr>
+<td>Citations</td>
+<td>Must have</td>
+<td>Every claim links to source document</td>
+</tr>
+<tr>
+<td>Access control</td>
+<td>Must have</td>
+<td>Users only see docs they have access to</td>
+</tr>
+<tr>
+<td>Multi-source ingestion</td>
+<td>Must have</td>
+<td>Google Drive, Confluence, Slack, etc.</td>
+</tr>
+<tr>
+<td>Near-real-time updates</td>
+<td>Should have</td>
+<td>New/edited docs searchable within minutes</td>
+</tr>
+<tr>
+<td>Conversational follow-ups</td>
+<td>Should have</td>
+<td>Multi-turn refinement of answers</td>
+</tr>
+<tr>
+<td>Feedback collection</td>
+<td>Nice to have</td>
+<td>Thumbs up/down on answers</td>
+</tr>
+<tr>
+<td>Analytics dashboard</td>
+<td>Nice to have</td>
+<td>Popular queries, gaps, source quality</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>End-to-end latency</strong></td>
+<td>&lt; 3 seconds</td>
+<td>Users won't wait longer</td>
+</tr>
+<tr>
+<td><strong>Retrieval recall@10</strong></td>
+<td>&gt; 85%</td>
+<td>Must find the right document</td>
+</tr>
+<tr>
+<td><strong>Faithfulness</strong></td>
+<td>&gt; 95%</td>
+<td>Answers must be grounded in retrieved docs</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td>99.9%</td>
+<td>Enterprise-grade SLA</td>
+</tr>
+<tr>
+<td><strong>Freshness</strong></td>
+<td>&lt; 15 min</td>
+<td>Document changes reflected quickly</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># POST /v1/ask</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;What is our parental leave policy?&quot;</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;conv-123&quot;</span><span class="p">,</span>   <span class="c1"># optional, for follow-ups</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="s2">&quot;sources&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confluence&quot;</span><span class="p">,</span> <span class="s2">&quot;google-drive&quot;</span><span class="p">],</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="s2">&quot;date_range&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-01&quot;</span><span class="p">}</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="p">},</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="s2">&quot;max_sources&quot;</span><span class="p">:</span> <span class="mi">5</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">}</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Response</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">{</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;Our parental leave policy provides 18 weeks of paid leave for all new parents. This applies to both birth and adoptive parents, effective from the date of birth or placement. [1][2]&quot;</span><span class="p">,</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="s2">&quot;citations&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>        <span class="p">{</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Parental Leave Policy 2024&quot;</span><span class="p">,</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>            <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;confluence&quot;</span><span class="p">,</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://wiki.internal/hr/parental-leave&quot;</span><span class="p">,</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>            <span class="s2">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;...18 weeks of fully paid parental leave...&quot;</span><span class="p">,</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>            <span class="s2">&quot;relevance_score&quot;</span><span class="p">:</span> <span class="mf">0.94</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>        <span class="p">},</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>        <span class="p">{</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Benefits FAQ&quot;</span><span class="p">,</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>            <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;google-drive&quot;</span><span class="p">,</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://drive.google.com/d/abc123&quot;</span><span class="p">,</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>            <span class="s2">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;...applies to birth and adoptive parents...&quot;</span><span class="p">,</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>            <span class="s2">&quot;relevance_score&quot;</span><span class="p">:</span> <span class="mf">0.87</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>        <span class="p">}</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>    <span class="p">],</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>    <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.91</span><span class="p">,</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>    <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;conv-123&quot;</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Employees:                    100K
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Queries per employee/day:     5
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Total daily queries:          500K
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>QPS (average):                500K / 86,400 ≈ 6
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>QPS (peak, 5x):               ~30
+</span></code></pre></div>
+<h3 id="ingestion">Ingestion<a class="headerlink" href="#ingestion" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Total documents:              10M
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Avg document size:            3 KB of text (after extraction)
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Chunks per document:          6 (avg, 512-token chunks)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Total chunks:                 60M
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>New/updated docs per hour:    2,000
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>Re-embedding rate:            2,000 × 6 chunks × 1ms = 12s of GPU time/hour
+</span></code></pre></div>
+<h3 id="storage">Storage<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Embeddings (768-dim, float32):
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  60M × 768 × 4 bytes = ~184 GB
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Chunk text + metadata:
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  60M × 1 KB = 60 GB
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>BM25 inverted index:
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  ~20 GB (term → posting list)
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>Total vector index:            ~264 GB (fits on 1-2 machines with HNSW)
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>Document store:               10M × 3 KB = 30 GB
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>ACL index:                    10M × 200 bytes = 2 GB
+</span></code></pre></div>
+<h3 id="latency-budget">Latency Budget<a class="headerlink" href="#latency-budget" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Query understanding:           50ms
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>BM25 retrieval:               20ms
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Dense retrieval (ANN):        30ms
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Fusion + ACL filtering:       10ms
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Re-ranking (cross-encoder):   100ms (batch of 30 chunks)
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>Prompt assembly:              10ms
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>LLM generation (500 tokens):  2,000ms
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>Citation post-processing:     30ms
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>─────────────────────────────
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>Total:                        ~2,250ms  ✓ (under 3s budget)
+</span></code></pre></div>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Ingestion [Ingestion Pipeline]
+        Connectors[Source Connectors&lt;br/&gt;Drive, Confluence, Slack]
+        Parser[Document Parser&lt;br/&gt;PDF, HTML, Markdown]
+        Chunker[Chunking Engine]
+        Embedder[Embedding Service&lt;br/&gt;GPU]
+        ACLSync[ACL Sync Service]
+    end
+
+    subgraph Index [Index Layer]
+        VectorDB[(Vector Index&lt;br/&gt;HNSW / ScaNN)]
+        BM25Idx[(BM25 Index&lt;br/&gt;Elasticsearch)]
+        DocStore[(Document Store&lt;br/&gt;Bigtable)]
+        ACLStore[(ACL Store&lt;br/&gt;Spanner)]
+    end
+
+    subgraph Query [Query Pipeline]
+        QU[Query Understanding]
+        Retriever[Hybrid Retriever]
+        Reranker[Cross-Encoder&lt;br/&gt;Re-Ranker]
+        PromptBuilder[Prompt Builder]
+        LLM[LLM Generator]
+        CitationEngine[Citation Engine]
+    end
+
+    subgraph Feedback [Feedback &amp; Eval]
+        FeedbackAPI[Feedback API]
+        EvalPipeline[Evaluation Pipeline]
+        Analytics[Query Analytics]
+    end
+
+    Connectors --&gt; Parser --&gt; Chunker --&gt; Embedder --&gt; VectorDB
+    Chunker --&gt; BM25Idx
+    Chunker --&gt; DocStore
+    Connectors --&gt; ACLSync --&gt; ACLStore
+
+    QU --&gt; Retriever
+    Retriever --&gt; VectorDB
+    Retriever --&gt; BM25Idx
+    Retriever --&gt; ACLStore
+    Retriever --&gt; Reranker
+    Reranker --&gt; PromptBuilder
+    PromptBuilder --&gt; LLM
+    LLM --&gt; CitationEngine
+
+    CitationEngine --&gt; FeedbackAPI
+    FeedbackAPI --&gt; EvalPipeline
+    EvalPipeline --&gt; Analytics</code></pre>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-ingestion-pipeline">4.1 Ingestion Pipeline<a class="headerlink" href="#41-ingestion-pipeline" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Sources [Data Sources]
+        GDrive[Google Drive]
+        Confluence[Confluence]
+        Slack[Slack]
+        GitHub[GitHub]
+        Jira[Jira]
+    end
+
+    subgraph Connectors [Connector Layer]
+        CDC[Change Data&lt;br/&gt;Capture]
+        Webhook[Webhook&lt;br/&gt;Listeners]
+        Poller[Periodic&lt;br/&gt;Poller]
+    end
+
+    subgraph Processing [Processing Pipeline]
+        Extract[Text&lt;br/&gt;Extraction]
+        Dedup[Deduplication]
+        Chunk[Chunking]
+        Embed[Embedding&lt;br/&gt;Generation]
+        ACL[ACL&lt;br/&gt;Resolution]
+    end
+
+    subgraph Storage [Storage]
+        VDB[(Vector DB)]
+        Search[(Search Index)]
+        Meta[(Metadata Store)]
+    end
+
+    Sources --&gt; Connectors --&gt; Processing --&gt; Storage</code></pre>
+<p><strong>Connector design per source:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Update Mechanism</th>
+<th>Parsing Challenge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Google Drive</strong></td>
+<td>Push notifications API + periodic crawl</td>
+<td>PDF, Docs, Sheets (different parsers)</td>
+</tr>
+<tr>
+<td><strong>Confluence</strong></td>
+<td>Webhook on page update</td>
+<td>HTML with macros, nested pages</td>
+</tr>
+<tr>
+<td><strong>Slack</strong></td>
+<td>Events API (real-time)</td>
+<td>Thread structure, attachments</td>
+</tr>
+<tr>
+<td><strong>GitHub</strong></td>
+<td>Webhooks on push/PR</td>
+<td>Code + markdown, repo structure</td>
+</tr>
+<tr>
+<td><strong>Jira</strong></td>
+<td>Webhooks on issue update</td>
+<td>Structured fields + free text</td>
+</tr>
+</tbody>
+</table>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IngestionPipeline</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process a document update event into indexed chunks.&quot;&quot;&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">DocumentEvent</span><span class="p">):</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>        <span class="n">raw_content</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">)</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">extract_text</span><span class="p">(</span><span class="n">raw_content</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">extract_metadata</span><span class="p">(</span><span class="n">raw_content</span><span class="p">)</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>        <span class="n">acl_groups</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">acl_resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">)</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>        <span class="n">chunks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunker</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="n">embeddings</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">encode_batch</span><span class="p">(</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>            <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">]</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        <span class="p">)</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>        <span class="n">old_chunk_ids</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_store</span><span class="o">.</span><span class="n">get_chunk_ids</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">)</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">()</span> <span class="k">as</span> <span class="n">tx</span><span class="p">:</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>            <span class="k">await</span> <span class="n">tx</span><span class="o">.</span><span class="n">delete_chunks</span><span class="p">(</span><span class="n">old_chunk_ids</span><span class="p">)</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>            <span class="k">for</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">embedding</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">embeddings</span><span class="p">):</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>                <span class="n">chunk</span><span class="o">.</span><span class="n">doc_id</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">doc_id</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>                <span class="n">chunk</span><span class="o">.</span><span class="n">acl_groups</span> <span class="o">=</span> <span class="n">acl_groups</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>                <span class="n">chunk</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">embedding</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                <span class="k">await</span> <span class="n">tx</span><span class="o">.</span><span class="n">upsert_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>            <span class="k">await</span> <span class="n">tx</span><span class="o">.</span><span class="n">upsert_document_metadata</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_index</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">)</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">bm25_index</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">doc_id</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="42-acl-aware-retrieval">4.2 ACL-Aware Retrieval<a class="headerlink" href="#42-acl-aware-retrieval" title="Permanent link">&para;</a></h3>
+<p>The hardest enterprise requirement. Users must only see documents they have access to.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ACLAwareRetriever</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieval with access control enforcement.&quot;&quot;&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retrieve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">]:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>        <span class="n">user_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acl_service</span><span class="o">.</span><span class="n">get_user_groups</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>        <span class="n">candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hybrid_retriever</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="n">authorized</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_access</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">acl_groups</span><span class="p">,</span> <span class="n">user_groups</span><span class="p">):</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>                <span class="n">authorized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">authorized</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">top_k</span> <span class="o">*</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>                <span class="k">break</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="n">reranked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reranker</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">authorized</span><span class="p">[:</span><span class="mi">30</span><span class="p">])</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="k">return</span> <span class="n">reranked</span><span class="p">[:</span><span class="n">top_k</span><span class="p">]</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_acl</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">user_groups</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">doc_acl</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">user_groups</span><span class="p">))</span>
+</span></code></pre></div>
+<p><strong>ACL enforcement strategies:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pre-filter</strong> (filter in vector DB query)</td>
+<td>Fast, scales</td>
+<td>Requires ACL-aware index; complex</td>
+</tr>
+<tr>
+<td><strong>Post-filter</strong> (retrieve broadly, filter after)</td>
+<td>Simple implementation</td>
+<td>Over-fetches; low recall if many restricted docs</td>
+</tr>
+<tr>
+<td><strong>Per-user index</strong></td>
+<td>Perfect precision</td>
+<td>Enormous storage; impractical at scale</td>
+</tr>
+<tr>
+<td><strong>Group-partitioned index</strong></td>
+<td>Good balance</td>
+<td>Cold start for new groups</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>At Google scale, the recommended approach is <strong>post-filter with over-fetch</strong>: retrieve 5-10x more candidates than needed, filter by ACL, then re-rank the survivors. This works when &lt; 50% of docs are restricted for any given user.</p>
+</div>
+<h3 id="43-query-understanding">4.3 Query Understanding<a class="headerlink" href="#43-query-understanding" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QueryUnderstanding</span><span class="p">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform raw user query into optimized retrieval queries.&quot;&quot;&quot;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conversation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryPlan</span><span class="p">:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        <span class="k">if</span> <span class="n">conversation</span><span class="p">:</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>            <span class="n">query</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_coreferences</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">conversation</span><span class="p">)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>        <span class="n">intent</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classify_intent</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>        <span class="n">retrieval_queries</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_retrieval_queries</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>        <span class="n">filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_filters</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>        <span class="k">return</span> <span class="n">QueryPlan</span><span class="p">(</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>            <span class="n">original_query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>            <span class="n">resolved_query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>            <span class="n">intent</span><span class="o">=</span><span class="n">intent</span><span class="p">,</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>            <span class="n">retrieval_queries</span><span class="o">=</span><span class="n">retrieval_queries</span><span class="p">,</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>            <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>        <span class="p">)</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_coreferences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conversation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve pronouns and references using conversation context.</span>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="sd">        &#39;What about for engineers?&#39; → &#39;What is the parental leave policy for engineers?&#39;</span>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>        <span class="n">recent_context</span> <span class="o">=</span> <span class="n">conversation</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>        <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Given this conversation:</span>
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="si">{</span><span class="n">recent_context</span><span class="si">}</span>
+</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
+</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="s2">Rewrite this follow-up to be self-contained:</span>
+</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="s2">&quot;</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a>
+</span><span id="__span-9-34"><a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="s2">Rewritten query:&quot;&quot;&quot;</span>
+</span><span id="__span-9-35"><a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">small_llm</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-9-36"><a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a>
+</span><span id="__span-9-37"><a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_generate_retrieval_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span id="__span-9-38"><a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate multiple retrieval queries for better recall.</span>
+</span><span id="__span-9-39"><a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a>
+</span><span id="__span-9-40"><a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a><span class="sd">        &#39;PTO policy for APAC&#39; → [</span>
+</span><span id="__span-9-41"><a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="sd">            &#39;PTO policy for APAC&#39;,</span>
+</span><span id="__span-9-42"><a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="sd">            &#39;paid time off Asia Pacific&#39;,</span>
+</span><span id="__span-9-43"><a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="sd">            &#39;vacation days policy APAC region&#39;,</span>
+</span><span id="__span-9-44"><a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a><span class="sd">            &#39;leave policy international employees&#39;</span>
+</span><span id="__span-9-45"><a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="sd">        ]</span>
+</span><span id="__span-9-46"><a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-9-47"><a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a>        <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Generate 3 alternative search queries for: &quot;</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-9-48"><a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="s2">Each should use different words but same meaning. One line each.&quot;&quot;&quot;</span>
+</span><span id="__span-9-49"><a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a>        <span class="n">alternatives</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">small_llm</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</span><span id="__span-9-50"><a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">query</span><span class="p">]</span> <span class="o">+</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+</span></code></pre></div>
+<h3 id="44-prompt-assembly-and-citation">4.4 Prompt Assembly and Citation<a class="headerlink" href="#44-prompt-assembly-and-citation" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">PromptBuilder</span><span class="p">:</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Assemble the RAG prompt with retrieved context.&quot;&quot;&quot;</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an enterprise knowledge assistant. Answer questions </span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="s2">using ONLY the provided context. Follow these rules:</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="s2">1. Cite every claim using [1], [2], etc. matching the source numbers below.</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="s2">2. If the context doesn&#39;t contain enough information, say &quot;I don&#39;t have enough </span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="s2">   information to answer this fully&quot; and explain what&#39;s missing.</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="s2">3. Never make up information not in the provided context.</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="s2">4. If sources conflict, mention the conflict and cite both sources.&quot;&quot;&quot;</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">],</span> 
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>              <span class="n">conversation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>        <span class="n">context_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_context</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">SYSTEM_PROMPT</span><span class="p">}]</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>        <span class="k">if</span> <span class="n">conversation</span><span class="p">:</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>            <span class="n">messages</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conversation</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:])</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>        <span class="n">user_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Context:</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="si">{</span><span class="n">context_block</span><span class="si">}</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="s2">Question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="s2">Provide a comprehensive answer with citations [1], [2], etc.&quot;&quot;&quot;</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>        <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_message</span><span class="p">})</span>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>        <span class="k">return</span> <span class="n">messages</span>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_format_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>        <span class="n">sections</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>            <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">] Source: </span><span class="si">{</span><span class="n">chunk</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">chunk</span><span class="o">.</span><span class="n">source</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>                <span class="sa">f</span><span class="s2">&quot;URL: </span><span class="si">{</span><span class="n">chunk</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="__span-10-37"><a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>                <span class="sa">f</span><span class="s2">&quot;Content: </span><span class="si">{</span><span class="n">chunk</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="__span-10-38"><a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>            <span class="p">)</span>
+</span><span id="__span-10-39"><a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a>        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">---</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sections</span><span class="p">)</span>
+</span><span id="__span-10-40"><a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a>
+</span><span id="__span-10-41"><a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a>
+</span><span id="__span-10-42"><a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a><span class="k">class</span><span class="w"> </span><span class="nc">CitationEngine</span><span class="p">:</span>
+</span><span id="__span-10-43"><a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract and validate citations from LLM output.&quot;&quot;&quot;</span>
+</span><span id="__span-10-44"><a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a>
+</span><span id="__span-10-45"><a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CitedAnswer</span><span class="p">:</span>
+</span><span id="__span-10-46"><a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a>        <span class="n">citations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_citation_refs</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+</span><span id="__span-10-47"><a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a>
+</span><span id="__span-10-48"><a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>        <span class="n">validated_citations</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-10-49"><a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a>        <span class="k">for</span> <span class="n">ref_num</span> <span class="ow">in</span> <span class="n">citations</span><span class="p">:</span>
+</span><span id="__span-10-50"><a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a>            <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">ref_num</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">):</span>
+</span><span id="__span-10-51"><a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a>                <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="n">ref_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-10-52"><a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a>                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verify_grounding</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">ref_num</span><span class="p">):</span>
+</span><span id="__span-10-53"><a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a>                    <span class="n">validated_citations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Citation</span><span class="p">(</span>
+</span><span id="__span-10-54"><a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a>                        <span class="n">ref</span><span class="o">=</span><span class="n">ref_num</span><span class="p">,</span>
+</span><span id="__span-10-55"><a id="__codelineno-10-55" name="__codelineno-10-55" href="#__codelineno-10-55"></a>                        <span class="n">title</span><span class="o">=</span><span class="n">chunk</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+</span><span id="__span-10-56"><a id="__codelineno-10-56" name="__codelineno-10-56" href="#__codelineno-10-56"></a>                        <span class="n">url</span><span class="o">=</span><span class="n">chunk</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+</span><span id="__span-10-57"><a id="__codelineno-10-57" name="__codelineno-10-57" href="#__codelineno-10-57"></a>                        <span class="n">snippet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_relevant_snippet</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">ref_num</span><span class="p">),</span>
+</span><span id="__span-10-58"><a id="__codelineno-10-58" name="__codelineno-10-58" href="#__codelineno-10-58"></a>                        <span class="n">score</span><span class="o">=</span><span class="n">chunk</span><span class="o">.</span><span class="n">score</span><span class="p">,</span>
+</span><span id="__span-10-59"><a id="__codelineno-10-59" name="__codelineno-10-59" href="#__codelineno-10-59"></a>                    <span class="p">))</span>
+</span><span id="__span-10-60"><a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a>
+</span><span id="__span-10-61"><a id="__codelineno-10-61" name="__codelineno-10-61" href="#__codelineno-10-61"></a>        <span class="k">return</span> <span class="n">CitedAnswer</span><span class="p">(</span>
+</span><span id="__span-10-62"><a id="__codelineno-10-62" name="__codelineno-10-62" href="#__codelineno-10-62"></a>            <span class="n">text</span><span class="o">=</span><span class="n">answer</span><span class="p">,</span>
+</span><span id="__span-10-63"><a id="__codelineno-10-63" name="__codelineno-10-63" href="#__codelineno-10-63"></a>            <span class="n">citations</span><span class="o">=</span><span class="n">validated_citations</span><span class="p">,</span>
+</span><span id="__span-10-64"><a id="__codelineno-10-64" name="__codelineno-10-64" href="#__codelineno-10-64"></a>            <span class="n">confidence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_confidence</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">validated_citations</span><span class="p">),</span>
+</span><span id="__span-10-65"><a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a>        <span class="p">)</span>
+</span><span id="__span-10-66"><a id="__codelineno-10-66" name="__codelineno-10-66" href="#__codelineno-10-66"></a>
+</span><span id="__span-10-67"><a id="__codelineno-10-67" name="__codelineno-10-67" href="#__codelineno-10-67"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_verify_grounding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ref_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="__span-10-68"><a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that the cited claim is actually supported by the source.&quot;&quot;&quot;</span>
+</span><span id="__span-10-69"><a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a>        <span class="n">claim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_claim_for_ref</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">ref_num</span><span class="p">)</span>
+</span><span id="__span-10-70"><a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nli_model</span><span class="o">.</span><span class="n">entails</span><span class="p">(</span><span class="n">premise</span><span class="o">=</span><span class="n">source_text</span><span class="p">,</span> <span class="n">hypothesis</span><span class="o">=</span><span class="n">claim</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="45-evaluation-pipeline">4.5 Evaluation Pipeline<a class="headerlink" href="#45-evaluation-pipeline" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">RAGEvaluator</span><span class="p">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate RAG system quality across multiple dimensions.&quot;&quot;&quot;</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>                 <span class="n">retrieved_chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">],</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>                 <span class="n">ground_truth</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EvalResult</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="k">return</span> <span class="n">EvalResult</span><span class="p">(</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>            <span class="n">faithfulness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_faithfulness</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">retrieved_chunks</span><span class="p">),</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>            <span class="n">relevance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_relevance</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">answer</span><span class="p">),</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>            <span class="n">retrieval_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_retrieval</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">retrieved_chunks</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">),</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>            <span class="n">citation_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_citations</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">retrieved_chunks</span><span class="p">),</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>        <span class="p">)</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_faithfulness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the answer grounded in the retrieved context? (0-1)</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="sd">        Method: Decompose answer into atomic claims, check each against context.</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>        <span class="n">claims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">claim_decomposer</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>        <span class="n">context</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">)</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>        <span class="n">supported</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>            <span class="mi">1</span> <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nli_model</span><span class="o">.</span><span class="n">entails</span><span class="p">(</span><span class="n">premise</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">hypothesis</span><span class="o">=</span><span class="n">claim</span><span class="p">)</span>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>        <span class="p">)</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>        <span class="k">return</span> <span class="n">supported</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span> <span class="k">if</span> <span class="n">claims</span> <span class="k">else</span> <span class="mf">0.0</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_relevance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Does the answer address the query? (0-1)&quot;&quot;&quot;</span>
+</span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>        <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Rate how well this answer addresses the question (0-10):</span>
+</span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="s2">Question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span>
+</span><span id="__span-11-32"><a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="s2">Answer: </span><span class="si">{</span><span class="n">answer</span><span class="si">}</span>
+</span><span id="__span-11-33"><a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="s2">Score (0-10):&quot;&quot;&quot;</span>
+</span><span id="__span-11-34"><a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a>        <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">judge_llm</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</span><span id="__span-11-35"><a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a>        <span class="k">return</span> <span class="n">score</span> <span class="o">/</span> <span class="mf">10.0</span>
+</span><span id="__span-11-36"><a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a>
+</span><span id="__span-11-37"><a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ScoredChunk</span><span class="p">],</span> 
+</span><span id="__span-11-38"><a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a>                        <span class="n">ground_truth</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-11-39"><a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieval quality metrics.&quot;&quot;&quot;</span>
+</span><span id="__span-11-40"><a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">ground_truth</span><span class="p">:</span>
+</span><span id="__span-11-41"><a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;note&quot;</span><span class="p">:</span> <span class="s2">&quot;no ground truth available&quot;</span><span class="p">}</span>
+</span><span id="__span-11-42"><a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a>
+</span><span id="__span-11-43"><a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a>        <span class="n">relevant</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_relevant</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)]</span>
+</span><span id="__span-11-44"><a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a>        <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+</span><span id="__span-11-45"><a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-11-46"><a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a>            <span class="s2">&quot;recall_at_k&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">relevant</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_relevant_total</span><span class="p">(</span><span class="n">query</span><span class="p">)),</span>
+</span><span id="__span-11-47"><a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a>            <span class="s2">&quot;precision_at_k&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">relevant</span><span class="p">)</span> <span class="o">/</span> <span class="n">k</span><span class="p">,</span>
+</span><span id="__span-11-48"><a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a>            <span class="s2">&quot;mrr&quot;</span><span class="p">:</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">chunks</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">relevant</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">relevant</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-11-49"><a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a>        <span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Evaluation metrics summary:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>What It Measures</th>
+<th>Target</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Faithfulness</strong></td>
+<td>Is answer grounded in context?</td>
+<td>&gt; 95%</td>
+<td>NLI per claim</td>
+</tr>
+<tr>
+<td><strong>Answer relevance</strong></td>
+<td>Does it address the query?</td>
+<td>&gt; 85%</td>
+<td>LLM-as-judge</td>
+</tr>
+<tr>
+<td><strong>Retrieval recall@10</strong></td>
+<td>Did we find the right docs?</td>
+<td>&gt; 85%</td>
+<td>vs human labels</td>
+</tr>
+<tr>
+<td><strong>Citation precision</strong></td>
+<td>Are citations accurate?</td>
+<td>&gt; 90%</td>
+<td>NLI verification</td>
+</tr>
+<tr>
+<td><strong>Hallucination rate</strong></td>
+<td>Claims not in context?</td>
+<td>&lt; 5%</td>
+<td>1 - faithfulness</td>
+</tr>
+</tbody>
+</table>
+<h3 id="46-incremental-index-updates">4.6 Incremental Index Updates<a class="headerlink" href="#46-incremental-index-updates" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Events [Change Events]
+        Create[Doc Created]
+        Update[Doc Updated]
+        Delete[Doc Deleted]
+        ACLChange[ACL Changed]
+    end
+
+    subgraph Queue [Event Queue]
+        Kafka[Kafka Topic&lt;br/&gt;doc-changes]
+    end
+
+    subgraph Workers [Index Workers]
+        W1[Worker 1]
+        W2[Worker 2]
+        WN[Worker N]
+    end
+
+    subgraph Indexes [Indexes]
+        Vector[(Vector Index)]
+        BM25[(BM25 Index)]
+        ACL[(ACL Index)]
+    end
+
+    Events --&gt; Queue --&gt; Workers --&gt; Indexes</code></pre>
+<p><strong>Update strategies:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Latency</th>
+<th>Complexity</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Inline update</strong></td>
+<td>Seconds</td>
+<td>Low</td>
+<td>&lt; 100 updates/min</td>
+</tr>
+<tr>
+<td><strong>Micro-batch</strong></td>
+<td>1-5 min</td>
+<td>Medium</td>
+<td>100-10K updates/min</td>
+</tr>
+<tr>
+<td><strong>Full rebuild</strong></td>
+<td>Hours</td>
+<td>Low</td>
+<td>Nightly for consistency</td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong></td>
+<td>Minutes + nightly</td>
+<td>Medium</td>
+<td>Production recommendation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<h3 id="failure-handling">Failure Handling<a class="headerlink" href="#failure-handling" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Detection</th>
+<th>Recovery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Embedding service down</strong></td>
+<td>Health check</td>
+<td>Queue updates; serve from stale index</td>
+</tr>
+<tr>
+<td><strong>Vector DB unavailable</strong></td>
+<td>Timeout</td>
+<td>Fall back to BM25-only retrieval</td>
+</tr>
+<tr>
+<td><strong>LLM overloaded</strong></td>
+<td>Queue depth &gt; 100</td>
+<td>Return "retrieved sources" without LLM answer</td>
+</tr>
+<tr>
+<td><strong>Source connector failure</strong></td>
+<td>Crawl error rate &gt; 10%</td>
+<td>Alert; use last-known-good index</td>
+</tr>
+<tr>
+<td><strong>ACL sync lag</strong></td>
+<td>Freshness check</td>
+<td>Fail closed (deny access to unsynced docs)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Alert Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>End-to-end latency P95</strong></td>
+<td>&gt; 5s</td>
+</tr>
+<tr>
+<td><strong>Retrieval recall</strong></td>
+<td>&lt; 80% (sampled eval)</td>
+</tr>
+<tr>
+<td><strong>Faithfulness score</strong></td>
+<td>&lt; 90% (sampled eval)</td>
+</tr>
+<tr>
+<td><strong>Index freshness</strong></td>
+<td>&gt; 30 min behind</td>
+</tr>
+<tr>
+<td><strong>ACL sync lag</strong></td>
+<td>&gt; 15 min</td>
+</tr>
+<tr>
+<td><strong>"I don't know" rate</strong></td>
+<td>&gt; 30% (indicates index gaps)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Option A</th>
+<th>Option B</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Chunking</strong></td>
+<td>Fixed 512 tokens</td>
+<td>Semantic chunking</td>
+<td>Semantic for quality; fixed as fallback</td>
+</tr>
+<tr>
+<td><strong>Embedding model</strong></td>
+<td>OpenAI (1536-dim)</td>
+<td>Open-source (768-dim)</td>
+<td>Open-source for data privacy; OpenAI for quick start</td>
+</tr>
+<tr>
+<td><strong>ACL enforcement</strong></td>
+<td>Pre-filter in vector DB</td>
+<td>Post-filter</td>
+<td>Post-filter with over-fetch (simpler, safer)</td>
+</tr>
+<tr>
+<td><strong>Retrieval</strong></td>
+<td>Dense only</td>
+<td>Hybrid BM25 + dense</td>
+<td>Hybrid always (5-15% recall improvement)</td>
+</tr>
+<tr>
+<td><strong>Reranker</strong></td>
+<td>Skip</td>
+<td>Cross-encoder</td>
+<td>Cross-encoder (significant quality boost, 100ms cost)</td>
+</tr>
+<tr>
+<td><strong>"Don't know"</strong></td>
+<td>Always answer</td>
+<td>Abstain when uncertain</td>
+<td>Abstain (enterprise users prefer "I don't know" over wrong answers)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>What Google interviewers look for in RAG design:</strong>
+1. "How do you handle access control?" — This separates enterprise RAG from toy RAG
+2. "How do you know the answer is correct?" — Evaluation methodology, faithfulness checking
+3. "What happens when a document is updated?" — Incremental indexing pipeline
+4. "Why not just fine-tune?" — Understanding of when RAG vs fine-tuning is appropriate
+5. "How do you handle multi-turn conversations?" — Query rewriting, context management</p>
+</div>
+<hr />
+<h2 id="hypothetical-interview-transcript">Hypothetical Interview Transcript<a class="headerlink" href="#hypothetical-interview-transcript" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Cloud AI team.</p>
+</div>
+<hr />
+<p><strong>Interviewer:</strong> Design a system that lets employees search their company's internal knowledge base using natural language and get AI-generated answers with citations. Think Glean or Google's internal search.</p>
+<p><strong>Candidate:</strong> Great problem. Let me start with clarifying questions. How many data sources are we integrating? Are we talking about a single company or a multi-tenant platform? What's the access control model — is every document visible to everyone, or are there per-document permissions?</p>
+<p><strong>Interviewer:</strong> Let's say 10–15 data sources — Google Drive, Confluence, Slack, Jira, GitHub. Single company with 100K employees. Per-document access controls with group-based permissions.</p>
+<p><strong>Candidate:</strong> Understood. So roughly 10 million documents, 100K users, maybe 500K queries per day. The access control requirement is critical — this is what separates enterprise RAG from a simple demo.</p>
+<p>Let me outline the two main subsystems: an <strong>ingestion pipeline</strong> that continuously indexes documents, and a <strong>query pipeline</strong> that retrieves and generates answers.</p>
+<p>For ingestion: each data source needs a connector. Some support webhooks (Confluence, Slack), others need periodic polling (some Drive APIs). When a document changes, we extract text — which means different parsers for PDFs, HTML, Markdown, etc. — chunk it into ~512-token segments, generate embeddings, and store them in a vector index. Critically, we also sync the ACL for each document — which groups have access.</p>
+<p>For query: the user submits a natural language question. We run hybrid retrieval — both BM25 for keyword matching and dense retrieval for semantic matching. We fuse the results using Reciprocal Rank Fusion, filter by the user's access groups, re-rank with a cross-encoder, then assemble a prompt with the top chunks and send it to an LLM for answer generation with citations.</p>
+<p><strong>Interviewer:</strong> Let's dig into the retrieval. Why hybrid? Why not just dense retrieval?</p>
+<p><strong>Candidate:</strong> Dense retrieval alone fails on two common enterprise query types.</p>
+<p>First, <strong>exact entity names</strong>. If someone searches for "PROJ-4521 deployment status," dense retrieval might return documents about deployments in general but miss the specific Jira ticket. BM25 will find it because it matches the exact token "PROJ-4521."</p>
+<p>Second, <strong>rare technical terms</strong>. If someone searches for an internal acronym like "GSLB configuration," the embedding model might not have seen this term during training. BM25 handles this naturally.</p>
+<p>Conversely, BM25 alone fails on semantic queries like "how do I request time off?" when the document says "PTO request process." Dense retrieval bridges synonyms.</p>
+<p>Hybrid with RRF gives us the best of both. In my experience, hybrid retrieval improves recall@10 by 10-15% over either method alone.</p>
+<p><strong>Interviewer:</strong> Good. Now, access control. How do you actually enforce it in the retrieval path?</p>
+<p><strong>Candidate:</strong> This is the hardest part of enterprise RAG. There are three approaches:</p>
+<p><strong>Pre-filtering</strong> — encode ACL groups as metadata in the vector index and filter during the ANN search. This is the most efficient but is hard to implement correctly. Not all vector DBs support efficient filtered search, and ACL changes require re-indexing.</p>
+<p><strong>Post-filtering</strong> — retrieve more candidates than needed (say 100 instead of 10), filter by the user's group memberships, then re-rank the survivors. This is simpler to implement and handles ACL changes instantly (just update the ACL store). The risk is low recall if many top candidates are filtered out.</p>
+<p><strong>Hybrid approach</strong> — post-filter with adaptive over-fetch. If a user has access to most documents, fetch 2x. If they have restricted access, fetch 10x. We monitor the "filter ratio" and adjust.</p>
+<p>I'd recommend post-filtering for V1 because it's simpler and ACL changes take effect immediately. For a user with 100K employees where most documents are team-internal, typically 30-50% of candidates survive the ACL filter, so fetching 3-5x is sufficient.</p>
+<p>One critical safety principle: if we're unsure about a document's ACL — say the sync is lagging — we must <strong>fail closed</strong> and deny access. Showing a user a document they shouldn't see is far worse than missing a result.</p>
+<p><strong>Interviewer:</strong> How do you make sure the LLM's answer is actually grounded in the retrieved documents? Hallucination is a big concern.</p>
+<p><strong>Candidate:</strong> Defense in depth, at multiple stages:</p>
+<p><strong>Prompt engineering.</strong> The system prompt explicitly instructs: "Answer ONLY using the provided context. Cite every claim. If you don't have enough information, say so." This is necessary but not sufficient.</p>
+<p><strong>Citation verification.</strong> After the LLM generates an answer, we decompose it into atomic claims — "parental leave is 18 weeks," "it applies to adoptive parents." For each claim, we run an NLI (Natural Language Inference) model to check if the cited source actually entails that claim. If a claim isn't supported, we either remove it or flag it as uncertain.</p>
+<p><strong>Abstention.</strong> If fewer than 2 relevant chunks score above a confidence threshold after re-ranking, we proactively say "I don't have enough information" instead of generating a potentially hallucinated answer. Users prefer honesty over confident wrong answers.</p>
+<p><strong>Continuous evaluation.</strong> We sample 1% of production queries and run them through our evaluation pipeline. We track faithfulness (% of claims grounded in context), answer relevance, and citation accuracy. Any drop below our thresholds triggers an alert.</p>
+<p><strong>Interviewer:</strong> How do you handle document updates? If someone edits a wiki page, how quickly is that reflected?</p>
+<p><strong>Candidate:</strong> Our ingestion pipeline is event-driven. When a wiki page is updated, Confluence sends a webhook. Our connector service receives it, fetches the updated content, re-parses and re-chunks the document, generates new embeddings, and atomically replaces the old chunks in both the vector index and BM25 index.</p>
+<p>The latency breakdown: webhook delivery ~1s, fetch + parse ~2s, chunking ~500ms, embedding generation ~1s (batch of 6 chunks), index update ~500ms. Total: about 5 seconds from edit to searchable.</p>
+<p>For sources that don't support webhooks, we run periodic crawlers — every 5-15 minutes — that check for changes using last-modified timestamps or ETags.</p>
+<p>There's an important consistency question: what if a user queries while an update is in progress? I'd use a versioned approach — the old chunks remain in the index until the new chunks are fully committed. We swap atomically. This means a query might see slightly stale content for a few seconds, but it will never see a partially-indexed document.</p>
+<p><strong>Interviewer:</strong> Last question. How would you evaluate whether this system is actually useful to employees?</p>
+<p><strong>Candidate:</strong> I'd measure at three levels:</p>
+<p><strong>Retrieval quality</strong> — for a golden set of query-document pairs (labeled by human annotators), measure recall@10 and MRR. Target: recall@10 &gt; 85%. We'd build this golden set by sampling real queries and having domain experts identify the correct source documents.</p>
+<p><strong>Answer quality</strong> — faithfulness (are claims grounded?), relevance (does it address the query?), and citation accuracy. We'd use a combination of NLI models and LLM-as-judge scoring on a daily sample. Target: faithfulness &gt; 95%.</p>
+<p><strong>User satisfaction</strong> — thumbs up/down on answers (target: &gt; 70% thumbs up), click-through rate on citations (are users actually checking sources?), and repeat usage rate (are people coming back?).</p>
+<p><strong>Knowledge gap detection</strong> — queries where we return "I don't know" are gold. They tell us which documents are missing from the knowledge base. I'd surface a weekly report to knowledge managers: "These 50 questions were asked but couldn't be answered. Consider creating documentation for these topics."</p>
+<p><strong>Interviewer:</strong> Great depth, especially on the ACL enforcement and evaluation. That's a wrap.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../llm_chatbot/" class="md-footer__link md-footer__link--prev" aria-label="Previous: LLM-Powered Chatbot">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                LLM-Powered Chatbot
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../ai_code_assistant/" class="md-footer__link md-footer__link--next" aria-label="Next: AI Code Assistant">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                AI Code Assistant
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

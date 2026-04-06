@@ -1,0 +1,3204 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/">
+      
+      
+      
+        <link rel="next" href="basics/">
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/css/theme.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#system-design-interview-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#who-is-this-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      Who Is This For?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-learning-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Learning Paths
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Learning Paths">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-1-software-system-design-sde-senior-sde" class="md-nav__link">
+    <span class="md-ellipsis">
+      Path 1: Software System Design (SDE / Senior SDE)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-2-ml-system-design-ml-engineer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Path 2: ML System Design (ML Engineer)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-3-genai-system-design-genai-llm-engineer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Path 3: GenAI System Design (GenAI / LLM Engineer)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-4-staff-engineer-l6-all-domains" class="md-nav__link">
+    <span class="md-ellipsis">
+      Path 4: Staff Engineer (L6) — All Domains
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-inside" class="md-nav__link">
+    <span class="md-ellipsis">
+      What's Inside
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What's Inside">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fundamentals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Topics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staff-engineer-l6-interview-track" class="md-nav__link">
+    <span class="md-ellipsis">
+      Staff Engineer (L6) Interview Track
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-design-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Design Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genaiml-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      GenAI/ML Fundamentals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ml-system-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      ML System Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genai-system-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      GenAI System Design
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-this-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Use This Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Use This Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#if-you-have-1-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      If You Have 1 Week
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-you-have-1-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      If You Have 1 Month
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-your-interview" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Your Interview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contributing
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="software_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="software_system_design/content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="system-design-interview-guide">System Design Interview Guide<a class="headerlink" href="#system-design-interview-guide" title="Permanent link">&para;</a></h1>
+<p>Your comprehensive resource for mastering system design interviews — 75+ topics across software engineering, ML, and GenAI, with step-by-step walkthroughs, architecture diagrams, code examples, and interview transcripts.</p>
+<hr />
+<h2 id="who-is-this-for">Who Is This For?<a class="headerlink" href="#who-is-this-for" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>You Are</th>
+<th>Start Here</th>
+<th>You'll Learn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Staff / L6 Engineer</strong> targeting Google, Meta</td>
+<td><a href="#staff-engineer-l6-interview-track">Staff Engineer Track</a></td>
+<td>Multi-region architecture, SLOs, consensus, leadership signals</td>
+</tr>
+<tr>
+<td><strong>Senior SDE</strong> preparing for FAANG</td>
+<td><a href="#fundamentals">Fundamentals</a> → <a href="#system-design-examples">System Design</a></td>
+<td>Core system design patterns and trade-offs</td>
+</tr>
+<tr>
+<td><strong>ML/AI Engineer</strong> designing production systems</td>
+<td><a href="#genaiml-fundamentals">GenAI/ML Fundamentals</a> → <a href="#ml-system-design">ML Design</a></td>
+<td>ML-specific architectures and serving patterns</td>
+</tr>
+<tr>
+<td><strong>GenAI Engineer</strong> building LLM-powered products</td>
+<td><a href="#genaiml-fundamentals">GenAI/ML Fundamentals</a> → <a href="#genai-system-design">GenAI Design</a></td>
+<td>LLM serving, RAG, agents, safety at scale</td>
+</tr>
+<tr>
+<td><strong>Student / Junior Dev</strong> wanting to level up</td>
+<td><a href="#fundamentals">Fundamentals</a></td>
+<td>Foundational concepts with clear explanations</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recommended-learning-paths">Recommended Learning Paths<a class="headerlink" href="#recommended-learning-paths" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Follow these paths in order. Each builds on the previous. Skip sections you're already confident in.</p>
+</div>
+<h3 id="path-1-software-system-design-sde-senior-sde">Path 1: Software System Design (SDE / Senior SDE)<a class="headerlink" href="#path-1-software-system-design-sde-senior-sde" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Week 1-2: Fundamentals
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  Interview Framework → Estimation → Networking → Databases → Caching → Load Balancing
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Week 3-4: Core Design Problems
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  URL Shortener → Rate Limiter → Key-Value Store → Distributed Cache → Chat System
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Week 5-6: Complex Systems
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  News Feed → Video Streaming → Collaborative Editor → Payment System → Message Queue
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>Week 7-8: Advanced Topics + Practice
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  Consensus → Distributed Transactions → Sharding → Event Sourcing → Mock interviews
+</span></code></pre></div>
+<h3 id="path-2-ml-system-design-ml-engineer">Path 2: ML System Design (ML Engineer)<a class="headerlink" href="#path-2-ml-system-design-ml-engineer" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Week 1-2: Software Fundamentals (abbreviated)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Databases → Caching → Distributed Systems → Message Queues
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Week 3-4: ML Fundamentals
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  Model Serving → Feature Stores → Data Pipelines → Distributed Training → LLM Evaluation → RLHF &amp; Alignment
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Week 5-6: ML Design Problems
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  Recommendation System → Fraud Detection → Search Ranking → Ads Ranking → Machine Translation
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Week 7-8: Practice
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  Image Search → Real-time Personalization → Speech Recognition → Feature Platform → Mock interviews
+</span></code></pre></div>
+<h3 id="path-3-genai-system-design-genai-llm-engineer">Path 3: GenAI System Design (GenAI / LLM Engineer)<a class="headerlink" href="#path-3-genai-system-design-genai-llm-engineer" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Week 1-2: Foundations
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  Distributed Systems → ML Fundamentals (Model Serving, Feature Stores)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  LLM Systems (RAG, fine-tuning, vector DBs) → Distributed Training → LLM Evaluation → RLHF &amp; Alignment
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Week 3-4: GenAI Design Problems
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  LLM Chatbot → Enterprise RAG → AI Code Assistant → LLM Gateway
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>Week 5-6: Advanced GenAI
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  AI Agent System → Content Moderation → Text-to-Image → Multi-Modal Search
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>Week 7-8: Infrastructure + Practice
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>  ML Training Platform → Mock interviews with interview transcripts
+</span></code></pre></div>
+<h3 id="path-4-staff-engineer-l6-all-domains">Path 4: Staff Engineer (L6) — All Domains<a class="headerlink" href="#path-4-staff-engineer-l6-all-domains" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Week 1-2: Master Fundamentals + Advanced
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  All Basics → Consensus → Distributed Transactions → Sharding → Observability
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>Week 3-4: Priority Designs (deep)
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  Key-Value Store → Rate Limiter → Collaborative Editor → Task Scheduler → Payment System
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Week 5-6: ML/GenAI Depth
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  LLM Chatbot → Enterprise RAG → ML Training Platform → Ads Ranking
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>Week 7-8: Leadership + Practice
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>  Staff Engineer Guide → Behavioral &amp; Leadership → Read interview transcripts → Mock interviews
+</span></code></pre></div>
+<hr />
+<h2 id="whats-inside">What's Inside<a class="headerlink" href="#whats-inside" title="Permanent link">&para;</a></h2>
+<h3 id="fundamentals"><a href="basics/">Fundamentals</a><a class="headerlink" href="#fundamentals" title="Permanent link">&para;</a></h3>
+<p>Start here. The building blocks that appear in every system design interview.</p>
+<ul>
+<li><a href="basics/interview_framework/"><strong>Interview Framework</strong></a> - How to approach any system design question</li>
+<li><a href="basics/estimation/"><strong>Estimation &amp; Planning</strong></a> - Back-of-the-envelope calculations</li>
+<li><a href="basics/networking/"><strong>Networking</strong></a> - TCP/UDP, HTTP, DNS, WebSockets</li>
+<li><a href="basics/databases/"><strong>Databases</strong></a> - SQL vs NoSQL, ACID, CAP theorem</li>
+<li><a href="basics/caching/"><strong>Caching</strong></a> - Speed up reads with in-memory storage</li>
+<li><a href="basics/load_balancer/"><strong>Load Balancing</strong></a> - Distribute traffic across servers</li>
+<li><a href="basics/api_design/"><strong>API Design</strong></a> - REST, GraphQL, versioning, authentication</li>
+<li><a href="basics/concurrency/"><strong>Concurrency</strong></a> - Threads, locks, async patterns</li>
+<li><a href="basics/security/"><strong>Security</strong></a> - Encryption, hashing, TLS, common vulnerabilities</li>
+<li><a href="basics/scalability/"><strong>Scalability &amp; Reliability</strong></a> - Scaling, availability, disaster recovery</li>
+<li><a href="basics/distributed_systems/"><strong>Distributed Systems</strong></a> - CAP, consensus, message queues, DHTs</li>
+</ul>
+<h3 id="advanced-topics"><a href="advanced/">Advanced Topics</a><a class="headerlink" href="#advanced-topics" title="Permanent link">&para;</a></h3>
+<p>Deep dives for Senior and Staff-level interviews.</p>
+<ul>
+<li><a href="advanced/message_queues/"><strong>Message Queues &amp; Streaming</strong></a> - Kafka, RabbitMQ, Flink, event-driven patterns</li>
+<li><a href="advanced/search_systems/"><strong>Search Systems</strong></a> - Inverted indexes, Elasticsearch, BM25</li>
+<li><a href="advanced/consistency_patterns/"><strong>Consistency Patterns</strong></a> - CRDTs, sagas, transactional outbox, quorum</li>
+<li><a href="advanced/microservices/"><strong>Microservices Architecture</strong></a> - Service discovery, API gateways, Kubernetes</li>
+<li><a href="advanced/data_warehousing/"><strong>Data Warehousing &amp; Lakes</strong></a> - ETL, star schema, Spark, lakehouse</li>
+<li><a href="advanced/object_storage_cdn/"><strong>Object Storage &amp; CDN</strong></a> - S3, blob storage, edge caching</li>
+<li><a href="advanced/distributed_locking/"><strong>Distributed Locking</strong></a> - Redlock, fencing tokens, ZooKeeper</li>
+<li><a href="advanced/observability/"><strong>Observability</strong></a> - Logging, metrics, tracing, OpenTelemetry</li>
+<li><a href="advanced/event_sourcing_cqrs/"><strong>Event Sourcing &amp; CQRS</strong></a> - Append-only logs, projections</li>
+<li><a href="advanced/consensus_algorithms/"><strong>Consensus Algorithms</strong></a> - Raft, Paxos, leader election</li>
+<li><a href="advanced/distributed_transactions/"><strong>Distributed Transactions</strong></a> - 2PC, Saga, transactional outbox</li>
+<li><a href="advanced/sharding_partitioning/"><strong>Sharding &amp; Partitioning</strong></a> - Partition keys, hot spots, resharding</li>
+<li><a href="advanced/behavioral_leadership/"><strong>Behavioral &amp; Leadership (L6)</strong></a> - STAR for Staff, conflict resolution</li>
+</ul>
+<h3 id="staff-engineer-l6-interview-track">Staff Engineer (L6) Interview Track<a class="headerlink" href="#staff-engineer-l6-interview-track" title="Permanent link">&para;</a></h3>
+<p>Targeting Google, Meta, or other top companies at the <strong>Staff / Principal / L6</strong> level?</p>
+<ul>
+<li><a href="software_system_design/staff_engineer_expectations/"><strong>Staff Engineer Interview Guide</strong></a> - L5 vs L6 expectations, 5 pillars, anti-patterns</li>
+<li><strong>Priority designs:</strong> <a href="software_system_design/key_value_store/">Key-Value Store</a>, <a href="software_system_design/rate_limiter/">Rate Limiter</a>, <a href="software_system_design/collaborative_editor/">Collaborative Editor</a>, <a href="software_system_design/task_scheduler/">Task Scheduler</a>, <a href="software_system_design/notification_system/">Notification System</a></li>
+<li><strong>Advanced foundations:</strong> <a href="advanced/consensus_algorithms/">Consensus</a>, <a href="advanced/distributed_transactions/">Distributed Transactions</a>, <a href="advanced/sharding_partitioning/">Sharding</a></li>
+<li><strong>Leadership round:</strong> <a href="advanced/behavioral_leadership/">Behavioral &amp; Leadership Guide</a></li>
+</ul>
+<h3 id="system-design-examples"><a href="software_system_design/">System Design Examples</a><a class="headerlink" href="#system-design-examples" title="Permanent link">&para;</a></h3>
+<p>Step-by-step walkthroughs of classic interview questions — 28 designs.</p>
+<p><strong>Infrastructure &amp; Data:</strong></p>
+<ul>
+<li><a href="software_system_design/url_shortening/"><strong>URL Shortener</strong></a> - Hashing, Base62, distributed IDs</li>
+<li><a href="software_system_design/rate_limiter/"><strong>Rate Limiter</strong></a> - Token bucket, sliding window, Redis</li>
+<li><a href="software_system_design/key_value_store/"><strong>Key-Value Store</strong></a> - Consistent hashing, quorum, vector clocks</li>
+<li><a href="software_system_design/distributed_cache/"><strong>Distributed Cache</strong></a> - LRU, hot keys, stampede mitigation</li>
+<li><a href="software_system_design/message_queue/"><strong>Distributed Message Queue</strong></a> - Append-only log, partitions, consumer groups</li>
+<li><a href="software_system_design/task_scheduler/"><strong>Task Scheduler</strong></a> - Priority queues, lease-based execution</li>
+<li><a href="software_system_design/metrics_monitoring/"><strong>Metrics &amp; Monitoring</strong></a> - Time-series storage, alerting, Gorilla compression</li>
+</ul>
+<p><strong>Communication &amp; Social:</strong></p>
+<ul>
+<li><a href="software_system_design/chat_system/"><strong>Chat System</strong></a> - WebSockets, message ordering, presence</li>
+<li><a href="software_system_design/notification_system/"><strong>Notification System</strong></a> - Multi-channel, push vs pull</li>
+<li><a href="software_system_design/news_feed/"><strong>News Feed / Timeline</strong></a> - Fan-out strategies, ranking</li>
+<li><a href="software_system_design/voting-system-design/"><strong>Voting System</strong></a> - Consistency, duplicate prevention</li>
+<li><a href="software_system_design/email_delivery/"><strong>Email Delivery System</strong></a> - SMTP, DKIM/SPF, IP reputation, deliverability</li>
+</ul>
+<p><strong>Media &amp; Content:</strong></p>
+<ul>
+<li><a href="software_system_design/video_streaming/"><strong>Video Streaming (YouTube)</strong></a> - CDN, transcoding, adaptive bitrate</li>
+<li><a href="software_system_design/photo_sharing/"><strong>Photo Sharing (Instagram)</strong></a> - Object storage, feed, stories</li>
+<li><a href="software_system_design/cloud_storage/"><strong>Cloud Storage (Google Drive)</strong></a> - File sync, chunking, dedup</li>
+</ul>
+<p><strong>Real-time &amp; Geo:</strong></p>
+<ul>
+<li><a href="software_system_design/collaborative_editor/"><strong>Collaborative Editor (Google Docs)</strong></a> - OT/CRDTs, conflict resolution</li>
+<li><a href="software_system_design/ride_sharing/"><strong>Ride Sharing (Uber/Lyft)</strong></a> - Geospatial matching, tracking</li>
+<li><a href="software_system_design/proximity_service/"><strong>Proximity Service</strong></a> - Geohash, quadtree</li>
+</ul>
+<p><strong>Commerce:</strong></p>
+<ul>
+<li><a href="software_system_design/event_booking/"><strong>Event Booking (Ticketmaster)</strong></a> - Inventory locking, flash crowds</li>
+<li><a href="software_system_design/payment_system/"><strong>Payment System</strong></a> - Idempotency, double-entry ledger</li>
+</ul>
+<p><strong>Data Infrastructure:</strong></p>
+<ul>
+<li><a href="software_system_design/distributed_file_system/"><strong>Distributed File System (GFS)</strong></a> - Master-chunk architecture, replication, leases</li>
+<li><a href="software_system_design/ad_click_aggregator/"><strong>Ad Click Aggregator</strong></a> - Real-time aggregation, exactly-once, Flink/Kafka</li>
+</ul>
+<p><strong>Search:</strong></p>
+<ul>
+<li><a href="software_system_design/web_crawler/"><strong>Web Crawler</strong></a> - Concurrency, politeness, dedup</li>
+<li><a href="software_system_design/search_autocomplete/"><strong>Search Autocomplete</strong></a> - Trie, ranking, caching</li>
+</ul>
+<h3 id="genaiml-fundamentals"><a href="genai_ml_basics/">GenAI/ML Fundamentals</a><a class="headerlink" href="#genaiml-fundamentals" title="Permanent link">&para;</a></h3>
+<p>Core building blocks — master these before ML and GenAI design questions. 7 topics.</p>
+<ul>
+<li><a href="genai_ml_basics/model_serving/"><strong>Model Serving</strong></a> - Inference APIs, versioning, A/B testing, drift detection</li>
+<li><a href="genai_ml_basics/feature_stores/"><strong>Feature Stores</strong></a> - Train-serve consistency, point-in-time joins, Feast</li>
+<li><a href="genai_ml_basics/data_pipelines/"><strong>Data Pipelines for ML</strong></a> - Ingestion, validation, Airflow orchestration</li>
+<li><a href="genai_ml_basics/llm_systems/"><strong>Large Language Models</strong></a> - RAG, prompt engineering, fine-tuning, vector DBs</li>
+<li><a href="genai_ml_basics/distributed_training/"><strong>Distributed Training</strong></a> - Data/model/pipeline parallelism, DeepSpeed, ZeRO</li>
+<li><a href="genai_ml_basics/llm_evaluation/"><strong>LLM Evaluation</strong></a> - BLEU/ROUGE/BERTScore, LLM-as-judge, benchmarks, RAGAS</li>
+<li><a href="genai_ml_basics/rlhf_alignment/"><strong>RLHF &amp; Alignment</strong></a> - PPO, DPO, Constitutional AI, safety alignment</li>
+</ul>
+<h3 id="ml-system-design"><a href="ml_system_design/">ML System Design</a><a class="headerlink" href="#ml-system-design" title="Permanent link">&para;</a></h3>
+<p>Production ML systems — 10 designs covering ranking, retrieval, personalization, NLP, and feature infrastructure.</p>
+<ul>
+<li><a href="ml_system_design/recommendation_system/"><strong>Recommendation System</strong></a> - Collaborative filtering, Two-Tower, cold start</li>
+<li><a href="ml_system_design/fraud_detection/"><strong>Fraud Detection</strong></a> - Real-time ML, class imbalance, velocity features</li>
+<li><a href="ml_system_design/image_search/"><strong>Image Search</strong></a> - CLIP embeddings, FAISS, ANN indexes</li>
+<li><a href="ml_system_design/image_caption_generator/"><strong>Image Caption Generator</strong></a> - Encoder-decoder, attention, Triton</li>
+<li><a href="ml_system_design/search_ranking/"><strong>Search Ranking</strong></a> - BM25, LambdaMART, NDCG, retrieval + ranking</li>
+<li><a href="ml_system_design/realtime_personalization/"><strong>Real-time Personalization</strong></a> - Session models, contextual bandits</li>
+<li><a href="ml_system_design/ads_ranking/"><strong>Ads Ranking System</strong></a> - CTR prediction, auction mechanics, budget pacing</li>
+<li><a href="ml_system_design/feature_platform/"><strong>Real-time Feature Platform</strong></a> - Streaming features, PIT joins, train-serve consistency</li>
+<li><a href="ml_system_design/machine_translation/"><strong>Machine Translation</strong></a> - Transformer, multilingual NMT, quality estimation, low-resource</li>
+<li><a href="ml_system_design/speech_recognition/"><strong>Speech Recognition</strong></a> - CTC/RNN-T, streaming ASR, speaker diarization, Whisper</li>
+</ul>
+<h3 id="genai-system-design"><a href="genai_ml_system_design/">GenAI System Design</a><a class="headerlink" href="#genai-system-design" title="Permanent link">&para;</a></h3>
+<p>Production GenAI systems — 10 designs with Google-style interview transcripts.</p>
+<ul>
+<li><a href="genai_ml_system_design/llm_chatbot/"><strong>LLM-Powered Chatbot</strong></a> - KV-cache, PagedAttention, streaming, safety</li>
+<li><a href="genai_ml_system_design/enterprise_rag/"><strong>Enterprise RAG System</strong></a> - Chunking, hybrid retrieval, ACLs, citations</li>
+<li><a href="genai_ml_system_design/ai_code_assistant/"><strong>AI Code Assistant</strong></a> - FIM, speculative decoding, repo context</li>
+<li><a href="genai_ml_system_design/content_moderation/"><strong>LLM Content Moderation</strong></a> - Cascade architecture, adversarial robustness</li>
+<li><a href="genai_ml_system_design/ml_training_platform/"><strong>ML Training Platform</strong></a> - Gang scheduling, checkpointing, GPU clusters</li>
+<li><a href="genai_ml_system_design/multimodal_search/"><strong>Multi-Modal Search</strong></a> - CLIP embeddings, cross-modal retrieval</li>
+<li><a href="genai_ml_system_design/ai_agent_system/"><strong>AI Agent System</strong></a> - ReAct, tool use, planning, memory, multi-agent</li>
+<li><a href="genai_ml_system_design/llm_gateway/"><strong>LLM Gateway</strong></a> - Multi-model routing, semantic caching, cost control</li>
+<li><a href="genai_ml_system_design/text_to_image/"><strong>Text-to-Image Generation</strong></a> - Diffusion models, latent space, safety, CFG</li>
+<li><a href="genai_ml_system_design/vector_database/"><strong>Vector Database</strong></a> - HNSW, IVF-PQ, hybrid search, billion-scale ANN</li>
+</ul>
+<hr />
+<h2 id="how-to-use-this-guide">How to Use This Guide<a class="headerlink" href="#how-to-use-this-guide" title="Permanent link">&para;</a></h2>
+<h3 id="if-you-have-1-week">If You Have 1 Week<a class="headerlink" href="#if-you-have-1-week" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Read <a href="basics/interview_framework/">Interview Framework</a> — know the 4-step approach</li>
+<li>Study <a href="software_system_design/url_shortening/">URL Shortener</a> and <a href="software_system_design/rate_limiter/">Rate Limiter</a></li>
+<li>For ML roles: add <a href="ml_system_design/recommendation_system/">Recommendation System</a></li>
+<li>For GenAI roles: add <a href="genai_ml_system_design/llm_chatbot/">LLM Chatbot</a> — read the interview transcript</li>
+<li>Practice explaining designs out loud</li>
+</ol>
+<h3 id="if-you-have-1-month">If You Have 1 Month<a class="headerlink" href="#if-you-have-1-month" title="Permanent link">&para;</a></h3>
+<p>Follow the <a href="#recommended-learning-paths">Learning Path</a> for your target role above.</p>
+<h3 id="during-your-interview">During Your Interview<a class="headerlink" href="#during-your-interview" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Clarify requirements</strong> (5 min) — Don't assume!</li>
+<li><strong>High-level design</strong> (10 min) — Draw the big picture</li>
+<li><strong>Deep dive</strong> (15 min) — Focus on 2-3 components</li>
+<li><strong>Wrap up</strong> (5 min) — Discuss trade-offs and improvements</li>
+</ol>
+<hr />
+<h2 id="key-tips">Key Tips<a class="headerlink" href="#key-tips" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Always ask clarifying questions.</strong> The interviewer wants to see how you think, not just what you know.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Draw diagrams.</strong> A picture is worth a thousand words in system design.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Don't jump to solutions.</strong> Understand the problem before proposing architecture.</p>
+</div>
+<hr />
+<h2 id="content-overview">Content Overview<a class="headerlink" href="#content-overview" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Topics</th>
+<th>Difficulty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fundamentals</strong></td>
+<td>11 essential topics</td>
+<td>Beginner-Advanced</td>
+</tr>
+<tr>
+<td><strong>Advanced Topics</strong></td>
+<td>13 deep-dive topics (incl. L6 track)</td>
+<td>Advanced-Expert</td>
+</tr>
+<tr>
+<td><strong>System Design Examples</strong></td>
+<td>28 classic problems (incl. Staff Guide)</td>
+<td>Intermediate-Hard</td>
+</tr>
+<tr>
+<td><strong>GenAI/ML Fundamentals</strong></td>
+<td>7 ML/GenAI building blocks</td>
+<td>Medium-Hard</td>
+</tr>
+<tr>
+<td><strong>ML System Design</strong></td>
+<td>10 ML systems</td>
+<td>Hard</td>
+</tr>
+<tr>
+<td><strong>GenAI System Design</strong></td>
+<td>10 GenAI systems (with interview transcripts)</td>
+<td>Very Hard</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>79</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<p>Found an error? Want to add a new design? Contributions are welcome! Open an issue or submit a pull request on GitHub.</p>
+<hr />
+<div align="center">
+
+**Good luck with your interviews!**
+
+*Remember: The goal isn't to give a "perfect" answer. It's to demonstrate clear thinking and good engineering judgment.*
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+        
+          
+          <a href="basics/" class="md-footer__link md-footer__link--next" aria-label="Next: Fundamentals">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Fundamentals
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

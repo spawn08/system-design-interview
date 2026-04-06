@@ -1,0 +1,3575 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/advanced/object_storage_cdn/">
+      
+      
+        <link rel="prev" href="../consistency_patterns/">
+      
+      
+        <link rel="next" href="../distributed_locking/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Object Storage & CDN - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#object-storage-cdn" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Object Storage & CDN
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-object-storage-and-cdns-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Object Storage and CDNs Matter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-storage-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Storage Fundamentals
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Storage Fundamentals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-object-storage-vs-block-vs-file-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is object storage vs block vs file storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s3-compatible-apis-buckets-keys-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      S3-compatible APIs, buckets, keys, metadata
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consistency-model-eventual-vs-strong-read-after-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      Consistency model (eventual vs strong read-after-write)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-part-uploads-for-large-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-part uploads for large files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-policies-storage-classes-hotwarmcold" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lifecycle policies, storage classes (hot/warm/cold)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content-delivery-networks-cdn" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Delivery Networks (CDN)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Content Delivery Networks (CDN)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-cdns-work-edge-locations-pops-origin-pull-vs-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      How CDNs work: edge locations, PoPs, origin pull vs push
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cache-invalidation-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cache invalidation strategies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ttl-and-cache-headers-cache-control-etag-last-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      TTL and cache headers (Cache-Control, ETag, Last-Modified)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#geo-routing-and-anycast" class="md-nav__link">
+    <span class="md-ellipsis">
+      Geo-routing and anycast
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-signed-urls-and-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-signed URLs and Access Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pre-signed URLs and Access Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#temporary-access-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      Temporary access tokens
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bucket-policies-iam-roles-cors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bucket policies, IAM roles, CORS
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cdn-architecture-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      CDN Architecture Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CDN Architecture Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#static-asset-serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      Static asset serving
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-hlsdash-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video streaming (HLS/DASH segments)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-response-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      API response caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-compute-lambdaedge-cloudflare-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Edge compute (Lambda@Edge, Cloudflare Workers)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-considerations-for-interviews" class="md-nav__link">
+    <span class="md-ellipsis">
+      Design Considerations for Interviews
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Design Considerations for Interviews">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cost-optimization-storage-tiers-cdn-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost optimization (storage tiers, CDN costs)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-region-replication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-region replication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versioning-and-immutability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning and immutability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-decision-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Decision Framework
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-download-and-presigned-urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload, download, and presigned URLs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further Reading
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick interview checklist
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../software_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="object-storage-cdn">Object Storage &amp; CDN<a class="headerlink" href="#object-storage-cdn" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="why-object-storage-and-cdns-matter">Why Object Storage and CDNs Matter<a class="headerlink" href="#why-object-storage-and-cdns-matter" title="Permanent link">&para;</a></h2>
+<p>Object storage and content delivery networks are the default backbone for <strong>media-heavy</strong> and <strong>globally distributed</strong> systems. In interviews, designs for image feeds, video platforms, document vaults, software distribution, and static web hosting almost always route through blob storage plus a CDN.</p>
+<p>Together they solve three problems at scale:</p>
+<ol>
+<li><strong>Durable, cheap bulk storage</strong> without managing filesystems or block devices per server.</li>
+<li><strong>High read bandwidth</strong> close to users, offloading origin services and databases.</li>
+<li><strong>Controlled access</strong> via time-limited URLs and policy-driven authorization instead of exposing internal networks.</li>
+</ol>
+<p>If you can articulate when data belongs in object storage versus a database or a POSIX filesystem, how edge caching behaves, and how to invalidate or version content safely, you demonstrate production awareness beyond “store files in S3.”</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In Staff-level discussions, tie choices to <strong>cost</strong> (egress, request charges, storage class), <strong>consistency</strong> (read-after-write for uploads), and <strong>operational blast radius</strong> (bad cache TTL vs leaked presigned URL).</p>
+</div>
+<hr />
+<h2 id="object-storage-fundamentals">Object Storage Fundamentals<a class="headerlink" href="#object-storage-fundamentals" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-object-storage-vs-block-vs-file-storage">What is object storage vs block vs file storage<a class="headerlink" href="#what-is-object-storage-vs-block-vs-file-storage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Unit</th>
+<th>Typical use</th>
+<th>Mutability</th>
+<th>Interface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Block</strong></td>
+<td>Fixed-size blocks (e.g. 4 KiB)</td>
+<td>VM disks, databases on SAN</td>
+<td>In-place overwrite</td>
+<td>SCSI, NVMe, iSCSI</td>
+</tr>
+<tr>
+<td><strong>File</strong></td>
+<td>Hierarchical paths, directories</td>
+<td>Shared drives, app servers</td>
+<td>In-place overwrite, locks</td>
+<td>NFS, SMB</td>
+</tr>
+<tr>
+<td><strong>Object</strong></td>
+<td>Flat namespace of <code>(bucket, key)</code> blobs</td>
+<td>Media, backups, logs, static sites</td>
+<td>Replace whole object or version</td>
+<td>HTTP REST (S3 API)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Object storage</strong> exposes a simple key-value model at massive scale: you upload bytes with a key; you retrieve by key. There is no partial random-write API like a block device; updates are typically <strong>whole-object PUT</strong> or multipart completion. Directories are simulated via <strong>key prefixes</strong> (<code>user/123/avatar.jpg</code>), not true filesystem semantics.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Interviewers often probe whether you understand that <strong>listing by prefix</strong> and <strong>strong consistency of listing</strong> are separate concerns from single-key GET semantics on some providers.</p>
+</div>
+<h3 id="s3-compatible-apis-buckets-keys-metadata">S3-compatible APIs, buckets, keys, metadata<a class="headerlink" href="#s3-compatible-apis-buckets-keys-metadata" title="Permanent link">&para;</a></h3>
+<p>Most cloud object stores follow Amazon S3’s semantics:</p>
+<ul>
+<li><strong>Bucket</strong>: A container for objects, usually in one <strong>region</strong>, with its own namespace and configuration (versioning, encryption default, lifecycle).</li>
+<li><strong>Key</strong>: UTF-8 string identifying the object within the bucket. Keys can contain <code>/</code> to mimic folders.</li>
+<li><strong>Object metadata</strong>:</li>
+<li><strong>System metadata</strong>: <code>Content-Type</code>, <code>Content-Length</code>, <code>ETag</code>, server-side encryption headers.</li>
+<li><strong>User metadata</strong>: <code>x-amz-meta-*</code> custom key/value pairs (size limits apply).</li>
+</ul>
+<p>S3-compatible APIs include <strong>AWS S3</strong>, <strong>MinIO</strong>, <strong>Cloudflare R2</strong>, <strong>Google Cloud Storage</strong> (S3 interoperability), <strong>Azure Blob</strong> (similar concepts with different names).</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph API["S3-style HTTP API"]
+        PUT[PUT Object]
+        GET[GET Object]
+        LIST[ListObjectsV2]
+        MPU[CreateMultipartUpload / UploadPart / CompleteMultipartUpload]
+    end
+
+    subgraph Bucket["Bucket: my-app-media"]
+        K1["Key: users/42/profile.jpg"]
+        K2["Key: videos/99/segment_001.ts"]
+    end
+
+    PUT --&gt; K1
+    GET --&gt; K1
+    MPU --&gt; K2
+    LIST --&gt; Bucket</code></pre>
+<h3 id="consistency-model-eventual-vs-strong-read-after-write">Consistency model (eventual vs strong read-after-write)<a class="headerlink" href="#consistency-model-eventual-vs-strong-read-after-write" title="Permanent link">&para;</a></h3>
+<p>Object stores are often described as <strong>eventually consistent</strong> for <strong>list</strong> operations and <strong>delete markers</strong> in versioned buckets, while <strong>single-key GET</strong> after a successful <strong>PUT</strong> of a new object often provides <strong>read-after-write consistency</strong> for that key in many regions (provider-specific).</p>
+<p>You should be ready to say in an interview:</p>
+<ul>
+<li>After a successful upload, serving the same URL should return the new bytes (subject to CDN caching — see CDN section).</li>
+<li><strong>Cross-region replication</strong> may lag; readers in another region might see old data until replication completes.</li>
+<li><strong>Versioning</strong> exposes multiple object versions under one key; listing versions is a separate API from GET latest.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not assume <strong>strong consistency</strong> for all operations across all vendors. Always qualify with “check the provider’s guarantees for LIST, HEAD, and replication lag.”</p>
+</div>
+<h3 id="multi-part-uploads-for-large-files">Multi-part uploads for large files<a class="headerlink" href="#multi-part-uploads-for-large-files" title="Permanent link">&para;</a></h3>
+<p>Large objects are uploaded in <strong>parts</strong> (typically 5 MiB–5 GiB per part, minimum part size rules apply):</p>
+<ol>
+<li><code>CreateMultipartUpload</code> returns an <code>uploadId</code>.</li>
+<li>Client uploads parts in parallel with <code>UploadPart</code> (each part gets an <code>ETag</code>).</li>
+<li><code>CompleteMultipartUpload</code> commits the manifest; object becomes visible as one key.</li>
+</ol>
+<p>Benefits: <strong>parallelism</strong>, <strong>retry per part</strong>, <strong>checkpointing</strong> for flaky networks. Failure to complete leaves <strong>orphaned parts</strong>; lifecycle rules can abort incomplete uploads after N days.</p>
+<h3 id="lifecycle-policies-storage-classes-hotwarmcold">Lifecycle policies, storage classes (hot/warm/cold)<a class="headerlink" href="#lifecycle-policies-storage-classes-hotwarmcold" title="Permanent link">&para;</a></h3>
+<p><strong>Storage classes</strong> trade cost vs latency and retrieval time:</p>
+<table>
+<thead>
+<tr>
+<th>Class (example names)</th>
+<th>Access pattern</th>
+<th>Retrieval</th>
+<th>Cost profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard / hot</strong></td>
+<td>Frequent</td>
+<td>Milliseconds</td>
+<td>Higher storage, lower access charge</td>
+</tr>
+<tr>
+<td><strong>Infrequent / warm</strong></td>
+<td>Monthly access</td>
+<td>Milliseconds</td>
+<td>Lower storage, per-GB retrieval fee</td>
+</tr>
+<tr>
+<td><strong>Archive / cold / glacier</strong></td>
+<td>Rare, minutes–hours acceptable</td>
+<td>Async restore job</td>
+<td>Lowest storage, highest restore cost/time</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lifecycle policies</strong> automate transitions: e.g. move objects to Infrequent after 30 days, to Glacier after 180 days, <strong>expire</strong> old logs after 90 days, <strong>abort incomplete multipart uploads</strong> after 7 days.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, mention <strong>minimum storage duration</strong> charges for infrequent tiers — moving data in and out has economic consequences, not just technical ones.</p>
+</div>
+<hr />
+<h2 id="content-delivery-networks-cdn">Content Delivery Networks (CDN)<a class="headerlink" href="#content-delivery-networks-cdn" title="Permanent link">&para;</a></h2>
+<h3 id="how-cdns-work-edge-locations-pops-origin-pull-vs-push">How CDNs work: edge locations, PoPs, origin pull vs push<a class="headerlink" href="#how-cdns-work-edge-locations-pops-origin-pull-vs-push" title="Permanent link">&para;</a></h3>
+<p>A <strong>CDN</strong> is a distributed network of <strong>Points of Presence (PoPs)</strong> with <strong>edge caches</strong> that store copies of content closer to end users.</p>
+<pre class="mermaid"><code>flowchart LR
+    U[User] --&gt;|DNS / HTTP| EDGE[Edge PoP]
+    EDGE --&gt;|cache HIT| U
+    EDGE --&gt;|cache MISS| ORIGIN[Origin&lt;br/&gt;Object store or app]
+    ORIGIN --&gt; EDGE</code></pre>
+<ul>
+<li><strong>Origin pull</strong>: On a cache miss, the edge fetches from origin (S3, app server), stores per TTL, then serves subsequent requests.</li>
+<li><strong>Origin push</strong> (less common wording): You <strong>upload</strong> assets directly to the CDN or storage integrated with CDN so edges are populated without your app acting as origin for every first request — often combined with <strong>storage + CDN</strong> products.</li>
+</ul>
+<p><strong>Shield / mid-tier caches</strong> (provider-dependent) may sit between edge and origin to collapse duplicate origin fetches.</p>
+<h3 id="cache-invalidation-strategies">Cache invalidation strategies<a class="headerlink" href="#cache-invalidation-strategies" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>When to use</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TTL-only</strong></td>
+<td>Immutable assets with hashed filenames (<code>app.abc123.js</code>)</td>
+<td>Simple; old URLs remain valid until TTL if you reuse names</td>
+</tr>
+<tr>
+<td><strong>Purge / invalidation API</strong></td>
+<td>HTML or named files must update before TTL</td>
+<td>API rate limits; eventual propagation across PoPs</td>
+</tr>
+<tr>
+<td><strong>Versioned URLs</strong></td>
+<td>Best practice for static builds</td>
+<td>No purge needed for new deploys</td>
+</tr>
+<tr>
+<td><strong>Soft purge</strong> (provider-specific)</td>
+<td>Mark stale; revalidate on next request</td>
+<td>Faster than full delete</td>
+</tr>
+</tbody>
+</table>
+<p>Interview answer pattern: <strong>prefer immutable content + long TTL</strong>; use <strong>purge</strong> sparingly for exceptions (CMS pages, legal takedowns).</p>
+<h3 id="ttl-and-cache-headers-cache-control-etag-last-modified">TTL and cache headers (Cache-Control, ETag, Last-Modified)<a class="headerlink" href="#ttl-and-cache-headers-cache-control-etag-last-modified" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>Cache-Control</code></strong>: <code>max-age</code>, <code>s-maxage</code> (shared caches), <code>public</code> / <code>private</code>, <code>no-store</code>, <code>immutable</code>.</li>
+<li><strong><code>ETag</code></strong>: Opaque validator for <strong>conditional GET</strong> (<code>If-None-Match</code> → 304 Not Modified).</li>
+<li><strong><code>Last-Modified</code></strong>: Time-based validator (<code>If-Modified-Since</code>).</li>
+</ul>
+<p>For <strong>API response caching</strong> at the edge, only cache <strong>GET</strong> (or explicitly cacheable methods) and respect <strong>Vary</strong> headers if content varies by <code>Accept-Encoding</code> or headers.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Pair <strong>short TTL</strong> on HTML entry pages with <strong>long TTL + hashed names</strong> for JS/CSS/images — the pattern behind most SPAs and static site generators.</p>
+</div>
+<h3 id="geo-routing-and-anycast">Geo-routing and anycast<a class="headerlink" href="#geo-routing-and-anycast" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Geo-based DNS (GSLB)</strong> returns different edge IPs based on resolver location or EDNS Client Subnet.</li>
+<li><strong>Anycast</strong> advertises the same IP from multiple locations; BGP routes each user to the nearest PoP.</li>
+</ul>
+<p>CDNs use these so users hit a <strong>nearby edge</strong> automatically, reducing latency and load on a single region.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Users
+        EU[User EU]
+        US[User US]
+    end
+
+    subgraph DNS["Authoritative DNS / Traffic steering"]
+        GSLB[Geo routing policy]
+    end
+
+    subgraph PoPs
+        POP_EU[PoP Frankfurt]
+        POP_US[PoP Virginia]
+    end
+
+    EU --&gt; GSLB
+    US --&gt; GSLB
+    GSLB --&gt; POP_EU
+    GSLB --&gt; POP_US</code></pre>
+<hr />
+<h2 id="pre-signed-urls-and-access-control">Pre-signed URLs and Access Control<a class="headerlink" href="#pre-signed-urls-and-access-control" title="Permanent link">&para;</a></h2>
+<h3 id="temporary-access-tokens">Temporary access tokens<a class="headerlink" href="#temporary-access-tokens" title="Permanent link">&para;</a></h3>
+<p><strong>Pre-signed URLs</strong> grant <strong>time-limited</strong> HTTP GET or PUT to a specific object without sharing long-lived API keys with clients. The server signs a request with credentials; the client uses the URL until expiry.</p>
+<p>Typical flows:</p>
+<ul>
+<li><strong>Download</strong>: Mobile app receives a short-lived GET URL for a private object.</li>
+<li><strong>Upload</strong>: Client requests a PUT pre-signed URL from your API, then uploads directly to object storage (saving bandwidth through app servers).</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Always set <strong>short expiry</strong> for presigned URLs, <strong>least privilege</strong> (single object, specific method), and <strong>HTTPS only</strong> in production.</p>
+</div>
+<h3 id="bucket-policies-iam-roles-cors">Bucket policies, IAM roles, CORS<a class="headerlink" href="#bucket-policies-iam-roles-cors" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Bucket policy</strong>: JSON attached to the bucket granting cross-account access, public read for static sites (if intended), or conditions on IP / prefix.</li>
+<li><strong>IAM roles</strong>: Compute (Lambda, ECS task role) assumes a role with <code>s3:GetObject</code> instead of embedding keys.</li>
+<li><strong>CORS</strong>: Required for browser <strong>JavaScript</strong> calling S3 directly; must whitelist origins, methods, and headers for preflight.</li>
+</ul>
+<p>Misconfigured <strong>public bucket ACLs</strong> are a common data leak class — in interviews, mention <strong>Block Public Access</strong> defaults and auditing.</p>
+<hr />
+<h2 id="cdn-architecture-patterns">CDN Architecture Patterns<a class="headerlink" href="#cdn-architecture-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="static-asset-serving">Static asset serving<a class="headerlink" href="#static-asset-serving" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    CI[CI build] --&gt; BUCKET[Object storage&lt;br/&gt;versioned assets]
+    BUCKET --&gt; CDN[CDN distribution]
+    CDN --&gt; BROWSER[Browser]
+    BROWSER --&gt;|HTML references&lt;br/&gt;hashed URLs| CDN</code></pre>
+<p><strong>Pattern</strong>: Build pipeline uploads to object storage; <strong>CloudFront / Cloudflare / Fastly</strong> fronts the bucket with HTTPS and HTTP/2/3. <strong>Origin Access Control</strong> restricts bucket reads to the CDN only.</p>
+<h3 id="video-streaming-hlsdash-segments">Video streaming (HLS/DASH segments)<a class="headerlink" href="#video-streaming-hlsdash-segments" title="Permanent link">&para;</a></h3>
+<p>Adaptive bitrate streaming splits video into <strong>small segment files</strong> (<code>.ts</code> or CMAF) and <strong>manifests</strong> (<code>.m3u8</code>, <code>.mpd</code>). Each segment is a <strong>cacheable HTTP object</strong>.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Player
+    participant CDN as CDN Edge
+    participant Origin as Origin / Packager
+
+    Player-&gt;&gt;CDN: GET manifest.m3u8
+    CDN-&gt;&gt;Origin: MISS: fetch manifest
+    Origin--&gt;&gt;CDN: manifest
+    CDN--&gt;&gt;Player: manifest
+    Player-&gt;&gt;CDN: GET segment_00001.ts
+    CDN--&gt;&gt;Player: segment (HIT after first user)</code></pre>
+<p>Discuss <strong>segment duration</strong> (latency vs switching granularity), <strong>CDN cache</strong> for popular titles, and <strong>DRM</strong> (license servers separate from segments) for premium content.</p>
+<h3 id="api-response-caching">API response caching<a class="headerlink" href="#api-response-caching" title="Permanent link">&para;</a></h3>
+<p>Use edge caching for <strong>read-heavy, low-personalization</strong> endpoints: product catalog fragments, public leaderboards, feature flags payload (with short TTL).</p>
+<p>Avoid caching <strong>authenticated personalized</strong> responses unless you use <strong>edge-side includes</strong>, <strong>cache keys</strong> that include user or segment, or <strong>Vary</strong> correctly — mistakes leak one user’s data to another.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Never</strong> cache responses that include <strong>PII</strong> without a strict cache key policy and <code>private</code> / <code>no-store</code> defaults for sensitive routes.</p>
+</div>
+<h3 id="edge-compute-lambdaedge-cloudflare-workers">Edge compute (Lambda@Edge, Cloudflare Workers)<a class="headerlink" href="#edge-compute-lambdaedge-cloudflare-workers" title="Permanent link">&para;</a></h3>
+<p><strong>Edge functions</strong> run close to users for:</p>
+<ul>
+<li><strong>Request/response rewriting</strong> (A/B routing, header injection).</li>
+<li><strong>Auth at edge</strong> (validate JWT before hitting origin).</li>
+<li><strong>Dynamic personalization</strong> with small logic.</li>
+</ul>
+<p>Trade-offs: <strong>CPU/time limits</strong>, <strong>no long-lived connections to arbitrary backends</strong>, <strong>cold start</strong>, <strong>debugging complexity</strong>. Use when latency savings justify operational cost.</p>
+<hr />
+<h2 id="design-considerations-for-interviews">Design Considerations for Interviews<a class="headerlink" href="#design-considerations-for-interviews" title="Permanent link">&para;</a></h2>
+<h3 id="cost-optimization-storage-tiers-cdn-costs">Cost optimization (storage tiers, CDN costs)<a class="headerlink" href="#cost-optimization-storage-tiers-cdn-costs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Storage</strong>: Right-size <strong>storage class</strong>; lifecycle to colder tiers; dedupe large backups where applicable.</li>
+<li><strong>Egress</strong>: Often the dominant bill — <strong>serve user downloads via CDN</strong> (caching) and <strong>same-cloud origin</strong> to avoid double-charge patterns.</li>
+<li><strong>Requests</strong>: <code>LIST</code> and small GET storms cost money; use <strong>prefix design</strong> and <strong>indexes in DB</strong> instead of listing millions of keys per request.</li>
+</ul>
+<h3 id="multi-region-replication">Multi-region replication<a class="headerlink" href="#multi-region-replication" title="Permanent link">&para;</a></h3>
+<p><strong>Cross-region replication (CRR)</strong> gives <strong>disaster recovery</strong> and <strong>local read</strong> in another geography at the cost of <strong>replication lag</strong>, <strong>eventual consistency</strong> across regions, and <strong>compliance</strong> (data residency).</p>
+<p>Interview talking points: <strong>RPO/RTO</strong>, <strong>failover DNS</strong>, <strong>whether writes are regional or global</strong>, and <strong>conflict handling</strong> if the same key is written in two regions (avoid by architecture or use versioning + out-of-band reconciliation).</p>
+<h3 id="versioning-and-immutability">Versioning and immutability<a class="headerlink" href="#versioning-and-immutability" title="Permanent link">&para;</a></h3>
+<p><strong>Versioning</strong> retains old objects when overwritten — essential for <strong>accidental overwrite recovery</strong> and <strong>audit</strong>. <strong>Immutable uploads</strong> (new key per version, e.g. content hash as key) simplify CDN caching and rollback.</p>
+<hr />
+<h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
+<p>Use this flowchart to choose where data lives in a design discussion.</p>
+<pre class="mermaid"><code>flowchart TD
+    START([Need to persist binary blob?])
+    START --&gt; Q1{Structured query,&lt;br/&gt;transactions, joins?}
+    Q1 --&gt;|Yes| DB[(Relational or&lt;br/&gt;document DB)]
+    Q1 --&gt;|No| Q2{POSIX filesystem,&lt;br/&gt;random writes, low latency&lt;br/&gt;local disk?}
+    Q2 --&gt;|Yes| FS[Block / file storage&lt;br/&gt;attached volume]
+    Q2 --&gt;|No| Q3{Huge scale, HTTP access,&lt;br/&gt;immutable or whole-object updates?}
+    Q3 --&gt;|Yes| OBJ[Object storage&lt;br/&gt;+ CDN for reads]
+    Q3 --&gt;|No| OTHER[Revisit requirements]
+
+    OBJ --&gt; Q4{Globally distributed&lt;br/&gt;read-heavy users?}
+    Q4 --&gt;|Yes| CDN[Add CDN + cache policy]
+    Q4 --&gt;|No| ORIGIN[Origin-only or&lt;br/&gt;private access]
+
+    DB --&gt; API[App servers mediate access]
+    CDN --&gt; SEC[Presigned URLs or&lt;br/&gt;OAC for origin]</code></pre>
+<p><strong>Heuristics:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Prefer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User profiles, orders, inventory</td>
+<td>Database</td>
+</tr>
+<tr>
+<td>Video, images, PDFs, backups, logs</td>
+<td>Object storage</td>
+</tr>
+<tr>
+<td>Database files, VM disks</td>
+<td>Block storage</td>
+</tr>
+<tr>
+<td>Shared team drive, legacy NFS app</td>
+<td>File storage</td>
+</tr>
+<tr>
+<td>Public or large-scale downloads</td>
+<td>Object storage + CDN</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If the interviewer mentions <strong>“users upload profile photos”</strong>, your answer should include <strong>direct-to-S3 upload via presigned POST/PUT</strong>, <strong>virus scanning pipeline</strong>, <strong>image processing</strong> (async workers), and <strong>CDN URL</strong> for delivery — not “store the file in Postgres BYTEA.”</p>
+</div>
+<hr />
+<h2 id="code-examples">Code Examples<a class="headerlink" href="#code-examples" title="Permanent link">&para;</a></h2>
+<p>The following examples assume AWS S3; adjust <strong>endpoint</strong> and <strong>credentials</strong> for MinIO or other S3-compatible services. <strong>Never commit real access keys</strong>; use environment variables or IAM roles.</p>
+<h3 id="upload-download-and-presigned-urls">Upload, download, and presigned URLs<a class="headerlink" href="#upload-download-and-presigned-urls" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">Java</label><label for="__tabbed_1_3">Go</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">botocore.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">upload_file</span><span class="p">(</span><span class="n">local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="s2">&quot;s3v4&quot;</span><span class="p">))</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">s3</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="s2">&quot;s3v4&quot;</span><span class="p">))</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">s3</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">local_path</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">presigned_get_url</span><span class="p">(</span><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expires_in</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="s2">&quot;s3v4&quot;</span><span class="p">))</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">return</span> <span class="n">s3</span><span class="o">.</span><span class="n">generate_presigned_url</span><span class="p">(</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="s2">&quot;get_object&quot;</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="n">Params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">},</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">ExpiresIn</span><span class="o">=</span><span class="n">expires_in</span><span class="p">,</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="p">)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="k">def</span><span class="w"> </span><span class="nf">presigned_put_url</span><span class="p">(</span><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expires_in</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="s2">&quot;s3v4&quot;</span><span class="p">))</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="k">return</span> <span class="n">s3</span><span class="o">.</span><span class="n">generate_presigned_url</span><span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="s2">&quot;put_object&quot;</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">Params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">},</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="n">ExpiresIn</span><span class="o">=</span><span class="n">expires_in</span><span class="p">,</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="p">)</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-java highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider</span><span class="p">;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.core.sync.RequestBody</span><span class="p">;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.regions.Region</span><span class="p">;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.S3Client</span><span class="p">;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.model.GetObjectRequest</span><span class="p">;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.model.PutObjectRequest</span><span class="p">;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.presigner.S3Presigner</span><span class="p">;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest</span><span class="p">;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="kn">import</span><span class="w"> </span><span class="nn">software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest</span><span class="p">;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.file.Path</span><span class="p">;</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.time.Duration</span><span class="p">;</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">S3Examples</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">S3Client</span><span class="w"> </span><span class="n">s3</span><span class="p">;</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">S3Presigner</span><span class="w"> </span><span class="n">presigner</span><span class="p">;</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">S3Examples</span><span class="p">(</span><span class="n">Region</span><span class="w"> </span><span class="n">region</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="n">creds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DefaultCredentialsProvider</span><span class="p">.</span><span class="na">create</span><span class="p">();</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">s3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">S3Client</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">region</span><span class="p">(</span><span class="n">region</span><span class="p">).</span><span class="na">credentialsProvider</span><span class="p">(</span><span class="n">creds</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">presigner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">S3Presigner</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">region</span><span class="p">(</span><span class="n">region</span><span class="p">).</span><span class="na">credentialsProvider</span><span class="p">(</span><span class="n">creds</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">upload</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">bucket</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="n">s3</span><span class="p">.</span><span class="na">putObject</span><span class="p">(</span><span class="n">PutObjectRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">).</span><span class="na">key</span><span class="p">(</span><span class="n">key</span><span class="p">).</span><span class="na">build</span><span class="p">(),</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">                </span><span class="n">RequestBody</span><span class="p">.</span><span class="na">fromFile</span><span class="p">(</span><span class="n">file</span><span class="p">));</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">download</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">bucket</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">destination</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="n">s3</span><span class="p">.</span><span class="na">getObject</span><span class="p">(</span><span class="n">GetObjectRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">).</span><span class="na">key</span><span class="p">(</span><span class="n">key</span><span class="p">).</span><span class="na">build</span><span class="p">(),</span><span class="w"> </span><span class="n">destination</span><span class="p">);</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">presignedGetUrl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">bucket</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">ttl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="n">get</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetObjectRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">).</span><span class="na">key</span><span class="p">(</span><span class="n">key</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="n">presign</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetObjectPresignRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">                </span><span class="p">.</span><span class="na">signatureDuration</span><span class="p">(</span><span class="n">ttl</span><span class="p">)</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">                </span><span class="p">.</span><span class="na">getObjectRequest</span><span class="p">(</span><span class="n">get</span><span class="p">)</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">presigner</span><span class="p">.</span><span class="na">presignGetObject</span><span class="p">(</span><span class="n">presign</span><span class="p">).</span><span class="na">url</span><span class="p">().</span><span class="na">toString</span><span class="p">();</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">presignedPutUrl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">bucket</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">ttl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="n">put</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PutObjectRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">).</span><span class="na">key</span><span class="p">(</span><span class="n">key</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="n">presign</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PutObjectPresignRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="w">                </span><span class="p">.</span><span class="na">signatureDuration</span><span class="p">(</span><span class="n">ttl</span><span class="p">)</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="w">                </span><span class="p">.</span><span class="na">putObjectRequest</span><span class="p">(</span><span class="n">put</span><span class="p">)</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">presigner</span><span class="p">.</span><span class="na">presignPutObject</span><span class="p">(</span><span class="n">presign</span><span class="p">).</span><span class="na">url</span><span class="p">().</span><span class="na">toString</span><span class="p">();</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-go highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">s3example</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s">&quot;context&quot;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="s">&quot;io&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s">&quot;os&quot;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="s">&quot;time&quot;</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="s">&quot;github.com/aws/aws-sdk-go-v2/config&quot;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="s">&quot;github.com/aws/aws-sdk-go-v2/service/s3&quot;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="kd">func</span><span class="w"> </span><span class="nx">Upload</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">localPath</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">LoadDefaultConfig</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewFromConfig</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="nx">f</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Open</span><span class="p">(</span><span class="nx">localPath</span><span class="p">)</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">f</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">PutObject</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">s3</span><span class="p">.</span><span class="nx">PutObjectInput</span><span class="p">{</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">        </span><span class="nx">Bucket</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">bucket</span><span class="p">,</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">        </span><span class="nx">Key</span><span class="p">:</span><span class="w">    </span><span class="o">&amp;</span><span class="nx">key</span><span class="p">,</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">        </span><span class="nx">Body</span><span class="p">:</span><span class="w">   </span><span class="nx">f</span><span class="p">,</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span><span class="p">})</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="p">}</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="kd">func</span><span class="w"> </span><span class="nx">Download</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">localPath</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">    </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">LoadDefaultConfig</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewFromConfig</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">    </span><span class="nx">out</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">GetObject</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">s3</span><span class="p">.</span><span class="nx">GetObjectInput</span><span class="p">{</span><span class="nx">Bucket</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">Key</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">key</span><span class="p">})</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">out</span><span class="p">.</span><span class="nx">Body</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">    </span><span class="nx">f</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Create</span><span class="p">(</span><span class="nx">localPath</span><span class="p">)</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">f</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">io</span><span class="p">.</span><span class="nx">Copy</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span><span class="w"> </span><span class="nx">out</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="p">}</span>
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a>
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="c1">// PresignGet uses the built-in presign helper (SDK v2).</span>
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="kd">func</span><span class="w"> </span><span class="nx">PresignGet</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">key</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">ttl</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="w">    </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">LoadDefaultConfig</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a><span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewFromConfig</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="w">    </span><span class="nx">presign</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewPresignClient</span><span class="p">(</span><span class="nx">client</span><span class="p">)</span>
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="w">    </span><span class="nx">out</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">presign</span><span class="p">.</span><span class="nx">PresignGetObject</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">s3</span><span class="p">.</span><span class="nx">GetObjectInput</span><span class="p">{</span>
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="w">        </span><span class="nx">Bucket</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">bucket</span><span class="p">,</span>
+</span><span id="__span-2-62"><a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a><span class="w">        </span><span class="nx">Key</span><span class="p">:</span><span class="w">    </span><span class="o">&amp;</span><span class="nx">key</span><span class="p">,</span>
+</span><span id="__span-2-63"><a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a><span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><span class="nx">s3</span><span class="p">.</span><span class="nx">PresignOptions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-64"><a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a><span class="w">        </span><span class="nx">o</span><span class="p">.</span><span class="nx">Expires</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ttl</span>
+</span><span id="__span-2-65"><a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a><span class="w">    </span><span class="p">})</span>
+</span><span id="__span-2-66"><a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-67"><a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-68"><a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-69"><a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">out</span><span class="p">.</span><span class="nx">URL</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-2-70"><a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a><span class="p">}</span>
+</span><span id="__span-2-71"><a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a>
+</span><span id="__span-2-72"><a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="c1">// PresignPut signs a PUT for direct browser/client upload.</span>
+</span><span id="__span-2-73"><a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="kd">func</span><span class="w"> </span><span class="nx">PresignPut</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">key</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">ttl</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-74"><a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a><span class="w">    </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">LoadDefaultConfig</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span><span id="__span-2-75"><a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-76"><a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-77"><a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-78"><a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewFromConfig</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
+</span><span id="__span-2-79"><a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a><span class="w">    </span><span class="nx">presign</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s3</span><span class="p">.</span><span class="nx">NewPresignClient</span><span class="p">(</span><span class="nx">client</span><span class="p">)</span>
+</span><span id="__span-2-80"><a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a><span class="w">    </span><span class="nx">out</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">presign</span><span class="p">.</span><span class="nx">PresignPutObject</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">s3</span><span class="p">.</span><span class="nx">PutObjectInput</span><span class="p">{</span>
+</span><span id="__span-2-81"><a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a><span class="w">        </span><span class="nx">Bucket</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">bucket</span><span class="p">,</span>
+</span><span id="__span-2-82"><a id="__codelineno-2-82" name="__codelineno-2-82" href="#__codelineno-2-82"></a><span class="w">        </span><span class="nx">Key</span><span class="p">:</span><span class="w">    </span><span class="o">&amp;</span><span class="nx">key</span><span class="p">,</span>
+</span><span id="__span-2-83"><a id="__codelineno-2-83" name="__codelineno-2-83" href="#__codelineno-2-83"></a><span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><span class="nx">s3</span><span class="p">.</span><span class="nx">PresignOptions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-84"><a id="__codelineno-2-84" name="__codelineno-2-84" href="#__codelineno-2-84"></a><span class="w">        </span><span class="nx">o</span><span class="p">.</span><span class="nx">Expires</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ttl</span>
+</span><span id="__span-2-85"><a id="__codelineno-2-85" name="__codelineno-2-85" href="#__codelineno-2-85"></a><span class="w">    </span><span class="p">})</span>
+</span><span id="__span-2-86"><a id="__codelineno-2-86" name="__codelineno-2-86" href="#__codelineno-2-86"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-87"><a id="__codelineno-2-87" name="__codelineno-2-87" href="#__codelineno-2-87"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-2-88"><a id="__codelineno-2-88" name="__codelineno-2-88" href="#__codelineno-2-88"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-89"><a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">out</span><span class="p">.</span><span class="nx">URL</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-2-90"><a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For custom signing policies beyond <code>PresignClient</code>, use <code>github.com/aws/aws-sdk-go-v2/aws/signer/v4</code> with explicit <code>Sign</code> calls; most apps use <code>s3.NewPresignClient</code> only.</p>
+</div>
+<hr />
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Amazon S3 User Guide</strong> — Consistency model, multipart upload, storage classes, and replication (official AWS documentation).</li>
+<li><strong>RFC 7234</strong> — HTTP caching semantics (<code>Cache-Control</code>, validation).</li>
+<li><strong>Mozilla MDN: HTTP caching</strong> — Practical guide to browser and shared caches.</li>
+<li><strong>AWS Well-Architected: Cost Optimization</strong> — Data transfer and storage tier patterns.</li>
+<li><strong>“High Performance Browser Networking” (Ilya Grigorik)</strong> — CDN, TCP, and HTTP/2 behavior for latency-sensitive designs.</li>
+</ul>
+<hr />
+<h2 id="quick-interview-checklist">Quick interview checklist<a class="headerlink" href="#quick-interview-checklist" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>One-liner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Object vs block vs file</td>
+<td>Objects are whole-blob key-value at scale; blocks are disk chunks; files are POSIX trees.</td>
+</tr>
+<tr>
+<td>CDN miss path</td>
+<td>Edge fetches from origin, caches for TTL, then serves hot.</td>
+</tr>
+<tr>
+<td>Presigned URL</td>
+<td>Time-limited signed HTTP URL; no long-lived secrets to clients.</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Egress and requests often dominate; tier and cache deliberately.</td>
+</tr>
+<tr>
+<td>Consistency</td>
+<td>Per-key read-after-write common; cross-region and LIST may lag.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Close design questions by stating <strong>monitoring</strong>: 4xx/5xx from origin, <strong>cache hit ratio</strong>, <strong>S3 request rate</strong>, and <strong>billing alerts</strong> on egress spikes.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../consistency_patterns/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Consistency Patterns">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Consistency Patterns
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../distributed_locking/" class="md-footer__link md-footer__link--next" aria-label="Next: Distributed Locking">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Distributed Locking
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3362 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/basics/interview_framework/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../estimation/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Interview Framework - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#system-design-interview-framework" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Interview Framework
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-a-framework-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why a Framework Matters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-4-step-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      The 4-Step Framework
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The 4-Step Framework">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-requirements-clarification-about-5-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements Clarification (about 5 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-high-level-design-about-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: High-Level Design (about 10 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-deep-dive-about-1520-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Deep Dive (about 15–20 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-trade-offs-and-wrap-up-about-5-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Trade-offs and Wrap-up (about 5 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-four-steps-and-time-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visual: Four Steps and Time Budget
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#back-of-envelope-estimation-quick-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      Back-of-Envelope Estimation Quick Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Back-of-Envelope Estimation Quick Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-users-to-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      From users to traffic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bandwidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bandwidth
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful-reference-anchors-order-of-magnitude" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful reference anchors (order-of-magnitude)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Communication Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Communication Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drive-the-conversation-without-dominating" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drive the conversation without dominating
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-ask-vs-when-to-propose" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to ask vs when to propose
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-what-if-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling “what if” questions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-mistakes-to-avoid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Mistakes to Avoid
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Mistakes to Avoid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jumping-to-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jumping to solutions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#over-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Over-engineering
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ignoring-non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ignoring non-functional requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skipping-trade-offs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Skipping trade-offs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#silent-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Silent diagrams
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#template-requirements-gathering-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Template: Requirements Gathering Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Template: Requirements Gathering Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#product-and-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product and users
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scale-and-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scale and traffic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latency-and-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency and experience
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#availability-and-durability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Availability and durability
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consistency-and-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      Consistency and correctness
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-and-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security and compliance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operations-and-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operations and constraints
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-warm-up-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Warm-Up Dialogue
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further Reading
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../software_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../software_system_design/content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="system-design-interview-framework">System Design Interview Framework<a class="headerlink" href="#system-design-interview-framework" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="why-a-framework-matters">Why a Framework Matters<a class="headerlink" href="#why-a-framework-matters" title="Permanent link">&para;</a></h2>
+<p>System design interviews are not primarily tests of how many technologies you have memorized. They evaluate whether you can <strong>structure an ambiguous problem</strong>, communicate clearly under time pressure, and reason about trade-offs the way a senior engineer would in a real design review.</p>
+<p>A repeatable framework is the meta-skill that sits above any single domain. Whether the prompt is a URL shortener, a chat system, or a video pipeline, the same phases apply: clarify what “good” means, sketch a coherent whole, zoom into the riskiest parts, then close with honesty about limitations and next steps. Interviewers notice when candidates jump straight to Kafka and microservices without knowing the read/write ratio, and they also notice when someone methodically narrows the problem before drawing a box.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Treat the framework as a <strong>conversation map</strong>, not a script. The goal is to show judgment: which questions to ask first, what to defer, and when to stop designing and start discussing failure modes.</p>
+</div>
+<p>The sections below align to a typical <strong>35–45 minute</strong> session. Adjust pacing if your interviewer announces a shorter slot; the relative proportions (short clarify, medium breadth, longest depth, short close) still hold.</p>
+<hr />
+<h2 id="the-4-step-framework">The 4-Step Framework<a class="headerlink" href="#the-4-step-framework" title="Permanent link">&para;</a></h2>
+<p>Most strong answers follow four phases. The minutes below are targets for a <strong>40-minute</strong> interview; use the range in the diagram if your session is closer to 35 or 45 minutes.</p>
+<h3 id="step-1-requirements-clarification-about-5-minutes">Step 1: Requirements Clarification (about 5 minutes)<a class="headerlink" href="#step-1-requirements-clarification-about-5-minutes" title="Permanent link">&para;</a></h3>
+<p>Before you draw anything substantial, align on what you are building and what “success” means.</p>
+<ul>
+<li><strong>Functional requirements</strong>: Core user-visible behaviors (e.g., “create short link,” “resolve redirect,” “list links for a user”). Separate must-haves from nice-to-haves.</li>
+<li><strong>Non-functional requirements</strong>: Latency expectations (p50/p99), availability targets, consistency needs (can a user ever see stale data?), durability (what must never be lost).</li>
+<li><strong>Constraints</strong>: Tech stack assumptions, geographic scope, compliance, budget for operational complexity.</li>
+<li><strong>Scale</strong>: Order-of-magnitude daily active users, write vs read patterns, peak vs average load. You do not need exact numbers yet—rough ranges are enough to choose data stores and caching strategies.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If the interviewer is vague, propose a concrete scenario (“Assume 100M DAU, mostly reads”) and ask whether that is in the right ballpark. <strong>Proposing and validating</strong> is faster than open-ended guessing.</p>
+</div>
+<p>End this phase with a one-sentence problem statement you can point back to while you design.</p>
+<h3 id="step-2-high-level-design-about-10-minutes">Step 2: High-Level Design (about 10 minutes)<a class="headerlink" href="#step-2-high-level-design-about-10-minutes" title="Permanent link">&para;</a></h3>
+<p>Give a <strong>coherent end-to-end picture</strong>: main components, how a request flows through them, and where data lives at rest.</p>
+<ul>
+<li><strong>Components</strong>: Clients, API layer, core services, storage, caches, async pipelines (if any). Keep the first diagram at the right altitude—names of services and arrows, not every class or table.</li>
+<li><strong>Data flow</strong>: Walk one read path and one write path. Call out idempotency or ordering only where it matters for the problem.</li>
+<li><strong>API design</strong>: Sketch a minimal set of operations (REST resources or RPCs) that cover the functional requirements. Mention authentication or rate limiting if the problem implies public internet exposure.</li>
+</ul>
+<p>This step proves you can <strong>decompose</strong> the problem and <strong>sequence</strong> dependencies. It is also the hook for the deep dive: you are implicitly choosing 2–3 areas the interviewer is likely to probe.</p>
+<h3 id="step-3-deep-dive-about-1520-minutes">Step 3: Deep Dive (about 15–20 minutes)<a class="headerlink" href="#step-3-deep-dive-about-1520-minutes" title="Permanent link">&para;</a></h3>
+<p>Spend the bulk of the interview on <strong>two or three critical components</strong>, not six shallow topics. Good candidates often choose:</p>
+<ul>
+<li>The <strong>hardest consistency or concurrency</strong> question (e.g., feed generation, counters, uniqueness).</li>
+<li>The <strong>primary data model</strong> and how it is partitioned or replicated.</li>
+<li><strong>Reliability and failure handling</strong> for the money path (payment, redirect, message delivery).</li>
+</ul>
+<p>For each area, state the goal, your chosen approach, and <strong>at least one alternative</strong> with a trade-off (latency vs consistency, cost vs simplicity). Invite the interviewer to steer: “I can go deeper on the database schema or on cache invalidation—which is more useful?”</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Avoid <strong>tour-of-everything</strong> deep dives. Listing seven technologies without depth reads as breadth without judgment. Pick your battles.</p>
+</div>
+<h3 id="step-4-trade-offs-and-wrap-up-about-5-minutes">Step 4: Trade-offs and Wrap-up (about 5 minutes)<a class="headerlink" href="#step-4-trade-offs-and-wrap-up-about-5-minutes" title="Permanent link">&para;</a></h3>
+<p>Close deliberately.</p>
+<ul>
+<li><strong>Bottlenecks</strong>: What breaks first under 10x load? CPU, DB hot partitions, network egress?</li>
+<li><strong>Alternatives</strong>: What would you try if requirements shifted (e.g., stronger consistency, lower cost)?</li>
+<li><strong>Future improvements</strong>: Sharding strategy, observability, feature flags, gradual rollout—keep it grounded in the design you already presented.</li>
+</ul>
+<p>This phase shows <strong>maturity</strong>: you know the design is not perfect and you know how you would learn more in production.</p>
+<hr />
+<h3 id="visual-four-steps-and-time-budget">Visual: Four Steps and Time Budget<a class="headerlink" href="#visual-four-steps-and-time-budget" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph S1["Step 1: Clarify"]
+        A[Requirements&lt;br/&gt;constraints&lt;br/&gt;scale]
+    end
+    subgraph S2["Step 2: High-level"]
+        B[Components&lt;br/&gt;data flow&lt;br/&gt;APIs]
+    end
+    subgraph S3["Step 3: Deep dive"]
+        C[2–3 critical&lt;br/&gt;areas in detail]
+    end
+    subgraph S4["Step 4: Close"]
+        D[Bottlenecks&lt;br/&gt;alternatives&lt;br/&gt;next steps]
+    end
+    S1 --&gt;|~5 min| S2
+    S2 --&gt;|~10 min| S3
+    S3 --&gt;|~15–20 min| S4
+    S4 --&gt;|~5 min| E[End]</code></pre>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Time (35–45 min session)</th>
+<th>What “done” looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requirements</td>
+<td>~5 min</td>
+<td>Agreed scope, NFRs, rough scale</td>
+</tr>
+<tr>
+<td>High-level design</td>
+<td>~10 min</td>
+<td>Diagram + request walkthrough + core APIs</td>
+</tr>
+<tr>
+<td>Deep dive</td>
+<td>~15–20 min</td>
+<td>Detailed reasoning on 2–3 hotspots</td>
+</tr>
+<tr>
+<td>Wrap-up</td>
+<td>~5 min</td>
+<td>Limits, trade-offs, sensible extensions</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="back-of-envelope-estimation-quick-guide">Back-of-Envelope Estimation Quick Guide<a class="headerlink" href="#back-of-envelope-estimation-quick-guide" title="Permanent link">&para;</a></h2>
+<p>Rough numbers keep your design honest and prevent orders-of-magnitude mistakes. You are not judged on mental math perfection; you are judged on <strong>structured reasoning</strong> and <strong>sanity checks</strong>.</p>
+<h3 id="from-users-to-traffic">From users to traffic<a class="headerlink" href="#from-users-to-traffic" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>DAU to average QPS (very rough)</strong>: If each daily active user generates <span class="arithmatex">\(U\)</span> meaningful requests per day spread over <span class="arithmatex">\(T\)</span> seconds of “active day,” average RPS is <span class="arithmatex">\(\text{DAU} \times U / T\)</span>. A common shortcut: assume a fraction of DAU is concurrent and each user generates a few requests per minute during peak—then <strong>peak RPS</strong> is often <strong>3–10x</strong> average for consumer products (highly variable).</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>State assumptions explicitly: “If peak is 5x average, then …” Interviewers care that you <strong>bound</strong> the problem, not that you recall industry averages.</p>
+</div>
+<h3 id="storage">Storage<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Record size × count × replication</strong>: Total raw bytes ≈ (average row/document size) × (number of records) × (replica factor if counting disk). Add <strong>indexes</strong> as a multiplier (often 10–50% extra for OLTP, more for heavy secondary indexes).</li>
+<li><strong>Growth</strong>: Extrapolate monthly or yearly growth if the problem implies long retention (logs, media metadata).</li>
+</ul>
+<h3 id="bandwidth">Bandwidth<a class="headerlink" href="#bandwidth" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Egress</strong>: (requests per second) × (average response size) for read-heavy APIs.</li>
+<li><strong>Ingress</strong>: (writes per second) × (payload size) for upload-heavy systems.</li>
+</ul>
+<h3 id="useful-reference-anchors-order-of-magnitude">Useful reference anchors (order-of-magnitude)<a class="headerlink" href="#useful-reference-anchors-order-of-magnitude" title="Permanent link">&para;</a></h3>
+<p>These are <strong>memory aids</strong>, not universal truths—always reconcile with the scenario.</p>
+<table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Ballpark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day length for spreading load</td>
+<td><span class="arithmatex">\(8.64 \times 10^4\)</span> seconds</td>
+</tr>
+<tr>
+<td>“1 million requests per day” average</td>
+<td>~12 RPS average (before peak multiplier)</td>
+</tr>
+<tr>
+<td>JSON small object</td>
+<td>Often hundreds of bytes to a few KB</td>
+</tr>
+<tr>
+<td>SSD random read</td>
+<td>Microseconds to low milliseconds (system dependent)</td>
+</tr>
+<tr>
+<td>Cross-region RTT</td>
+<td>Tens to hundreds of milliseconds</td>
+</tr>
+</tbody>
+</table>
+<p>For a deeper treatment with worked examples, use the dedicated <a href="../estimation/">Estimation</a> page alongside this framework.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If arithmetic is not your strength, <strong>write the formula on the board</strong> and plug numbers slowly. A clear structure beats a wrong fast answer.</p>
+</div>
+<hr />
+<h2 id="communication-tips">Communication Tips<a class="headerlink" href="#communication-tips" title="Permanent link">&para;</a></h2>
+<h3 id="drive-the-conversation-without-dominating">Drive the conversation without dominating<a class="headerlink" href="#drive-the-conversation-without-dominating" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Start with questions</strong>, then transition to proposals. Early on, “Who are the users?” and “What’s the most important failure mode to avoid?” build shared context.</li>
+<li>After alignment, <strong>lead with a proposal</strong>: “I’ll assume X unless you object” moves faster than endless clarification. Pause for corrections.</li>
+<li><strong>Narrate your diagram</strong> as you draw: name components when you add them so the interviewer can follow audio-only if needed.</li>
+</ul>
+<h3 id="when-to-ask-vs-when-to-propose">When to ask vs when to propose<a class="headerlink" href="#when-to-ask-vs-when-to-propose" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Lean toward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Core product behavior is unclear</td>
+<td>Ask</td>
+</tr>
+<tr>
+<td>Scale is unspecified</td>
+<td>Propose a range and validate</td>
+</tr>
+<tr>
+<td>Choice between two standard patterns</td>
+<td>Propose one + one-sentence alternative</td>
+</tr>
+<tr>
+<td>Interviewer says “assume whatever you want”</td>
+<td>Lock in assumptions and document them</td>
+</tr>
+</tbody>
+</table>
+<h3 id="handling-what-if-questions">Handling “what if” questions<a class="headerlink" href="#handling-what-if-questions" title="Permanent link">&para;</a></h3>
+<p>Treat them as <strong>scoped trade-off exercises</strong>, not traps.</p>
+<ol>
+<li>Restate the change: “So we need linearizable reads globally—got it.”</li>
+<li>Name the cost: latency, complexity, availability, operational load.</li>
+<li>Sketch the minimal adjustment to your design—or explain why the current stack is insufficient and what you would replace.</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>It is acceptable to say <strong>“I would measure that in production”</strong> for fine-grained performance questions, as long as you say <strong>what</strong> you would measure (p99 latency, error rate, saturation) and <strong>how</strong> it would change your design.</p>
+</div>
+<hr />
+<h2 id="common-mistakes-to-avoid">Common Mistakes to Avoid<a class="headerlink" href="#common-mistakes-to-avoid" title="Permanent link">&para;</a></h2>
+<h3 id="jumping-to-solutions">Jumping to solutions<a class="headerlink" href="#jumping-to-solutions" title="Permanent link">&para;</a></h3>
+<p>Starting with “We’ll use Cassandra and Kubernetes” before scope is set signals <strong>technology-first thinking</strong>. Interviewers infer you may do the same on the job—shipping complexity without validating requirements.</p>
+<h3 id="over-engineering">Over-engineering<a class="headerlink" href="#over-engineering" title="Permanent link">&para;</a></h3>
+<p>Every additional moving part needs a reason tied to <strong>requirements or scale</strong>. If you introduce a message queue, say what async work it decouples and what breaks if you omit it. Default to <strong>the simplest design that meets stated NFRs</strong>.</p>
+<h3 id="ignoring-non-functional-requirements">Ignoring non-functional requirements<a class="headerlink" href="#ignoring-non-functional-requirements" title="Permanent link">&para;</a></h3>
+<p>A design that ignores latency, availability, or consistency when the prompt implies them will be challenged immediately. Call out NFRs explicitly, even if you mark some as “assumed unless you disagree.”</p>
+<h3 id="skipping-trade-offs">Skipping trade-offs<a class="headerlink" href="#skipping-trade-offs" title="Permanent link">&para;</a></h3>
+<p>Strong candidates compare <strong>at least two</strong> realistic options for major decisions (SQL vs NoSQL for a given access pattern, cache-aside vs read-through, etc.). A single unchallenged choice sounds like habit, not reasoning.</p>
+<h3 id="silent-diagrams">Silent diagrams<a class="headerlink" href="#silent-diagrams" title="Permanent link">&para;</a></h3>
+<p>Drawing without labeling arrows or without a verbal walkthrough wastes the interviewer’s attention. <strong>Annotate</strong> bottlenecks and <strong>verbalize</strong> the critical path.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Debating the interviewer</strong> about requirements rarely helps. If they set a constraint, adapt your design and explain the impact.</p>
+</div>
+<hr />
+<h2 id="template-requirements-gathering-checklist">Template: Requirements Gathering Checklist<a class="headerlink" href="#template-requirements-gathering-checklist" title="Permanent link">&para;</a></h2>
+<p>Use this as a mental or whiteboard checklist. Skip items that clearly do not apply; do not turn it into an interrogation.</p>
+<h3 id="product-and-users">Product and users<a class="headerlink" href="#product-and-users" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Who are the primary users (consumer, enterprise admin, internal service)?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> What are the <strong>must-have</strong> user journeys vs optional features?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Are there admin, moderation, or billing flows that affect the architecture?</li>
+</ul>
+<h3 id="scale-and-traffic">Scale and traffic<a class="headerlink" href="#scale-and-traffic" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Order of magnitude <strong>DAU/MAU</strong> or requests per day.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Read vs write</strong> ratio for the hot path.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Peak vs average</strong> load (seasonality, flash sales, viral spikes).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Geographic distribution (single region vs global users).</li>
+</ul>
+<h3 id="latency-and-experience">Latency and experience<a class="headerlink" href="#latency-and-experience" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Target <strong>p50/p99</strong> latency for core operations (if relevant).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Offline or partial connectivity</strong> requirements (mobile, IoT).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Real-time</strong> expectations (live updates vs eventual visibility).</li>
+</ul>
+<h3 id="availability-and-durability">Availability and durability<a class="headerlink" href="#availability-and-durability" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Uptime</strong> target or acceptable downtime window.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> What data <strong>must not be lost</strong> vs what can be reconstructed?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Disaster recovery</strong> expectations (RPO/RTO) if enterprise-grade.</li>
+</ul>
+<h3 id="consistency-and-correctness">Consistency and correctness<a class="headerlink" href="#consistency-and-correctness" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Strong vs eventual</strong> consistency for reads after writes.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Idempotency</strong> needs (retries, duplicate submissions).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Ordering</strong> requirements (per user, globally, or none).</li>
+</ul>
+<h3 id="security-and-compliance">Security and compliance<a class="headerlink" href="#security-and-compliance" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Authentication/authorization</strong> model (public, logged-in, role-based).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Data sensitivity</strong> (PII, payments, health data).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Compliance</strong> constraints (region, retention, audit logs).</li>
+</ul>
+<h3 id="operations-and-constraints">Operations and constraints<a class="headerlink" href="#operations-and-constraints" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Preferred <strong>ecosystem</strong> if any (cloud, on-prem, existing stack).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Team size</strong> or operational complexity budget (sometimes implied).</li>
+</ul>
+<hr />
+<h2 id="sample-warm-up-dialogue">Sample Warm-Up Dialogue<a class="headerlink" href="#sample-warm-up-dialogue" title="Permanent link">&para;</a></h2>
+<p>The following is a <strong>realistic shape</strong> for the first five minutes; wording will vary by problem.</p>
+<p><strong>Candidate:</strong> Before I sketch anything, I want to make sure I understand the product. Are we designing a URL shortener for public internet users who create links and share them, or is this also for internal analytics and admin?</p>
+<p><strong>Interviewer:</strong> Public users. They can create short links that redirect to long URLs.</p>
+<p><strong>Candidate:</strong> Got it. For functional scope, I’ll assume: create short URL, resolve redirect, and maybe list or delete links for the authenticated user—are deletes and analytics in scope for this session?</p>
+<p><strong>Interviewer:</strong> Focus on create and redirect. You can mention analytics briefly if you want.</p>
+<p><strong>Candidate:</strong> For non-functional, should I assume we care more about <strong>redirect latency</strong> on the read path than about create latency? And any availability target—like 99.9% for redirects?</p>
+<p><strong>Interviewer:</strong> Yes, reads are hotter and latency-sensitive. High availability on redirect is important.</p>
+<p><strong>Candidate:</strong> On scale, is something like <strong>100M created links</strong> and <strong>1000 redirects per second</strong> at peak in the right ballpark, or should I think bigger?</p>
+<p><strong>Interviewer:</strong> That’s fine for discussion.</p>
+<p><strong>Candidate:</strong> Last thing on consistency: after someone creates a link, is it acceptable if redirect works <strong>immediately everywhere</strong>, or is slight propagation delay OK for a global system?</p>
+<p><strong>Interviewer:</strong> Assume we want it visible quickly; you can discuss trade-offs.</p>
+<p><strong>Candidate:</strong> Perfect. I’ll summarize: <strong>create and redirect</strong> are core; <strong>read-heavy</strong>, <strong>low-latency redirects</strong>, <strong>high availability</strong>; rough scale you confirmed; and I’ll call out <strong>consistency</strong> when we pick storage. I’ll start with a high-level diagram unless you want more detail on any of that.</p>
+<p>This pattern shows <strong>closed questions</strong> where helpful, <strong>explicit assumptions</strong>, and a <strong>clean handoff</strong> to the design phase.</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Takeaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Framework purpose</td>
+<td>Repeatable phases beat ad-hoc brainstorming; shows senior judgment.</td>
+</tr>
+<tr>
+<td>Step 1</td>
+<td>Clarify functional scope, NFRs, constraints, and rough scale early.</td>
+</tr>
+<tr>
+<td>Step 2</td>
+<td>End-to-end diagram, data flow, minimal APIs—breadth before depth.</td>
+</tr>
+<tr>
+<td>Step 3</td>
+<td>Go deep on 2–3 critical areas; compare alternatives and trade-offs.</td>
+</tr>
+<tr>
+<td>Step 4</td>
+<td>Bottlenecks, what would change under new constraints, grounded next steps.</td>
+</tr>
+<tr>
+<td>Estimation</td>
+<td>Use simple formulas; state assumptions; sanity-check orders of magnitude.</td>
+</tr>
+<tr>
+<td>Communication</td>
+<td>Ask then propose; narrate diagrams; handle “what if” as scoped trade-offs.</td>
+</tr>
+<tr>
+<td>Pitfalls</td>
+<td>Avoid solution-first, over-engineering, silent NFRs, and shallow breadth.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../estimation/">Estimation</a> — Back-of-the-envelope drills and sizing patterns that pair with Step 1 and Step 2.</li>
+<li><a href="../scalability/">Scalability, Availability, and Reliability</a> — Vocabulary for NFR discussions and failure-aware design.</li>
+<li><a href="../distributed_systems/">Distributed Systems</a> — Consensus, replication, and messaging—common deep-dive territory in Step 3.</li>
+<li><a href="../databases/">Databases</a> — Choosing stores and articulating consistency trade-offs during deep dive.</li>
+<li><a href="../api_design/">API Design</a> — Shaping boundaries and contracts in Step 2.</li>
+</ul>
+<hr />
+<p><em>Last updated: this page is a process guide; combine it with fundamentals topics above when preparing for interviews.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Fundamentals">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Fundamentals
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../estimation/" class="md-footer__link md-footer__link--next" aria-label="Next: Estimation &amp; Planning">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Estimation & Planning
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

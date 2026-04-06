@@ -1,0 +1,4489 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/ride_sharing/">
+      
+      
+        <link rel="prev" href="../collaborative_editor/">
+      
+      
+        <link rel="next" href="../cloud_storage/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Ride Sharing (Uber/Lyft) - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ride-sharing-uberlyft" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ride Sharing (Uber/Lyft)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-ride-sharing-is-hard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Ride Sharing Is Hard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-to-adjacent-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison to Adjacent Systems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-the-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-the-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Back-of-the-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assumptions-illustrative-metro" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions (illustrative metro)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trip-creations-per-second" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trip Creations per Second
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-update-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location Update Rate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-orders-of-magnitude" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage (orders of magnitude)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bandwidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bandwidth
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: High-Level Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#geospatial-grid-conceptual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Geospatial Grid (conceptual)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-location-tracking-and-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Location Tracking and Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-geospatial-indexing-geohash-s2-quadtree" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Geospatial Indexing (Geohash / S2 / QuadTree)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-driver-rider-matching-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Driver-Rider Matching Algorithm
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-eta-computation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 ETA Computation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-trip-lifecycle-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Trip Lifecycle Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-surge-pricing" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 Surge Pricing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-payment-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Payment Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-interview-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Interview Dialogue
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-reference-code-snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Reference Code Snippets
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Reference Code Snippets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#geohash-encode-and-neighbor-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Geohash — encode and neighbor ring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-update-handler-go" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location update handler (Go)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching-score-python-rank-candidates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Matching score (Python) — rank candidates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-geo-query-illustrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis GEO query (illustrative)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-mermaid-matching-flow-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Mermaid — Matching Flow (end-to-end)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="ride-sharing-uberlyft">Ride Sharing (Uber/Lyft)<a class="headerlink" href="#ride-sharing-uberlyft" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>A <strong>ride-hailing marketplace</strong> that connects passengers who need trips with drivers who supply capacity, in real time, over a geographic area—conceptually similar to Uber, Lyft, or regional equivalents.</p>
+<p><strong>Core capabilities in scope:</strong>
+- Riders request rides with pickup and (optional) drop-off locations
+- The system finds suitable nearby drivers under business rules (vehicle type, capacity, bans)
+- Live location updates for drivers and active trips (map UX, ETAs, safety)
+- Trip lifecycle from request through completion, cancellation, and payment settlement
+- Dynamic pricing (surge) when supply is scarce relative to demand
+- Payments: authorize, capture, split (platform fee), and payout to drivers</p>
+<h3 id="why-ride-sharing-is-hard">Why Ride Sharing Is Hard<a class="headerlink" href="#why-ride-sharing-is-hard" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Real-time geospatial load</strong></td>
+<td>Millions of moving points; queries must be fast and geographically local</td>
+</tr>
+<tr>
+<td><strong>Matching under constraints</strong></td>
+<td>Nearest is not always best (heading, ETA, fairness, surge regions)</td>
+</tr>
+<tr>
+<td><strong>Stateful trips</strong></td>
+<td>Idempotent transitions; split-brain during network partitions hurts UX and money</td>
+</tr>
+<tr>
+<td><strong>ETA accuracy</strong></td>
+<td>Road network routing, traffic, and stale GPS all affect trust</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td>Card networks, disputes, regional regulations, driver payouts</td>
+</tr>
+<tr>
+<td><strong>Safety and abuse</strong></td>
+<td>Fake GPS, collusion, account takeover; audit trails matter</td>
+</tr>
+</tbody>
+</table>
+<h3 id="comparison-to-adjacent-systems">Comparison to Adjacent Systems<a class="headerlink" href="#comparison-to-adjacent-systems" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Similarity</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Food delivery</strong></td>
+<td>Dispatch + ETA + payments</td>
+<td>Batchability, restaurant prep, less strict passenger-driver lock</td>
+</tr>
+<tr>
+<td><strong>Chat / realtime</strong></td>
+<td>WebSockets, presence</td>
+<td>Ride sharing adds <strong>geo indexes</strong> and <strong>trip state machines</strong></td>
+</tr>
+<tr>
+<td><strong>Notification system</strong></td>
+<td>Async fan-out</td>
+<td>Here, <strong>location streams</strong> dominate hot paths</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, anchor numbers as <strong>orders of magnitude</strong>. Precise public metrics change by year and market; the goal is to show you understand <strong>QPS</strong>, <strong>index cardinality</strong>, and <strong>operational trade-offs</strong>.</p>
+</div>
+<hr />
+<h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Priority</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rider requests a ride</td>
+<td>Must have</td>
+<td>Pickup pin, optional drop-off, vehicle class</td>
+</tr>
+<tr>
+<td>Driver availability</td>
+<td>Must have</td>
+<td>Online/offline; accepts trip offers</td>
+</tr>
+<tr>
+<td>Driver-rider matching</td>
+<td>Must have</td>
+<td>Offer trip to suitable driver(s); fallback if declined or timeout</td>
+</tr>
+<tr>
+<td>Live location</td>
+<td>Must have</td>
+<td>Stream driver position during dispatch and trip</td>
+</tr>
+<tr>
+<td>Trip lifecycle</td>
+<td>Must have</td>
+<td>States from requested to completed/cancelled with rules per state</td>
+</tr>
+<tr>
+<td>ETA / price estimate</td>
+<td>Must have</td>
+<td>Pre-trip ETA and fare band; update during trip</td>
+</tr>
+<tr>
+<td>Payments</td>
+<td>Must have</td>
+<td>Charge rider; platform fee; pay driver per policy</td>
+</tr>
+<tr>
+<td>Ratings</td>
+<td>Should have</td>
+<td>Post-trip feedback</td>
+</tr>
+<tr>
+<td>Scheduled rides</td>
+<td>Nice to have</td>
+<td>Different matching window and reminder notifications</td>
+</tr>
+<tr>
+<td>Pool / shared rides</td>
+<td>Nice to have</td>
+<td>Multi-stop routing and constraint satisfaction</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Clarifying questions (typical)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One city or global?</td>
+<td>Data residency, map providers, currency</td>
+</tr>
+<tr>
+<td>Regulatory category?</td>
+<td>Taxi vs TNC rules affect pricing display and data retention</td>
+</tr>
+<tr>
+<td>Vehicle classes?</td>
+<td>Matching filters and supply pools</td>
+</tr>
+<tr>
+<td>Cancellation fees?</td>
+<td>State machine transitions and payment intents</td>
+</tr>
+<tr>
+<td>Fraud tolerance?</td>
+<td>GPS spoofing detection depth</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Match latency</strong></td>
+<td><strong>Low seconds</strong> for offer round-trip</td>
+<td>Riders abandon quickly</td>
+</tr>
+<tr>
+<td><strong>Location update freshness</strong></td>
+<td><strong>1–5 s</strong> typical for map UX; adaptive</td>
+<td>Battery vs accuracy trade-off</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td><strong>99.9%+</strong> for core APIs</td>
+<td>Outages strand riders/drivers mid-trip</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td><strong>Strong</strong> for trip state and payments</td>
+<td>Money and safety; use OLTP stores and idempotent APIs</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Horizontal for stateless APIs; shard geo indexes</td>
+<td>Hot cities create hot cells</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td>Trip and payment events auditable for years</td>
+<td>Disputes and regulation</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Never claim <strong>exactly-once side effects</strong> at planetary scale without qualifiers. Use <strong>idempotency keys</strong> for payments and trip transitions; make reconciliation jobs first-class.</p>
+</div>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<p><strong>Transports</strong>
+- <strong>HTTPS/JSON (or gRPC)</strong> for request/response: create trip, cancel, history
+- <strong>WebSocket (or MQTT)</strong> for high-frequency location and trip events to mobile apps</p>
+<p><strong>Representative REST-style endpoints</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /v1/trips</code></td>
+<td>HTTP</td>
+<td>Rider creates trip request (pickup, drop-off, product)</td>
+</tr>
+<tr>
+<td><code>POST /v1/trips/{id}/cancel</code></td>
+<td>HTTP</td>
+<td>Cancel with reason; idempotency key</td>
+</tr>
+<tr>
+<td><code>GET /v1/trips/{id}</code></td>
+<td>HTTP</td>
+<td>Trip detail and timeline</td>
+</tr>
+<tr>
+<td><code>POST /v1/drivers/heartbeat</code></td>
+<td>HTTP</td>
+<td>Periodic availability + coarse location</td>
+</tr>
+<tr>
+<td><code>POST /v1/payments/intents</code></td>
+<td>HTTP</td>
+<td>Create payment authorization</td>
+</tr>
+<tr>
+<td><code>WS /v1/stream</code></td>
+<td>WebSocket</td>
+<td>Multiplexed: <code>location</code>, <code>trip.updated</code>, <code>offer</code>, <code>eta</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>WebSocket message envelope (conceptual)</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;location.update&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;trip_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;trip_01h2&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;seq&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10442</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;lat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">37.7749</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">&quot;lng&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-122.4194</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;heading_deg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">90</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">&quot;ts_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1712000000000</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Sequence numbers or monotonic timestamps help clients <strong>discard stale updates</strong> after reconnects.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>Ride sharing stacks several independent “knobs”: how you index space, how you move bits to clients, where you persist truth, how you assign work, and how you buffer high-volume streams. Interviewers care that you <strong>name alternatives</strong>, <strong>compare on real constraints</strong> (latency, ops cost, correctness), and <strong>commit to a coherent story</strong>.</p>
+<h4 id="location-indexing">Location indexing<a class="headerlink" href="#location-indexing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Idea</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geohash</strong></td>
+<td>Hierarchical string/bit encoding of lat/lng into rectangular cells</td>
+<td>Simple prefix scans in KV/Redis; easy bucketing and cache keys</td>
+<td>Cell shapes stretch at poles; <strong>edge neighbors</strong> need explicit neighbor expansion, not prefix alone</td>
+<td>Redis GEO, quick prototypes, cell-based surge</td>
+</tr>
+<tr>
+<td><strong>R-tree / R*-tree</strong></td>
+<td>Balanced tree of bounding rectangles for points and polygons</td>
+<td>Strong for <strong>variable-density</strong> data and polygon containment (zones, airports)</td>
+<td>Higher write amplification; harder to shard horizontally than fixed cells</td>
+<td>GIS databases (PostGIS), offline analytics, geofencing</td>
+</tr>
+<tr>
+<td><strong>S2 (Google)</strong></td>
+<td>Hilbert curve on a sphere; hierarchical cells with stable IDs</td>
+<td><strong>Spherical</strong> model; fast neighbor/cover ops; level-based refinement</td>
+<td>Learning curve; you still tune cell level per city density</td>
+<td>Global fleets, consistent cross-region logic</td>
+</tr>
+<tr>
+<td><strong>H3 (Uber)</strong></td>
+<td>Hexagonal hierarchical grid on the sphere</td>
+<td><strong>Uniform neighbors</strong> (6 at fine levels); good for <strong>aggregates</strong> (heatmap, surge hexes)</td>
+<td>Not a drop-in for arbitrary “distance to point” APIs; tooling ecosystem smaller than S2 in some stacks</td>
+<td>Demand/supply aggregation, surge maps, ML features</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters in interviews:</strong> Matching starts with <strong>coarse spatial filtering</strong>; the index should support <strong>ring expansion</strong>, <strong>TTL eviction</strong> for offline drivers, and <strong>hot-cell</strong> isolation in dense cores.</p>
+<h4 id="real-time-communication-client-edge">Real-time communication (client ↔ edge)<a class="headerlink" href="#real-time-communication-client-edge" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Model</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>Full-duplex TCP, often via HTTPS upgrade</td>
+<td>Ubiquitous in mobile; simple multiplexed <strong>trip + location</strong> channels; CDN/WAF friendly</td>
+<td>Stateful connections; reconnect storms; regional stickiness</td>
+<td><strong>Default</strong> for rider/driver live UX</td>
+</tr>
+<tr>
+<td><strong>gRPC streaming</strong></td>
+<td>HTTP/2 multiplexed RPC streams</td>
+<td>Strong typing, flow control, binary payloads</td>
+<td>Mobile/browser support and ops tooling vary; often paired with gateways</td>
+<td>Service-to-service <strong>high-QPS</strong> streams (e.g., internal fan-out)</td>
+</tr>
+<tr>
+<td><strong>MQTT</strong></td>
+<td>Pub/sub over lightweight broker</td>
+<td>Great for <strong>many small devices</strong> and topic fan-out</td>
+<td>Less common as primary app API for consumer ride apps; extra hop (broker)</td>
+<td>Telematics, IoT, some embedded fleets</td>
+</tr>
+</tbody>
+</table>
+<h4 id="database-trip-truth-vs-hot-geo-vs-write-heavy-telemetry">Database (trip truth vs hot geo vs write-heavy telemetry)<a class="headerlink" href="#database-trip-truth-vs-hot-geo-vs-write-heavy-telemetry" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Store</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>Role in ride sharing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL + PostGIS</strong></td>
+<td>ACID transactions; <strong>trip</strong> and <strong>payment</strong> integrity; rich constraints; spatial predicates</td>
+<td>Vertical scaling limits; cross-region latency if monolithic</td>
+<td><strong>System of record</strong> for trips, users, payments, disputes</td>
+</tr>
+<tr>
+<td><strong>Redis GEO</strong></td>
+<td>Sub-ms <strong>nearby</strong> queries; simple ops; pairs with geohash</td>
+<td>Memory-bound; <strong>not</strong> your financial ledger; durability is a product choice (AOF/cluster)</td>
+<td><strong>Live driver positions</strong> and offer locks with TTL</td>
+</tr>
+<tr>
+<td><strong>Cassandra</strong></td>
+<td>Wide partitions; high ingest; multi-DC</td>
+<td>Tunable consistency; <strong>no</strong> rich joins; operational complexity</td>
+<td><strong>High-volume trip events</strong>, location archives, idempotent write paths at huge scale</td>
+</tr>
+<tr>
+<td><strong>DynamoDB</strong></td>
+<td>Managed, predictable key-path access; global tables option</td>
+<td>Hot partitions need design; limited ad-hoc query vs SQL</td>
+<td><strong>Regional</strong> trip metadata, ride history, feature stores with known access patterns</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interview pattern:</strong> OLTP for <strong>money and state machine</strong>; Redis (or equivalent) for <strong>geo hot path</strong>; column/wide-column or KV for <strong>append-only</strong> telemetry at extreme scale.</p>
+<h4 id="matching-algorithm">Matching algorithm<a class="headerlink" href="#matching-algorithm" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>What it does</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Greedy nearest (with ETA)</strong></td>
+<td>Iteratively pick best-scoring driver by heuristic after spatial filter</td>
+<td>Simple; fast; easy to add business rules</td>
+<td>Can be globally suboptimal; order of offers matters</td>
+</tr>
+<tr>
+<td><strong>Hungarian / min-cost assignment</strong></td>
+<td>Optimal <strong>one-to-one</strong> assignment on a cost matrix</td>
+<td>Strong when batching many simultaneous requests</td>
+<td><strong>O(n³)</strong>; expensive at city scale; needs batch windows</td>
+</tr>
+<tr>
+<td><strong>ML-based ranking</strong></td>
+<td>Learn weights or pairwise preferences from data</td>
+<td>Handles <strong>nonlinear</strong> effects (acceptance, churn)</td>
+<td>Cold start; explainability; still needs <strong>guardrails</strong> and fallbacks</td>
+</tr>
+</tbody>
+</table>
+<p>Production systems almost always combine <strong>greedy + ETA + rules</strong>, with <strong>batch optimization</strong> only in constrained windows (e.g., pool rides, small zones).</p>
+<h4 id="message-queue-location-updates">Message queue: location updates<a class="headerlink" href="#message-queue-location-updates" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to pick</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Durable log; high throughput; replay; consumer groups; cross-service contracts</td>
+<td>Ops/heavy JVM ecosystem in some orgs; <strong>ordering per key</strong> is a discipline</td>
+<td><strong>Default</strong> for <code>driver.locations</code>: partition by <code>driver_id</code>, multiple consumers</td>
+</tr>
+<tr>
+<td><strong>Redis Streams</strong></td>
+<td>Low latency; simple if you already run Redis at core</td>
+<td>Not the same multi-team replay story as Kafka at petabyte scale; persistence model must be explicit</td>
+<td>Edge aggregation, smaller deployments, or <strong>extra</strong> fast path beside Kafka</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice (illustrative architecture)</strong><br />
+- <strong>S2 or geohash-backed Redis GEO</strong> (or H3 for surge/heatmap) for <strong>live</strong> nearby queries—operational simplicity and proven mobile patterns.<br />
+- <strong>WebSockets</strong> (or MQTT only if product is IoT-heavy) for <strong>rider/driver</strong> streams; <strong>Kafka</strong> for <strong>location ingestion</strong> and downstream consumers (matching freshness, ETA, analytics).<br />
+- <strong>PostgreSQL + PostGIS</strong> as <strong>source of truth</strong> for trips and payments; <strong>Redis</strong> for geo + short-lived coordination; <strong>Cassandra or DynamoDB</strong> only when you justify <strong>massive</strong> append-only or multi-region access patterns with clear key design.<br />
+- <strong>Greedy matching with road-network ETA</strong> and sequential offers; reserve <strong>Hungarian/ILP</strong> for bounded batch problems; layer <strong>ML</strong> on ranking weights, not as the only safety-critical assigner.  </p>
+<p>This stack optimizes for <strong>interview clarity</strong>: separate <strong>AP-friendly</strong> location paths from <strong>CP</strong> trip/payment paths, and show you know <strong>when</strong> to pay for optimality vs latency.</p>
+<h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
+<p>CAP is a <strong>thought model</strong>, not a literal database toggle: in partitions, you choose between <strong>linearizable consistency</strong> and <strong>always answering</strong> with possibly stale data. Ride sharing <strong>mixes subsystems</strong> with different tolerances.</p>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Dominant need</th>
+<th>CAP lens (under partition)</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Location tracking</strong></td>
+<td>Freshness + availability</td>
+<td><strong>AP</strong>: accept that two clients might briefly disagree on exact coordinates; <strong>eventual</strong> convergence is OK</td>
+<td>Maps can tolerate seconds of skew; <strong>do not</strong> block the world on GPS</td>
+</tr>
+<tr>
+<td><strong>Ride matching</strong></td>
+<td>No double-dispatch</td>
+<td><strong>CP</strong> for <strong>assignment decision</strong>: one writer “wins” (trip offer acceptance)</td>
+<td>Two drivers must not be <strong>MATCHED</strong> to the same trip; use <strong>compare-and-swap</strong>, fencing tokens, or DB constraints</td>
+</tr>
+<tr>
+<td><strong>Trip state</strong></td>
+<td>Correct lifecycle</td>
+<td><strong>CP</strong> for transitions (<code>REQUESTED</code> → <code>MATCHED</code> → …)</td>
+<td>Stale trip state breaks UX and billing; prefer <strong>strong consistency</strong> per <code>trip_id</code></td>
+</tr>
+<tr>
+<td><strong>Payment</strong></td>
+<td>Monetary integrity</td>
+<td><strong>CP</strong>: authoritative ledger; <strong>no</strong> duplicated capture without idempotency</td>
+<td>Card networks are <strong>eventually consistent</strong> externally; <strong>your</strong> ledger must reconcile</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why “driver location is AP but assignment is CP” is a strong interview answer:</strong><br />
+- <strong>Location</strong> is <strong>high volume</strong> and <strong>softly consistent</strong>—show last-known-good with timestamps.<br />
+- <strong>Assignment</strong> is <strong>low volume</strong> and <strong>hard invariant</strong>—serialize decisions on the trip row or dedicated lock service.</p>
+<pre class="mermaid"><code>flowchart TB
+  subgraph AP["AP-biased — under partition: keep serving; location may briefly disagree"]
+    L[Driver location stream]
+    M[Map / ETA display]
+    H[Heartbeats]
+  end
+
+  subgraph CP["CP-biased — under partition: serialize; no double-dispatch or double-capture"]
+    A[Offer accept / assign driver]
+    T[Trip state transitions]
+    P[Payment authorize / capture]
+  end
+
+  L --&gt; M
+  A --&gt; T
+  T --&gt; P</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mention <strong>idempotency keys</strong> and <strong>single-writer</strong> patterns for the CP side; mention <strong>timestamps + sequence numbers</strong> on the AP side so clients reject garbage after reconnect.</p>
+</div>
+<h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
+<p>SLAs are <strong>contracts</strong> (often external); <strong>SLOs</strong> are internal targets composed from <strong>SLIs</strong> (indicators). For interviews, define <strong>what you measure</strong>, <strong>target</strong>, and <strong>how you burn error budget</strong>.</p>
+<h4 id="service-level-indicators-and-example-objectives">Service level indicators and example objectives<a class="headerlink" href="#service-level-indicators-and-example-objectives" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>SLI (what we measure)</th>
+<th>Example SLO target</th>
+<th>Why candidates care</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Matching latency</strong></td>
+<td>Time from <code>POST /trips</code> to <strong>first driver offer sent</strong> (p95/p99)</td>
+<td><strong>p95 &lt; 3 s</strong>, <strong>p99 &lt; 8 s</strong> in dense cities</td>
+<td>Drives geo index + matching service budgets</td>
+</tr>
+<tr>
+<td><strong>ETA accuracy</strong></td>
+<td>Absolute error between <strong>predicted</strong> and <strong>actual</strong> trip time (p50/p90)</td>
+<td><strong>p90 error &lt; 25%</strong> of trip duration (tune per market)</td>
+<td>Wrong ETAs erode trust; tie to map/traffic pipeline</td>
+</tr>
+<tr>
+<td><strong>Location freshness</strong></td>
+<td>Age of last accepted driver position shown to rider (p95)</td>
+<td><strong>p95 &lt; 5 s</strong> on trip; adaptive when idle</td>
+<td>Battery vs UX; backpressure must not silently stall</td>
+</tr>
+<tr>
+<td><strong>Trip completion rate</strong></td>
+<td><strong>Completed / (requested − fraudulent)</strong> over rolling window</td>
+<td><strong>&gt; 98%</strong> “happy path” completion excluding rider cancel</td>
+<td>Separates product health from <strong>supply</strong> gaps</td>
+</tr>
+<tr>
+<td><strong>Payment processing</strong></td>
+<td>Successful <strong>capture</strong> on first attempt / reconciliation latency</td>
+<td><strong>99.95%</strong> capture success within <strong>60 s</strong> of completion; <strong>100%</strong> eventual consistency via ledger</td>
+<td>Money path gets the <strong>tightest</strong> objectives</td>
+</tr>
+</tbody>
+</table>
+<h4 id="error-budget-policy">Error budget policy<a class="headerlink" href="#error-budget-policy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget = 1 − SLO</strong> over window (e.g., 30 days)</td>
+<td>Example: 99.9% monthly availability ⇒ <strong>43.2 min</strong> downtime budget</td>
+</tr>
+<tr>
+<td><strong>Fast vs slow burn</strong></td>
+<td>Alert on <strong>burn rate</strong>: consuming budget <strong>too fast</strong> blocks risky releases</td>
+</tr>
+<tr>
+<td><strong>Feature flags</strong></td>
+<td>Disable <strong>non-critical</strong> experiments (e.g., new ranker) when matching SLO burns</td>
+</tr>
+<tr>
+<td><strong>Tiered response</strong></td>
+<td><strong>Green</strong>: normal deploys. <strong>Yellow</strong>: freeze features; scale matching. <strong>Red</strong>: degrade <strong>AP</strong> paths (coarser map) before <strong>CP</strong> paths (never “best effort” payments)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Never promise <strong>100%</strong> for distributed systems except where <strong>business definition</strong> allows (e.g., “100% of trips eventually reach terminal state <strong>or</strong> explicit reconciliation case”).</p>
+</div>
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">&para;</a></h3>
+<p>Schemas below are <strong>illustrative</strong> for interviews: normalize <strong>users</strong>, keep <strong>trips</strong> as the core aggregate, isolate <strong>high-churn</strong> driver locations, and treat <strong>payments</strong> as append-only events with idempotency.</p>
+<h4 id="users-riders-and-drivers"><code>users</code> (riders and drivers)<a class="headerlink" href="#users-riders-and-drivers" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user_id</code></td>
+<td><code>UUID</code> (PK)</td>
+<td>Stable identity</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td><code>ENUM('rider','driver','both')</code></td>
+<td>App may use separate profiles</td>
+</tr>
+<tr>
+<td><code>email</code> / <code>phone</code></td>
+<td><code>TEXT</code>, hashed or tokenized</td>
+<td>PII minimization</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM('active','suspended',…)</code></td>
+<td>Fraud / compliance</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Audit</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>driver_profiles</code> (1:1 when role includes driver)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>driver_id</code></td>
+<td><code>UUID</code> (PK, FK → <code>users</code>)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>vehicle_class</code></td>
+<td><code>TEXT</code></td>
+<td>e.g., <code>ECONOMY</code>, <code>XL</code></td>
+</tr>
+<tr>
+<td><code>license_region</code></td>
+<td><code>TEXT</code></td>
+<td>Regulatory</td>
+</tr>
+<tr>
+<td><code>rating_avg</code></td>
+<td><code>NUMERIC(3,2)</code></td>
+<td>Denormalized cache; source of truth can be aggregates</td>
+</tr>
+</tbody>
+</table>
+<h4 id="rides-trips"><code>rides</code> / <code>trips</code><a class="headerlink" href="#rides-trips" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trip_id</code></td>
+<td><code>UUID</code> (PK)</td>
+<td>Public id in APIs</td>
+</tr>
+<tr>
+<td><code>rider_id</code></td>
+<td><code>UUID</code> (FK → <code>users</code>)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>driver_id</code></td>
+<td><code>UUID</code> (FK → <code>users</code>, nullable until matched)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>pickup_lat</code>, <code>pickup_lng</code></td>
+<td><code>DOUBLE PRECISION</code></td>
+<td>Or <code>GEOGRAPHY(POINT)</code> in PostGIS</td>
+</tr>
+<tr>
+<td><code>dropoff_lat</code>, <code>dropoff_lng</code></td>
+<td><code>DOUBLE PRECISION</code></td>
+<td>Nullable if unknown at request</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM('REQUESTED','MATCHED',…)</code></td>
+<td>Align with state machine</td>
+</tr>
+<tr>
+<td><code>fare_estimate_cents</code> / <code>fare_final_cents</code></td>
+<td><code>BIGINT</code></td>
+<td>Integer money</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>CHAR(3)</code></td>
+<td>ISO 4217</td>
+</tr>
+<tr>
+<td><code>idempotency_key</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td>Rider retries</td>
+</tr>
+<tr>
+<td><code>requested_at</code>, <code>matched_at</code>, <code>started_at</code>, <code>completed_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Timeline + SLO measurement</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>BIGINT</code></td>
+<td>Optimistic locking for transitions</td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>(rider_id, requested_at DESC)</code>, <code>(driver_id, status)</code>, <code>(status, requested_at)</code> for ops dashboards.</p>
+<h4 id="driver_locations-hot-path"><code>driver_locations</code> (hot path)<a class="headerlink" href="#driver_locations-hot-path" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>driver_id</code></td>
+<td><code>UUID</code> (PK)</td>
+<td>One row per online driver, or partition by time if historified</td>
+</tr>
+<tr>
+<td><code>lat</code>, <code>lng</code></td>
+<td><code>DOUBLE PRECISION</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>geohash</code> / <code>s2_cell_id</code></td>
+<td><code>TEXT</code> / <code>BIGINT</code></td>
+<td>Accelerate cell queries if not only in Redis</td>
+</tr>
+<tr>
+<td><code>heading_deg</code></td>
+<td><code>SMALLINT</code></td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Freshness SLI</td>
+</tr>
+<tr>
+<td><code>trip_id</code></td>
+<td><code>UUID</code> NULL</td>
+<td>When on active trip</td>
+</tr>
+</tbody>
+</table>
+<p>At scale, <strong>Redis GEO</strong> holds the same fields with TTL; <strong>OLTP</strong> may store only <strong>snapshots</strong> or <strong>nothing</strong> if stream-only.</p>
+<h4 id="payments"><code>payments</code><a class="headerlink" href="#payments" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>payment_id</code></td>
+<td><code>UUID</code> (PK)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>trip_id</code></td>
+<td><code>UUID</code> (FK → <code>rides</code>)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>payer_user_id</code></td>
+<td><code>UUID</code></td>
+<td>Rider</td>
+</tr>
+<tr>
+<td><code>amount_cents</code></td>
+<td><code>BIGINT</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>CHAR(3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM('AUTHORIZED','CAPTURED','FAILED','REFUNDED')</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>psp_reference</code></td>
+<td><code>TEXT</code></td>
+<td>Opaque token from PSP</td>
+</tr>
+<tr>
+<td><code>idempotency_key</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td><strong>Mandatory</strong> for captures</td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>settled_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Reconciliation</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In a deep dive, add <strong><code>trip_events</code></strong> (append-only) for audit and <strong><code>outbox</code></strong> rows for reliable downstream notifications—interviewers reward <strong>event + transaction</strong> pairing.</p>
+</div>
+<hr />
+<h2 id="step-2-back-of-the-envelope-estimation">Step 2: Back-of-the-Envelope Estimation<a class="headerlink" href="#step-2-back-of-the-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="assumptions-illustrative-metro">Assumptions (illustrative metro)<a class="headerlink" href="#assumptions-illustrative-metro" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- Metro DAU (riders + drivers): 2 million
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>- Completed trips per day: 8 million
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>- Average trip duration: 20 minutes active driving
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- Peak factor: 2× average QPS during rush hour
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- Location updates while on trip: 1 per 3 seconds per active driver
+</span></code></pre></div>
+<h3 id="trip-creations-per-second">Trip Creations per Second<a class="headerlink" href="#trip-creations-per-second" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>8,000,000 trips / 86,400 s ≈ 93 trips/s average
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Peak ≈ 186 trips/s (2×)
+</span></code></pre></div>
+<h3 id="location-update-rate">Location Update Rate<a class="headerlink" href="#location-update-rate" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Suppose 80,000 concurrent active trips city-wide at peak (illustrative).
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Updates per second ≈ 80,000 / 3 ≈ 27,000 loc/s (plus idle driver heartbeats).
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Writes</strong> to location pipelines often exceed <strong>trip creation</strong> QPS by an order of magnitude. Design the hot path for ingestion and aggregation, not just CRUD.</p>
+</div>
+<h3 id="storage-orders-of-magnitude">Storage (orders of magnitude)<a class="headerlink" href="#storage-orders-of-magnitude" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Illustrative daily volume</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trip records</td>
+<td>8M rows/day</td>
+<td>Indexed by rider, driver, time</td>
+</tr>
+<tr>
+<td>Location samples</td>
+<td>Billions of points/day</td>
+<td>Often <strong>short TTL</strong> in hot store; archive to object storage</td>
+</tr>
+<tr>
+<td>Payment ledger</td>
+<td>8M+ events</td>
+<td>Immutable append log + OLTP</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bandwidth">Bandwidth<a class="headerlink" href="#bandwidth" title="Permanent link">&para;</a></h3>
+<p>If each location update is ~100 bytes on the wire after compression:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>27,000 × 100 B ≈ 2.7 MB/s (location alone, one region)
+</span></code></pre></div>
+<p>Fan-out to maps, ETA services, and regional aggregators adds <strong>egress</strong> cost; <strong>edge aggregation</strong> helps.</p>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+  subgraph Clients["Clients"]
+    R[Rider app]
+    D[Driver app]
+  end
+
+  subgraph Edge["Edge / API"]
+    GW[API Gateway + Auth]
+    WS[WebSocket gateway]
+  end
+
+  subgraph Core["Core services"]
+    TS[Trip service]
+    MS[Matching service]
+    LS[Location ingestion]
+    ETA[ETA / routing]
+    PR[Pricing / surge]
+    PAY[Payments]
+    NS[Notification]
+  end
+
+  subgraph Data["Data stores"]
+    PG[(PostgreSQL / CockroachDB)]
+    RD[(Redis)]
+    MQ[[Kafka / Pulsar]]
+    GS[(Geo index: Redis GEO / S2 / custom)]
+  end
+
+  R --&gt; GW
+  D --&gt; GW
+  R --&gt; WS
+  D --&gt; WS
+  GW --&gt; TS
+  GW --&gt; MS
+  WS --&gt; LS
+  LS --&gt; MQ
+  MQ --&gt; MS
+  MS --&gt; GS
+  MS --&gt; ETA
+  TS --&gt; PG
+  MS --&gt; RD
+  PR --&gt; RD
+  PAY --&gt; PG
+  TS --&gt; NS</code></pre>
+<p><strong>Responsibilities</strong>
+- <strong>Trip service</strong>: source of truth for trip state; emits domain events
+- <strong>Matching service</strong>: candidate search, ranking, offer timeouts, reassignment
+- <strong>Location ingestion</strong>: validate, throttle, publish to streams; update geo indexes
+- <strong>ETA service</strong>: road-network routing + traffic overlays; caches frequent polylines
+- <strong>Pricing</strong>: base fare, distance/time, surge multipliers with caps
+- <strong>Payments</strong>: PSP integration; idempotent captures; payout scheduler</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Keep <strong>trip state transitions</strong> in a small number of services with clear ownership. Avoid “matching updates trip directly” and “trip calls matching in a circle” without a defined orchestration pattern (saga, outbox).</p>
+</div>
+<h3 id="geospatial-grid-conceptual">Geospatial Grid (conceptual)<a class="headerlink" href="#geospatial-grid-conceptual" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+  subgraph City["City partitioned into cells"]
+    C1[Cell A1]
+    C2[Cell A2]
+    C3[Cell B1]
+    C4[Cell B2]
+  end
+  R[Rider request] --&gt; C2
+  C2 --&gt; Q[Query drivers in cell + ring of neighbors]
+  Q --&gt; M[Rank + offer]</code></pre>
+<p>Cells may be <strong>geohash prefixes</strong>, <strong>S2 cells</strong>, or <strong>quadtree</strong> buckets backed by the same matching API.</p>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-location-tracking-and-updates">4.1 Location Tracking and Updates<a class="headerlink" href="#41-location-tracking-and-updates" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong>
+- Fresh enough for map UX and ETA refinement
+- Battery-friendly on mobile (adaptive sampling)
+- Abuse-resistant (rate limits, plausibility checks)</p>
+<p><strong>Pipeline</strong>
+1. Mobile batches points or sends on a timer (e.g., every 2–5 s on trip)
+2. API validates JWT, trip/driver binding, and basic sanity (speed caps)
+3. Ingestion writes to <strong>Kafka</strong> topic <code>driver.locations</code> partitioned by <code>driver_id</code>
+4. <strong>Consumers</strong> update <strong>Redis GEO</strong> (or equivalent) for live queries
+5. <strong>Downsampler</strong> writes <strong>trip trace</strong> to object storage for disputes (PII policy)</p>
+<p><strong>WebSocket vs polling</strong>
+- <strong>WebSocket</strong> (or HTTP/2 streams) is standard for streaming updates to the rider during dispatch and trip
+- Polling is simpler but wastes battery and increases tail latency</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Treat <strong>high-frequency location</strong> as a <strong>stream processing</strong> problem: backpressure, poison messages, and consumer lag dashboards are production requirements.</p>
+</div>
+<h3 id="42-geospatial-indexing-geohash-s2-quadtree">4.2 Geospatial Indexing (Geohash / S2 / QuadTree)<a class="headerlink" href="#42-geospatial-indexing-geohash-s2-quadtree" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Idea</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geohash</strong></td>
+<td>Hierarchical string encoding of lat/lng into base-32 cells</td>
+<td>Simple prefix queries in KV stores; easy bucketing</td>
+<td>Edge distortion; pole/corner neighbors need <strong>neighbor list</strong> not just prefix</td>
+</tr>
+<tr>
+<td><strong>Quadtree</strong></td>
+<td>Recursive subdivision of space</td>
+<td>Adaptive density; good for variable driver density</td>
+<td>More complex updates; hot leaves under stadium events</td>
+</tr>
+<tr>
+<td><strong>S2 (Google)</strong></td>
+<td>Hilbert curve on a sphere; hierarchical cells</td>
+<td>Consistent sphere geometry; stable neighbor ops</td>
+<td>Learning curve; need library support</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When interviewers push “which one?”</strong>
+- At large scale, teams often use <strong>S2</strong> or <strong>geohash + neighbor expansion</strong> with <strong>Redis GEO</strong> (geohash under the hood) or a dedicated spatial service.
+- <strong>Quadtree</strong> shines when you want <strong>adaptive refinement</strong> and can pay for more complex rebalancing.</p>
+<p><strong>Comparison summary</strong></p>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Geohash</th>
+<th>Quadtree</th>
+<th>S2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spherical correctness</td>
+<td>Approximate</td>
+<td>Planar projection issues unless projected</td>
+<td>Strong</td>
+</tr>
+<tr>
+<td>Neighbor queries</td>
+<td>Prefix + neighbor hashes</td>
+<td>Tree traversal</td>
+<td>Fixed-level cell union</td>
+</tr>
+<tr>
+<td>Implementation effort</td>
+<td>Low</td>
+<td>Medium–high</td>
+<td>Medium (library)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-driver-rider-matching-algorithm">4.3 Driver-Rider Matching Algorithm<a class="headerlink" href="#43-driver-rider-matching-algorithm" title="Permanent link">&para;</a></h3>
+<p><strong>Problem shape</strong>
+- Find <strong>K nearest</strong> available drivers subject to:
+  - <strong>ETA to pickup</strong> (not Euclidean distance)
+  - <strong>Heading / road access</strong> heuristics
+  - <strong>Fairness</strong> (avoid starving distant drivers entirely)
+  - <strong>Compliance</strong> (licensed vehicle class)</p>
+<p><strong>Typical stages</strong>
+1. <strong>Coarse filter</strong>: drivers in <strong>cells overlapping</strong> pickup plus <strong>ring expansion</strong> until minimum count or max radius
+2. <strong>Rank</strong>: score <code>w1 * eta_pickup + w2 * idle_time + w3 * acceptance_rate + penalties</code>
+3. <strong>Offer</strong>: send push/WebSocket offer; <strong>timeout</strong> (e.g., 10–20 s)
+4. <strong>Fallback</strong>: next candidate; escalate surge or broaden radius</p>
+<pre class="mermaid"><code>sequenceDiagram
+  participant R as Rider
+  participant T as Trip service
+  participant M as Matching
+  participant G as Geo index
+  participant D as Driver
+
+  R-&gt;&gt;T: POST /trips
+  T-&gt;&gt;M: match_request(pickup, constraints)
+  M-&gt;&gt;G: nearby_drivers(cell, k)
+  G--&gt;&gt;M: candidate list
+  M-&gt;&gt;M: rank by ETA + rules
+  M-&gt;&gt;D: push offer (trip_id, ttl)
+  D--&gt;&gt;M: accept / timeout
+  M-&gt;&gt;T: assign(driver_id)</code></pre>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Nearest in straight-line distance</strong> is a common trap. Interviewers reward mentioning <strong>road-network ETA</strong> and <strong>one-way systems</strong>.</p>
+</div>
+<h3 id="44-eta-computation">4.4 ETA Computation<a class="headerlink" href="#44-eta-computation" title="Permanent link">&para;</a></h3>
+<p><strong>Inputs</strong>
+- Map graph (nodes/edges), speed profiles by hour-of-week, live traffic feeds (probe speeds, closures)
+- Live driver position for <strong>remaining route</strong> refresh</p>
+<p><strong>Architecture sketch</strong>
+- <strong>Precomputed</strong> distances between region hubs for coarse estimates
+- <strong>Routing engine</strong> (e.g., OSRM-like contraction hierarchies) for accurate paths on demand
+- <strong>Cache</strong> ETAs by <code>(origin_cell, dest_cell, time_bucket)</code> with short TTL</p>
+<p><strong>Failure modes</strong>
+- Stale traffic after incidents
+- GPS drift in urban canyons
+- Detours; communicate <strong>confidence</strong> (“7–11 min”) not false precision</p>
+<h3 id="45-trip-lifecycle-management">4.5 Trip Lifecycle Management<a class="headerlink" href="#45-trip-lifecycle-management" title="Permanent link">&para;</a></h3>
+<p><strong>States (illustrative)</strong></p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REQUESTED</code></td>
+<td>Rider created trip; matching not finished</td>
+</tr>
+<tr>
+<td><code>MATCHED</code></td>
+<td>Driver assigned; not yet arrived</td>
+</tr>
+<tr>
+<td><code>DRIVER_ARRIVED</code></td>
+<td>Driver at pickup zone</td>
+</tr>
+<tr>
+<td><code>IN_PROGRESS</code></td>
+<td>Trip started (meter on)</td>
+</tr>
+<tr>
+<td><code>COMPLETED</code></td>
+<td>Trip ended normally</td>
+</tr>
+<tr>
+<td><code>CANCELLED</code></td>
+<td>Cancelled by rider/driver/system with reason code</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>stateDiagram-v2
+  [*] --&gt; REQUESTED
+  REQUESTED --&gt; MATCHED : driver assigned
+  REQUESTED --&gt; CANCELLED : no driver / rider cancel
+  MATCHED --&gt; DRIVER_ARRIVED : driver at pickup
+  MATCHED --&gt; CANCELLED : timeout / cancel
+  DRIVER_ARRIVED --&gt; IN_PROGRESS : trip start
+  IN_PROGRESS --&gt; COMPLETED : trip end
+  IN_PROGRESS --&gt; CANCELLED : support / fraud (rare)
+  COMPLETED --&gt; [*]
+  CANCELLED --&gt; [*]</code></pre>
+<p><strong>Implementation notes</strong>
+- Persist transitions with <strong>monotonic version</strong> or <strong>state + epoch</strong>
+- All mutating endpoints accept <strong>Idempotency-Key</strong>
+- Emit <strong>outbox</strong> events for notifications, analytics, and payment triggers</p>
+<h3 id="46-surge-pricing">4.6 Surge Pricing<a class="headerlink" href="#46-surge-pricing" title="Permanent link">&para;</a></h3>
+<p><strong>Intent</strong>
+- Balance supply and demand when <strong>requests exceed available drivers</strong> in a micro-region</p>
+<p><strong>Common model</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>price = (base + per_minute * T + per_mile * D) * surge_multiplier
+</span></code></pre></div>
+<ul>
+<li><strong>Surge multiplier</strong> derived from <strong>request rate</strong>, <strong>available driver count</strong>, <strong>ETA inflation</strong>, sometimes <strong>ML forecast</strong></li>
+<li>Apply <strong>caps</strong> and <strong>transparency</strong> (map shading); store <strong>multiplier history</strong> for support</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User backlash</td>
+<td>Cap multiplier; show upfront estimate</td>
+</tr>
+<tr>
+<td>Driver gaming</td>
+<td>Detect coordinated cancels; anomaly on GPS</td>
+</tr>
+<tr>
+<td>Split-brain pricing</td>
+<td>Freeze multiplier at trip <strong>request</strong> time (versioned quote)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="47-payment-integration">4.7 Payment Integration<a class="headerlink" href="#47-payment-integration" title="Permanent link">&para;</a></h3>
+<p><strong>Flows</strong>
+- <strong>Authorize</strong> at request or match (hold)
+- <strong>Capture</strong> on completion (or incremental for long trips if product requires)
+- <strong>Platform fee</strong> and <strong>driver payout</strong> via scheduled transfers or instant pay products</p>
+<p><strong>Requirements</strong>
+- PCI scope minimization (use PSP tokens; never store PAN)
+- <strong>Idempotent</strong> captures and refunds
+- <strong>Ledger + OLTP</strong>: double-entry style for reconciliation</p>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Geo hot spots</td>
+<td>Partition indexes by <strong>city/region</strong>; avoid global locks</td>
+</tr>
+<tr>
+<td>Location writes</td>
+<td><strong>Partition Kafka</strong> by driver; <strong>batch</strong> updates to Redis</td>
+</tr>
+<tr>
+<td>Matching</td>
+<td><strong>Precompute</strong> coarse candidates; <strong>cache</strong> map tiles and ETA</td>
+</tr>
+<tr>
+<td>Trips DB</td>
+<td><strong>Shard</strong> by <code>trip_id</code> or <code>city_id</code>; <strong>avoid</strong> cross-shard transactions for happy path</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td><strong>Metrics</strong>: match latency, offer acceptance, cancel reasons, ETA error</td>
+</tr>
+<tr>
+<td>Resilience</td>
+<td><strong>Timeouts</strong> everywhere; <strong>dead-letter</strong> queues; <strong>chaos</strong> on regional failover</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Disaster scenarios to mention</strong>
+- Data center failure: multi-AZ; Kafka mirroring; read-only degradation modes
+- Payment provider outage: queue captures; manual reconciliation playbooks</p>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Start with <strong>requirements</strong> and <strong>non-goals</strong>; define <strong>trip state</strong> early</li>
+<li>Draw <strong>geo index + matching pipeline</strong> before micro-optimizing storage</li>
+<li>Separate <strong>location streaming</strong> from <strong>transactional trip data</strong></li>
+<li>Always mention <strong>idempotency</strong> for payments and <strong>event ordering</strong> for analytics</li>
+<li>Close with <strong>trade-offs</strong>: strong consistency vs availability for <strong>non-payment</strong> paths</li>
+</ul>
+<hr />
+<h2 id="interview-checklist">Interview Checklist<a class="headerlink" href="#interview-checklist" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>You should be able to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requirements</td>
+<td>List functional and non-functional requirements; ask about vehicle classes and regions</td>
+</tr>
+<tr>
+<td>Estimation</td>
+<td>Estimate trip QPS vs location QPS; storage for trips vs traces</td>
+</tr>
+<tr>
+<td>High-level</td>
+<td>APIs, WebSockets, trip service, matching, geo index, ETA, pricing, payments</td>
+</tr>
+<tr>
+<td>Deep dive</td>
+<td>Geohash vs S2 vs quadtree; matching stages; ETA inputs; surge fairness</td>
+</tr>
+<tr>
+<td>Production</td>
+<td>Sharding, Kafka lag, Redis hot keys, payment idempotency, monitoring</td>
+</tr>
+<tr>
+<td>Closing</td>
+<td>Trade-offs, failure modes, and how you would validate in shadow traffic</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sample-interview-dialogue">Sample Interview Dialogue<a class="headerlink" href="#sample-interview-dialogue" title="Permanent link">&para;</a></h2>
+<p><strong>Interviewer:</strong> “Design Uber.”</p>
+<p><strong>You:</strong> “I will assume ride-hailing in large cities: riders request pickup/drop-off, we match an available driver, stream locations, complete the trip, and charge through a PSP. Out of scope: freight and micromobility unless you want them.”</p>
+<p><strong>Interviewer:</strong> “Focus on matching and real-time location.”</p>
+<p><strong>You:</strong> “Matching is not pure nearest-neighbor in Euclidean space. I would bucket drivers in a <strong>spatial index</strong>—geohash prefixes, <strong>S2 cells</strong>, or a <strong>quadtree</strong>—query an expanding set of cells around the pickup, then rank by <strong>ETA from the road network</strong>, idle time, and constraints. I would offer to one driver at a time with a <strong>timeout</strong>, then move to the next candidate.”</p>
+<p><strong>Interviewer:</strong> “How do drivers update location?”</p>
+<p><strong>You:</strong> “Mobile sends periodic points over HTTPS or streams via <strong>WebSocket</strong> during active trips. Ingestion validates and publishes to <strong>Kafka</strong> partitioned by <code>driver_id</code>. Consumers update <strong>Redis GEO</strong> for fast <code>GEORADIUS</code> queries and downsample traces to cheaper storage for disputes.”</p>
+<p><strong>Interviewer:</strong> “How do you handle surge?”</p>
+<p><strong>You:</strong> “Compute a <strong>multiplier per micro-region</strong> from demand/supply imbalance, with <strong>caps</strong> and a <strong>frozen quote</strong> at request time so riders are not surprised. Audit multiplier history for support.”</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Ride sharing combines <strong>high-write location streams</strong>, <strong>geospatial indexing</strong> (geohash, quadtree, or S2), <strong>constrained matching</strong> with <strong>road-network ETA</strong>, a clear <strong>trip state machine</strong>, <strong>surge pricing</strong> with transparency, and <strong>payment correctness</strong> via idempotent APIs and ledgers. In interviews, emphasize <strong>separation of concerns</strong> between real-time movement data and transactional trip state, and show how you would <strong>scale the hot path</strong> in dense cities without collapsing shared infrastructure.</p>
+<hr />
+<h2 id="appendix-reference-code-snippets">Appendix: Reference Code Snippets<a class="headerlink" href="#appendix-reference-code-snippets" title="Permanent link">&para;</a></h2>
+<h3 id="geohash-encode-and-neighbor-ring">Geohash — encode and neighbor ring<a class="headerlink" href="#geohash-encode-and-neighbor-ring" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">Java</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">BASE32</span> <span class="o">=</span> <span class="s2">&quot;0123456789bcdefghjkmnpqrstuvwxyz&quot;</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">encode_geohash</span><span class="p">(</span><span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">precision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple geohash encoder (interleaved bit string), for interview illustration.&quot;&quot;&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">lat_interval</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">lon_interval</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">bits</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">even</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">precision</span> <span class="o">*</span> <span class="mi">5</span><span class="p">:</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        <span class="k">if</span> <span class="n">even</span><span class="p">:</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>            <span class="n">mid</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lon_interval</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>            <span class="k">if</span> <span class="n">lon</span> <span class="o">&gt;=</span> <span class="n">mid</span><span class="p">:</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                <span class="n">lon_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">lon_interval</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>                <span class="n">lon_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">lon_interval</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">)</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>            <span class="n">mid</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lat_interval</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>            <span class="k">if</span> <span class="n">lat</span> <span class="o">&gt;=</span> <span class="n">mid</span><span class="p">:</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>                <span class="n">lat_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">lat_interval</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>                <span class="n">lat_interval</span> <span class="o">=</span> <span class="p">(</span><span class="n">lat_interval</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">)</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>        <span class="n">even</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">even</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bits</span><span class="p">),</span> <span class="mi">5</span><span class="p">):</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>        <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">5</span><span class="p">]:</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>            <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">val</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">b</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BASE32</span><span class="p">[</span><span class="n">val</span><span class="p">])</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">[:</span><span class="n">precision</span><span class="p">])</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.LinkedHashSet</span><span class="p">;</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Set</span><span class="p">;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="cm">/** Interview-style stub: use a library in production (e.g., ch.hsr geohash). */</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">GeoSearchRing</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="nf">GeoSearchRing</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">ring</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">centerGeohash</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">neighborDepth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">        </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">cells</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">LinkedHashSet</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="n">cells</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">centerGeohash</span><span class="p">);</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="c1">// Pseudocode: for each prefix level, add 8 neighbors from library</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="c1">// Real impl: geohash.getAdjacent() for N, S, E, W, NE, NW, SE, SW</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">neighborDepth</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">            </span><span class="c1">// expand set with neighbors of all current cells</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">cells</span><span class="p">;</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="location-update-handler-go">Location update handler (Go)<a class="headerlink" href="#location-update-handler-go" title="Permanent link">&para;</a></h3>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">location</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="s">&quot;context&quot;</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="s">&quot;encoding/json&quot;</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="s">&quot;errors&quot;</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="s">&quot;time&quot;</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="kd">var</span><span class="w"> </span><span class="nx">ErrInvalidCoords</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;invalid coordinates&quot;</span><span class="p">)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Update</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nx">DriverID</span><span class="w"> </span><span class="kt">string</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="nx">TripID</span><span class="w">   </span><span class="kt">string</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="nx">Lat</span><span class="w">      </span><span class="kt">float64</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="nx">Lng</span><span class="w">      </span><span class="kt">float64</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="nx">Seq</span><span class="w">      </span><span class="kt">int64</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">    </span><span class="nx">TS</span><span class="w">       </span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="p">}</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Publisher</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">    </span><span class="nx">Publish</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">topic</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">key</span><span class="w"> </span><span class="p">[]</span><span class="kt">byte</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">[]</span><span class="kt">byte</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="p">}</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="kd">func</span><span class="w"> </span><span class="nx">HandleLocation</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">p</span><span class="w"> </span><span class="nx">Publisher</span><span class="p">,</span><span class="w"> </span><span class="nx">u</span><span class="w"> </span><span class="nx">Update</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">u</span><span class="p">.</span><span class="nx">Lat</span><span class="w"> </span><span class="p">&lt;</span><span class="w"> </span><span class="o">-</span><span class="mi">90</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">u</span><span class="p">.</span><span class="nx">Lat</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">u</span><span class="p">.</span><span class="nx">Lng</span><span class="w"> </span><span class="p">&lt;</span><span class="w"> </span><span class="o">-</span><span class="mi">180</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">u</span><span class="p">.</span><span class="nx">Lng</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ErrInvalidCoords</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="w">    </span><span class="nx">payload</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">json</span><span class="p">.</span><span class="nx">Marshal</span><span class="p">(</span><span class="nx">u</span><span class="p">)</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-8-32"><a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-33"><a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">p</span><span class="p">.</span><span class="nx">Publish</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;driver.locations&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">u</span><span class="p">.</span><span class="nx">DriverID</span><span class="p">),</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span>
+</span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="matching-score-python-rank-candidates">Matching score (Python) — rank candidates<a class="headerlink" href="#matching-score-python-rank-candidates" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">rank_score</span><span class="p">(</span><span class="n">eta_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">idle_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">accept</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">w_eta</span><span class="p">,</span> <span class="n">w_idle</span><span class="p">,</span> <span class="n">w_accept</span> <span class="o">=</span> <span class="n">weights</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="c1"># Lower is better; invert acceptance which is &quot;higher is better&quot;</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="k">return</span> <span class="n">w_eta</span> <span class="o">*</span> <span class="n">eta_sec</span> <span class="o">+</span> <span class="n">w_idle</span> <span class="o">*</span> <span class="n">idle_sec</span> <span class="o">+</span> <span class="n">w_accept</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accept</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="redis-geo-query-illustrative">Redis GEO query (illustrative)<a class="headerlink" href="#redis-geo-query-illustrative" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>GEOADD drivers:online &lt;lng&gt; &lt;lat&gt; &lt;driver_id&gt;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>GEORADIUS drivers:online &lt;lng&gt; &lt;lat&gt; 3 km WITHDIST ASC COUNT 20
+</span></code></pre></div>
+<hr />
+<h2 id="appendix-mermaid-matching-flow-end-to-end">Appendix: Mermaid — Matching Flow (end-to-end)<a class="headerlink" href="#appendix-mermaid-matching-flow-end-to-end" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+  A[Rider requests trip] --&gt; B[Persist REQUESTED]
+  B --&gt; C[Geo query candidates]
+  C --&gt; D[Rank by ETA + rules]
+  D --&gt; E{Offer sent?}
+  E --&gt;|timeout| F[Next candidate]
+  F --&gt; D
+  E --&gt;|accept| G[Assign driver MATCHED]
+  G --&gt; H[Stream location to rider]
+  H --&gt; I[Complete trip + capture payment]</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Production systems add <strong>experiments</strong>, <strong>shadow traffic</strong>, and <strong>safety checks</strong> between every step; the diagram is a conceptual backbone for discussion.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../collaborative_editor/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Collaborative Editor (Google Docs)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Collaborative Editor (Google Docs)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../cloud_storage/" class="md-footer__link md-footer__link--next" aria-label="Next: Cloud Storage (Google Drive)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Cloud Storage (Google Drive)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

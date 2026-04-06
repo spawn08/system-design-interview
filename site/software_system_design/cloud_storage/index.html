@@ -1,0 +1,4326 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/cloud_storage/">
+      
+      
+        <link rel="prev" href="../ride_sharing/">
+      
+      
+        <link rel="next" href="../event_booking/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Cloud Storage (Google Drive) - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cloud-storage-google-drive" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cloud Storage (Google Drive)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-cloud-storage-is-hard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Cloud Storage Is Hard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-to-adjacent-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison to Adjacent Systems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-the-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-the-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Back-of-the-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Traffic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-and-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sync and Notifications
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-file-chunking-and-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 File Chunking and Deduplication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-sync-protocol-client-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Sync Protocol (Client-Server)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-metadata-database-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Metadata Database Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-block-storage-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Block Storage Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-conflict-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Conflict Resolution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-file-versioning-and-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 File Versioning and History
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-sharing-and-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Sharing and Permissions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-offline-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.8 Offline Support
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-interview-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Interview Dialogue
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample Interview Dialogue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#further-reading-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further Reading (Patterns)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="cloud-storage-google-drive">Cloud Storage (Google Drive)<a class="headerlink" href="#cloud-storage-google-drive" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>A <strong>multi-tenant cloud file system</strong> that lets users upload, sync, share, and version files across devices—conceptually aligned with products like <strong>Google Drive</strong> or <strong>Dropbox</strong>. Users expect near-real-time sync, reliable offline edits, deduplicated storage at scale, and fine-grained sharing.</p>
+<p><strong>Core capabilities in scope:</strong></p>
+<ul>
+<li>Upload and download of files and folders with hierarchical paths</li>
+<li>Continuous sync between clients and cloud (delta updates, not full re-uploads)</li>
+<li>Block-level storage with <strong>content-defined chunking</strong> and <strong>content-addressable</strong> deduplication</li>
+<li>Metadata service for names, ACLs, versions, and parent/child relationships</li>
+<li>Notifications when remote changes occur (long polling or WebSocket)</li>
+<li>Conflict detection and resolution strategies for concurrent edits</li>
+<li>File history and rollback to prior versions</li>
+</ul>
+<h3 id="why-cloud-storage-is-hard">Why Cloud Storage Is Hard<a class="headerlink" href="#why-cloud-storage-is-hard" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Scale of data</strong></td>
+<td>Exabytes under management; must avoid storing duplicate bytes</td>
+</tr>
+<tr>
+<td><strong>Sync fan-out</strong></td>
+<td>One change may affect many devices; hot files amplify traffic</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>Metadata must stay coherent while blocks are immutable and replicated</td>
+</tr>
+<tr>
+<td><strong>Conflicts</strong></td>
+<td>Offline edits and concurrent writers require explicit policies</td>
+</tr>
+<tr>
+<td><strong>Latency sensitivity</strong></td>
+<td>Users perceive sluggish sync as product failure</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, separate <strong>user-visible paths</strong> (metadata graph) from <strong>bytes on disk</strong> (content-addressed blocks). That split is the backbone of the design.</p>
+</div>
+<h3 id="comparison-to-adjacent-systems">Comparison to Adjacent Systems<a class="headerlink" href="#comparison-to-adjacent-systems" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Similarity</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Object storage (S3)</strong></td>
+<td>Immutable blobs, large scale</td>
+<td>Cloud drive adds <strong>hierarchy</strong>, <strong>sync</strong>, and <strong>per-user ACLs</strong></td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Edge caching</td>
+<td>CDN is read-heavy and URL-centric; Drive is <strong>read/write</strong> with <strong>strong user semantics</strong></td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>Content hashing, dedup</td>
+<td>Git is repository-centric; Drive optimizes for <strong>non-technical users</strong> and <strong>binary workloads</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td><strong>Upload / download</strong> files up to product limit (e.g., 5 TB max object size in many products; interview: state an assumption)</td>
+<td>Resume interrupted transfers</td>
+</tr>
+<tr>
+<td>F2</td>
+<td><strong>Folder hierarchy</strong></td>
+<td>Move, rename, create; stable internal IDs separate from display path</td>
+</tr>
+<tr>
+<td>F3</td>
+<td><strong>Sync</strong> across devices for the same user</td>
+<td>Must handle sleep, flaky networks, and reconnect</td>
+</tr>
+<tr>
+<td>F4</td>
+<td><strong>Sharing</strong> with users and groups</td>
+<td>Viewer/commenter/editor roles (illustrative)</td>
+</tr>
+<tr>
+<td>F5</td>
+<td><strong>Version history</strong></td>
+<td>Restore prior versions; cap retention by policy</td>
+</tr>
+<tr>
+<td>F6</td>
+<td><strong>Search / list</strong> (optional in scope)</td>
+<td>Often delegated to search index fed by metadata CDC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Target (illustrative)</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Availability</strong></td>
+<td>99.9%–99.99% for API</td>
+<td>Enterprise expectations; block storage higher than metadata in some designs</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td>11 nines for committed user bytes (provider-style claim)</td>
+<td>Achieved via replication + repair; interview: discuss <strong>erasure coding</strong> vs <strong>triple replication</strong></td>
+</tr>
+<tr>
+<td><strong>Latency (metadata)</strong></td>
+<td>P99 &lt; 200–300 ms for list/small reads</td>
+<td>Interactive UI</td>
+</tr>
+<tr>
+<td><strong>Latency (sync notification)</strong></td>
+<td>Seconds for “someone else changed this”</td>
+<td>Not always instant; often <strong>eventual</strong> with bounded delay</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>Per-user <strong>linearizable</strong> metadata ops (idealized) or <strong>per-resource</strong> serializability</td>
+<td>Trade cost vs UX</td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td>TLS in transit; encryption at rest; ACL checks on every metadata path</td>
+<td>Audit logs for sharing changes</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not claim <strong>POSIX semantics</strong> for the whole namespace unless asked. Many products offer <strong>close-to-POSIX</strong> behavior on a mounted drive with documented exceptions (e.g., eventual consistency on metadata in some edge cases).</p>
+</div>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<p>Representative <strong>REST-style</strong> surface (names illustrative). Many products also use <strong>gRPC</strong> internally.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /v1/uploads</code></td>
+<td>Create upload session</td>
+<td>Returns <code>upload_id</code>, chunk size hints, URLs for block PUTs</td>
+</tr>
+<tr>
+<td><code>PUT /v1/uploads/{upload_id}/blocks/{block_hash}</code></td>
+<td>Idempotent block upload</td>
+<td>Content-addressed; skip if exists</td>
+</tr>
+<tr>
+<td><code>POST /v1/files/{id}/commit</code></td>
+<td>Finalize file revision</td>
+<td>Points file to manifest of block hashes</td>
+</tr>
+<tr>
+<td><code>GET /v1/changes</code></td>
+<td>Delta feed</td>
+<td>Since cursor; returns file/folder mutations</td>
+</tr>
+<tr>
+<td><code>GET /v1/files/{id}/content</code></td>
+<td>Download</td>
+<td>Redirects to signed URLs or streams blocks</td>
+</tr>
+<tr>
+<td><code>POST /v1/shares</code></td>
+<td>Share resource</td>
+<td>Grants principal + role</td>
+</tr>
+<tr>
+<td><code>GET /v1/notify</code></td>
+<td>Long poll</td>
+<td>Hold until change or timeout</td>
+</tr>
+<tr>
+<td><code>WS /v1/stream</code></td>
+<td>WebSocket</td>
+<td>Push notifications for subscribed folders</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Change feed (conceptual JSON)</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;cursor&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chg_7f91…&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;events&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file.updated&quot;</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">&quot;file_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fil_abc&quot;</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">&quot;etag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;W/\&quot;v42\&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/Reports/Q3.pdf&quot;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Treat <strong>block uploads</strong> as idempotent by <strong>hash</strong>. Treat <strong>file commits</strong> as idempotent with a <strong>client mutation id</strong> to avoid duplicate revisions on retries.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>Cloud storage stacks in three planes: <strong>immutable bytes</strong> (object/block layer), <strong>authoritative metadata</strong> (tree, versions, ACLs), and <strong>sync semantics</strong> (how clients converge). Interviewers expect you to name realistic building blocks and justify trade-offs—not to pick one vendor dogmatically.</p>
+<h4 id="object-storage-backend">Object storage backend<a class="headerlink" href="#object-storage-backend" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>When it wins</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Custom chunk store</strong> (hash-partitioned volumes, EC, scrubbers)</td>
+<td>Full control over placement, cost, on-prem; can co-design with dedup/GC</td>
+<td>Years of engineering; you own reliability, upgrades, and incident response</td>
+<td>Hyperscaler or regulated environments building a proprietary plane</td>
+</tr>
+<tr>
+<td><strong>Ceph / MinIO (S3-compatible cluster)</strong></td>
+<td>Mature replication/EC; ops patterns exist; self-hostable</td>
+<td>Operability at exabyte scale is non-trivial; feature gaps vs public cloud (multi-region, compliance SKUs)</td>
+<td>Private cloud, hybrid, or teams that want S3 API without AWS</td>
+</tr>
+<tr>
+<td><strong>Managed S3-compatible (e.g., S3, GCS, Azure Blob)</strong></td>
+<td>Durability/availability SLAs, global replication, lifecycle tiers, compliance certs</td>
+<td>Cost at scale; less control over internals; egress/operation pricing</td>
+<td>Fastest path for most products; default in interviews unless “on-prem” is stated</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> Metadata references chunks by <strong>hash</strong>; the object layer only needs <strong>PUT-by-hash</strong>, <strong>GET-by-hash</strong>, <strong>lifecycle/GC hooks</strong>, and <strong>strong durability</strong>. The hard part is <strong>reference counting</strong> and <strong>async deletion</strong> in your metadata plane—not the raw blob PUT.</p>
+<h4 id="metadata-store">Metadata store<a class="headerlink" href="#metadata-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>When it wins</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL</strong> (sharded)</td>
+<td>ACID, constraints (<code>UNIQUE (parent_id, name)</code>), rich queries, mature tooling</td>
+<td>Cross-shard transactions painful; need careful shard key (<code>owner_id</code> / <code>namespace_id</code>)</td>
+<td><strong>Default interview answer</strong> for tree + ACLs + transactional commits</td>
+</tr>
+<tr>
+<td><strong>etcd</strong> (or similar consistent KV)</td>
+<td>Strong consistency, watches for coordination</td>
+<td>Poor fit for large trees, heavy listing queries, and billions of rows—designed for <strong>small</strong> critical state</td>
+<td><strong>Locks, quotas, rate-limit counters</strong>, not the full file catalog</td>
+</tr>
+<tr>
+<td><strong>Custom B-tree / LSM on disk</strong></td>
+<td>Ultimate performance/cost tuning</td>
+<td>You reimplement SQL, migrations, backup—rarely justified</td>
+<td>Extreme embedded or legacy systems; not a typical greenfield choice</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> File <strong>names and hierarchy</strong> need <strong>transactional invariants</strong>; search/list workloads need <strong>secondary indexes</strong>. A relational model maps cleanly; pure KV is usually paired with <strong>another</strong> system for graph/path queries unless you accept heavy client-side logic.</p>
+<h4 id="sync-protocol">Sync protocol<a class="headerlink" href="#sync-protocol" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>When it wins</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rsync-like delta sync</strong> (rolling hash, send missing segments)</td>
+<td>Minimizes bytes on <strong>repeated similar</strong> files; great for low uplink</td>
+<td>Complex client; server may still be chunk/manifest based—align with CDC policy</td>
+<td>Bandwidth-sensitive clients; backup tools; complement to chunk stores</td>
+</tr>
+<tr>
+<td><strong>Full file replace</strong></td>
+<td>Simple mental model</td>
+<td>Wastes bandwidth on large files; fights user expectations for “sync”</td>
+<td>Small files only; rarely the main strategy at scale</td>
+</tr>
+<tr>
+<td><strong>Block-level + content-defined chunking + manifest commit</strong></td>
+<td>Stable dedup, resumable uploads, idempotent <strong>PUT(hash)</strong></td>
+<td>Requires manifest versioning and GC</td>
+<td><strong>Industry-typical</strong> for Drive/Dropbox-class products</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> Interviews reward <strong>CDC + content-addressed blocks</strong> because edits localize to a few chunks; “upload whole file every time” fails the efficiency bar unless scope is explicitly tiny files.</p>
+<h4 id="conflict-resolution">Conflict resolution<a class="headerlink" href="#conflict-resolution" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>When it wins</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Last-writer-wins (LWW)</strong></td>
+<td>Simple; single head revision</td>
+<td>Silent overwrite—bad for shared folders and offline</td>
+<td>Low-stakes caches; <strong>not</strong> ideal as the only story for collaboration</td>
+</tr>
+<tr>
+<td><strong>Version vectors / DAG</strong></td>
+<td>Captures <strong>causality</strong>; enables merge tools and audit</td>
+<td>UX complexity; still need policy for binaries</td>
+<td>Advanced sync; technical users; foundation for <strong>branch + merge</strong> flows</td>
+</tr>
+<tr>
+<td><strong>User manual merge / conflict copies</strong></td>
+<td>Safe for <strong>binary</strong>; clear accountability</td>
+<td>Noisy folders; user burden</td>
+<td><strong>Default</strong> for generic cloud drives on binary files</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice (interview narrative):</strong></p>
+<ul>
+<li><strong>Bytes:</strong> Managed <strong>S3-compatible object storage</strong> (or Ceph/MinIO if hybrid/on-prem) for durability and operational leverage; <strong>content-addressed</strong> chunks with <strong>erasure coding</strong> behind the API.</li>
+<li><strong>Metadata:</strong> <strong>PostgreSQL</strong> (or sharded Spanner/Cockroach-class SQL) for transactional tree + ACL + revision history; <strong>etcd</strong> only for <strong>coordination</strong> (locks, leases), not the main catalog.</li>
+<li><strong>Sync:</strong> <strong>CDC chunking + block upload + manifest commit</strong> with <strong>cursor-based change feed</strong> and <strong>push</strong> notifications; optional <strong>rsync-style</strong> second pass only for niche bandwidth savings—not as the primary store of truth.</li>
+<li><strong>Conflicts:</strong> <strong>Optimistic concurrency</strong> on commit (<code>etag</code>/base revision); for binaries, <strong>conflict copies</strong> or <strong>explicit user resolution</strong>; reserve <strong>LWW</strong> for clearly defined single-writer resources.</li>
+</ul>
+<p><strong>Rationale:</strong> Optimize for <strong>deduplicated storage</strong>, <strong>clear consistency story on metadata</strong>, and <strong>honest conflict UX</strong>—without building a custom object store unless the prompt demands it.</p>
+<h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
+<p><strong>CAP</strong> (Consistency, Availability, Partition tolerance) says that under a <strong>network partition</strong>, you cannot have both <strong>strong linearizability</strong> and <strong>full read/write availability</strong> for the same data plane. Real products <strong>partition responsibilities</strong>: different subsystems pick different points on the spectrum.</p>
+<p>For <strong>cloud storage</strong>:</p>
+<ul>
+<li><strong>File reads (content)</strong> should stay <strong>highly available</strong>: clients can often read <strong>replicated</strong> chunks; temporary metadata staleness may block “latest” path resolution, but bytes addressed by <strong>known hash</strong> remain readable (<strong>AP</strong>-leaning for immutable blobs).</li>
+<li><strong>Sync conflicts</strong> need <strong>careful consistency</strong> on <strong>metadata</strong> (which revision is head, who is allowed to commit)—typically <strong>CP</strong>-leaning for the <strong>commit path</strong> (reject or branch on conflict), while <strong>notifications</strong> and <strong>change feeds</strong> are <strong>eventually consistent</strong> with bounded lag.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Typical CAP stance</th>
+<th>Interview phrasing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File metadata</strong> (path, size, head revision)</td>
+<td><strong>CP</strong> on commit: transactional updates, version checks</td>
+<td>“We serialize commits per file or use compare-and-swap on revision.”</td>
+</tr>
+<tr>
+<td><strong>File content</strong> (immutable chunks by hash)</td>
+<td><strong>AP</strong> for read: multiple replicas; <strong>eventual</strong> visibility of new hashes after commit</td>
+<td>“Chunks are immutable; once committed, reads don’t need quorum metadata.”</td>
+</tr>
+<tr>
+<td><strong>Sync state</strong> (per-device cursor, local vs server revision)</td>
+<td><strong>AP</strong> with <strong>eventual</strong> convergence; <strong>repair</strong> via change feed</td>
+<td>“Devices are sources of truth for <em>pending work</em>; server is source of truth for <em>committed</em> state.”</td>
+</tr>
+<tr>
+<td><strong>Sharing permissions</strong></td>
+<td><strong>CP</strong> when enforcing on sensitive operations; cached reads may be <strong>eventually</strong> fresh</td>
+<td>“Writes to ACLs go through authoritative store; reads may use cached policy with short TTL.”</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TB
+  subgraph cp [CP-leaning paths]
+    M[Metadata commit\nfile tree + revision]
+    A[ACL grant/revoke]
+  end
+
+  subgraph ap [AP-leaning paths]
+    B[Block read by hash\nreplicated objects]
+    N[Notify / change feed delivery]
+  end
+
+  subgraph part [Partition]
+    P[Network split\nclients cannot reach all replicas]
+  end
+
+  P --&gt;|choose| M
+  P --&gt;|choose| B
+  M --&gt;|may fail closed\nreject ambiguous commits| X[Consistent tree]
+  B --&gt;|still serve\nknown hashes| Y[Available reads]</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>PACELC</strong> extension: even <strong>without</strong> a partition, you trade <strong>latency (L)</strong> vs <strong>consistency (C)</strong>—e.g., reading ACL from a cache is faster but may be briefly stale. Mentioning PACELC signals seniority.</p>
+</div>
+<h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
+<p><strong>SLA</strong> = contract with customers (credits, legal). <strong>SLO</strong> = internal target; <strong>SLI</strong> = what you measure. Below: illustrative <strong>SLOs</strong> for a consumer/enterprise-grade drive; tune numbers to the prompt.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>SLI</th>
+<th>Example SLO</th>
+<th>Measurement window</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload latency</strong></td>
+<td>Time from <strong>last byte</strong> of chunk received to <strong>ack</strong> (or from <strong>commit request</strong> to <strong>success</strong>)</td>
+<td>P99 &lt; 500 ms for <strong>commit</strong>; chunk PUT P99 &lt; 1 s for <strong>≤ 32 MB</strong> chunk under normal load</td>
+<td>30-day rolling</td>
+</tr>
+<tr>
+<td><strong>Download latency</strong></td>
+<td>Time to <strong>first byte</strong> (TTFB) for signed URL or gateway stream</td>
+<td>P99 TTFB &lt; 300 ms <strong>same region</strong>; higher cross-region (disclose)</td>
+<td>30-day rolling</td>
+</tr>
+<tr>
+<td><strong>Sync latency</strong></td>
+<td>Wall-clock from <strong>server commit</strong> to <strong>change visible</strong> on subscribed client (feed or push)</td>
+<td>P95 &lt; 10 s; P99 &lt; 60 s (mobile/long-poll may widen tail)</td>
+<td>30-day rolling</td>
+</tr>
+<tr>
+<td><strong>Data durability</strong></td>
+<td>Probability of <strong>permanent loss</strong> of committed user object</td>
+<td><strong>11 nines</strong> for committed bytes after <strong>ack</strong> (provider-style claim; explain replication + EC + repair)</td>
+<td>Annual / incident-based review</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td>Successful <strong>metadata</strong> read/write and <strong>auth</strong> checks vs all attempts</td>
+<td><strong>99.9%</strong> monthly (consumer); <strong>99.95%+</strong> (business)—exclude customer-caused throttling if defined</td>
+<td>Monthly</td>
+</tr>
+<tr>
+<td><strong>Conflict resolution accuracy</strong></td>
+<td>Share of conflicts <strong>correctly classified</strong> (no silent wrong winner) vs detected conflicts</td>
+<td><strong>99.99%</strong> <strong>detection</strong> rate for concurrent commits to same base revision; <strong>0</strong> silent LWW on shared folders if policy forbids</td>
+<td>Per release + sampled audits</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Error budget policy (how teams operate):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget</strong></td>
+<td>e.g., <strong>0.1%</strong> monthly unavailability = ~43 minutes/month at 99.9%</td>
+</tr>
+<tr>
+<td><strong>Burn alerts</strong></td>
+<td>Page on <strong>fast burn</strong> (budget exhausted in days); ticket on <strong>slow burn</strong></td>
+</tr>
+<tr>
+<td><strong>Trade-offs</strong></td>
+<td>If sync latency SLO slips, <strong>throttle</strong> non-critical features (preview gen) before dropping <strong>durability</strong> paths</td>
+</tr>
+<tr>
+<td><strong>Freeze</strong></td>
+<td>If budget exhausted, <strong>freeze launches</strong> until reliability work ships</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Never</strong> conflate <strong>durability</strong> (bits not lost) with <strong>availability</strong> (API up). You can be <strong>available</strong> and <strong>wrong</strong> if you serve stale metadata—separate SLIs.</p>
+</div>
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">&para;</a></h3>
+<p>Logical schema (illustrative SQL-oriented). Adjust types (<code>UUID</code>, <code>BIGINT</code>), indexing, and soft-delete to your scale story.</p>
+<p><strong><code>files</code></strong> — one row per <strong>logical file</strong> (node); <code>path</code> may be <strong>materialized</strong> for perf or <strong>derived</strong> from closure table—not both without a clear source of truth.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID / BIGINT</td>
+<td>Primary key; stable across renames</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR</td>
+<td>Display name; sibling uniqueness with <code>parent_id</code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>TEXT</td>
+<td>Optional <strong>denormalized</strong> path for fast listing; or omit and use <code>parent_id</code> chain</td>
+</tr>
+<tr>
+<td><code>parent_id</code></td>
+<td>FK → <code>files.id</code></td>
+<td><strong>NULL</strong> or sentinel for root</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td>BIGINT</td>
+<td>Logical size (bytes) for latest committed revision</td>
+</tr>
+<tr>
+<td><code>content_hash</code></td>
+<td>BYTEA / CHAR(64)</td>
+<td><strong>Hash</strong> of content (manifest root or whole-file); aligns with dedup story</td>
+</tr>
+<tr>
+<td><code>version</code> / <code>head_revision</code></td>
+<td>BIGINT</td>
+<td>Monotonic revision for optimistic locking</td>
+</tr>
+<tr>
+<td><code>owner_id</code></td>
+<td>UUID</td>
+<td>Billing / primary owner</td>
+</tr>
+<tr>
+<td><code>permissions</code></td>
+<td>ENUM / JSONB</td>
+<td><strong>Default</strong> visibility (e.g. <code>private</code>, <code>anyone_with_link</code>) or bitmask; <strong>fine-grained</strong> grants live in <code>sharing</code></td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>Audit</td>
+</tr>
+<tr>
+<td><code>deleted_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>Soft delete for sync trash</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>file_versions</code></strong> — immutable <strong>snapshots</strong> for history and GC.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>BIGINT</td>
+<td>Surrogate PK</td>
+</tr>
+<tr>
+<td><code>file_id</code></td>
+<td>FK → <code>files.id</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>BIGINT</td>
+<td>Matches commit; <strong>UNIQUE (file_id, version)</strong></td>
+</tr>
+<tr>
+<td><code>storage_key</code></td>
+<td>TEXT</td>
+<td>Manifest id, or <strong>pointer</strong> to manifest table row</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>TIMESTAMPTZ</td>
+<td>Commit time (server authoritative)</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>sharing</code></strong> — ACL edges.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>file_id</code></td>
+<td>FK → <code>files.id</code></td>
+<td>Resource (file or folder node)</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>UUID</td>
+<td>Principal</td>
+</tr>
+<tr>
+<td><code>permission_level</code></td>
+<td>ENUM / SMALLINT</td>
+<td><code>viewer</code>, <code>commenter</code>, <code>editor</code>, <code>owner</code></td>
+</tr>
+<tr>
+<td><code>granted_by</code>, <code>granted_at</code></td>
+<td>UUID, TIMESTAMPTZ</td>
+<td>Audit</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>sync_state</code></strong> — <strong>per device</strong> convergence (optional <strong>per file</strong> row, or <strong>summary + separate</strong> pending table).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>device_id</code></td>
+<td>UUID</td>
+<td>Client-registered device</td>
+</tr>
+<tr>
+<td><code>file_id</code></td>
+<td>FK → <code>files.id</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>local_version</code></td>
+<td>BIGINT</td>
+<td>Last <strong>known applied</strong> server revision on device</td>
+</tr>
+<tr>
+<td><code>synced_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>Last successful reconcile</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>At scale, <strong><code>sync_state</code></strong> is often <strong>sharded</strong> with the user or stored <strong>client-side</strong> (SQLite) with server <strong>cursors</strong>—the table above is the <strong>server-side</strong> model when you track enterprise devices centrally.</p>
+</div>
+<hr />
+<h2 id="step-2-back-of-the-envelope-estimation">Step 2: Back-of-the-Envelope Estimation<a class="headerlink" href="#step-2-back-of-the-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- Total users: 1 billion registered; DAU: 200 million
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>- Average stored data per paying user: 120 GB (heavy tail dominates)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>- Average file size: 1.5 MB (mix of docs and photos)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- Average chunk size after CDC: 4 MB (policy-dependent; smaller for text-heavy tenants)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- Deduplication ratio (effective bytes vs logical): 1.6× (illustrative)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>- Metadata operations per user per active day: 200 (opens, lists, small writes)
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>- Change notifications delivered per DAU per day: 30 (fan-out to devices)
+</span></code></pre></div>
+<h3 id="storage">Storage<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Logical bytes ≈ 1B × 120 GB = 120 EB (upper bound if all users paid and filled—illustrative only)
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>After dedup (1.6×): ~75 EB effective (still illustrative; real systems use tiering and cold storage)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Per-object metadata overhead (names, ACLs, indices): order of KBs per file; dominates only for tiny files
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Interview math should stay <strong>order-of-magnitude</strong>. The goal is to show you understand <strong>dedup</strong>, <strong>small-file overhead</strong>, and <strong>metadata cost</strong>, not to predict revenue.</p>
+</div>
+<h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Assume 200M DAU each perform 200 metadata ops/day:
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>200M × 200 / 86,400 ≈ 463,000 metadata RPS average; peak ×3 ≈ 1.4M RPS (illustrative peak)
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>Block upload/download throughput is dominated by large files and LAN-speed clients; provision backbone and edge separately.
+</span></code></pre></div>
+<h3 id="sync-and-notifications">Sync and Notifications<a class="headerlink" href="#sync-and-notifications" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>200M DAU × 30 notifications/day ≈ 6B notifications/day
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Average ≈ 69,000/s; peak ×5 ≈ 350,000/s (fan-out to devices varies by clustering of activity)
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Rough scale</th>
+<th>Planning note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metadata DB QPS</td>
+<td>High hundreds of thousands peak</td>
+<td>Shard by <code>user_id</code> or <code>namespace_id</code></td>
+</tr>
+<tr>
+<td>Block storage throughput</td>
+<td>Terabits/s aggregate</td>
+<td>Erasure-coded volumes + CDN for public links</td>
+</tr>
+<tr>
+<td>Notification connections</td>
+<td>Many millions concurrent</td>
+<td>WebSocket gateways regionalized</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<p>At a high level: <strong>clients</strong> talk to <strong>API / sync services</strong>, which persist <strong>metadata</strong> in a <strong>transactional store</strong> (often sharded SQL or a strongly consistent KV with careful modeling), and <strong>file bytes</strong> in <strong>object/block storage</strong> addressed by <strong>cryptographic hash</strong>. A <strong>notification service</strong> pushes change events to online clients; others catch up via <strong>long polling</strong> or periodic <strong>change feed</strong> pulls.</p>
+<pre class="mermaid"><code>flowchart LR
+  subgraph clients [Clients]
+    C1[Desktop sync]
+    C2[Mobile]
+    C3[Web]
+  end
+
+  subgraph edge [Edge]
+    LB[Load balancers]
+    API[API Gateway]
+  end
+
+  subgraph services [Core services]
+    MS[Metadata service]
+    BS[Block service]
+    NS[Notification service]
+    CF[Change feed]
+  end
+
+  subgraph data [Data stores]
+    MD[(Metadata DB)]
+    OS[(Object / block store)]
+    CACHE[(Redis cache)]
+    Q[[Message queue]]
+  end
+
+  C1 --&gt; LB
+  C2 --&gt; LB
+  C3 --&gt; LB
+  LB --&gt; API
+  API --&gt; MS
+  API --&gt; BS
+  MS --&gt; MD
+  MS --&gt; Q
+  Q --&gt; NS
+  Q --&gt; CF
+  BS --&gt; OS
+  MS --&gt; CACHE
+  NS --&gt; C1
+  NS --&gt; C2</code></pre>
+<p><strong>Request path (upload):</strong> client chunks file with CDC, hashes chunks, uploads missing blocks to block service, commits manifest in metadata service.</p>
+<p><strong>Read path:</strong> client lists folder via metadata, resolves file to block list, fetches blocks (often via signed URLs), verifies hashes.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>Content-addressed storage</strong> means identical chunks map to one physical object. Metadata records <strong>which hashes belong to which file revision</strong>.</p>
+</div>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-file-chunking-and-deduplication">4.1 File Chunking and Deduplication<a class="headerlink" href="#41-file-chunking-and-deduplication" title="Permanent link">&para;</a></h3>
+<p><strong>Fixed-size chunking</strong> is simple but shifts boundaries when bytes insert at the front, hurting dedup. <strong>Content-defined chunking (CDC)</strong> uses rolling hashes (e.g., <strong>Rabin fingerprinting</strong>) to select cut points based on local byte patterns so inserts shift only nearby chunks.</p>
+<p><strong>Rabin-style rolling hash (concept):</strong> maintain a sliding window of length <span class="arithmatex">\(W\)</span>; update hash in O(1) per byte; when <code>hash mod P == R</code> (or low bits hit a threshold), emit a chunk boundary. Parameters control average chunk size.</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed 4 MB chunks</td>
+<td>Easy</td>
+<td>Poor dedup on small edits shifting all tail bytes</td>
+</tr>
+<tr>
+<td>CDC + Rabin</td>
+<td>Stable boundaries around edits</td>
+<td>CPU overhead; parameter tuning</td>
+</tr>
+<tr>
+<td>Whole-file hash</td>
+<td>Trivial</td>
+<td>No dedup across files</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Deduplication:</strong> after chunking, compute <strong>SHA-256</strong> (or BLAKE3) per chunk. Block service stores once keyed by hash; metadata references hashes.</p>
+<pre class="mermaid"><code>flowchart TD
+  A[File bytes on disk] --&gt; B[CDC chunker\nRabin boundaries]
+  B --&gt; C[Per-chunk cryptographic hash]
+  C --&gt; D{Hash exists in store?}
+  D -- Yes --&gt; E[Reference only\nmetadata write]
+  D -- No --&gt; F[Upload chunk bytes]
+  F --&gt; G[Commit manifest]
+  E --&gt; G</code></pre>
+<p><strong>Java: Rabin fingerprint rolling (illustrative core)</strong></p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">RabinFingerprint</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">MOD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1L</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">61</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">// Mersenne prime (example modulus)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">windowSize</span><span class="p">;</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">base</span><span class="p">;</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="o">[]</span><span class="w"> </span><span class="n">powTable</span><span class="p">;</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="nf">RabinFingerprint</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">windowSize</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">base</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="na">windowSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">windowSize</span><span class="p">;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="na">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">base</span><span class="p">;</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="na">powTable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">precomputePowers</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">windowSize</span><span class="p">);</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">long</span><span class="o">[]</span><span class="w"> </span><span class="nf">precomputePowers</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">w</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="kt">long</span><span class="o">[]</span><span class="w"> </span><span class="n">pow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">long</span><span class="o">[</span><span class="n">w</span><span class="o">]</span><span class="p">;</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="n">pow</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">w</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">      </span><span class="n">pow</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mulMod</span><span class="p">(</span><span class="n">pow</span><span class="o">[</span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">base</span><span class="p">);</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">pow</span><span class="p">;</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">mulMod</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">floorMod</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">);</span>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">roll</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">currentHash</span><span class="p">,</span><span class="w"> </span><span class="kt">byte</span><span class="w"> </span><span class="n">outByte</span><span class="p">,</span><span class="w"> </span><span class="kt">byte</span><span class="w"> </span><span class="n">inByte</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">posInWindow</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-28"><a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mulMod</span><span class="p">(</span><span class="n">outByte</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xFFL</span><span class="p">,</span><span class="w"> </span><span class="n">powTable</span><span class="o">[</span><span class="n">windowSize</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">posInWindow</span><span class="o">]</span><span class="p">);</span>
+</span><span id="__span-5-29"><a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="n">shifted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mulMod</span><span class="p">(</span><span class="n">currentHash</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">drop</span><span class="p">,</span><span class="w"> </span><span class="n">base</span><span class="p">);</span>
+</span><span id="__span-5-30"><a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">floorMod</span><span class="p">(</span><span class="n">shifted</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">inByte</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xFFL</span><span class="p">),</span><span class="w"> </span><span class="n">MOD</span><span class="p">);</span>
+</span><span id="__span-5-31"><a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-5-32"><a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Production CDC adds <strong>minimum/maximum chunk size</strong> guards to avoid tiny or huge chunks. Libraries like <strong>restic</strong> or <strong>rsync rolling</strong> are good offline reading.</p>
+</div>
+<h3 id="42-sync-protocol-client-server">4.2 Sync Protocol (Client-Server)<a class="headerlink" href="#42-sync-protocol-client-server" title="Permanent link">&para;</a></h3>
+<p>Clients maintain a local journal of file events from the OS <strong>file watcher</strong>, debounce rapid edits, chunk changed files, then reconcile with the server using <strong>revision tokens</strong> (<code>etag</code>, <code>revision</code>, or <strong>vector clock</strong> per file).</p>
+<p><strong>Notification options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>When it fits</th>
+<th>Drawbacks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>Always-on desktop/mobile foreground</td>
+<td>Stateful infra, reconnect storms</td>
+</tr>
+<tr>
+<td><strong>Long polling</strong></td>
+<td>Mobile background limitations</td>
+<td>Higher latency, many held requests</td>
+</tr>
+<tr>
+<td><strong>Periodic pull</strong></td>
+<td>Low-priority devices</td>
+<td>Slower sync</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>sequenceDiagram
+  participant Client
+  participant API
+  participant Meta as Metadata
+  participant Block as Block store
+  participant Notify as Notifier
+
+  Client-&gt;&gt;API: GET /changes?since=cursor
+  API-&gt;&gt;Meta: fetch delta
+  Meta--&gt;&gt;API: file rev bumped
+  API--&gt;&gt;Client: file.updated + etag
+
+  Client-&gt;&gt;API: PUT blocks (missing hashes)
+  API-&gt;&gt;Block: conditional put by hash
+  Block--&gt;&gt;API: 201 / dedup hit
+
+  Client-&gt;&gt;API: POST /files/{id}/commit
+  API-&gt;&gt;Meta: txn: new revision if etag matches
+  Meta-&gt;&gt;Notify: publish change event
+  Notify--&gt;&gt;Client: WS push (other devices)</code></pre>
+<p><strong>Go: minimal sync client loop (polling variant)</strong></p>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">sync</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="s">&quot;context&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="s">&quot;encoding/json&quot;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="s">&quot;net/http&quot;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="s">&quot;time&quot;</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="p">)</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="kd">type</span><span class="w"> </span><span class="nx">ChangeResponse</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="nx">Cursor</span><span class="w"> </span><span class="kt">string</span><span class="w">   </span><span class="s">`json:&quot;cursor&quot;`</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="nx">Events</span><span class="w"> </span><span class="p">[]</span><span class="nx">Event</span><span class="w">  </span><span class="s">`json:&quot;events&quot;`</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">}</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Event</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nx">Type</span><span class="w">     </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;type&quot;`</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span><span class="nx">FileID</span><span class="w">   </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;file_id&quot;`</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">  </span><span class="nx">Revision</span><span class="w"> </span><span class="kt">int64</span><span class="w">  </span><span class="s">`json:&quot;revision&quot;`</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">  </span><span class="nx">ETag</span><span class="w">     </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;etag&quot;`</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="p">}</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Client</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span><span class="nx">BaseURL</span><span class="w">    </span><span class="kt">string</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">  </span><span class="nx">HTTP</span><span class="w">       </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Client</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">  </span><span class="nx">SinceCursor</span><span class="w"> </span><span class="kt">string</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="p">}</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">Client</span><span class="p">)</span><span class="w"> </span><span class="nx">Poll</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">  </span><span class="nx">ticker</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">NewTicker</span><span class="p">(</span><span class="mi">15</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">  </span><span class="k">defer</span><span class="w"> </span><span class="nx">ticker</span><span class="p">.</span><span class="nx">Stop</span><span class="p">()</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">    </span><span class="k">select</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Done</span><span class="p">():</span>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Err</span><span class="p">()</span>
+</span><span id="__span-6-35"><a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="o">&lt;-</span><span class="nx">ticker</span><span class="p">.</span><span class="nx">C</span><span class="p">:</span>
+</span><span id="__span-6-36"><a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="w">      </span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">NewRequestWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">MethodGet</span><span class="p">,</span>
+</span><span id="__span-6-37"><a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">BaseURL</span><span class="o">+</span><span class="s">&quot;/v1/changes?since=&quot;</span><span class="o">+</span><span class="nx">c</span><span class="p">.</span><span class="nx">SinceCursor</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span>
+</span><span id="__span-6-38"><a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-39"><a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-40"><a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-6-41"><a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a><span class="w">      </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">HTTP</span><span class="p">.</span><span class="nx">Do</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span>
+</span><span id="__span-6-42"><a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-43"><a id="__codelineno-6-43" name="__codelineno-6-43" href="#__codelineno-6-43"></a><span class="w">        </span><span class="k">continue</span>
+</span><span id="__span-6-44"><a id="__codelineno-6-44" name="__codelineno-6-44" href="#__codelineno-6-44"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-6-45"><a id="__codelineno-6-45" name="__codelineno-6-45" href="#__codelineno-6-45"></a><span class="w">      </span><span class="kd">var</span><span class="w"> </span><span class="nx">cr</span><span class="w"> </span><span class="nx">ChangeResponse</span>
+</span><span id="__span-6-46"><a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">json</span><span class="p">.</span><span class="nx">NewDecoder</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">).</span><span class="nx">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cr</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-47"><a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a><span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">SinceCursor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">cr</span><span class="p">.</span><span class="nx">Cursor</span>
+</span><span id="__span-6-48"><a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a><span class="w">        </span><span class="c1">// enqueue local reconciliation against cr.Events</span>
+</span><span id="__span-6-49"><a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-6-50"><a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a><span class="w">      </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+</span><span id="__span-6-51"><a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-52"><a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-53"><a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Always combine <strong>push</strong> with <strong>pull</strong> as a backstop. Mobile OS may kill sockets; <strong>cursor-based</strong> change feeds make recovery simple.</p>
+</div>
+<h3 id="43-metadata-database-design">4.3 Metadata Database Design<a class="headerlink" href="#43-metadata-database-design" title="Permanent link">&para;</a></h3>
+<p>Model <strong>nodes</strong> (files/folders) with stable <code>node_id</code>. Store <strong>parent_id</strong>, <strong>name</strong>, <strong>owner_id</strong>, <strong>revision</strong>, <strong>content manifest id</strong>, and <strong>deleted</strong> flag. Avoid encoding full path as primary key; maintain a <strong>path cache</strong> updated asynchronously or computed via traversal for correctness.</p>
+<table>
+<thead>
+<tr>
+<th>Table (illustrative)</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nodes</code></td>
+<td>One row per file/folder; revision, owner</td>
+</tr>
+<tr>
+<td><code>manifests</code></td>
+<td>Ordered list of <code>(offset, chunk_hash, length)</code></td>
+</tr>
+<tr>
+<td><code>acl_entries</code></td>
+<td>Resource, principal, role</td>
+</tr>
+<tr>
+<td><code>revisions</code></td>
+<td>Historical manifests for version history</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sharding key:</strong> <code>owner_id</code> or <code>namespace_id</code> keeps co-located data for a tenant. <strong>Cross-shard moves</strong> (shared drives) require two-phase workflows or a centralized coordinator.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Uniqueness of <code>(parent_id, name)</code> should be enforced transactionally to prevent duplicate siblings—classic tree constraint.</p>
+</div>
+<h3 id="44-block-storage-architecture">4.4 Block Storage Architecture<a class="headerlink" href="#44-block-storage-architecture" title="Permanent link">&para;</a></h3>
+<p>Block service exposes:</p>
+<ul>
+<li><code>PUT /blocks/{hash}</code> with <strong>Content-Type</strong> and <strong>length</strong></li>
+<li><strong>Quorum or single-leader</strong> replication inside the cell</li>
+<li>Background <strong>scrubbing</strong> to detect bit rot</li>
+<li>Optional <strong>encryption</strong> with per-tenant keys (wrap DEKs in KMS)</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API gateways</td>
+<td>AuthN/Z, rate limits</td>
+</tr>
+<tr>
+<td>Chunk routers</td>
+<td>Route hash to the correct volume / cell</td>
+</tr>
+<tr>
+<td>Volume servers</td>
+<td>Store immutable chunks on disk</td>
+</tr>
+<tr>
+<td>Erasure coding</td>
+<td>Reduce raw overhead vs 3× replication</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hot spots:</strong> extremely popular files dedup to the same hashes—mitigate with <strong>CDN</strong> for public links and <strong>read caching</strong> in the block layer.</p>
+<h3 id="45-conflict-resolution">4.5 Conflict Resolution<a class="headerlink" href="#45-conflict-resolution" title="Permanent link">&para;</a></h3>
+<p>Conflicts arise when <strong>two writers</strong> commit against the same <strong>base revision</strong> or when <strong>offline</strong> edits replay against a newer server revision.</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Behavior</th>
+<th>UX</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Last-writer-wins (LWW)</strong></td>
+<td>Higher revision timestamp wins</td>
+<td>Simple; data loss risk</td>
+</tr>
+<tr>
+<td><strong>First-commit wins</strong></td>
+<td>Second commit rejected</td>
+<td>Forces manual retry</td>
+</tr>
+<tr>
+<td><strong>Mergeable types</strong></td>
+<td>CRDT / OT for text</td>
+<td>Great for docs; hard for binaries</td>
+</tr>
+<tr>
+<td><strong>Branch copies</strong></td>
+<td>Save <code>conflict</code> copy</td>
+<td>Safest for binaries; cluttered folders</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TD
+  A[Client has base rev B] --&gt; C{Server head == B?}
+  C -- Yes --&gt; D[Commit succeeds\nnew rev B+1]
+  C -- No --&gt; E{Auto-merge possible?}
+  E -- Yes --&gt; F[Merge + commit]
+  E -- No --&gt; G[Create conflict file\nor surface choice UI]</code></pre>
+<p>For <strong>Google Docs–style</strong> products, operational transforms live in a separate editor service; for <strong>binary</strong> Drive files, conflict copies are common.</p>
+<h3 id="46-file-versioning-and-history">4.6 File Versioning and History<a class="headerlink" href="#46-file-versioning-and-history" title="Permanent link">&para;</a></h3>
+<p>Each successful commit creates an immutable <strong>manifest snapshot</strong>. GC reclaims unreferenced chunks <strong>asynchronously</strong> after retention policies expire.</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Retention window</strong></td>
+<td>Keep last N versions or T days</td>
+</tr>
+<tr>
+<td><strong>Legal hold</strong></td>
+<td>Block GC for custodied users</td>
+</tr>
+<tr>
+<td><strong>Diff storage</strong></td>
+<td>Optional binary deltas between manifests for savings</td>
+</tr>
+</tbody>
+</table>
+<p>Point-in-time restore = metadata pointer swap to an older <code>manifest_id</code> plus ACL checks.</p>
+<h3 id="47-sharing-and-permissions">4.7 Sharing and Permissions<a class="headerlink" href="#47-sharing-and-permissions" title="Permanent link">&para;</a></h3>
+<p>Represent sharing as <strong>ACL edges</strong> on <code>node_id</code> with roles. Evaluate <strong>deny vs allow</strong> carefully; most products use <strong>allow lists</strong> with owner override.</p>
+<p><strong>Evaluation path:</strong> resolve <code>node_id</code> from path, walk ancestors for inherited permissions (if supported), merge with explicit grants on the node.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Typical capabilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Viewer</td>
+<td>Read, download</td>
+</tr>
+<tr>
+<td>Commenter</td>
+<td>Read + annotate (product-specific)</td>
+</tr>
+<tr>
+<td>Editor</td>
+<td>Modify content, add children</td>
+</tr>
+<tr>
+<td>Owner</td>
+<td>Share, delete, transfer</td>
+</tr>
+</tbody>
+</table>
+<p>Audit: append-only <strong>audit log</strong> for compliance (who granted access to whom).</p>
+<h3 id="48-offline-support">4.8 Offline Support<a class="headerlink" href="#48-offline-support" title="Permanent link">&para;</a></h3>
+<p>Clients queue operations in a <strong>persistent outbox</strong> while offline: chunking, hash, and manifest computation can proceed locally; uploads resume with <strong>range</strong> or <strong>chunk session</strong> APIs.</p>
+<p><strong>File watcher (Python, watchdog-style sketch)</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">LocalChangeQueue</span><span class="p">:</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">pending</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_modified</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>        <span class="c1"># debounce in real code</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">pending</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span> <span class="n">path</span><span class="p">))</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">drain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="c1"># coalesce multiple events for same path</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>        <span class="n">by_path</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        <span class="k">for</span> <span class="n">ts</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pending</span><span class="p">:</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>            <span class="n">by_path</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">pending</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">by_path</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">fingerprint_preview</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>    <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</span></code></pre></div>
+<p>Desktop clients run a <strong>lightweight DB</strong> (SQLite) tracking local inode state, server revision, and upload status.</p>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Metadata hotspots</strong></td>
+<td>Shard by tenant; cache path→id; rate limit noisy APIs</td>
+</tr>
+<tr>
+<td><strong>Block hot hashes</strong></td>
+<td>CDN for public; internal read caches</td>
+</tr>
+<tr>
+<td><strong>Notification storms</strong></td>
+<td>Coalesce events per folder; sample low-priority clients</td>
+</tr>
+<tr>
+<td><strong>GC of chunks</strong></td>
+<td>Mark-sweep from manifests; tombstone windows</td>
+</tr>
+<tr>
+<td><strong>Multi-region</strong></td>
+<td>Metadata per region + replication; blocks geo-replicated or regional with cross-region CRR</td>
+</tr>
+<tr>
+<td><strong>Compliance</strong></td>
+<td>Data residency pinned shards; encryption keys in regional KMS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observability:</strong> trace IDs across API → metadata → block PUT; metrics on <strong>dedup ratio</strong>, <strong>chunk upload latency</strong>, <strong>conflict rate</strong>, and <strong>sync backlog depth</strong>.</p>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Do</th>
+<th>Avoid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Separate <strong>metadata</strong> and <strong>block</strong> planes</td>
+<td>Conflating file paths with raw object keys only</td>
+</tr>
+<tr>
+<td>Discuss <strong>CDC + hashing</strong> for dedup</td>
+<td>Claiming whole-file upload is enough at Dropbox scale</td>
+</tr>
+<tr>
+<td>Mention <strong>etag/revision</strong> concurrency</td>
+<td>Ignoring offline/conflict scenarios</td>
+</tr>
+<tr>
+<td>Cover <strong>WebSocket + cursor fallback</strong></td>
+<td>Assuming pure push always works on mobile</td>
+</tr>
+<tr>
+<td>Call out <strong>small-file overhead</strong></td>
+<td>Ignoring listing performance and metadata cost</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If time permits, relate to <strong>backup products</strong> (restic, Borg)—interviewers like knowing you understand production chunking trade-offs.</p>
+</div>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Chunking:</strong> CDC with Rabin fingerprints stabilizes chunk boundaries; cryptographic hashes enable <strong>deduplicated</strong> block storage.</li>
+<li><strong>Sync:</strong> Clients watch local FS, upload missing chunks, commit manifests; servers broadcast changes via <strong>WebSocket</strong> or clients <strong>poll</strong> change feeds with <strong>cursors</strong>.</li>
+<li><strong>Metadata:</strong> Tree of nodes + manifests + ACLs; shard by tenant; transactional sibling name uniqueness.</li>
+<li><strong>Conflicts:</strong> Choose explicit policies; binary files often become <strong>conflict copies</strong>; collaborative docs may use OT/CRDTs in a separate service.</li>
+<li><strong>Versions:</strong> Immutable manifests; retention and legal hold; async GC for unreferenced chunks.</li>
+</ul>
+<hr />
+<h2 id="interview-checklist">Interview Checklist<a class="headerlink" href="#interview-checklist" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Clarify max file size, sharing model, offline expectations, and collaboration (binary vs collaborative editing)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Quantify <strong>metadata QPS</strong>, <strong>storage</strong> with <strong>dedup</strong>, and <strong>notification</strong> fan-out</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Draw <strong>clients → API → metadata DB + block store + notifier</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Explain <strong>CDC</strong> and why fixed chunking fails on inserts</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Walk <strong>upload</strong>: chunk, hash, conditional block put, manifest commit with <strong>etag</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Walk <strong>download</strong>: resolve manifest, fetch blocks, verify hashes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Describe <strong>conflict</strong> handling for offline edits</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Discuss <strong>versioning</strong>, <strong>GC</strong>, and <strong>encryption</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mention <strong>failure modes</strong>: partial uploads, stuck notifications, split-brain on clients</li>
+</ul>
+<hr />
+<h2 id="sample-interview-dialogue">Sample Interview Dialogue<a class="headerlink" href="#sample-interview-dialogue" title="Permanent link">&para;</a></h2>
+<p><strong>Interviewer:</strong> “Design a system like Google Drive.”</p>
+<p><strong>Candidate:</strong> “I’ll split the problem into <strong>metadata</strong>—folders, permissions, file revisions—and <strong>bulk storage</strong> for bytes. Blocks are <strong>content-addressed</strong> by hash so duplicates store once. Clients run a sync agent with a file watcher, chunk files using <strong>content-defined chunking</strong> so small edits don’t reshuffle the entire file, upload only unknown chunks, then commit a <strong>manifest</strong> in a transaction.”</p>
+<p><strong>Interviewer:</strong> “How does sync stay fast?”</p>
+<p><strong>Candidate:</strong> “Each file has a <strong>revision</strong> or <strong>etag</strong>. Clients fetch <strong>deltas</strong> from a <strong>change feed</strong> using a <strong>cursor</strong>. For online devices, we push notifications over <strong>WebSocket</strong>; mobile may rely on <strong>long polling</strong> or periodic pulls. The cursor makes recovery simple after reconnect.”</p>
+<p><strong>Interviewer:</strong> “What about two people editing the same file?”</p>
+<p><strong>Candidate:</strong> “If it’s binary, we usually detect <strong>base revision mismatch</strong> on commit. Options are <strong>reject and refresh</strong>, <strong>last-winner</strong>, or <strong>write a conflict copy</strong>. Collaborative text is a different subsystem—<strong>OT/CRDT</strong>—but for Drive-like binaries, conflict copies are common.”</p>
+<p><strong>Interviewer:</strong> “How do you delete unused chunks?”</p>
+<p><strong>Candidate:</strong> “Manifests reference chunk hashes. After deletes and retention windows, a <strong>GC</strong> pass marks unreachable hashes and deletes them lazily, with safeguards for snapshots and legal hold.”</p>
+<hr />
+<h3 id="further-reading-patterns">Further Reading (Patterns)<a class="headerlink" href="#further-reading-patterns" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content-defined chunking</td>
+<td>Stable dedup under edits</td>
+</tr>
+<tr>
+<td>Merkle trees</td>
+<td>Integrity proofs and sync subsets</td>
+</tr>
+<tr>
+<td>Operational transformation</td>
+<td>Real-time doc collaboration</td>
+</tr>
+<tr>
+<td>Rsync algorithm</td>
+<td>Classic rolling-hash inspiration</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use this page as a <strong>structured outline</strong>, not a claim about any vendor’s internal architecture. Trade names are for <strong>orientation</strong> only.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../ride_sharing/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Ride Sharing (Uber/Lyft)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Ride Sharing (Uber/Lyft)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../event_booking/" class="md-footer__link md-footer__link--next" aria-label="Next: Event Booking (Ticketmaster)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Event Booking (Ticketmaster)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

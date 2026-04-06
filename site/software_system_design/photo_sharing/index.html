@@ -1,0 +1,4459 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/photo_sharing/">
+      
+      
+        <link rel="prev" href="../video_streaming/">
+      
+      
+        <link rel="next" href="../collaborative_editor/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Photo Sharing (Instagram) - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#photo-sharing-instagram" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Photo Sharing (Instagram)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problems-this-design-must-solve" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problems This Design Must Solve
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-the-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-the-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Back-of-the-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assumptions-tunable-in-interview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions (tunable in interview)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-path-posts-uploads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Write Path (posts + uploads)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read-path-feed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Read Path (feed)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-metadata-vs-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage (metadata vs object)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cdn-egress-order-of-magnitude" class="md-nav__link">
+    <span class="md-ellipsis">
+      CDN egress (order of magnitude)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fan-out-volume-why-celebrities-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fan-Out Volume (why celebrities matter)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-photo-upload-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Photo Upload and Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-image-processing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Image Processing Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-news-feed-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 News Feed Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-fan-out-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Fan-out Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-stories-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Stories Feature
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-followunfollow-and-social-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 Follow/Unfollow and Social Graph
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-search-and-explore" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Search and Explore
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: Scaling & Production">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sharding-by-user_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sharding by user_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reliability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reliability
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security &amp; compliance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interview Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-interview-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Interview Dialogue
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#appendix-reference-code-snippets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Reference Code Snippets
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="photo-sharing-instagram">Photo Sharing (Instagram)<a class="headerlink" href="#photo-sharing-instagram" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>A <strong>photo-sharing platform</strong> lets users upload images (and often short video), follow other accounts, browse a personalized <strong>home feed</strong>, publish <strong>ephemeral stories</strong>, and discover content via <strong>search</strong> and <strong>explore</strong>. Interviewers use “Design Instagram” to test understanding of <strong>object storage</strong>, <strong>CDNs</strong>, <strong>async media pipelines</strong>, <strong>social graphs</strong>, <strong>feed fan-out</strong>, the <strong>celebrity problem</strong>, and <strong>sharding</strong> by <code>user_id</code>.</p>
+<p><strong>Examples in the wild:</strong> Instagram, Pinterest (image-centric discovery), Flickr (historical reference), and many vertical social apps that reuse the same building blocks.</p>
+<h3 id="problems-this-design-must-solve">Problems This Design Must Solve<a class="headerlink" href="#problems-this-design-must-solve" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Durable media at scale</strong></td>
+<td>Billions of objects; block/object storage, not a single database</td>
+</tr>
+<tr>
+<td><strong>Fast global delivery</strong></td>
+<td>Images must load quickly; CDN caching and correct cache headers</td>
+</tr>
+<tr>
+<td><strong>Many resolutions</strong></td>
+<td>Thumbnails, feed sizes, full-screen; CPU-heavy transcoding off the hot path</td>
+</tr>
+<tr>
+<td><strong>Feed under follow graph</strong></td>
+<td>Each user follows hundreds; aggregate and rank efficiently</td>
+</tr>
+<tr>
+<td><strong>Hot accounts</strong></td>
+<td>Celebrities have millions of followers; naive fan-out explodes cost</td>
+</tr>
+<tr>
+<td><strong>Consistent social graph</strong></td>
+<td>Follow/unfollow must be correct; feeds can be eventually consistent</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, <strong>scope explicitly</strong>: stories vs posts only, video depth, DMs, comments, ads, and moderation are often out of scope unless the interviewer asks.</p>
+</div>
+<hr />
+<h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Priority</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User registration / auth</td>
+<td>Must have</td>
+<td>OAuth, session tokens; often delegated to identity service</td>
+</tr>
+<tr>
+<td>Upload photos (single or carousel)</td>
+<td>Must have</td>
+<td>Client → object storage via pre-signed URL; server stores metadata</td>
+</tr>
+<tr>
+<td>Image processing (resize, thumbnails)</td>
+<td>Must have</td>
+<td>Async workers; multiple renditions per upload</td>
+</tr>
+<tr>
+<td>Follow / unfollow users</td>
+<td>Must have</td>
+<td>Directed graph: follower → followee</td>
+</tr>
+<tr>
+<td>Home feed (posts from followed users)</td>
+<td>Must have</td>
+<td>Paginated, ranked or chronological</td>
+</tr>
+<tr>
+<td>Stories (24h ephemeral)</td>
+<td>Nice to have</td>
+<td>Separate TTL storage and fan-out</td>
+</tr>
+<tr>
+<td>Like, comment, view counts</td>
+<td>Must have</td>
+<td>Engagement signals; often separate counters</td>
+</tr>
+<tr>
+<td>Profile grid (user’s posts)</td>
+<td>Must have</td>
+<td>Query by <code>author_user_id</code></td>
+</tr>
+<tr>
+<td>Search / Explore</td>
+<td>Nice to have</td>
+<td>Hashtags, user search, trending</td>
+</tr>
+<tr>
+<td>Report / block</td>
+<td>Nice to have</td>
+<td>Safety and compliance</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload success</strong></td>
+<td>Durable before “posted”</td>
+<td>Acknowledge only after object exists and metadata committed</td>
+</tr>
+<tr>
+<td><strong>Feed read latency (p99)</strong></td>
+<td>&lt; 400–800 ms API</td>
+<td>Mobile UX; heavy bytes come from CDN, not API</td>
+</tr>
+<tr>
+<td><strong>Image time-to-visible</strong></td>
+<td>Seconds to tens of seconds</td>
+<td>Processing is async; UI shows “processing” if needed</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td>99.9%+ for reads</td>
+<td>Degrade to cached feed if ranking lags</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td>No silent media loss</td>
+<td>Replicated object storage; checksums on upload</td>
+</tr>
+<tr>
+<td><strong>Scale</strong></td>
+<td>Horizontal</td>
+<td>Shard metadata and feed caches by <code>user_id</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/media/upload-url</code></td>
+<td>Return pre-signed URL + <code>object_key</code> for <code>PUT</code> to S3-compatible storage</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><em>(client → object storage)</em></td>
+<td>Upload bytes directly; not application servers</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/posts</code></td>
+<td>Create post with <code>object_key</code>(s), caption, visibility</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/feed</code></td>
+<td>Home feed: <code>?limit=&amp;cursor=</code></td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/follow</code></td>
+<td>Body: <code>{ "target_user_id": "..." }</code></td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/v1/follow/{userId}</code></td>
+<td>Unfollow</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/users/{id}/posts</code></td>
+<td>Profile timeline</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/stories</code></td>
+<td>Publish story (media ref + expiry)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/stories/feed</code></td>
+<td>Stories from followed users (often batched)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/search/users?q=</code></td>
+<td>User search (prefix / index)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/explore/tags/{tag}</code></td>
+<td>Hashtag feed (optional)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example: pre-signed upload flow response</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;upload_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://media.example.com/bucket/u/42/abc?X-Amz-Algorithm=...&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;object_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;u/42/raw/2026/04/03/abc.jpg&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;headers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&quot;Content-Type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;image/jpeg&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;expires_at_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1712160000000</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Example: create post after upload</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;caption&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sunset&quot;</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;media&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">&quot;object_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;u/42/raw/2026/04/03/abc.jpg&quot;</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;image/jpeg&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Keep <strong>API responses small</strong>: return CDN URLs and dimensions, not image bytes. Use <strong>cursor-based pagination</strong> for feeds.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>Interviews reward <strong>comparing options</strong> and naming <strong>when</strong> each wins—not picking one vendor forever.</p>
+<h4 id="photo-storage-s3-vs-gcs-vs-custom-blob-store-erasure-coding">Photo storage: S3 vs GCS vs custom blob store (erasure coding)<a class="headerlink" href="#photo-storage-s3-vs-gcs-vs-custom-blob-store-erasure-coding" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Amazon S3</th>
+<th>Google Cloud Storage</th>
+<th>Custom blob + erasure coding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Operational burden</strong></td>
+<td>Low; managed durability, lifecycle, replication</td>
+<td>Low; similar feature set</td>
+<td>High; you own hardware, software upgrades, rack awareness</td>
+</tr>
+<tr>
+<td><strong>Consistency model</strong></td>
+<td>Strong read-after-write for new objects; list eventually consistent</td>
+<td>Strong per-object; similar mental model</td>
+<td>Depends on implementation; often tunable (CP vs AP)</td>
+</tr>
+<tr>
+<td><strong>Egress / multi-cloud</strong></td>
+<td>Mature; often paired with CloudFront</td>
+<td>Strong intra-GCP; cross-cloud is a product decision</td>
+<td>You control placement; good for strict data residency</td>
+</tr>
+<tr>
+<td><strong>Erasure coding</strong></td>
+<td>Handled under the hood (11 nines durability tier)</td>
+<td>Same</td>
+<td><strong>You</strong> expose EC ratios, repair bandwidth, tail latency</td>
+</tr>
+<tr>
+<td><strong>Interview signal</strong></td>
+<td>Default answer for “object store at scale”</td>
+<td>Same, especially if stack is GCP</td>
+<td>“Only if regulatory or exabyte economics justify the team”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> Photos are <strong>large, immutable blobs</strong>; the hard problems are <strong>durability, cost at rest, and egress to CDN</strong>—not OLTP semantics on bytes.</p>
+<h4 id="metadata-database-postgresql-vs-dynamodb-vs-cassandra">Metadata database: PostgreSQL vs DynamoDB vs Cassandra<a class="headerlink" href="#metadata-database-postgresql-vs-dynamodb-vs-cassandra" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>PostgreSQL (with sharding / Citus / Aurora)</th>
+<th>DynamoDB</th>
+<th>Cassandra / Scylla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Query pattern fit</strong></td>
+<td>Excellent for relational invariants (FKs, transactions for post + media row)</td>
+<td>Key-value and GSIs; great when access paths are strict</td>
+<td>Wide partitions, time-ordered columns; great for huge fan-out lists</td>
+</tr>
+<tr>
+<td><strong>Scaling story</strong></td>
+<td>Vertical + shard by <code>user_id</code> / federation; joins across shards are painful</td>
+<td>Scales with provisioned RCU/WCU or on-demand; hot keys need design</td>
+<td>Linear scale-out; ops-heavy; tunable consistency</td>
+</tr>
+<tr>
+<td><strong>Transactions</strong></td>
+<td>ACID across related rows (same shard)</td>
+<td>Transact writes where modeled; not arbitrary SQL</td>
+<td>Lightweight LWT; not a replacement for rich relational model</td>
+</tr>
+<tr>
+<td><strong>Feed / inbox</strong></td>
+<td>Possible with auxiliary tables + careful indexing</td>
+<td>Common for <code>user_id</code> PK patterns</td>
+<td>Natural for “timeline per user” wide rows</td>
+</tr>
+<tr>
+<td><strong>Interview signal</strong></td>
+<td>“Start simple; prove shard boundaries before jumping to Cassandra”</td>
+<td>“Fully managed, predictable at massive KV scale”</td>
+<td>“When you’ve outgrown SQL for specific hot paths”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> <strong>Posts, users, and likes</strong> benefit from relational integrity; <strong>feed materialization</strong> may be better in Redis / Cassandra-style stores—often a <strong>polyglot</strong> answer is strongest.</p>
+<h4 id="image-processing-lambda-serverless-vs-dedicated-worker-pool-vs-cdn-edge-transform">Image processing: Lambda / serverless vs dedicated worker pool vs CDN-edge transform<a class="headerlink" href="#image-processing-lambda-serverless-vs-dedicated-worker-pool-vs-cdn-edge-transform" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Serverless (Lambda, Cloud Functions)</th>
+<th>Dedicated worker pool (K8s, ASG)</th>
+<th>CDN edge image optimization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Burst handling</strong></td>
+<td>Excellent elasticity; cold starts can hurt tail latency</td>
+<td>Steady throughput; you size for peak + queue depth</td>
+<td>Offloads resize/crop to edge; vendor-specific</td>
+</tr>
+<tr>
+<td><strong>Cost model</strong></td>
+<td>Pay per invocation; can get expensive at sustained high QPS</td>
+<td>Predictable if utilization is high</td>
+<td>Often bundled with egress; watch per-transform pricing</td>
+</tr>
+<tr>
+<td><strong>Control</strong></td>
+<td>CPU/memory caps; limited local disk</td>
+<td>Full control over codecs, GPU, batching</td>
+<td>Limited to supported operations; great for simple resizes</td>
+</tr>
+<tr>
+<td><strong>State / dependencies</strong></td>
+<td>Good for stateless transforms</td>
+<td>Best for heavy ImageMagick/FFmpeg pipelines, GPUs</td>
+<td>Not a full replacement for virus scan / moderation pipelines</td>
+</tr>
+<tr>
+<td><strong>Interview signal</strong></td>
+<td>“Async, bursty workloads; watch cold start”</td>
+<td>“Production default for heavy transcoding”</td>
+<td>“Fast path for parameterized transforms; origin still authoritative”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> Processing must stay <strong>off the synchronous upload path</strong>; choice is about <strong>tail latency, cost at sustained load, and feature depth</strong> (HDR, stickers, moderation).</p>
+<h4 id="feed-timeline-fan-out-on-write-vs-fan-out-on-read">Feed / timeline: fan-out on write vs fan-out on read<a class="headerlink" href="#feed-timeline-fan-out-on-write-vs-fan-out-on-read" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Fan-out on write (push)</th>
+<th>Fan-out on read (pull)</th>
+<th>Hybrid (production norm)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Write cost</strong></td>
+<td>O(followers) per post</td>
+<td>O(1) for post</td>
+<td>Bounded push + celebrity outbox</td>
+</tr>
+<tr>
+<td><strong>Read cost</strong></td>
+<td>O(1) to read inbox</td>
+<td>O(following) merge</td>
+<td>Sublinear with caching + pre-merge</td>
+</tr>
+<tr>
+<td><strong>Staleness</strong></td>
+<td>Inbox may lag seconds (async)</td>
+<td>Always merges latest</td>
+<td>Tuned per product</td>
+</tr>
+<tr>
+<td><strong>Failure modes</strong></td>
+<td>Backlog on fan-out workers</td>
+<td>Hot follow lists stress read</td>
+<td>Isolate celebs from push storms</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> Same trade-off as <strong>news feed</strong> systems: push optimizes <strong>read latency</strong>; pull optimizes <strong>write amplification</strong> for mega-followed accounts.</p>
+<h4 id="cdn-cloudfront-vs-fastly-vs-akamai-vs-multi-cdn">CDN: CloudFront vs Fastly vs Akamai vs multi-CDN<a class="headerlink" href="#cdn-cloudfront-vs-fastly-vs-akamai-vs-multi-cdn" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Amazon CloudFront</th>
+<th>Fastly</th>
+<th>Akamai</th>
+<th>Multi-CDN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Origin integration</strong></td>
+<td>Native with S3/API Gateway; AWS ecosystem</td>
+<td>Programmable edge (VCL); instant purge semantics</td>
+<td>Massive edge footprint; enterprise features</td>
+<td>Resilience + price arbitrage + regional performance</td>
+</tr>
+<tr>
+<td><strong>Purging / invalidation</strong></td>
+<td>Eventually consistent; paths well understood</td>
+<td>Fine-grained surrogate keys</td>
+<td>Mature; may vary by product</td>
+<td>Orchestration complexity (DNS steering, health checks)</td>
+</tr>
+<tr>
+<td><strong>Lock-in vs portability</strong></td>
+<td>Higher if deep AWS</td>
+<td>Configuration portability moderate</td>
+<td>Contract and feature driven</td>
+<td>Lowest single-vendor risk; highest ops burden</td>
+</tr>
+<tr>
+<td><strong>Interview signal</strong></td>
+<td>“Default with S3”</td>
+<td>“When you need programmable edge logic”</td>
+<td>“Global scale and compliance-heavy enterprises”</td>
+<td>“When downtime or regional issues are unacceptable”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice (example you can defend in an interview)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Blob storage</strong></td>
+<td><strong>S3</strong> (or GCS on GCP)</td>
+<td>Managed durability and lifecycle; pre-signed uploads; no custom EC unless economics force it</td>
+</tr>
+<tr>
+<td><strong>Metadata</strong></td>
+<td><strong>PostgreSQL</strong> (sharded by <code>user_id</code>) + <strong>Redis</strong> for hot feed/id lists</td>
+<td>Relational model for posts/users/likes; Redis for low-latency feed pages</td>
+</tr>
+<tr>
+<td><strong>Processing</strong></td>
+<td><strong>Dedicated worker pool</strong> + optional <strong>Lambda</strong> for spiky aux jobs</td>
+<td>Predictable heavy image work on workers; serverless for occasional tasks</td>
+</tr>
+<tr>
+<td><strong>Feed</strong></td>
+<td><strong>Hybrid fan-out</strong></td>
+<td>Push for typical accounts; outbox + read merge for celebrities</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td><strong>CloudFront + second provider</strong> (multi-CDN) at very large scale</td>
+<td>Start single-CDN; add multi-CDN when availability or egress negotiation matters</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
+<p>CAP is a <strong>mental model</strong>, not a literal database knob: in practice you choose <strong>per operation</strong> between strong consistency (CP-like behavior) and high availability with eventual convergence (AP-like behavior), bounded by network partitions.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Primary concern</th>
+<th>Typical CAP posture</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Photo upload</strong></td>
+<td><strong>No acknowledged loss</strong> of user media</td>
+<td><strong>CP-leaning</strong> for “commit” boundaries</td>
+<td>Once the client is told “posted,” metadata and object must not disagree; use idempotent IDs and reconciliation</td>
+</tr>
+<tr>
+<td><strong>Feed read</strong></td>
+<td><strong>Availability + latency</strong></td>
+<td><strong>AP-leaning</strong></td>
+<td>Stale feed by seconds is acceptable; show cached feed if ranking service lags</td>
+</tr>
+<tr>
+<td><strong>Engagement (likes/comments)</strong></td>
+<td><strong>Correctness</strong> visible to user</td>
+<td><strong>CP-leaning</strong> per post</td>
+<td>Double-tap should not “lose” a like silently; use counters with CAS or serializable shards</td>
+</tr>
+<tr>
+<td><strong>User profiles</strong></td>
+<td><strong>Readable even under partial failures</strong></td>
+<td><strong>AP-leaning</strong> with cache</td>
+<td>Slight staleness on follower count acceptable; not for billing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why uploads favor consistency:</strong> Losing a photo after a success response destroys trust; <strong>durability + metadata agreement</strong> outweigh shaving milliseconds. <strong>Feeds</strong> can degrade to <strong>last known good</strong> cache.</p>
+<p><strong>Why engagement needs care:</strong> A user who sees “Liked” expects <strong>monotonic</strong> behavior; <strong>eventual</strong> is fine for <strong>aggregated counts</strong> on non-critical surfaces if product allows <strong>approximate</strong> counts—not for the user’s own action confirmation.</p>
+<pre class="mermaid"><code>flowchart TB
+  subgraph UploadPath["Upload path — CP-leaning"]
+    U1[Pre-signed PUT to object store]
+    U2[POST /posts — metadata txn]
+    U3[Async pipeline — at-least-once jobs]
+    U1 --&gt; U2
+    U2 --&gt; U3
+  end
+  subgraph FeedPath["Feed read — AP-leaning"]
+    F1[Feed service]
+    F2[Materialized ids + cache]
+    F3[Ranking optional]
+    F1 --&gt; F2 --&gt; F3
+  end
+  subgraph EngagePath["Likes/comments — strong per action"]
+    E1[Like/comment API]
+    E2[(Shard by post_id or user)]
+    E1 --&gt; E2
+  end
+  subgraph ProfilePath["Profile — available, softly consistent"]
+    P1[Profile API]
+    P2[Cache + origin DB]
+    P1 --&gt; P2
+  end</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, say: <strong>“We don’t choose one letter globally; we isolate consistency requirements to the write path and tolerate eventual freshness on reads.”</strong></p>
+</div>
+<hr />
+<h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
+<p><strong>SLA</strong> = contract with users/customers. <strong>SLO</strong> = internal target; <strong>SLI</strong> = what we measure. <strong>Error budget</strong> = allowable unreliability within a window (often monthly).</p>
+<h4 id="suggested-slos-tune-to-product-tier">Suggested SLOs (tune to product tier)<a class="headerlink" href="#suggested-slos-tune-to-product-tier" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>SLI</th>
+<th>Target (example)</th>
+<th>Measurement window</th>
+<th>Why candidates care</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload API success</strong></td>
+<td>99.9% successful <code>POST /posts</code> (after valid upload)</td>
+<td>30-day rolling</td>
+<td>Separates API from client/network failures</td>
+</tr>
+<tr>
+<td><strong>Upload latency (API ack)</strong></td>
+<td>p95 &lt; 300 ms, p99 &lt; 800 ms</td>
+<td>Rolling</td>
+<td>Metadata only; bytes bypass API</td>
+</tr>
+<tr>
+<td><strong>Feed load latency</strong></td>
+<td>p99 &lt; 400–800 ms for JSON <strong>excluding</strong> image download</td>
+<td>Rolling</td>
+<td>Aligns with NFR table; CDN carries bytes</td>
+</tr>
+<tr>
+<td><strong>Photo serve latency (CDN)</strong></td>
+<td>p95 TTFB &lt; 50–100 ms edge regions</td>
+<td>Weekly</td>
+<td>Cache hit ratio drives this; origin slow path excluded</td>
+</tr>
+<tr>
+<td><strong>Data durability</strong></td>
+<td>99.999999999% object durability (vendor tier)</td>
+<td>Annual</td>
+<td>Eleven nines on S3/GCS is standard talking point</td>
+</tr>
+<tr>
+<td><strong>Image processing lag</strong></td>
+<td>p95 &lt; 30 s from post create to “ready”</td>
+<td>Rolling</td>
+<td>Async path; communicate SLA as user-visible state</td>
+</tr>
+</tbody>
+</table>
+<h4 id="error-budget-policy-example">Error budget policy (example)<a class="headerlink" href="#error-budget-policy-example" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget consumption</strong></td>
+<td>If feed p99 misses SLO for 7 consecutive days, freeze <strong>non-critical</strong> releases (Explore tweaks, new ranking experiments)</td>
+</tr>
+<tr>
+<td><strong>Burn alerts</strong></td>
+<td>Page on-call if <strong>burn rate</strong> &gt; 14× (multi-window) for core paths (upload, feed read)</td>
+</tr>
+<tr>
+<td><strong>Feature flags</strong></td>
+<td>Dark-launch ranking changes; roll back if error budget burns during rollout</td>
+</tr>
+<tr>
+<td><strong>User-facing honesty</strong></td>
+<td>If processing SLO slips, UI shows <strong>“Processing”</strong>—don’t fake “posted” with broken images</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Tie <strong>SLOs to architecture</strong>: feed latency SLO justifies <strong>materialized feeds + CDN</strong>; durability SLO justifies <strong>object storage</strong>, not “database BLOBs.”</p>
+</div>
+<hr />
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">&para;</a></h3>
+<p>Schemas below are <strong>illustrative</strong> for interviews—production adds <strong>partitioning</strong>, <strong>soft deletes</strong>, <strong>GDPR</strong> exports, and <strong>regional</strong> considerations.</p>
+<h4 id="users"><code>users</code><a class="headerlink" href="#users" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID / BIGINT PK</td>
+<td>Opaque public id</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td>VARCHAR(30) UNIQUE</td>
+<td>Normalized; case-insensitive collation</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>VARCHAR(255) UNIQUE</td>
+<td>Hashed/indexed per privacy policy</td>
+</tr>
+<tr>
+<td><code>display_name</code></td>
+<td>VARCHAR(100)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>bio</code></td>
+<td>TEXT</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><code>avatar_media_id</code></td>
+<td>UUID NULL</td>
+<td>FK to <code>photos</code> or dedicated <code>media_assets</code></td>
+</tr>
+<tr>
+<td><code>is_private</code></td>
+<td>BOOLEAN</td>
+<td>Default false</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>username</code>; optionally <code>created_at</code> for backfill jobs.</p>
+<h4 id="photos-posts-media-one-row-per-image"><code>photos</code> (posts’ media; one row per image)<a class="headerlink" href="#photos-posts-media-one-row-per-image" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID PK</td>
+<td></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>UUID / BIGINT FK → <code>users.id</code></td>
+<td>Author</td>
+</tr>
+<tr>
+<td><code>post_id</code></td>
+<td>UUID FK</td>
+<td>One post may have many <code>photos</code> (carousel)</td>
+</tr>
+<tr>
+<td><code>storage_key</code></td>
+<td>VARCHAR(512)</td>
+<td>Immutable object key in blob store</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td>INT</td>
+<td>Pixels</td>
+</tr>
+<tr>
+<td><code>height</code></td>
+<td>INT</td>
+<td></td>
+</tr>
+<tr>
+<td><code>caption</code></td>
+<td>TEXT NULL</td>
+<td>Often on <strong>post</strong>; duplicate here only if denormalized</td>
+</tr>
+<tr>
+<td><code>location_lat</code></td>
+<td>DOUBLE NULL</td>
+<td>Stripped EXIF in many apps</td>
+</tr>
+<tr>
+<td><code>location_lng</code></td>
+<td>DOUBLE NULL</td>
+<td></td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>TEXT[] or join table</td>
+<td>Denormalized array vs <code>photo_tags</code> for search</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>ENUM</td>
+<td><code>pending</code>, <code>processing</code>, <code>active</code>, <code>failed</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+<tr>
+<td><code>processed_at</code></td>
+<td>TIMESTAMPTZ NULL</td>
+<td>When renditions ready</td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>(user_id, created_at DESC)</code> for profile grid; <code>(post_id)</code>; <code>storage_key</code> UNIQUE.</p>
+<h4 id="likes"><code>likes</code><a class="headerlink" href="#likes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>photo_id</code></td>
+<td>UUID FK → <code>photos.id</code></td>
+<td>Or <code>post_id</code> if likes apply to whole post—<strong>be consistent</strong></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>UUID FK → <code>users.id</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Primary key:</strong> <code>(photo_id, user_id)</code> — natural uniqueness; prevents double-like.</p>
+<p>Indexes: <code>(user_id, created_at)</code> for “likes I gave”; counter cache on <code>photos</code> / <code>posts</code> updated asynchronously.</p>
+<h4 id="comments"><code>comments</code><a class="headerlink" href="#comments" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID / BIGINT PK</td>
+<td></td>
+</tr>
+<tr>
+<td><code>photo_id</code> or <code>post_id</code></td>
+<td>UUID FK</td>
+<td>Match product: comment on <strong>post</strong> vs <strong>asset</strong></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>UUID FK</td>
+<td>Author</td>
+</tr>
+<tr>
+<td><code>body</code></td>
+<td>TEXT</td>
+<td>Moderation, max length enforced at API</td>
+</tr>
+<tr>
+<td><code>parent_comment_id</code></td>
+<td>UUID NULL</td>
+<td>Threaded replies</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+<tr>
+<td><code>deleted_at</code></td>
+<td>TIMESTAMPTZ NULL</td>
+<td>Soft delete</td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>(post_id_or_photo_id, created_at)</code> for chronological listing.</p>
+<h4 id="followers-social-graph-edges"><code>followers</code> (social graph edges)<a class="headerlink" href="#followers-social-graph-edges" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>follower_id</code></td>
+<td>UUID FK</td>
+<td>Who follows</td>
+</tr>
+<tr>
+<td><code>followee_id</code></td>
+<td>UUID FK</td>
+<td>Whom they follow</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>PK</strong></td>
+<td><code>(follower_id, followee_id)</code></td>
+<td>Prevents duplicate edges</td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>(followee_id, follower_id)</code> for “who follows this user” (follower lists); <code>(follower_id)</code> for “who I follow.”</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Interview tip:</strong> State whether <strong>likes</strong> attach to <code>post_id</code> or <code>photo_id</code>; either is valid if the model stays consistent across API and fan-out.</p>
+</div>
+<hr />
+<h2 id="step-2-back-of-the-envelope-estimation">Step 2: Back-of-the-Envelope Estimation<a class="headerlink" href="#step-2-back-of-the-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="assumptions-tunable-in-interview">Assumptions (tunable in interview)<a class="headerlink" href="#assumptions-tunable-in-interview" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>DAU:           500 million
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Avg follows:  200 per user (long tail; many users follow fewer)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Posts per DAU per day: 3
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Avg photo size (compressed original): 2 MB
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Processed renditions per photo: 5 (thumb, feed, full, etc.) — avg stored 1.5 MB extra per rendition set (illustrative)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>Feed loads per DAU per day: 8
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Posts per feed page: 20
+</span></code></pre></div>
+<h3 id="write-path-posts-uploads">Write Path (posts + uploads)<a class="headerlink" href="#write-path-posts-uploads" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Posts per day = 500M × 3 = 1.5B posts/day
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Average post creation QPS = 1.5e9 / 86,400 ≈ 17,400/s
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Peak (e.g., 3×) ≈ 52,000 posts/s
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Each post may trigger: DB insert, fan-out jobs, search index updates.
+</span></code></pre></div>
+<h3 id="read-path-feed">Read Path (feed)<a class="headerlink" href="#read-path-feed" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Feed requests = 500M × 8 = 4B/day
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Average feed QPS = 4e9 / 86,400 ≈ 46,300/s
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Peak ≈ 140,000/s (rule of thumb 3×)
+</span></code></pre></div>
+<h3 id="storage-metadata-vs-object">Storage (metadata vs object)<a class="headerlink" href="#storage-metadata-vs-object" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Assume post row (ids, caption, keys, timestamps) ≈ 400 bytes
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>1.5B × 400 B ≈ 600 GB/day new metadata (before replication and indexes)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Object storage (dominant):
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  1.5B photos/day × 2 MB ≈ 3 PB/day if every post is one 2 MB image — 
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  in practice mix of smaller images and video; use fractions:
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  If effective 800 KB average stored per post after compression: 1.5B × 800 KB ≈ 1.2 PB/day
+</span></code></pre></div>
+<h3 id="cdn-egress-order-of-magnitude">CDN egress (order of magnitude)<a class="headerlink" href="#cdn-egress-order-of-magnitude" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>If each feed load fetches 20 images at ~150 KB average delivered (WebP, feed size):
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  4B loads × 20 × 150 KB ≈ 12 EB-day product — divide by day: 
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  4B × 20 × 150 KB / 86400 s ≈ 140 GB/s average from CDN (illustrative; highly sensitive to assumptions)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Narrow with: “We’d validate with CDN logs and image analytics.”
+</span></code></pre></div>
+<h3 id="fan-out-volume-why-celebrities-matter">Fan-Out Volume (why celebrities matter)<a class="headerlink" href="#fan-out-volume-why-celebrities-matter" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Average followers per poster (not per user): say 500 (skewed by influencers)
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Fan-out writes per post = 1.5B posts × 500 = 750B fan-out deliveries/day (if push all to all inboxes)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  → ~8.7M/s average — infeasible at naive scale; motivates hybrid fan-out (see Deep Dive).
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Skew</strong> dominates: one celebrity post must not perform O(followers) synchronous work. Call out <strong>Pareto distribution</strong> explicitly.</p>
+</div>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<p>At a high level: <strong>clients</strong> talk to <strong>API gateways</strong>; <strong>stateless app services</strong> handle auth, post creation, and feed reads; <strong>object storage (e.g., S3)</strong> holds blobs; <strong>CDN</strong> serves public URLs; <strong>async workers</strong> resize images and enqueue <strong>fan-out</strong> tasks; <strong>caches / feed stores</strong> materialize per-user feeds; <strong>databases</strong> shard by <code>user_id</code> for profiles and graph edges.</p>
+<pre class="mermaid"><code>flowchart TB
+  subgraph Clients
+    M[Mobile / Web]
+  end
+  subgraph Edge
+    CF[CDN]
+    AG[API Gateway / LB]
+  end
+  subgraph App
+    US[Upload service]
+    PS[Post service]
+    FS[Feed service]
+    SG[Social graph service]
+    RK[Ranking service]
+  end
+  subgraph Async
+    Q[Message queue]
+    IP[Image processor workers]
+    FW[Fan-out workers]
+  end
+  subgraph Data
+    OS[(Object storage S3)]
+    DB[(Metadata DB sharded)]
+    RC[(Redis feed cache)]
+    G[(Graph store)]
+  end
+  M --&gt; AG
+  M --&gt; CF
+  CF --&gt; OS
+  AG --&gt; US
+  AG --&gt; PS
+  AG --&gt; FS
+  AG --&gt; SG
+  FS --&gt; RK
+  FS --&gt; RC
+  PS --&gt; DB
+  PS --&gt; Q
+  Q --&gt; IP
+  Q --&gt; FW
+  IP --&gt; OS
+  FW --&gt; RC
+  SG --&gt; G
+  PS --&gt; OS</code></pre>
+<p><strong>Responsibility split</strong></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Object storage</strong></td>
+<td>Source of truth for bytes; versioning/lifecycle policies</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Edge caching of immutable rendition URLs; signed URLs for private media if needed</td>
+</tr>
+<tr>
+<td><strong>Post service</strong></td>
+<td>Validates ownership of <code>object_key</code>, writes post row, enqueues processing</td>
+</tr>
+<tr>
+<td><strong>Image processor</strong></td>
+<td>Generates thumbnails, strips EXIF if required, writes new keys</td>
+</tr>
+<tr>
+<td><strong>Fan-out workers</strong></td>
+<td>For normal users: push post ids into followers’ feed lists; for celebs: skip or partial</td>
+</tr>
+<tr>
+<td><strong>Feed service</strong></td>
+<td>Merges stored feed + ranking; handles pagination cursors</td>
+</tr>
+<tr>
+<td><strong>Graph store</strong></td>
+<td>Follow edges; may be adjacency lists in DB or dedicated service</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-photo-upload-and-storage">4.1 Photo Upload and Storage<a class="headerlink" href="#41-photo-upload-and-storage" title="Permanent link">&para;</a></h3>
+<p><strong>Direct-to-storage uploads</strong> avoid streaming bytes through application servers.</p>
+<ol>
+<li>Client requests <code>POST /v1/media/upload-url</code>.</li>
+<li>Service checks quota, auth, content policy; returns <strong>pre-signed URL</strong> and <code>object_key</code> scoped to that user.</li>
+<li>Client <code>PUT</code>s bytes to <strong>S3</strong> (or compatible).</li>
+<li>Client calls <code>POST /v1/posts</code> with <code>object_key</code>; post service verifies the key prefix matches the user and records metadata.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Abuse / oversized files</strong></td>
+<td>Max size in policy; scan magic bytes async; virus scan optional pipeline</td>
+</tr>
+<tr>
+<td><strong>Duplicate uploads</strong></td>
+<td>Content-hash dedup optional; same user may re-upload intentionally</td>
+</tr>
+<tr>
+<td><strong>Privacy</strong></td>
+<td>Private accounts: CDN with short-lived signed URLs or origin pull auth</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Store <strong>immutable</strong> rendition URLs with versioned paths so CDN caching stays simple (<code>Cache-Control: max-age=31536000, immutable</code>).</p>
+</div>
+<h3 id="42-image-processing-pipeline">4.2 Image Processing Pipeline<a class="headerlink" href="#42-image-processing-pipeline" title="Permanent link">&para;</a></h3>
+<p>After post creation, enqueue a job: <strong>raw object key</strong>, <strong>post id</strong>, <strong>owner id</strong>. Workers:</p>
+<ol>
+<li>Fetch from object storage (internal endpoint).</li>
+<li>Produce renditions: e.g. 150px thumb, 640px feed, 1080px display, WebP/AVIF variants.</li>
+<li>Write outputs to deterministic keys: <code>u/{id}/r/{post_id}/thumb.webp</code>.</li>
+<li>Update post metadata row with <code>ready</code> status and rendition map.</li>
+<li>Emit event for fan-out / notifications.</li>
+</ol>
+<p>Failure handling: retry with backoff; dead-letter queue for poison blobs; post remains “processing” in UI.</p>
+<pre class="mermaid"><code>sequenceDiagram
+  participant C as Client
+  participant API as Post API
+  participant S3 as Object storage
+  participant Q as Queue
+  participant W as Image worker
+  participant DB as Metadata DB
+  C-&gt;&gt;API: POST /posts (object_key)
+  API-&gt;&gt;DB: insert post pending
+  API-&gt;&gt;Q: enqueue process job
+  API--&gt;&gt;C: 202 Accepted / post id
+  Q-&gt;&gt;W: job
+  W-&gt;&gt;S3: GET raw object
+  W-&gt;&gt;W: decode resize encode
+  W-&gt;&gt;S3: PUT renditions
+  W-&gt;&gt;DB: update renditions + active
+  W-&gt;&gt;Q: fan-out event</code></pre>
+<h3 id="43-news-feed-generation">4.3 News Feed Generation<a class="headerlink" href="#43-news-feed-generation" title="Permanent link">&para;</a></h3>
+<p><strong>Feed item</strong> is typically <code>{ post_id, author_id, created_at, score? }</code>. Reads:</p>
+<ol>
+<li>Resolve viewer’s <code>user_id</code>.</li>
+<li>Fetch candidate post ids from <strong>materialized feed</strong> (Redis, or wide-column store) <strong>or</strong> merge on read from recent posts of followees (hybrid).</li>
+<li>Apply <strong>filters</strong> (blocked users, deleted posts).</li>
+<li><strong>Rank</strong> (chronological baseline or ML scoring).</li>
+<li>Hydrate details (caption, CDN URLs, like counts) from DB/cache in batch.</li>
+</ol>
+<pre class="mermaid"><code>flowchart LR
+  subgraph Read["Feed read path"]
+    A[GET /feed] --&gt; B[Load candidate ids]
+    B --&gt; C[Filter + rank]
+    C --&gt; D[Batch hydrate metadata]
+    D --&gt; E[JSON + next_cursor]
+  end</code></pre>
+<h3 id="44-fan-out-strategy">4.4 Fan-out Strategy<a class="headerlink" href="#44-fan-out-strategy" title="Permanent link">&para;</a></h3>
+<p>Two classic strategies:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Write cost</th>
+<th>Read cost</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fan-out on write (push)</strong></td>
+<td>O(followers) per post</td>
+<td>O(1) read</td>
+<td>Users with modest follower counts</td>
+</tr>
+<tr>
+<td><strong>Fan-out on read (pull)</strong></td>
+<td>O(1) write</td>
+<td>O(following) merge</td>
+<td>Very high follower counts (celebrities)</td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong></td>
+<td>Push for normal; pull/merge for celebs</td>
+<td>Bounded</td>
+<td>Production social networks</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hybrid approach (common):</strong></p>
+<ul>
+<li>If <code>follower_count &amp;lt; threshold</code> (e.g., 10k): <strong>push</strong> post id into each follower’s feed shard (async queue).</li>
+<li>If <strong>celebrity</strong>: <strong>do not</strong> push to all inboxes; store post in celebrity’s <strong>outbox</strong> only; at read time, <strong>merge</strong> global hot posts with the user’s inbox.</li>
+</ul>
+<p><strong>Celebrity problem (summary):</strong> One post cannot synchronously insert into 50M inboxes. Mitigations: only push to “active” followers, cap push fan-out, or pull hot accounts.</p>
+<h3 id="45-stories-feature">4.5 Stories Feature<a class="headerlink" href="#45-stories-feature" title="Permanent link">&para;</a></h3>
+<p>Stories differ from feed posts:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Posts</th>
+<th>Stories</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lifetime</strong></td>
+<td>Permanent until deleted</td>
+<td>TTL (e.g., 24 hours)</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>Long-lived keys</td>
+<td>Same object store; metadata TTL</td>
+</tr>
+<tr>
+<td><strong>Fan-out</strong></td>
+<td>Similar pipeline</td>
+<td>Often precomputed ring per user for “close friends”</td>
+</tr>
+<tr>
+<td><strong>Read path</strong></td>
+<td>Home feed</td>
+<td>Horizontal strip + full-screen viewer</td>
+</tr>
+</tbody>
+</table>
+<p>Implement with <strong>expiry timestamps</strong> in metadata and <strong>background GC</strong> jobs to delete objects after TTL. CDN caching TTL should align with story lifetime.</p>
+<h3 id="46-followunfollow-and-social-graph">4.6 Follow/Unfollow and Social Graph<a class="headerlink" href="#46-followunfollow-and-social-graph" title="Permanent link">&para;</a></h3>
+<p><strong>Graph operations:</strong></p>
+<ul>
+<li><strong>Follow:</strong> Insert edge <code>(follower_id, followee_id)</code> with timestamp; optionally enqueue backfill of recent posts into follower’s feed (product choice).</li>
+<li><strong>Unfollow:</strong> Delete edge; remove followee’s recent post ids from follower’s materialized feed (async reconciliation) or leave stale until compaction.</li>
+</ul>
+<p><strong>Storage patterns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Adjacency lists in SQL</strong></td>
+<td>Simple; transactional</td>
+<td>Hot shards for mega-celebrities</td>
+</tr>
+<tr>
+<td><strong>Wide-column (Cassandra)</strong></td>
+<td>Good for time-ordered lists</td>
+<td>Operational complexity</td>
+</tr>
+<tr>
+<td><strong>Graph DB</strong></td>
+<td>Flexible queries</td>
+<td>May be overkill for “who do I follow”</td>
+</tr>
+</tbody>
+</table>
+<p>For interview clarity: <strong>shard by <code>user_id</code></strong> for user-centric tables (posts, preferences); <strong>follow edges</strong> often sharded by <code>follower_id</code> so “all people I follow” is single-shard.</p>
+<h3 id="47-search-and-explore">4.7 Search and Explore<a class="headerlink" href="#47-search-and-explore" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>User search:</strong> Prefix index (Trie) or Elasticsearch with <code>completion suggester</code>; sharded inverted index on usernames.</li>
+<li><strong>Hashtag explore:</strong> Inverted index <code>tag → [post_ids]</code> with recency decay; separate from home feed.</li>
+<li><strong>Explore tab:</strong> Often <strong>ML-ranked</strong> candidate pool; out of scope unless interviewer insists—mention <strong>candidate generation + ranking</strong> two-stage pattern.</li>
+</ul>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<h3 id="sharding-by-user_id">Sharding by <code>user_id</code><a class="headerlink" href="#sharding-by-user_id" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Shard key</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User profile</td>
+<td><code>user_id</code></td>
+<td>Even distribution with random IDs</td>
+</tr>
+<tr>
+<td>Posts by author</td>
+<td><code>author_user_id</code></td>
+<td>Profile timeline is single-shard</td>
+</tr>
+<tr>
+<td>Feed inbox</td>
+<td><code>viewer_user_id</code></td>
+<td>Fan-out writes target follower shards</td>
+</tr>
+<tr>
+<td>Likes</td>
+<td><code>post_id</code> or <code>user_id</code></td>
+<td>Hot posts may need separate caching</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cross-shard queries</strong> (e.g., global search) go through search indices, not naive scatter-gather across all user DBs.</p>
+<h3 id="reliability">Reliability<a class="headerlink" href="#reliability" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Idempotent</strong> post creation and fan-out consumers (<code>post_id</code> dedup).</li>
+<li><strong>Queue partitioning</strong> by <code>follower_id</code> hash for parallel fan-out workers.</li>
+<li><strong>Circuit breakers</strong> on object storage and CDN origins.</li>
+<li><strong>Rate limits</strong> per user and per IP on upload-url issuance.</li>
+</ul>
+<h3 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Metrics: upload success rate, processing lag p95, fan-out backlog depth, CDN cache hit ratio, feed p99 latency.</li>
+<li>Tracing: trace id from API through queue to workers.</li>
+</ul>
+<h3 id="security-compliance">Security &amp; compliance<a class="headerlink" href="#security-compliance" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Strip location EXIF by default for consumer apps.</li>
+<li>Content moderation: async classifiers, user reports, legal hold on object keys.</li>
+</ul>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<h3 id="interview-checklist">Interview Checklist<a class="headerlink" href="#interview-checklist" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Clarify scope: video, DMs, ads, shopping, live.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Separate <strong>metadata path</strong> vs <strong>bytes path</strong> (S3 + CDN).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> State <strong>NFRs</strong>: latency targets, durability, eventual consistency for feeds.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Draw <strong>upload</strong>: pre-signed URL → async processing → fan-out event.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Explain <strong>hybrid fan-out</strong> and <strong>celebrity</strong> mitigation.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mention <strong>feed ranking</strong> as a stage (even if not detailed).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Discuss <strong>sharding</strong> by <code>user_id</code> and hot-spot mitigation.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Cover <strong>pagination</strong> (cursors), <strong>idempotency</strong>, and <strong>failure modes</strong> (retry, DLQ).</li>
+</ul>
+<h3 id="sample-interview-dialogue">Sample Interview Dialogue<a class="headerlink" href="#sample-interview-dialogue" title="Permanent link">&para;</a></h3>
+<p><strong>Interviewer:</strong> “Design Instagram.”</p>
+<p><strong>Candidate:</strong> “I’ll assume we’re focusing on photo posts, follow graph, home feed, and basic stories—no DMs or ads unless you want those. I’ll separate media storage from metadata.”</p>
+<p><strong>Interviewer:</strong> “Sounds good. How does upload work?”</p>
+<p><strong>Candidate:</strong> “Clients should upload directly to object storage using a pre-signed URL so our API servers aren’t in the data path. After the blob exists, the client creates a post referencing the object key. We process images asynchronously: thumbnails, multiple resolutions, then we fan out to followers’ feeds.”</p>
+<p><strong>Interviewer:</strong> “What about users with 50 million followers?”</p>
+<p><strong>Candidate:</strong> “We can’t push 50 million writes synchronously. I’d use a hybrid: push fan-out only up to a threshold, and for celebrities merge from their outbox at read time, or rely on pull-based merging for the hottest accounts. We might also cap how many inboxes we update per second and rely on eventual consistency.”</p>
+<p><strong>Interviewer:</strong> “How is the feed stored?”</p>
+<p><strong>Candidate:</strong> “Materialized per-user lists of post ids in Redis or a wide-column store for fast pagination, combined with ranking. Reads batch-hydrate metadata and use the CDN for image URLs. We shard by viewer user id to scale feed storage.”</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Takeaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Object storage (S3)</strong></td>
+<td>Pre-signed uploads; immutable rendition keys; lifecycle policies</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Cache images at edge; small JSON from API; long cache for versioned URLs</td>
+</tr>
+<tr>
+<td><strong>Thumbnails / processing</strong></td>
+<td>Async workers; queue between upload and fan-out</td>
+</tr>
+<tr>
+<td><strong>Fan-out</strong></td>
+<td>Push for typical users; pull/merge or hybrid for celebrities</td>
+</tr>
+<tr>
+<td><strong>Celebrity problem</strong></td>
+<td>Bounded writes; outbox + read merge; thresholds</td>
+</tr>
+<tr>
+<td><strong>Feed ranking</strong></td>
+<td>Filter → rank → hydrate; ML optional second phase</td>
+</tr>
+<tr>
+<td><strong>Sharding</strong></td>
+<td><code>user_id</code> for user-owned data; design for hot spots and cross-shard search via index</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>End with <strong>trade-offs</strong>: consistency vs latency, storage cost vs compute, push vs pull fan-out—interviewers reward explicit tension, not a single “perfect” architecture.</p>
+</div>
+<hr />
+<h3 id="appendix-reference-code-snippets">Appendix: Reference Code Snippets<a class="headerlink" href="#appendix-reference-code-snippets" title="Permanent link">&para;</a></h3>
+<h4 id="upload-handler-java-spring-style">Upload handler (Java, Spring-style)<a class="headerlink" href="#upload-handler-java-spring-style" title="Permanent link">&para;</a></h4>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nd">@PostMapping</span><span class="p">(</span><span class="s">&quot;/v1/media/upload-url&quot;</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">ResponseEntity</span><span class="o">&lt;</span><span class="n">UploadUrlResponse</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">issueUploadUrl</span><span class="p">(</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nd">@AuthenticationPrincipal</span><span class="w"> </span><span class="n">UserPrincipal</span><span class="w"> </span><span class="n">user</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nd">@Valid</span><span class="w"> </span><span class="nd">@RequestBody</span><span class="w"> </span><span class="n">UploadUrlRequest</span><span class="w"> </span><span class="n">req</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">String</span><span class="w"> </span><span class="n">objectKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">keyFactory</span><span class="p">.</span><span class="na">newObjectKey</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="na">getId</span><span class="p">(),</span><span class="w"> </span><span class="n">req</span><span class="p">.</span><span class="na">getContentType</span><span class="p">());</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="n">PresignedPutRequest</span><span class="w"> </span><span class="n">put</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s3Presigner</span><span class="p">.</span><span class="na">presignPut</span><span class="p">(</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">      </span><span class="n">PutObjectRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">          </span><span class="p">.</span><span class="na">bucket</span><span class="p">(</span><span class="n">mediaBucket</span><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">          </span><span class="p">.</span><span class="na">key</span><span class="p">(</span><span class="n">objectKey</span><span class="p">)</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">          </span><span class="p">.</span><span class="na">contentType</span><span class="p">(</span><span class="n">req</span><span class="p">.</span><span class="na">getContentType</span><span class="p">())</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">          </span><span class="p">.</span><span class="na">build</span><span class="p">(),</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">      </span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMinutes</span><span class="p">(</span><span class="mi">15</span><span class="p">));</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">ResponseEntity</span><span class="p">.</span><span class="na">ok</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">UploadUrlResponse</span><span class="p">(</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">      </span><span class="n">put</span><span class="p">.</span><span class="na">url</span><span class="p">().</span><span class="na">toString</span><span class="p">(),</span><span class="w"> </span><span class="n">objectKey</span><span class="p">,</span><span class="w"> </span><span class="n">put</span><span class="p">.</span><span class="na">expiration</span><span class="p">().</span><span class="na">toEpochMilli</span><span class="p">()));</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="p">}</span>
+</span></code></pre></div>
+<h4 id="feed-service-python-fastapi-sketch">Feed service (Python, FastAPI sketch)<a class="headerlink" href="#feed-service-python-fastapi-sketch" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/v1/feed&quot;</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_feed</span><span class="p">(</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">cursor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="p">):</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">raw</span> <span class="o">=</span> <span class="k">await</span> <span class="n">feed_store</span><span class="o">.</span><span class="n">fetch_ids</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">limit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cursor</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="n">items</span><span class="p">,</span> <span class="n">next_cur</span> <span class="o">=</span> <span class="n">slice_page</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="n">posts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">post_repo</span><span class="o">.</span><span class="n">batch_get</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">post_id</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">ranked</span> <span class="o">=</span> <span class="n">ranker</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">viewer</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="n">hydrate</span><span class="p">(</span><span class="n">ranked</span><span class="p">,</span> <span class="n">posts</span><span class="p">),</span> <span class="s2">&quot;next_cursor&quot;</span><span class="p">:</span> <span class="n">next_cur</span><span class="p">}</span>
+</span></code></pre></div>
+<h4 id="fan-out-worker-go">Fan-out worker (Go)<a class="headerlink" href="#fan-out-worker-go" title="Permanent link">&para;</a></h4>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">type</span><span class="w"> </span><span class="nx">FanoutJob</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="nx">PostID</span><span class="w">       </span><span class="kt">int64</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nx">AuthorID</span><span class="w">     </span><span class="kt">int64</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nx">FollowerIDs</span><span class="w">  </span><span class="p">[]</span><span class="kt">int64</span><span class="w"> </span><span class="c1">// batched chunk</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">}</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="o">*</span><span class="nx">Worker</span><span class="p">)</span><span class="w"> </span><span class="nx">Handle</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">job</span><span class="w"> </span><span class="nx">FanoutJob</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="nx">meta</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">w</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">job</span><span class="p">.</span><span class="nx">PostID</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">meta</span><span class="p">.</span><span class="nx">FollowerCountAtPost</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="nx">w</span><span class="p">.</span><span class="nx">pushThreshold</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="c1">// celebrity: stored only in author outbox</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">fid</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">job</span><span class="p">.</span><span class="nx">FollowerIDs</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">w</span><span class="p">.</span><span class="nx">feedCache</span><span class="p">.</span><span class="nx">PrependPost</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">fid</span><span class="p">,</span><span class="w"> </span><span class="nx">job</span><span class="p">.</span><span class="nx">PostID</span><span class="p">,</span><span class="w"> </span><span class="nx">meta</span><span class="p">.</span><span class="nx">CreatedAt</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<p><em>Document version: structured for System Design Examples (Just the Docs). Tune all numbers to your interview scenario.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../video_streaming/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Video Streaming (YouTube)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Video Streaming (YouTube)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../collaborative_editor/" class="md-footer__link md-footer__link--next" aria-label="Next: Collaborative Editor (Google Docs)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Collaborative Editor (Google Docs)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

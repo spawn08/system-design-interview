@@ -1,0 +1,4730 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/event_booking/">
+      
+      
+        <link rel="prev" href="../cloud_storage/">
+      
+      
+        <link rel="next" href="../task_scheduler/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Event Booking (Ticketmaster) - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#event-booking-ticketmaster" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Event Booking (Ticketmaster)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-event-booking-is-hard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Event Booking Is Hard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-to-adjacent-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison to Adjacent Systems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-the-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-the-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Back-of-the-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assumptions-illustrative-national-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions (illustrative national service)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#peak-read-qps-seat-map-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Peak Read QPS (seat map + availability)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-qps-holds-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Write QPS (holds and releases)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-orders-of-magnitude" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage (orders of magnitude)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: High-Level Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-seat-inventory-and-locking" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Seat Inventory and Locking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-handling-high-concurrency-ticket-sales" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Handling High-Concurrency Ticket Sales
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-virtual-queue-and-waiting-room" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Virtual Queue and Waiting Room
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-payment-and-order-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Payment and Order Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-preventing-double-booking" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Preventing Double Booking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-seat-map-and-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 Seat Map and Selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-notification-and-confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Notification and Confirmation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interview Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-interview-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Interview Dialogue
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-diagrams-and-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Diagrams and Code
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Diagrams and Code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#booking-sequence-hold-pay-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Booking sequence (hold, pay, confirm)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seat-locking-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      Seat locking state machine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#virtual-queue-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Virtual queue (promotion)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-optimistic-seat-reservation-jdbc-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Java: optimistic seat reservation (JDBC-style)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-queue-position-and-admission-redis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python: queue position and admission (Redis)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go-booking-handler-with-idempotency-and-hold-expiry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Go: booking handler with idempotency and hold expiry
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-table-hold-vs-payment-timeouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Table: Hold vs payment timeouts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-table-consistency-wording-for-interviews" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Table: Consistency wording for interviews
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#closing-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Closing Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="event-booking-ticketmaster">Event Booking (Ticketmaster)<a class="headerlink" href="#event-booking-ticketmaster" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>An <strong>event ticketing platform</strong> where organizers list concerts, sports, and theater shows; fans browse seat maps; and the system sells <strong>finite seats</strong> under extreme concurrency—similar in spirit to Ticketmaster, AXS, or regional primary ticketers.</p>
+<p><strong>Core capabilities in scope:</strong></p>
+<ul>
+<li>Catalog of events, venues, and show times with configurable seat maps</li>
+<li>Real-time (or near-real-time) seat availability and pricing tiers</li>
+<li>Hold seats temporarily while the user completes checkout, then confirm or release</li>
+<li>Payment capture with timeouts, retries, and reconciliation</li>
+<li>Virtual waiting room when demand exceeds safe admission rates to the purchase flow</li>
+<li>Notifications: order confirmation, payment failure, seat released, waitlist or resale (optional)</li>
+</ul>
+<h3 id="why-event-booking-is-hard">Why Event Booking Is Hard<a class="headerlink" href="#why-event-booking-is-hard" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Finite inventory</strong></td>
+<td>Every seat is a row in a hot data set; overselling destroys trust and legal compliance</td>
+</tr>
+<tr>
+<td><strong>Flash crowds</strong></td>
+<td>On-sales spike QPS by orders of magnitude; naive DB designs collapse</td>
+</tr>
+<tr>
+<td><strong>Long transactions</strong></td>
+<td>Users need minutes to pay; inventory must stay consistent without blocking the world</td>
+</tr>
+<tr>
+<td><strong>Fairness vs bots</strong></td>
+<td>Rate limits, proof-of-work, and queues are all imperfect; abuse is continuous</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td>Card auth, 3DS, partial failures, idempotent retries, and chargebacks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="comparison-to-adjacent-systems">Comparison to Adjacent Systems<a class="headerlink" href="#comparison-to-adjacent-systems" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Similarity</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>E-commerce catalog</strong></td>
+<td>SKUs, cart, checkout</td>
+<td>Seats are <strong>non-fungible</strong> and <strong>geo-addressed</strong> (section, row, seat)</td>
+</tr>
+<tr>
+<td><strong>Ride sharing</strong></td>
+<td>Peak load, payments</td>
+<td>No continuous GPS; <strong>inventory is discrete</strong> and <strong>lockable</strong></td>
+</tr>
+<tr>
+<td><strong>Airline booking</strong></td>
+<td>Holds, fare classes, GDS complexity</td>
+<td>Venues use <strong>static seat maps</strong>; fewer routing rules, more <strong>UI-heavy selection</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, separate <strong>search/browse</strong> (read-heavy, cacheable) from <strong>purchase</strong> (write-heavy, consistency-sensitive). The deep dive usually lands on <strong>inventory</strong>, <strong>locking</strong>, <strong>queues</strong>, and <strong>payments</strong>.</p>
+</div>
+<hr />
+<h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Priority</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>List events and show times</td>
+<td>Must have</td>
+<td>Filters: city, date, artist/team, venue</td>
+</tr>
+<tr>
+<td>Seat map display</td>
+<td>Must have</td>
+<td>Sections, rows, seats; accessible seating; obstructed view flags</td>
+</tr>
+<tr>
+<td>Check availability</td>
+<td>Must have</td>
+<td>Per-seat or per-block availability depending on map model</td>
+</tr>
+<tr>
+<td>Reserve / hold seats</td>
+<td>Must have</td>
+<td>Time-bounded hold while user pays</td>
+</tr>
+<tr>
+<td>Purchase / confirm</td>
+<td>Must have</td>
+<td>Idempotent order creation; payment capture</td>
+</tr>
+<tr>
+<td>Release holds on timeout or failure</td>
+<td>Must have</td>
+<td>Seats return to salable pool</td>
+</tr>
+<tr>
+<td>Order history</td>
+<td>Must have</td>
+<td>Per-user list and ticket delivery (PDF, wallet pass, or mobile)</td>
+</tr>
+<tr>
+<td>Virtual waiting room</td>
+<td>Should have</td>
+<td>Admission control when overloaded</td>
+</tr>
+<tr>
+<td>Transfer / resale</td>
+<td>Nice to have</td>
+<td>Policy, fraud, and secondary market rules (often a separate product)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Clarifying questions (typical)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary-only or resale?</td>
+<td>Inventory source, pricing rules, legal</td>
+</tr>
+<tr>
+<td>Static seat map per venue?</td>
+<td>Caching, CDN for map tiles vs dynamic overlays</td>
+</tr>
+<tr>
+<td>Payment methods?</td>
+<td>Wallets, 3DS, regional methods; timeout lengths</td>
+</tr>
+<tr>
+<td>International?</td>
+<td>Currency, tax, PCI scope, data residency</td>
+</tr>
+<tr>
+<td>Accessibility compliance?</td>
+<td>WCAG for UI; hold rules for assisted purchasing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Availability</strong></td>
+<td>99.9%+ for browse; 99.99% for payment partners during on-sale</td>
+<td>Revenue and partner SLAs</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td><strong>No overselling</strong> for the same seat; <strong>strong</strong> per-seat inventory in OLTP</td>
+<td>Legal and brand risk</td>
+</tr>
+<tr>
+<td><strong>Latency (browse)</strong></td>
+<td>P95 <strong>low hundreds of ms</strong></td>
+<td>SEO and conversion</td>
+</tr>
+<tr>
+<td><strong>Latency (checkout)</strong></td>
+<td>P95 <strong>sub-second</strong> for hold/confirm on hot path where possible</td>
+<td>Abandonment</td>
+</tr>
+<tr>
+<td><strong>Throughput</strong></td>
+<td>Survive <strong>10–100×</strong> traffic spikes during popular on-sales</td>
+<td>Queue + scale-out</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td>Orders and payments <strong>auditable</strong> for years</td>
+<td>Chargebacks, taxes</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>At scale, <strong>exactly-once</strong> processing is a narrative convenience. Implement <strong>idempotency keys</strong>, <strong>at-least-once</strong> delivery with deduplication, and <strong>reconciliation</strong> jobs. Claim <strong>strong</strong> consistency only where your storage and transaction boundaries actually provide it.</p>
+</div>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<p><strong>Transports</strong></p>
+<ul>
+<li><strong>HTTPS/JSON</strong> (or gRPC) for synchronous APIs: catalog, holds, orders</li>
+<li><strong>WebSocket or SSE</strong> for optional live seat map updates (often throttled)</li>
+<li><strong>Message queue</strong> for async: payment webhooks, email, analytics</li>
+</ul>
+<p><strong>Representative REST-style endpoints</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /v1/events</code></td>
+<td>HTTP</td>
+<td>Search and list events</td>
+</tr>
+<tr>
+<td><code>GET /v1/events/{id}/shows</code></td>
+<td>HTTP</td>
+<td>Show times for an event</td>
+</tr>
+<tr>
+<td><code>GET /v1/shows/{id}/seat-map</code></td>
+<td>HTTP</td>
+<td>Seat map metadata and availability snapshot</td>
+</tr>
+<tr>
+<td><code>POST /v1/shows/{id}/holds</code></td>
+<td>HTTP</td>
+<td>Create time-bounded seat hold (idempotency key)</td>
+</tr>
+<tr>
+<td><code>DELETE /v1/holds/{id}</code></td>
+<td>HTTP</td>
+<td>Explicit release</td>
+</tr>
+<tr>
+<td><code>POST /v1/orders</code></td>
+<td>HTTP</td>
+<td>Create order from hold; attach payment method</td>
+</tr>
+<tr>
+<td><code>POST /v1/payments/{id}/confirm</code></td>
+<td>HTTP</td>
+<td>Confirm or capture (idempotency key)</td>
+</tr>
+<tr>
+<td><code>POST /v1/waiting-room/sessions</code></td>
+<td>HTTP</td>
+<td>Enter queue; get token and poll URL</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Idempotency</strong></p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Idempotency-Key: &lt;uuid&gt;</code></td>
+<td><code>POST</code> holds, orders, payment confirms</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hold response (illustrative)</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;hold_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hld_01hq&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;show_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shw_99ab&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;seat_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sec-A-12-4&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sec-A-12-5&quot;</span><span class="p">],</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;expires_at_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1712000000000</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">&quot;price_cents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">17800</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;USD&quot;</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>version</code> supports optimistic concurrency on the hold or seat aggregate.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Return <strong><code>expires_at</code></strong> and a <strong><code>server_time</code></strong> so clients can show countdowns without drift arguments. Always enforce expiry <strong>server-side</strong>.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>Interviewers want to hear <strong>constraints first</strong>: concurrent seat writes need <strong>serializable semantics per seat</strong> (or equivalent), order flows need <strong>durability and replay</strong>, and browse traffic needs <strong>cheap reads</strong>. Below is a concise comparison you can narrate, then collapse to “our choice.”</p>
+<h4 id="database-postgresql-vs-mysql-vs-dynamodb-concurrent-seat-booking">Database: PostgreSQL vs MySQL vs DynamoDB (concurrent seat booking)<a class="headerlink" href="#database-postgresql-vs-mysql-vs-dynamodb-concurrent-seat-booking" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>PostgreSQL</th>
+<th>MySQL (InnoDB)</th>
+<th>DynamoDB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Row-level locking</strong></td>
+<td>Strong; <code>SELECT … FOR UPDATE</code>, MVCC</td>
+<td>Strong; similar InnoDB model</td>
+<td>No classic SQL row lock; use <strong>conditional writes</strong> (<code>ConditionExpression</code>)</td>
+</tr>
+<tr>
+<td><strong>Transactions</strong></td>
+<td>Rich SQL, <strong>SERIALIZABLE</strong> when needed</td>
+<td>Good; isolation nuances differ by version</td>
+<td><strong>TransactWriteItems</strong> (limited items/second per partition); hot partitions need careful key design</td>
+</tr>
+<tr>
+<td><strong>Constraints &amp; uniqueness</strong></td>
+<td><strong>UNIQUE</strong>, <code>CHECK</code>, deferrable constraints</td>
+<td>Similar</td>
+<td><strong>Conditional</strong> puts; uniqueness via GSIs with careful modeling</td>
+</tr>
+<tr>
+<td><strong>Concurrent “claim seat”</strong></td>
+<td>Single-row <code>UPDATE … WHERE status AND version</code> or <code>FOR UPDATE</code> in short txn</td>
+<td>Same idea</td>
+<td><strong>Optimistic</strong> single-item updates; avoid multi-seat transactions across many partitions unless batched</td>
+</tr>
+<tr>
+<td><strong>Ops &amp; ecosystem</strong></td>
+<td>Mature, JSON, extensions</td>
+<td>Ubiquitous hosting</td>
+<td>Serverless scale, <strong>partition</strong> design is make-or-break</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters for seats:</strong> Double-booking is prevented by <strong>atomic transitions</strong> on authoritative seat rows (or keys). SQL databases express <strong>multi-seat holds in one transaction</strong> naturally. DynamoDB can work at huge scale but you <strong>design for partition limits</strong> and often use <strong>application-level sagas</strong> or <strong>item collections</strong> with careful contention control.</p>
+<h4 id="queue-kafka-vs-rabbitmq-vs-sqs-order-processing">Queue: Kafka vs RabbitMQ vs SQS (order processing)<a class="headerlink" href="#queue-kafka-vs-rabbitmq-vs-sqs-order-processing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Apache Kafka</th>
+<th>RabbitMQ</th>
+<th>Amazon SQS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ordering</strong></td>
+<td>Per-partition order; replayable log</td>
+<td>Queues + optional ordering plugins</td>
+<td><strong>FIFO</strong> queues for order; standard is best-effort</td>
+</tr>
+<tr>
+<td><strong>Throughput &amp; replay</strong></td>
+<td>Excellent for <strong>event sourcing</strong>, replay consumers</td>
+<td>Strong for task queues; replay is not the core model</td>
+<td>Simple; DLQ + visibility timeout</td>
+</tr>
+<tr>
+<td><strong>Use case fit</strong></td>
+<td><strong>Outbox</strong>, <code>OrderConfirmed</code>, analytics, search sync</td>
+<td><strong>Job</strong> workflows, payment retry workers</td>
+<td><strong>Managed</strong> webhooks, fan-out with SNS</td>
+</tr>
+<tr>
+<td><strong>Ops</strong></td>
+<td>Cluster expertise</td>
+<td>Moderate</td>
+<td>Low ops on AWS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Narrative:</strong> Use a <strong>log (Kafka)</strong> when many services must <strong>consume the same facts</strong> idempotently (tickets issued, search index, fraud). Use <strong>SQS</strong> when you want <strong>minimal ops</strong> and at-least-once workers. Use <strong>RabbitMQ</strong> when you need <strong>complex routing</strong> and classic broker patterns.</p>
+<h4 id="cache-redis-for-seat-maps-and-availability">Cache: Redis for seat maps and availability<a class="headerlink" href="#cache-redis-for-seat-maps-and-availability" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>What to cache</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Static geometry</strong></td>
+<td>Section polygons, SVG paths, venue metadata</td>
+<td>Safe; long TTL + versioning</td>
+</tr>
+<tr>
+<td><strong>Availability snapshot</strong></td>
+<td>Section-level counts, “heat maps”</td>
+<td><strong>Stale reads</strong>; must label <strong>approximate</strong> and refresh on selection</td>
+</tr>
+<tr>
+<td><strong>Per-seat availability in Redis</strong></td>
+<td>Possible as <strong>accelerator</strong></td>
+<td><strong>Never</strong> treat as source of truth for sale; DB/Dynamo is authoritative</td>
+</tr>
+</tbody>
+</table>
+<p>Redis also backs <strong>rate limits</strong>, <strong>waiting-room tokens</strong>, and <strong>short-lived hold metadata</strong> (with TTL), which is orthogonal to “cache” but shares the same infrastructure.</p>
+<h4 id="payment-integration-synchronous-vs-asynchronous-stripe-vs-paypal-vs-custom">Payment integration: synchronous vs asynchronous; Stripe vs PayPal vs custom<a class="headerlink" href="#payment-integration-synchronous-vs-asynchronous-stripe-vs-paypal-vs-custom" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Synchronous API</strong> (create intent, return client secret)</td>
+<td>Simple mental model for interview</td>
+<td>Long user steps (3DS); <strong>don’t</strong> hold DB locks</td>
+</tr>
+<tr>
+<td><strong>Async (webhooks + polling)</strong></td>
+<td>Matches PSP reality; resilient</td>
+<td>Must handle duplicates, delays, <strong>reconciliation</strong></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Strengths</th>
+<th>Interview angle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stripe</strong></td>
+<td>APIs, idempotency, Connect for marketplaces</td>
+<td>Default <strong>north-star</strong> example for intents + webhooks</td>
+</tr>
+<tr>
+<td><strong>PayPal</strong></td>
+<td>Buyer familiarity; different flows</td>
+<td>Emphasize <strong>two-phase</strong> flows and region-specific behavior</td>
+</tr>
+<tr>
+<td><strong>Custom / bank</strong></td>
+<td>Control, cost</td>
+<td><strong>PCI</strong> scope, certification time, <strong>you</strong> own retries and audits</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why async wins in production:</strong> Card networks and mobile clients are unreliable; <strong>webhooks are at-least-once</strong>. Your system must be <strong>idempotent</strong> and <strong>reconcilable</strong> regardless of sync/async surface.</p>
+<h4 id="distributed-locking-redis-setnx-vs-database-for-update-vs-optimistic-locking">Distributed locking: Redis <code>SETNX</code> vs database <code>FOR UPDATE</code> vs optimistic locking<a class="headerlink" href="#distributed-locking-redis-setnx-vs-database-for-update-vs-optimistic-locking" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>When it shines</th>
+<th>Failure modes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Optimistic locking</strong> (<code>version</code> on seat row)</td>
+<td><strong>Short</strong> transactions; high contention on <em>different</em> seats</td>
+<td>Retries; <strong>user-visible</strong> “someone took it”</td>
+</tr>
+<tr>
+<td><strong><code>SELECT … FOR UPDATE</code></strong></td>
+<td><strong>Low</strong> contention per row; must keep txn <strong>milliseconds</strong></td>
+<td>Lock wait storms; <strong>deadlocks</strong> if ordering wrong</td>
+</tr>
+<tr>
+<td><strong>Redis <code>SET</code> with NX + expiry</strong></td>
+<td><strong>Coarse</strong> locks, <strong>rate limiting</strong>, <strong>waiting room</strong></td>
+<td>Not your <strong>authoritative</strong> inventory unless you build <strong>2PC</strong>-level discipline; <strong>clock/lease</strong> bugs</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>For <strong>authoritative seat sale</strong>, prefer <strong>database-enforced</strong> state transitions (constraints + versioning) on the OLTP store. Redis locks are great for <strong>admission</strong> and <strong>coordination</strong>, not as the <strong>only</strong> line of defense against oversell.</p>
+</div>
+<p><strong>Our choice (example stack):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OLTP</strong></td>
+<td><strong>PostgreSQL</strong> (or CockroachDB for global SQL)</td>
+<td>Rich transactions, constraints, and familiar locking for <strong>per-show</strong> shards</td>
+</tr>
+<tr>
+<td><strong>Queue / events</strong></td>
+<td><strong>Kafka</strong> (or <strong>SQS</strong> on AWS for simpler ops) for outbox and notifications</td>
+<td>Durable ordering and replay for downstream systems</td>
+</tr>
+<tr>
+<td><strong>Cache / coordination</strong></td>
+<td><strong>Redis</strong></td>
+<td>TTL holds metadata, rate limits, waiting room; <strong>optional</strong> cached availability with clear staleness rules</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td><strong>Stripe</strong>-style intents + <strong>async</strong> webhooks + <strong>reconciliation</strong></td>
+<td>Industry-default pattern; minimize PCI scope with hosted flows</td>
+</tr>
+<tr>
+<td><strong>Locking model</strong></td>
+<td><strong>Optimistic</strong> seat rows + <strong>short</strong> pessimistic spans where needed; <strong>no</strong> long DB locks</td>
+<td>Matches flash-sale contention and payment latency reality</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
+<p>CAP is a <strong>coarse lens</strong>: in practice you choose <strong>per operation</strong> and <strong>per data product</strong> (OLTP vs cache vs search), not one label for the whole company.</p>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>CAP tendency</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Seat reservation / sale</strong></td>
+<td><strong>CP</strong></td>
+<td><strong>Duplicate sale of one seat</strong> is worse than a slow response. Prefer <strong>correctness</strong> and <strong>failure</strong> (409, retry) over showing two users “success” for the same seat</td>
+</tr>
+<tr>
+<td><strong>Seat map display (cached CDN + API)</strong></td>
+<td><strong>AP</strong> (with stale bounds)</td>
+<td>Browsing can tolerate <strong>seconds</strong> of staleness if the <strong>checkout path re-validates</strong>. Availability and low latency beat perfect global freshness</td>
+</tr>
+<tr>
+<td><strong>Payment processing</strong></td>
+<td><strong>CP</strong> with <strong>external PSP</strong></td>
+<td>Money movement must be <strong>reconciled</strong>; duplicates are handled by <strong>idempotency</strong> and <strong>ledger</strong> semantics, not by “eventual maybe”</td>
+</tr>
+<tr>
+<td><strong>Waitlist / queue position</strong></td>
+<td><strong>AP</strong>-friendly</td>
+<td><strong>Fair ordering</strong> can be approximate; showing position is <strong>best-effort</strong>; <strong>admission tokens</strong> matter more than millisecond-accurate ranks</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>“CP vs AP” is shorthand. Interviewers often reward naming <strong>linearizability</strong> for a single seat record, <strong>serializable</strong> transactions for multi-seat holds, and <strong>bounded staleness</strong> for read replicas and caches.</p>
+</div>
+<pre class="mermaid"><code>flowchart TB
+  subgraph CP["CP-style paths (correctness first)"]
+    R[Seat hold / confirm in OLTP]
+    P[Payment intent + capture + ledger]
+  end
+
+  subgraph AP["AP-style paths (available + soft freshness)"]
+    M[Seat map + CDN]
+    C[Cached availability summary]
+    W[Waiting room position UX]
+  end
+
+  U[User] --&gt; M
+  U --&gt; C
+  U --&gt; W
+  U --&gt; R
+  R --&gt; P
+
+  M -.-&gt;|stale OK| C
+  R -.-&gt;|invalidates or version-checks| C</code></pre>
+<p><strong>How to say it in one breath:</strong> We are <strong>CP on inventory and money</strong>, <strong>AP on browse and queue UX</strong>, and we <strong>never trust the cache</strong> for the final seat claim.</p>
+<hr />
+<h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
+<p>SLAs are <strong>contracts</strong> (often with money); <strong>SLOs</strong> are internal targets; <strong>SLIs</strong> are what you measure. Below are <strong>candidate</strong> SLOs for a primary ticketing platform—tune numbers to your “billion-dollar on-sale” story.</p>
+<h4 id="slis-and-slos-examples">SLIs and SLOs (examples)<a class="headerlink" href="#slis-and-slos-examples" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>SLI</th>
+<th>SLO target (example)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Booking confirmation</strong></td>
+<td><code>POST /orders</code> + <code>confirm</code> <strong>success latency</strong> (server-side)</td>
+<td><strong>P95 &lt; 800 ms</strong>, <strong>P99 &lt; 2 s</strong> excluding 3DS user time</td>
+<td>Measure at orchestrator; separate <strong>user think time</strong></td>
+</tr>
+<tr>
+<td><strong>Seat availability accuracy</strong></td>
+<td>Fraction of holds that fail <strong>after</strong> client saw seat “available”</td>
+<td><strong>&lt; 0.1%</strong> false-positive <strong>selection</strong> per session</td>
+<td>Drives UX copy: “availability not guaranteed until held”</td>
+</tr>
+<tr>
+<td><strong>Payment success rate</strong></td>
+<td>Captures / (captures + hard declines) for valid intents</td>
+<td><strong>&gt; 98%</strong> for healthy traffic (excl. user error)</td>
+<td>Track PSP outages separately</td>
+</tr>
+<tr>
+<td><strong>On-sale availability</strong></td>
+<td><strong>Successful</strong> hold attempts / attempted holds</td>
+<td><strong>&gt; 95%</strong> during declared incident-free windows</td>
+<td>Distinct from <strong>seat</strong> sell-through</td>
+</tr>
+<tr>
+<td><strong>System availability (browse)</strong></td>
+<td>Successful <code>GET</code> requests for catalog and map divided by all attempts</td>
+<td><strong>99.9%</strong> monthly</td>
+<td>Exclude client errors; define <strong>dependency</strong> SLOs for PSP</td>
+</tr>
+</tbody>
+</table>
+<h4 id="error-budget-policy">Error budget policy<a class="headerlink" href="#error-budget-policy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget consumption</strong></td>
+<td>If <strong>booking confirmation</strong> error budget burns fast in a release window, <strong>freeze</strong> feature work and prioritize reliability</td>
+</tr>
+<tr>
+<td><strong>Dependency burn</strong></td>
+<td>If PSP SLI drops, <strong>page</strong> payments on-call; <strong>scale</strong> webhook workers; <strong>do not</strong> “fix” by caching payments</td>
+</tr>
+<tr>
+<td><strong>On-sale events</strong></td>
+<td><strong>Stricter</strong> monitoring; <strong>pre-allocated</strong> capacity; <strong>feature flags</strong> to shed non-critical work (recommendations, heavy analytics)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Tie <strong>SLOs</strong> to product language: “held” means <strong>server guarantee</strong>; “green seat” on map is <strong>indicative</strong>. That alignment reduces false expectations and support load.</p>
+</div>
+<hr />
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">&para;</a></h3>
+<p>Schemas below are <strong>illustrative</strong>—interviews care that you separate <strong>catalog</strong>, <strong>inventory</strong>, <strong>reservation</strong>, and <strong>payment</strong>, with clear <strong>state</strong> and <strong>idempotency</strong>.</p>
+<h4 id="events"><code>events</code><a class="headerlink" href="#events" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code> / <code>BIGSERIAL</code></td>
+<td>Primary key</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>TEXT</code></td>
+<td>Display name</td>
+</tr>
+<tr>
+<td><code>venue_id</code></td>
+<td><code>UUID</code></td>
+<td>FK to <code>venues</code> (not shown)</td>
+</tr>
+<tr>
+<td><code>starts_at</code>, <code>ends_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Event window</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td><code>INT</code></td>
+<td><strong>Venue</strong> or <strong>sellable</strong> cap—define one meaning and stick to it</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM</code></td>
+<td>e.g. <code>draft</code>, <code>published</code>, <code>cancelled</code></td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>updated_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td>Audit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Show times:</strong> Often <strong><code>shows</code></strong> (or <code>event_occurrences</code>) with <code>event_id</code>, <code>starts_at</code>, <code>on_sale_at</code>—one event, many performances.</p>
+<h4 id="seats-inventory"><code>seats</code> / inventory<a class="headerlink" href="#seats-inventory" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>BIGSERIAL</code></td>
+<td>Surrogate PK optional</td>
+</tr>
+<tr>
+<td><code>show_id</code></td>
+<td><code>UUID</code></td>
+<td><strong>Shard key</strong> candidate</td>
+</tr>
+<tr>
+<td><code>section</code></td>
+<td><code>TEXT</code></td>
+<td>e.g. <code>A</code></td>
+</tr>
+<tr>
+<td><code>row_id</code></td>
+<td><code>TEXT</code></td>
+<td>e.g. <code>12</code></td>
+</tr>
+<tr>
+<td><code>seat</code></td>
+<td><code>TEXT</code></td>
+<td>e.g. <code>4</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM</code></td>
+<td><code>available</code>, <code>held</code>, <code>sold</code>, <code>blocked</code></td>
+</tr>
+<tr>
+<td><code>price_cents</code></td>
+<td><code>BIGINT</code></td>
+<td>Or FK to <code>price_tiers</code></td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>INT</code></td>
+<td><strong>Optimistic locking</strong></td>
+</tr>
+<tr>
+<td><code>hold_id</code></td>
+<td><code>UUID</code> NULL</td>
+<td>Optional FK to active hold</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Constraints (examples):</strong></p>
+<ul>
+<li><code>UNIQUE (show_id, section, row_id, seat)</code> — one logical seat per show.</li>
+<li>Check allowed <strong><code>status</code></strong> transitions in app or <strong>FSM</strong> + constraints.</li>
+</ul>
+<h4 id="reservations-holds-and-bookings"><code>reservations</code> / <code>holds</code> and <code>bookings</code><a class="headerlink" href="#reservations-holds-and-bookings" title="Permanent link">&para;</a></h4>
+<p><strong><code>holds</code></strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code></td>
+<td>PK</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td><code>UUID</code></td>
+<td>Owner</td>
+</tr>
+<tr>
+<td><code>show_id</code></td>
+<td><code>UUID</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>seat_ids</code></td>
+<td><code>UUID[]</code> or child table <code>hold_seats</code></td>
+<td>Normalizing to <strong><code>hold_seats(show_id, seat_id)</code></strong> is often clearer</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM</code></td>
+<td><code>active</code>, <code>released</code>, <code>converted</code></td>
+</tr>
+<tr>
+<td><code>expires_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td><strong>Server authority</strong></td>
+</tr>
+<tr>
+<td><code>idempotency_key</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td>Client retry safety</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>orders</code> / <code>bookings</code></strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code></td>
+<td>Order id</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td><code>UUID</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>show_id</code></td>
+<td><code>UUID</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>hold_id</code></td>
+<td><code>UUID</code> UNIQUE NULL</td>
+<td>If created from hold</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM</code></td>
+<td><code>pending_payment</code>, <code>confirmed</code>, <code>cancelled</code>, <code>refunded</code></td>
+</tr>
+<tr>
+<td><code>total_cents</code></td>
+<td><code>BIGINT</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>CHAR(3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>idempotency_key</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td><strong>Order</strong> creation idempotency</td>
+</tr>
+<tr>
+<td><code>payment_id</code></td>
+<td><code>UUID</code> NULL</td>
+<td>FK to <code>payments</code></td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>updated_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Child table <strong><code>order_items</code></strong> (or <code>booking_lines</code>): <code>order_id</code>, <code>show_id</code>, <code>seat_id</code>, <code>price_cents</code>.</p>
+<h4 id="payments"><code>payments</code><a class="headerlink" href="#payments" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code></td>
+<td>PK</td>
+</tr>
+<tr>
+<td><code>order_id</code></td>
+<td><code>UUID</code></td>
+<td>FK</td>
+</tr>
+<tr>
+<td><code>provider</code></td>
+<td><code>TEXT</code></td>
+<td><code>stripe</code>, etc.</td>
+</tr>
+<tr>
+<td><code>provider_intent_id</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td>PSP reference</td>
+</tr>
+<tr>
+<td><code>amount_cents</code></td>
+<td><code>BIGINT</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>CHAR(3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ENUM</code></td>
+<td><code>requires_action</code>, <code>processing</code>, <code>succeeded</code>, <code>failed</code></td>
+</tr>
+<tr>
+<td><code>idempotency_key</code></td>
+<td><code>TEXT</code> UNIQUE</td>
+<td>Align with PSP</td>
+</tr>
+<tr>
+<td><code>raw_event_id</code></td>
+<td><code>TEXT</code> NULL</td>
+<td>Last processed webhook id for dedup</td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>updated_at</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Normalize</strong> “one row per seat” vs “JSON array of seats” based on reporting needs; <strong>query patterns</strong> and <strong>locking</strong> are easier with <strong><code>hold_seats</code></strong> and <strong><code>order_items</code></strong> as first-class rows.</p>
+</div>
+<hr />
+<h2 id="step-2-back-of-the-envelope-estimation">Step 2: Back-of-the-Envelope Estimation<a class="headerlink" href="#step-2-back-of-the-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="assumptions-illustrative-national-service">Assumptions (illustrative national service)<a class="headerlink" href="#assumptions-illustrative-national-service" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- Monthly active users (browsing): 30 million
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>- Major on-sale for a stadium: 50,000 seats
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>- Purchase window: seats sell in 10–30 minutes (flash) or hours (slow)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- Average hold time before checkout success or abandon: 8 minutes
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- Seat map reads during flash: 10 per active user per minute (polling + retries)
+</span></code></pre></div>
+<h3 id="peak-read-qps-seat-map-availability">Peak Read QPS (seat map + availability)<a class="headerlink" href="#peak-read-qps-seat-map-availability" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>If 200,000 concurrent users hammer a single on-sale:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Seat map reads ≈ 200,000 × (10 / 60) ≈ 33,000 RPS (upper bound before caching)
+</span></code></pre></div>
+<p>CDN and edge caching of <strong>static map geometry</strong> plus <strong>server-driven availability chunks</strong> reduce origin load.</p>
+<h3 id="write-qps-holds-and-releases">Write QPS (holds and releases)<a class="headerlink" href="#write-qps-holds-and-releases" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Not every user obtains a hold; assume 10% get a concurrent hold slot: 20,000 holds.
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>If each user retries holds 3 times over 5 minutes: extra writes.
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Peak hold attempts might reach 2,000–10,000 TPS depending on product rules and queue depth.
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Order-of-magnitude numbers justify <strong>sharding</strong> by <code>show_id</code>, <strong>queue-based admission</strong>, and <strong>avoiding a single global row</strong> for inventory.</p>
+</div>
+<h3 id="storage-orders-of-magnitude">Storage (orders of magnitude)<a class="headerlink" href="#storage-orders-of-magnitude" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Illustrative volume</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Events / shows</td>
+<td>Millions of rows</td>
+<td>Mostly cold</td>
+</tr>
+<tr>
+<td>Seat inventory</td>
+<td>Billions of seat-state rows over time</td>
+<td>Partition by show</td>
+</tr>
+<tr>
+<td>Orders</td>
+<td>Millions per month</td>
+<td>Immutable facts + refunds</td>
+</tr>
+<tr>
+<td>Payment intents</td>
+<td>Same order of magnitude as orders</td>
+<td>Idempotent by key</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+  subgraph Clients["Clients"]
+    W[Web]
+    M[Mobile apps]
+  end
+
+  subgraph Edge["Edge"]
+    CDN[CDN / static map assets]
+    GW[API Gateway + WAF + Auth]
+    WR[Waiting room service]
+  end
+
+  subgraph Core["Core services"]
+    CS[Catalog service]
+    IS[Inventory service]
+    HS[Hold service]
+    OS[Order service]
+    PS[Payment orchestrator]
+    NS[Notification service]
+  end
+
+  subgraph Data["Data stores"]
+    PG[(OLTP: Postgres / Cockroach)]
+    RD[(Redis: holds, rate limits, queue)]
+    ES[(Search index: events)]
+    OBJ[(Object storage: tickets/PDF)]
+    KQ[[Kafka: events]]
+  end
+
+  W --&gt; CDN
+  W --&gt; GW
+  M --&gt; GW
+  GW --&gt; WR
+  GW --&gt; CS
+  GW --&gt; IS
+  GW --&gt; HS
+  GW --&gt; OS
+  OS --&gt; PS
+  PS --&gt; KQ
+  HS --&gt; RD
+  HS --&gt; PG
+  IS --&gt; PG
+  OS --&gt; PG
+  NS --&gt; KQ</code></pre>
+<p><strong>Responsibilities</strong></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Waiting room</strong></td>
+<td>Token bucket admission; position updates; redirect to checkout</td>
+</tr>
+<tr>
+<td><strong>Catalog</strong></td>
+<td>Event metadata; read-heavy; cache and CDN</td>
+</tr>
+<tr>
+<td><strong>Inventory</strong></td>
+<td>Authoritative seat state per show; transactional updates</td>
+</tr>
+<tr>
+<td><strong>Hold</strong></td>
+<td>Short-lived reservation; ties to user/session; drives expiry workers</td>
+</tr>
+<tr>
+<td><strong>Order + Payment</strong></td>
+<td>Idempotent order creation; PSP integration; compensating releases</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Outbox pattern for email, analytics, search index updates</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sharding key is often <strong><code>show_id</code></strong> (or <code>event_id</code> + <code>show_time_id</code>). Cross-show transactions are rare in the hot path.</p>
+</div>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-seat-inventory-and-locking">4.1 Seat Inventory and Locking<a class="headerlink" href="#41-seat-inventory-and-locking" title="Permanent link">&para;</a></h3>
+<p><strong>Models</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Per-seat row</strong></td>
+<td>Fine-grained locking; clear semantics</td>
+<td>Many rows; hot partitions</td>
+</tr>
+<tr>
+<td><strong>Block aggregation</strong></td>
+<td>Fewer rows for GA</td>
+<td>Harder to express exact seats without expansion</td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong></td>
+<td>GA as blocks; reserved seating as rows</td>
+<td>More application logic</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pessimistic locking</strong></p>
+<ul>
+<li><code>SELECT … FOR UPDATE</code> on seat rows inside a transaction while creating a hold.</li>
+<li>Good when contention per row is moderate and transactions are short.</li>
+<li>Risk: long transactions during PSP calls—<strong>do not</strong> hold DB locks across payment.</li>
+</ul>
+<p><strong>Optimistic locking</strong></p>
+<ul>
+<li>Each seat row carries <code>version</code> (integer) or <code>etag</code>.</li>
+<li><code>UPDATE seats SET status='held', version=version+1 WHERE id=? AND version=? AND status='available'</code></li>
+<li>If count of updated rows <code>&lt; requested</code>, abort or retry with backoff.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Mixing <strong>long</strong> user think time with <strong>pessimistic</strong> locks is a classic anti-pattern. Use <strong>short</strong> DB transactions to flip state; use <strong>application-level hold records</strong> with TTL for the user-facing timer.</p>
+</div>
+<h3 id="42-handling-high-concurrency-ticket-sales">4.2 Handling High-Concurrency Ticket Sales<a class="headerlink" href="#42-handling-high-concurrency-ticket-sales" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Queue / waiting room</strong></td>
+<td>Smooth admission; protect origin</td>
+</tr>
+<tr>
+<td><strong>Shard by show</strong></td>
+<td>Isolate hot shows</td>
+</tr>
+<tr>
+<td><strong>Cache static map</strong></td>
+<td>Reduce repeated geometry work</td>
+</tr>
+<tr>
+<td><strong>Coalesce availability</strong></td>
+<td>Precompute section-level counts; refine on selection</td>
+</tr>
+<tr>
+<td><strong>Rate limiting</strong></td>
+<td>Per IP, per account, per device fingerprint (defense in depth)</td>
+</tr>
+<tr>
+<td><strong>Pre-auth capacity</strong></td>
+<td>Pre-warm connections and pools for known on-sales</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-virtual-queue-and-waiting-room">4.3 Virtual Queue and Waiting Room<a class="headerlink" href="#43-virtual-queue-and-waiting-room" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong></p>
+<ul>
+<li>Bound concurrent users in the checkout path</li>
+<li>Provide <strong>fair-ish</strong> ordering without exposing the system to full flash load</li>
+<li>Degrade gracefully: show <strong>position</strong> and <strong>ETA</strong>, not raw 500s</li>
+</ul>
+<pre class="mermaid"><code>flowchart LR
+  A[User hits on-sale] --&gt; B{Admission token valid?}
+  B --&gt;|No| C[Enqueue waiting room]
+  C --&gt; D[Poll position]
+  D --&gt; E{Admitted?}
+  E --&gt;|Yes| F[Shop checkout with token]
+  E --&gt;|No| D
+  B --&gt;|Yes| F</code></pre>
+<p><strong>Implementation sketch</strong></p>
+<ul>
+<li>Issue signed, short-lived <strong>JWT</strong> or opaque server ticket with <code>show_id</code>, <code>queue_id</code>, <code>exp</code>.</li>
+<li>Redis <strong>sorted set</strong> or <strong>stream</strong> for queue ordering; periodic promotion into <code>admitted</code> set.</li>
+<li><strong>Token bucket</strong> at edge: N new entries per second into the active shopping pool.</li>
+</ul>
+<h3 id="44-payment-and-order-processing">4.4 Payment and Order Processing<a class="headerlink" href="#44-payment-and-order-processing" title="Permanent link">&para;</a></h3>
+<p><strong>Happy path</strong></p>
+<ol>
+<li>User admitted; creates <strong>hold</strong> with TTL.</li>
+<li>Client calls <code>POST /orders</code> with <code>hold_id</code> and <code>Idempotency-Key</code>.</li>
+<li>Payment orchestrator creates <strong>PaymentIntent</strong> with provider.</li>
+<li>On provider webhook or client confirmation, <strong>capture</strong> funds.</li>
+<li>Mark order <strong>confirmed</strong>; emit <code>OrderConfirmed</code> event; issue tickets.</li>
+</ol>
+<p><strong>Failure and timeout</strong></p>
+<ul>
+<li>If hold expires before capture: <strong>release seats</strong> via state transition.</li>
+<li>If payment fails: same release path; user sees actionable error.</li>
+<li>If webhook delayed: reconciliation job queries PSP by <code>idempotency_key</code>.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Store <strong>payment state</strong> and <strong>inventory state</strong> transitions in <strong>one OLTP</strong> transaction only when your PSP supports synchronous steps or you use <strong>saga</strong> with compensations. Many designs <strong>confirm order</strong> only after async capture; compensate with <strong>release</strong> if capture never succeeds.</p>
+</div>
+<h3 id="45-preventing-double-booking">4.5 Preventing Double Booking<a class="headerlink" href="#45-preventing-double-booking" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Database</strong></td>
+<td>Unique constraint on <code>(show_id, seat_id, state)</code> transitions; version checks</td>
+</tr>
+<tr>
+<td><strong>Application</strong></td>
+<td>Single active hold per seat; state machine rejects illegal transitions</td>
+</tr>
+<tr>
+<td><strong>Idempotency</strong></td>
+<td>Same <code>Idempotency-Key</code> returns same order for retries</td>
+</tr>
+<tr>
+<td><strong>Reconciliation</strong></td>
+<td>Nightly job compares sold seats vs payment ledger</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Oversell invariant</strong></p>
+<blockquote>
+<p>For any seat <code>s</code> at show <code>sh</code>, at most one <strong>confirmed</strong> order owns <code>s</code> at any time.</p>
+</blockquote>
+<h3 id="46-seat-map-and-selection">4.6 Seat Map and Selection<a class="headerlink" href="#46-seat-map-and-selection" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Vector or tiled map</strong> for static geometry; CDN cached.</li>
+<li><strong>Availability overlay</strong> from API: coarse chunks (e.g., section-level) on first paint; fine-grained fetch on zoom or section click.</li>
+<li><strong>Optimistic UI</strong> can show seats briefly; server must <strong>authoritatively</strong> confirm hold.</li>
+</ul>
+<h3 id="47-notification-and-confirmation">4.7 Notification and Confirmation<a class="headerlink" href="#47-notification-and-confirmation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>On <code>OrderConfirmed</code>, enqueue email/SMS with ticket links.</li>
+<li>Mobile wallet passes generated asynchronously; link order to <strong>immutable</strong> ticket IDs.</li>
+<li>Retry with exponential backoff; DLQ for manual replay.</li>
+</ul>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Database</strong></td>
+<td>Partition by show; avoid cross-shard transactions on hot path</td>
+</tr>
+<tr>
+<td><strong>Caching</strong></td>
+<td>Cache catalog; <strong>never</strong> treat cache as authoritative for seat sale</td>
+</tr>
+<tr>
+<td><strong>Queues</strong></td>
+<td>Kafka for outbox; consumer idempotency</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>Traces from gateway through hold to payment; SLO on confirm latency</td>
+</tr>
+<tr>
+<td><strong>Chaos / load tests</strong></td>
+<td>Replay on-sale patterns; verify queue sheds load without dropping invariants</td>
+</tr>
+<tr>
+<td><strong>Compliance</strong></td>
+<td>PCI scope minimization (use hosted fields / tokenization)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Failure modes</strong></p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spikes of 409 on hold</td>
+<td>Contention / oversubscribed seats</td>
+<td>Client backoff; optional queue</td>
+</tr>
+<tr>
+<td>DB hot shard</td>
+<td>Single mega-show</td>
+<td>Shard movement; read replicas for non-authoritative paths</td>
+</tr>
+<tr>
+<td>Duplicate charges</td>
+<td>Retries without idempotency</td>
+<td>Idempotency keys end-to-end</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<h3 id="interview-checklist">Interview Checklist<a class="headerlink" href="#interview-checklist" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Clarify <strong>inventory model</strong>: reserved seating vs GA vs mixed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Separate <strong>browse</strong> vs <strong>purchase</strong> paths and consistency needs</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> State <strong>oversell prevention</strong>: transactions, versioning, unique constraints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Explain <strong>hold TTL</strong> and <strong>release</strong> on payment failure or timeout</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Cover <strong>waiting room</strong>: admission control, fairness, client polling</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mention <strong>idempotency</strong> for holds, orders, and payments</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Discuss <strong>sharding</strong> by show and <strong>async</strong> notifications</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Acknowledge <strong>bots</strong> and abuse only at a high level unless prompted</li>
+</ul>
+<h3 id="sample-interview-dialogue">Sample Interview Dialogue<a class="headerlink" href="#sample-interview-dialogue" title="Permanent link">&para;</a></h3>
+<p><strong>Interviewer:</strong> "Design Ticketmaster."</p>
+<p><strong>You:</strong> "I'll assume primary ticketing: users pick seats from a map, we hold seats briefly while they pay, and we must never oversell. I'll start with requirements, then API, estimate load for a stadium on-sale, then a high-level architecture with inventory, holds, payments, and a waiting room for flash traffic."</p>
+<p><strong>Interviewer:</strong> "How do you prevent double booking?"</p>
+<p><strong>You:</strong> "At the core, each seat row for a show has a state machine: available, held, sold. I use short DB transactions with optimistic locking—increment a version when I transition from available to held—so concurrent purchasers can't both succeed. I also enforce a unique constraint on active holds per seat if I model holds as rows. Holds expire quickly; payment happens outside the DB lock, and I release on timeout."</p>
+<p><strong>Interviewer:</strong> "What if a million users hit the site?"</p>
+<p><strong>You:</strong> "I can't let them all hit the inventory service. I add a virtual waiting room that admits tokens at a sustainable rate, backed by Redis or similar. Static seat map assets come from CDN. Inventory is sharded by show so one hot concert doesn't take down unrelated events."</p>
+<p><strong>Interviewer:</strong> "How do you handle payment retries?"</p>
+<p><strong>You:</strong> "Every mutating call carries an idempotency key. The order service stores the key and returns the same response on retries. Payment webhooks are deduplicated by provider event ID. If I'm unsure, a reconciliation job compares our orders with the PSP."</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Takeaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Inventory</strong></td>
+<td>Per-seat state with <strong>short transactions</strong>; optimistic or pessimistic locking inside tight scopes</td>
+</tr>
+<tr>
+<td><strong>Flash crowds</strong></td>
+<td><strong>Virtual waiting room</strong>, shard by show, CDN for static map data</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td><strong>Idempotency</strong>, timeouts, <strong>release holds</strong> on failure, reconciliation</td>
+</tr>
+<tr>
+<td><strong>Correctness</strong></td>
+<td><strong>No oversell</strong>: DB constraints + versioning + audits</td>
+</tr>
+<tr>
+<td><strong>UX</strong></td>
+<td>Honest queue position; clear hold expiry; resilient retries</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="appendix-diagrams-and-code">Appendix: Diagrams and Code<a class="headerlink" href="#appendix-diagrams-and-code" title="Permanent link">&para;</a></h2>
+<h3 id="booking-sequence-hold-pay-confirm">Booking sequence (hold, pay, confirm)<a class="headerlink" href="#booking-sequence-hold-pay-confirm" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+  participant U as User
+  participant G as API Gateway
+  participant H as Hold service
+  participant I as Inventory DB
+  participant O as Order service
+  participant P as Payment provider
+
+  U-&gt;&gt;G: POST /holds (seat_ids, idempotency-key)
+  G-&gt;&gt;H: create hold
+  H-&gt;&gt;I: UPDATE seats (optimistic lock)
+  I--&gt;&gt;H: ok / conflict
+  H--&gt;&gt;G: 201 hold + expiry
+  G--&gt;&gt;U: hold token + version
+
+  U-&gt;&gt;G: POST /orders (hold_id, idempotency-key)
+  G-&gt;&gt;O: create order
+  O-&gt;&gt;P: authorize / create intent
+  P--&gt;&gt;O: intent_id
+  O--&gt;&gt;G: order pending
+  G--&gt;&gt;U: redirect / 3DS if needed
+
+  P--&gt;&gt;O: webhook captured
+  O-&gt;&gt;I: mark seats sold (transaction)
+  O--&gt;&gt;G: order confirmed
+  G--&gt;&gt;U: tickets issued async</code></pre>
+<h3 id="seat-locking-state-machine">Seat locking state machine<a class="headerlink" href="#seat-locking-state-machine" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>stateDiagram-v2
+  [*] --&gt; available
+  available --&gt; held: hold (TTL starts)
+  held --&gt; sold: payment success
+  held --&gt; available: expiry or release
+  sold --&gt; refunded: refund flow (out of scope detail)
+  refunded --&gt; available: resale rules (optional)</code></pre>
+<h3 id="virtual-queue-promotion">Virtual queue (promotion)<a class="headerlink" href="#virtual-queue-promotion" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+  subgraph Ingress["Ingress"]
+    R[Requests]
+    T[Token bucket admit/sec]
+  end
+  subgraph Store["Redis"]
+    Q[(sorted set: queue)]
+    A[(set: admitted session ids)]
+  end
+  R --&gt; T
+  T --&gt;|allowed| Q
+  Q --&gt;|promotion job| A
+  A --&gt;|signed cookie| Shop[Checkout tier]</code></pre>
+<h3 id="java-optimistic-seat-reservation-jdbc-style">Java: optimistic seat reservation (JDBC-style)<a class="headerlink" href="#java-optimistic-seat-reservation-jdbc-style" title="Permanent link">&para;</a></h3>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SeatReservation</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kd">record</span> <span class="nc">Result</span><span class="p">(</span><span class="kt">boolean</span><span class="w"> </span><span class="n">success</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">newVersion</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">Result</span><span class="w"> </span><span class="nf">tryHold</span><span class="p">(</span><span class="n">Connection</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">showId</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">seatId</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">expectedVersion</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="kd">throws</span><span class="w"> </span><span class="n">SQLException</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">sql</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="s">&quot;UPDATE seats SET status = &#39;HELD&#39;, version = version + 1, updated_at = now() &quot;</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">            </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;WHERE show_id = ? AND seat_id = ? AND status = &#39;AVAILABLE&#39; AND version = ?&quot;</span><span class="p">;</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">PreparedStatement</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="na">prepareStatement</span><span class="p">(</span><span class="n">sql</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="n">ps</span><span class="p">.</span><span class="na">setLong</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">showId</span><span class="p">);</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="n">ps</span><span class="p">.</span><span class="na">setString</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">seatId</span><span class="p">);</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="n">ps</span><span class="p">.</span><span class="na">setInt</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">expectedVersion</span><span class="p">);</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">updated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ps</span><span class="p">.</span><span class="na">executeUpdate</span><span class="p">();</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">updated</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Result</span><span class="p">(</span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="n">expectedVersion</span><span class="p">);</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">      </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">PreparedStatement</span><span class="w"> </span><span class="n">sel</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">          </span><span class="n">c</span><span class="p">.</span><span class="na">prepareStatement</span><span class="p">(</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">              </span><span class="s">&quot;SELECT version FROM seats WHERE show_id = ? AND seat_id = ?&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">        </span><span class="n">sel</span><span class="p">.</span><span class="na">setLong</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">showId</span><span class="p">);</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">        </span><span class="n">sel</span><span class="p">.</span><span class="na">setString</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">seatId</span><span class="p">);</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ResultSet</span><span class="w"> </span><span class="n">rs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sel</span><span class="p">.</span><span class="na">executeQuery</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">          </span><span class="n">rs</span><span class="p">.</span><span class="na">next</span><span class="p">();</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">          </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Result</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">rs</span><span class="p">.</span><span class="na">getInt</span><span class="p">(</span><span class="s">&quot;version&quot;</span><span class="p">));</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="python-queue-position-and-admission-redis">Python: queue position and admission (Redis)<a class="headerlink" href="#python-queue-position-and-admission-redis" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">r</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">decode_responses</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">enqueue</span><span class="p">(</span><span class="n">show_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;queue:</span><span class="si">{</span><span class="n">show_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">r</span><span class="o">.</span><span class="n">zadd</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">{</span><span class="n">session_id</span><span class="p">:</span> <span class="n">now</span><span class="p">})</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">rank</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">zrank</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">rank</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">queue_position</span><span class="p">(</span><span class="n">show_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;queue:</span><span class="si">{</span><span class="n">show_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">rank</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">zrank</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">rank</span><span class="p">)</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="k">def</span><span class="w"> </span><span class="nf">promote_and_admit</span><span class="p">(</span><span class="n">show_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ttl_sec</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;queue:</span><span class="si">{</span><span class="n">show_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="n">admit_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;admitted:</span><span class="si">{</span><span class="n">show_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="n">ids</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">zrange</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>    <span class="n">pipe</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">pipeline</span><span class="p">()</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>    <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>        <span class="n">pipe</span><span class="o">.</span><span class="n">zrem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">sid</span><span class="p">)</span>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>        <span class="n">pipe</span><span class="o">.</span><span class="n">setex</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">admit_key</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">sid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ttl_sec</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>    <span class="n">pipe</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Production systems add <strong>signed tokens</strong>, <strong>fairness</strong> (slow bots), <strong>reaping</strong> expired sessions, and <strong>multi-region</strong> concerns. This snippet shows <strong>ordering</strong> and <strong>batch promotion</strong> only.</p>
+</div>
+<h3 id="go-booking-handler-with-idempotency-and-hold-expiry">Go: booking handler with idempotency and hold expiry<a class="headerlink" href="#go-booking-handler-with-idempotency-and-hold-expiry" title="Permanent link">&para;</a></h3>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">booking</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="s">&quot;context&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="s">&quot;database/sql&quot;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="s">&quot;errors&quot;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="s">&quot;time&quot;</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="p">)</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Store</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nx">TryCreateOrder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">idempotencyKey</span><span class="p">,</span><span class="w"> </span><span class="nx">holdID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="p">}</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="kd">type</span><span class="w"> </span><span class="nx">Handler</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="nx">DB</span><span class="w">    </span><span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">DB</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="nx">Store</span><span class="w"> </span><span class="nx">Store</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="p">}</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Handler</span><span class="p">)</span><span class="w"> </span><span class="nx">CreateOrder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">idempotencyKey</span><span class="p">,</span><span class="w"> </span><span class="nx">holdID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">idempotencyKey</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;missing idempotency key&quot;</span><span class="p">)</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">    </span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">h</span><span class="p">.</span><span class="nx">Store</span><span class="p">.</span><span class="nx">TryCreateOrder</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">idempotencyKey</span><span class="p">,</span><span class="w"> </span><span class="nx">holdID</span><span class="p">)</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">existing</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">    </span><span class="nx">tx</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">h</span><span class="p">.</span><span class="nx">DB</span><span class="p">.</span><span class="nx">BeginTx</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">sql</span><span class="p">.</span><span class="nx">TxOptions</span><span class="p">{</span><span class="nx">Isolation</span><span class="p">:</span><span class="w"> </span><span class="nx">sql</span><span class="p">.</span><span class="nx">LevelReadCommitted</span><span class="p">})</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-35"><a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">tx</span><span class="p">.</span><span class="nx">Rollback</span><span class="p">()</span>
+</span><span id="__span-6-36"><a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>
+</span><span id="__span-6-37"><a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">exp</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span><span id="__span-6-38"><a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">status</span><span class="w"> </span><span class="kt">string</span>
+</span><span id="__span-6-39"><a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="w">    </span><span class="nx">q</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s">`SELECT status, expires_at FROM holds WHERE hold_id = $1 FOR UPDATE`</span>
+</span><span id="__span-6-40"><a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tx</span><span class="p">.</span><span class="nx">QueryRowContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">q</span><span class="p">,</span><span class="w"> </span><span class="nx">holdID</span><span class="p">).</span><span class="nx">Scan</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">exp</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-41"><a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-42"><a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-43"><a id="__codelineno-6-43" name="__codelineno-6-43" href="#__codelineno-6-43"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;ACTIVE&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">().</span><span class="nx">After</span><span class="p">(</span><span class="nx">exp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-44"><a id="__codelineno-6-44" name="__codelineno-6-44" href="#__codelineno-6-44"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;hold inactive or expired&quot;</span><span class="p">)</span>
+</span><span id="__span-6-45"><a id="__codelineno-6-45" name="__codelineno-6-45" href="#__codelineno-6-45"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-46"><a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a>
+</span><span id="__span-6-47"><a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a><span class="w">    </span><span class="nx">orderID</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">newOrderID</span><span class="p">()</span>
+</span><span id="__span-6-48"><a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">tx</span><span class="p">.</span><span class="nx">ExecContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span>
+</span><span id="__span-6-49"><a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a><span class="w">        </span><span class="s">`INSERT INTO orders (order_id, hold_id, idempotency_key, state, created_at)</span>
+</span><span id="__span-6-50"><a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a><span class="s">         VALUES ($1, $2, $3, &#39;PENDING_PAYMENT&#39;, now())`</span><span class="p">,</span>
+</span><span id="__span-6-51"><a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a><span class="w">        </span><span class="nx">orderID</span><span class="p">,</span><span class="w"> </span><span class="nx">holdID</span><span class="p">,</span><span class="w"> </span><span class="nx">idempotencyKey</span><span class="p">,</span>
+</span><span id="__span-6-52"><a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-6-53"><a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-54"><a id="__codelineno-6-54" name="__codelineno-6-54" href="#__codelineno-6-54"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-55"><a id="__codelineno-6-55" name="__codelineno-6-55" href="#__codelineno-6-55"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-56"><a id="__codelineno-6-56" name="__codelineno-6-56" href="#__codelineno-6-56"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tx</span><span class="p">.</span><span class="nx">Commit</span><span class="p">();</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-57"><a id="__codelineno-6-57" name="__codelineno-6-57" href="#__codelineno-6-57"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+</span><span id="__span-6-58"><a id="__codelineno-6-58" name="__codelineno-6-58" href="#__codelineno-6-58"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-59"><a id="__codelineno-6-59" name="__codelineno-6-59" href="#__codelineno-6-59"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">orderID</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-6-60"><a id="__codelineno-6-60" name="__codelineno-6-60" href="#__codelineno-6-60"></a><span class="p">}</span>
+</span><span id="__span-6-61"><a id="__codelineno-6-61" name="__codelineno-6-61" href="#__codelineno-6-61"></a>
+</span><span id="__span-6-62"><a id="__codelineno-6-62" name="__codelineno-6-62" href="#__codelineno-6-62"></a><span class="kd">func</span><span class="w"> </span><span class="nx">newOrderID</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-63"><a id="__codelineno-6-63" name="__codelineno-6-63" href="#__codelineno-6-63"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">().</span><span class="nx">UTC</span><span class="p">().</span><span class="nx">Format</span><span class="p">(</span><span class="s">&quot;20060102150405&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;-ord&quot;</span>
+</span><span id="__span-6-64"><a id="__codelineno-6-64" name="__codelineno-6-64" href="#__codelineno-6-64"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The Go example is illustrative: <strong>production</strong> code needs structured errors, context deadlines, metrics, and PSP integration. The <strong>idempotent</strong> path must be enforced with a <strong>unique</strong> constraint on <code>idempotency_key</code> in <code>orders</code>.</p>
+</div>
+<hr />
+<h3 id="additional-table-hold-vs-payment-timeouts">Additional Table: Hold vs payment timeouts<a class="headerlink" href="#additional-table-hold-vs-payment-timeouts" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Timer</th>
+<th>Typical value</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hold TTL</td>
+<td>5–15 minutes</td>
+<td>Release seats; clear hold</td>
+</tr>
+<tr>
+<td>Payment authorization</td>
+<td>PSP-dependent</td>
+<td>Cancel intent if abandoned</td>
+</tr>
+<tr>
+<td>Webhook slack</td>
+<td>Minutes</td>
+<td>Reconcile with PSP query-by-intent</td>
+</tr>
+</tbody>
+</table>
+<h3 id="additional-table-consistency-wording-for-interviews">Additional Table: Consistency wording for interviews<a class="headerlink" href="#additional-table-consistency-wording-for-interviews" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Phrase</th>
+<th>Safe usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Strong consistency</td>
+<td>Per shard / single transaction boundary</td>
+</tr>
+<tr>
+<td>Linearizable</td>
+<td>For a single seat row with proper DB guarantees</td>
+</tr>
+<tr>
+<td>Eventual</td>
+<td>Read models, search index, email delivery</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="closing-notes">Closing Notes<a class="headerlink" href="#closing-notes" title="Permanent link">&para;</a></h2>
+<p>Event ticketing is a <strong>inventory-first</strong> problem: every design decision should trace back to <strong>seat state</strong>, <strong>money state</strong>, and <strong>user-visible latency</strong>. Show that you can combine <strong>optimistic locking</strong>, <strong>TTL holds</strong>, <strong>idempotent APIs</strong>, and <strong>queue-based admission</strong> without contradicting yourself. When interviewers push on <strong>bots</strong>, answer with <strong>layered defenses</strong> and <strong>business trade-offs</strong>, not a single magic filter.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../cloud_storage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Cloud Storage (Google Drive)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Cloud Storage (Google Drive)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../task_scheduler/" class="md-footer__link md-footer__link--next" aria-label="Next: Task Scheduler">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Task Scheduler
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

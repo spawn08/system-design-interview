@@ -1,0 +1,4925 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/gaming_leaderboard/">
+      
+      
+        <link rel="prev" href="../ad_click_aggregator/">
+      
+      
+        <link rel="next" href="../api_gateway/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Gaming Leaderboard - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gaming-leaderboard" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Gaming Leaderboard
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video_streaming/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-requirements-clarification" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Requirements Clarification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Requirements Clarification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of Scope
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-back-of-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Back-of-Envelope Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Back-of-Envelope Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Traffic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reads
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-redis-rough" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage (Redis — rough)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-postgresql-authoritative-metadata-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage (PostgreSQL — authoritative metadata + audit)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bandwidth-api-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bandwidth (API → client)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. High-Level Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. High-Level Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Flow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-detailed-component-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Detailed Component Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Detailed Component Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-score-submission-pipeline-and-kafka-partitioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Score submission pipeline and Kafka partitioning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-redis-sorted-sets-operations-and-score-encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Redis sorted sets — operations and score encoding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-time-windowed-leaderboards-and-ttl" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Time-windowed leaderboards and TTL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-aggregation-strategies-highest-sum-latest" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Aggregation strategies (highest, sum, latest)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-top-n-rank-and-nearby-player-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Top-N, rank, and nearby-player queries
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-sharding-for-100m-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 Sharding for 100M+ players
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-write-behind-redis-postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Write-behind: Redis → PostgreSQL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-friend-leaderboards-social-graph-intersection" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.8 Friend leaderboards (social graph intersection)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-anti-cheat-validation-replay-analysis-anomaly-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.9 Anti-cheat: validation, replay analysis, anomaly detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#410-lua-scripts-atomic-read-modify-write-illustrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.10 Lua scripts — atomic read-modify-write (illustrative)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#411-global-top-k-from-shards-k-way-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.11 Global top-K from shards — k-way merge
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#412-real-time-vs-batch-when-to-use-which" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.12 Real-time vs batch — when to use which
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#413-sequence-end-to-end-score-acceptance-happy-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.13 Sequence — end-to-end score acceptance (happy path)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Technology Selection & Tradeoffs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#leaderboard-hot-store-redis-vs-cassandra-vs-dynamodb" class="md-nav__link">
+    <span class="md-ellipsis">
+      Leaderboard hot store: Redis vs Cassandra vs DynamoDB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stream-bus-kafka-vs-alternatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stream bus: Kafka vs alternatives
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#primary-oltp-postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary OLTP: PostgreSQL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternate-dynamodb-leaderboard-modeling-interview-talking-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternate: DynamoDB “leaderboard” modeling (interview talking point)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternate-cassandra-wide-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternate: Cassandra (wide rows)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-database-schema-and-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Database Schema and Data Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Database Schema and Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-core-ddl-illustrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostgreSQL — core DDL (illustrative)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-key-patterns-zset-auxiliary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis key patterns (ZSET + auxiliary)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-cluster-slots-and-hash-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis Cluster — slots and hash tags
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-planning-order-of-magnitude" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory planning (order-of-magnitude)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. API Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. API Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#endpoints-rest" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoints (REST)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-submit-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example: submit score
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-top-leaderboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example: top leaderboard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-scaling-production-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Scaling &amp; Production Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Scaling & Production Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scaling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#failure-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failure handling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-security-compliance-and-data-privacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Security, Compliance, and Data Privacy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interview Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#likely-follow-ups-faang-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Likely follow-ups (FAANG-style)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#demo-storyline-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Demo storyline (2 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-k-way-merge-sketch-interview-pseudocode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python — k-way merge sketch (interview pseudocode)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-self-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Self-Check
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference Tables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#technology-choices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology choices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-command-cheat-sheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis command cheat sheet
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="gaming-leaderboard">Gaming Leaderboard<a class="headerlink" href="#gaming-leaderboard" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>We are designing a <strong>multi-game, multi-mode leaderboard platform</strong> that accepts <strong>high-volume score submissions</strong>, validates them for <strong>fair play</strong>, maintains <strong>time-windowed</strong> and <strong>all-time</strong> rankings at <strong>planetary scale</strong>, and serves <strong>sub-millisecond read paths</strong> for <strong>top-N</strong>, <strong>player rank</strong>, and <strong>nearby competitors</strong>—think <strong>Fortnite</strong>, <strong>Clash Royale</strong>, <strong>Steam</strong>, or <strong>mobile competitive</strong> ladders with daily/weekly seasons.</p>
+<p>The hot path is <strong>Redis Sorted Sets</strong> (<code>ZSET</code>): each logical leaderboard is a sorted set where <strong>score</strong> maps to ordering and <strong>member</strong> is typically <code>player_id</code> (or a composite key when you need tie-breaks). <strong>Time windows</strong> are modeled as <strong>separate ZSETs per window</strong> (e.g., <code>leaderboard:{game}:{mode}:daily:{yyyyMMdd}</code>) with <strong>TTL</strong> for automatic retirement, plus <strong>Kafka</strong> for durable, replayable <strong>score events</strong> feeding <strong>async</strong> anti-cheat, <strong>write-behind</strong> persistence, and <strong>batch</strong> reconciliation. <strong>Friend leaderboards</strong> intersect the <strong>social graph</strong> (stored in PostgreSQL or a graph service) with per-player or shard-local candidate sets—never naïvely sorting the entire friend list in one Redis call at scale.</p>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Time-windowed boards</strong></td>
+<td>Daily/weekly/monthly seasons drive engagement; <strong>all-time</strong> boards anchor prestige</td>
+</tr>
+<tr>
+<td><strong>Redis ZSET operations</strong></td>
+<td><code>ZADD</code>, <code>ZRANK</code>, <code>ZREVRANGE</code>, <code>ZRANGEBYSCORE</code> give <strong>O(log N)</strong> updates and rank queries backed by <strong>skip lists</strong></td>
+</tr>
+<tr>
+<td><strong>Anti-cheat pipeline</strong></td>
+<td>Invalid scores erode trust; <strong>validation + replay + anomaly</strong> layers before authoritative promotion</td>
+</tr>
+<tr>
+<td><strong>Write-behind durability</strong></td>
+<td>Redis is <strong>fast</strong> but not the sole source of truth for audits; <strong>async</strong> flush to PostgreSQL</td>
+</tr>
+<tr>
+<td><strong>Sharding at 100M+ players</strong></td>
+<td>Single ZSET per global board <strong>does not scale</strong>; partition by <strong>game × mode × window × shard</strong></td>
+</tr>
+<tr>
+<td><strong>Friend-relative views</strong></td>
+<td>Social competition increases retention; requires <strong>graph</strong> + <strong>constrained</strong> Redis work</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, <strong>separate</strong> the <strong>ingest path</strong> (Kafka + validation + idempotency) from the <strong>read path</strong> (Redis replicas, optional edge cache). Say explicitly how you avoid a <strong>single hot ZSET</strong> for global “all players.”</p>
+</div>
+<hr />
+<h2 id="1-requirements-clarification">1. Requirements Clarification<a class="headerlink" href="#1-requirements-clarification" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F1</strong></td>
+<td><strong>Submit score</strong></td>
+<td>Client sends score for <code>(game_id, mode_id, session_id)</code> with server-issued <strong>attempt token</strong></td>
+</tr>
+<tr>
+<td><strong>F2</strong></td>
+<td><strong>Idempotent submission</strong></td>
+<td>Duplicate <code>(player_id, attempt_id)</code> does not double-apply</td>
+</tr>
+<tr>
+<td><strong>F3</strong></td>
+<td><strong>Aggregation modes</strong></td>
+<td>Configurable per mode: <strong>highest</strong>, <strong>sum</strong>, <strong>latest</strong> (and tie-break rules)</td>
+</tr>
+<tr>
+<td><strong>F4</strong></td>
+<td><strong>Time windows</strong></td>
+<td><strong>Daily</strong>, <strong>weekly</strong>, <strong>monthly</strong>, <strong>all-time</strong> boards; timezone policy per game/region</td>
+</tr>
+<tr>
+<td><strong>F5</strong></td>
+<td><strong>Top-N</strong></td>
+<td>Return top <strong>K</strong> (e.g., 100) for a board with <strong>stable</strong> tie ordering</td>
+</tr>
+<tr>
+<td><strong>F6</strong></td>
+<td><strong>Player rank</strong></td>
+<td><strong>Global</strong> rank and <strong>window</strong> rank; handle unranked/new players</td>
+</tr>
+<tr>
+<td><strong>F7</strong></td>
+<td><strong>Nearby players</strong></td>
+<td>“Players around my rank” (e.g., ±10) without scanning full ZSET</td>
+</tr>
+<tr>
+<td><strong>F8</strong></td>
+<td><strong>Friend leaderboard</strong></td>
+<td>Rank <strong>only</strong> among accepted friends (or guild), with reasonable freshness</td>
+</tr>
+<tr>
+<td><strong>F9</strong></td>
+<td><strong>Multi-game / multi-mode</strong></td>
+<td>Isolated namespaces; no cross-game leakage</td>
+</tr>
+<tr>
+<td><strong>F10</strong></td>
+<td><strong>Admin &amp; audit</strong></td>
+<td>Ban/suspend, score rollback, replay inspection</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>NFR</th>
+<th>Target (illustrative)</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Scale</strong></td>
+<td><strong>10M DAU</strong>, <strong>50K</strong> score writes/sec peak, <strong>500K</strong> reads/sec peak</td>
+<td>Season launches and viral modes spike traffic</td>
+</tr>
+<tr>
+<td><strong>Write latency (p99)</strong></td>
+<td><strong>&lt; 50 ms</strong> accepted → Kafka ack path; <strong>&lt; 5 ms</strong> Redis update on hot path after validation</td>
+<td>Async validation can soften tail</td>
+</tr>
+<tr>
+<td><strong>Read latency (p99)</strong></td>
+<td><strong>&lt; 10 ms</strong> from regional Redis <strong>replica</strong> for rank/top-N</td>
+<td>UI polls frequently</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td><strong>At-least-once</strong> events in Kafka; <strong>write-behind</strong> sync to PostgreSQL within <strong>seconds–minutes</strong></td>
+<td>Audits and finance-adjacent disputes</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td><strong>Eventual</strong> across regions for global boards; <strong>strong</strong> per shard on primary Redis</td>
+<td>CAP trade-offs per subsystem</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td><strong>99.95%</strong> API tier; <strong>degraded</strong> read from stale replica acceptable if bounded</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Fairness</strong></td>
+<td><strong>Fraud rate</strong> driven below product threshold via layered detection</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="out-of-scope">Out of Scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Real-time matchmaking</strong> and <strong>game session</strong> hosting (upstream services own those)</li>
+<li><strong>Cross-title unified identity</strong> beyond documented <strong>account linking</strong> APIs</li>
+<li><strong>Player-to-player wagering</strong> or <strong>real-money</strong> prize settlement (would add regulatory scope)</li>
+<li><strong>Full client kernel anti-tamper</strong> (assume platform SDK hooks exist)</li>
+<li><strong>On-device ML</strong> for cheat detection (server-side features only here)</li>
+</ul>
+<hr />
+<h2 id="2-back-of-envelope-estimation">2. Back-of-Envelope Estimation<a class="headerlink" href="#2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Calculation</th>
+<th>Order of magnitude</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DAU</strong></td>
+<td>Given</td>
+<td><strong>10M</strong></td>
+</tr>
+<tr>
+<td><strong>Active hours / day</strong></td>
+<td>Assume <strong>2 h</strong> play per DAU</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Score events / player / hour</strong></td>
+<td>Competitive title: <strong>30–120</strong> (varies by mode)</td>
+<td>Take <strong>60</strong> for planning</td>
+</tr>
+<tr>
+<td><strong>Raw events / sec (average)</strong></td>
+<td><span class="arithmatex">\(10^7 \times 60 / 3600\)</span></td>
+<td><strong>~167K/s</strong> average</td>
+</tr>
+<tr>
+<td><strong>Peak / average</strong></td>
+<td>Season spike <strong>10×</strong></td>
+<td><strong>~1.67M/s</strong> raw client events (before filtering)</td>
+</tr>
+<tr>
+<td><strong>Server-accepted submissions / sec</strong></td>
+<td>Product + validation drops <strong>~3%</strong>; peak design <strong>50K/s</strong></td>
+<td><strong>50K/s</strong> (given NFR)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Separate <strong>client telemetry</strong> (noisy) from <strong>authoritative score submissions</strong> (fewer). Many events never become ZSET updates.</p>
+</div>
+<h3 id="reads">Reads<a class="headerlink" href="#reads" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Read pattern</th>
+<th>Assumption</th>
+<th>QPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Leaderboard page loads</strong></td>
+<td>10M DAU × <strong>20</strong> polls/day × <strong>3</strong> boards</td>
+<td><strong>~7K/s</strong> average</td>
+</tr>
+<tr>
+<td><strong>Peak factor</strong></td>
+<td><strong>~70×</strong> average during events</td>
+<td><strong>~500K/s</strong> (matches NFR)</td>
+</tr>
+<tr>
+<td><strong>Per-request Redis ops</strong></td>
+<td><strong>1–3</strong> (<code>ZREVRANGE</code>, <code>ZRANK</code>, <code>ZSCORE</code>)</td>
+<td>Design for <strong>1.5M</strong> Redis cmd/s peak with pipelining</td>
+</tr>
+</tbody>
+</table>
+<h3 id="storage-redis-rough">Storage (Redis — rough)<a class="headerlink" href="#storage-redis-rough" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Formula</th>
+<th>Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Players per shard ZSET</strong></td>
+<td>100M players / <strong>10K</strong> shards</td>
+<td><strong>~10K</strong> members/ZSET (tunable)</td>
+</tr>
+<tr>
+<td><strong>Bytes / entry</strong></td>
+<td>member UUID (16) + score (8) + overhead</td>
+<td><strong>~64–128 B</strong> effective</td>
+</tr>
+<tr>
+<td><strong>One daily board shard</strong></td>
+<td>10K × 100 B</td>
+<td><strong>~1 MB</strong></td>
+</tr>
+<tr>
+<td><strong>All windows × games × modes</strong></td>
+<td>Highly config-dependent</td>
+<td><strong>TB-scale</strong> aggregate at max retention → <strong>tiered TTL</strong> + archival</td>
+</tr>
+</tbody>
+</table>
+<h3 id="storage-postgresql-authoritative-metadata-audit">Storage (PostgreSQL — authoritative metadata + audit)<a class="headerlink" href="#storage-postgresql-authoritative-metadata-audit" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Table group</th>
+<th>Rows</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Players, games, modes</strong></td>
+<td><strong>10M+</strong>, <strong>1K</strong> games, <strong>10</strong> modes/game</td>
+<td>Small vs scores</td>
+</tr>
+<tr>
+<td><strong>Score attempts (audit)</strong></td>
+<td>Append-only; <strong>50K/s</strong> × <strong>86.4K</strong> sec/day</td>
+<td><strong>~4.3B rows/day</strong> at absolute peak if logging everything—<strong>sample</strong> + <strong>rollup</strong> in practice</td>
+</tr>
+<tr>
+<td><strong>Practical audit</strong></td>
+<td>Store <strong>accepted</strong> + <strong>flagged</strong> + <strong>hourly aggregates</strong></td>
+<td>Partition by day; cold storage to object store</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bandwidth-api-client">Bandwidth (API → client)<a class="headerlink" href="#bandwidth-api-client" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Size</th>
+<th>At 500K reads/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Top-100 JSON</strong></td>
+<td><strong>~8–20 KB</strong></td>
+<td><strong>4–10 GB/s</strong> aggregate → requires <strong>compression</strong>, <strong>pagination</strong>, <strong>edge caching</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-high-level-design">3. High-Level Design<a class="headerlink" href="#3-high-level-design" title="Permanent link">&para;</a></h2>
+<h3 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                         +------------------+
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                         |   CDN / Edge     |
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                         | (optional cache) |
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                         +--------+---------+
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                                  |
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                         +--------v---------+
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                         |  API Gateway     |
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                         |  + Auth (JWT)    |
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                         |  + Rate limits   |
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                         +--------+---------+
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                                  |
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        +-------------------------+-------------------------+
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        |                         |                         |
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        v                         v                         v
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a> +-------------+          +---------------+          +-------------+
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a> | Score       |          | Leaderboard   |          | Social /    |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a> | Ingest Svc  |          | Read Svc      |          | Friends API |
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a> +------+------+          +-------+-------+          +------+------+
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        |                         |                         |
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        v                         v                         |
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a> +-------------+          +---------------+                 |
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a> | Anti-cheat  |          | Redis Cluster |&lt;----------------+
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a> | Workers     |          | (ZSET shards) |
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a> +------+------+          +-------+-------+
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        |                         ^
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        v                         | write-behind
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a> +-------------+          +------+------+
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a> | Kafka       |          | Persist    |
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a> | (score      |---------&gt;| Workers    |
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a> |  topics)    |          +------+------+
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a> +-------------+                 |
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                                 v
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>                          +---------------+
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                          | PostgreSQL    |
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                          | (profiles,    |
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                          |  audit, graph)|
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                          +---------------+
+</span></code></pre></div>
+<h3 id="component-overview">Component Overview<a class="headerlink" href="#component-overview" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Responsibility</th>
+<th>Primary tech</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API Gateway</strong></td>
+<td>AuthN/Z, throttling, request routing</td>
+<td>Envoy / Kong / cloud LB</td>
+</tr>
+<tr>
+<td><strong>Score Ingest Service</strong></td>
+<td>Validate tokens, attach idempotency keys, produce to Kafka</td>
+<td>Stateless containers</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Durable <strong>score-event</strong> log, replay, fan-out to workers</td>
+<td>Managed Kafka</td>
+</tr>
+<tr>
+<td><strong>Validation / Anti-cheat</strong></td>
+<td>Rules engine, replay checks, anomaly scoring</td>
+<td>Stream processors + state stores</td>
+</tr>
+<tr>
+<td><strong>Redis Cluster</strong></td>
+<td><strong>ZSET</strong> leaderboards per shard/window; replicas for reads</td>
+<td>Redis 7+ / ElastiCache</td>
+</tr>
+<tr>
+<td><strong>Write-behind workers</strong></td>
+<td>Batch <strong>ZADD</strong> outcomes + metadata to PostgreSQL</td>
+<td>Consumer groups</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Player profiles, game/mode config, friendships, audit trail</td>
+<td>RDS / Cloud SQL</td>
+</tr>
+<tr>
+<td><strong>Friend rank service</strong></td>
+<td>Compose friend IDs with per-player Redis lookups</td>
+<td>App tier + graph cache</td>
+</tr>
+</tbody>
+</table>
+<h3 id="core-flow">Core Flow<a class="headerlink" href="#core-flow" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Client</strong> completes a match; <strong>game server</strong> issues signed <strong>attempt token</strong> <code>(attempt_id, score_cap, expiry)</code>.</li>
+<li><strong>Score Ingest</strong> verifies signature, <strong>idempotency</strong> key, and <strong>basic</strong> sanity (bounds, mode).</li>
+<li><strong>Kafka</strong> append of <code>ScoreEvent</code> with key = <code>shard_key</code> for ordering where needed.</li>
+<li><strong>Anti-cheat</strong> consumers evaluate <strong>velocity</strong>, <strong>statistical</strong> plausibility, optional <strong>replay</strong> hash from object store.</li>
+<li>On <strong>accept</strong>, <strong>Redis primary</strong> applies <strong><code>ZADD</code></strong> to the correct <strong>window ZSET</strong> (and <strong>all-time</strong> if configured) using <strong>aggregation strategy</strong> (max/sum/last).</li>
+<li><strong>Write-behind</strong> batch flushes <strong>accepted</strong> rows to <strong>PostgreSQL</strong> for audit and analytics.</li>
+<li><strong>Read path</strong> hits <strong>Redis replica</strong> (same AZ/region) for <code>ZREVRANGE</code> / <code>ZRANK</code> / nearby range.</li>
+<li><strong>Friend leaderboard</strong>: fetch <strong>friend_ids</strong> from graph store → <strong>pipeline</strong> <code>ZSCORE</code>/<code>ZRANK</code> or maintain <strong>materialized mini-boards</strong> for heavy users.</li>
+</ol>
+<hr />
+<h2 id="4-detailed-component-design">4. Detailed Component Design<a class="headerlink" href="#4-detailed-component-design" title="Permanent link">&para;</a></h2>
+<h3 id="41-score-submission-pipeline-and-kafka-partitioning">4.1 Score submission pipeline and Kafka partitioning<a class="headerlink" href="#41-score-submission-pipeline-and-kafka-partitioning" title="Permanent link">&para;</a></h3>
+<p><strong>Topic design:</strong> <code>score.events.v1</code> with <strong>key</strong> = <code>hash(game_id, mode_id, window_id, shard_id)</code> to preserve <strong>per-shard</strong> ordering (not global). Use <strong>Avro/Protobuf</strong> schemas with <strong><code>attempt_id</code> UUID</strong> and <strong>monotonic</strong> <code>server_ts</code>.</p>
+<p><strong>Idempotency:</strong> maintain <strong><code>IdempotencyStore</code></strong> in Redis: <code>SET idemp:{player_id}:{attempt_id} 1 NX EX 86400</code>. If key exists, return <strong>200</strong> with prior outcome.</p>
+<p><strong>Ordering of work:</strong> <strong>fast reject</strong> (signature, bounds) before Kafka; <strong>heavy</strong> ML goes to <strong>async</strong> topic <code>score.antifraud.v1</code> without blocking the player notification path if product allows <strong>provisional</strong> acceptance.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Latency budget</th>
+<th>Failure mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gateway + auth</td>
+<td><strong>1–3 ms</strong></td>
+<td>401/403</td>
+</tr>
+<tr>
+<td>Ingest validation</td>
+<td><strong>3–10 ms</strong></td>
+<td>400</td>
+</tr>
+<tr>
+<td>Kafka produce</td>
+<td><strong>2–20 ms</strong></td>
+<td>503 + client retry</td>
+</tr>
+<tr>
+<td>Redis ZADD (async path)</td>
+<td><strong>&lt; 5 ms</strong> after consumer</td>
+<td>lag metric</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-redis-sorted-sets-operations-and-score-encoding">4.2 Redis sorted sets — operations and score encoding<a class="headerlink" href="#42-redis-sorted-sets-operations-and-score-encoding" title="Permanent link">&para;</a></h3>
+<p>Redis <strong>ZSET</strong> maps <strong>member → score</strong> (double). <strong>ZRANK</strong> is <strong>0-based from low to high</strong>; for <strong>descending</strong> leaderboards use <strong><code>ZREVRANK</code></strong> and <strong><code>ZREVRANGE</code></strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>ZADD key score member</code></strong></td>
+<td>Upsert score; with <strong>GT/LT</strong> options (Redis 6.2+) for <strong>max-only</strong> or <strong>min-only</strong> updates</td>
+</tr>
+<tr>
+<td><strong><code>ZRANK</code> / <code>ZREVRANK</code></strong></td>
+<td>Absolute rank</td>
+</tr>
+<tr>
+<td><strong><code>ZREVRANGE key start stop WITHSCORES</code></strong></td>
+<td>Top-N</td>
+</tr>
+<tr>
+<td><strong><code>ZRANGEBYSCORE key min max WITHSCORES LIMIT</code></strong></td>
+<td>Score bands; tie resolution</td>
+</tr>
+<tr>
+<td><strong><code>ZCOUNT</code></strong></td>
+<td>Population in score range</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tie-break:</strong> floats can collide. Common pattern: encode <strong>composite score</strong> as <strong>64-bit integer</strong> — <code>score_int = (raw_score * 1_000_000) + (max_ts - event_ts)</code> so <strong>earlier</strong> achievement wins when raw scores tie (invert sign as needed).</p>
+<p><strong>Skip list internals (why log N):</strong> Redis ZSET is implemented as a <strong>skip list</strong> — a probabilistic multi-level linked list with <strong>O(log N)</strong> search/insert on average. Each node promotes to upper levels with probability <strong>p</strong>, yielding <strong>~log_{1/p}(N)</strong> expected levels. This is why <strong><code>ZADD</code></strong> and <strong><code>ZRANK</code></strong> stay cheap at large <strong>N</strong>, unlike naive sorted arrays.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Level 3:  head ------------------------&gt;  tail
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Level 2:  head ------&gt; node ------&gt; node --&gt; tail
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Level 1:  head -&gt; n1 -&gt; n2 -&gt; n3 -&gt; n4 -&gt; tail
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Level 0:  full linked list in order
+</span></code></pre></div>
+<h3 id="43-time-windowed-leaderboards-and-ttl">4.3 Time-windowed leaderboards and TTL<a class="headerlink" href="#43-time-windowed-leaderboards-and-ttl" title="Permanent link">&para;</a></h3>
+<p><strong>Key naming:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>lb:{game_id}:{mode_id}:daily:{yyyyMMdd}:s{shard}
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>lb:{game_id}:{mode_id}:weekly:{iso_week}:s{shard}
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>lb:{game_id}:{mode_id}:monthly:{yyyyMM}:s{shard}
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>lb:{game_id}:{mode_id}:alltime:s{shard}
+</span></code></pre></div>
+<p><strong>Shard selection:</strong> <code>shard = hash(player_id) % NUM_SHARDS</code> — consistent hashing ring for <strong>Redis cluster</strong> slots.</p>
+<p><strong>TTL:</strong> <code>EXPIRE</code> daily boards after <strong>7 days</strong>, weekly after <strong>90 days</strong>, etc. <strong>Archive</strong> cold windows to <strong>S3 Parquet</strong> via nightly jobs reading from PostgreSQL or <strong>Redis SCAN</strong> + export (prefer <strong>DB truth</strong> for replay).</p>
+<p><strong>Timezone:</strong> store <strong><code>window_id</code> in UTC</strong> but compute <strong>calendar boundaries</strong> using <strong><code>game.region_tz</code></strong> in the ingest service to avoid “wrong day” disputes.</p>
+<h3 id="44-aggregation-strategies-highest-sum-latest">4.4 Aggregation strategies (highest, sum, latest)<a class="headerlink" href="#44-aggregation-strategies-highest-sum-latest" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Redis pattern</th>
+<th>Caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Highest</strong></td>
+<td><code>ZADD ... GT</code> (Redis 6.2+) or Lua: read-compare-write</td>
+<td>Ensure <strong>monotonic</strong> client scores</td>
+</tr>
+<tr>
+<td><strong>Sum</strong></td>
+<td><code>ZINCRBY key increment member</code></td>
+<td><strong>Overflow</strong> risk — use <strong>scaled integers</strong></td>
+</tr>
+<tr>
+<td><strong>Latest</strong></td>
+<td><code>ZADD</code> with <strong>score = ts</strong> composite + tie-breaker</td>
+<td>“Last run wins” may feel unfair—product decision</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Batch vs real-time:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Real-time</strong></td>
+<td>Every accepted event updates Redis immediately (default competitive)</td>
+</tr>
+<tr>
+<td><strong>Batch</strong></td>
+<td>Accumulate in <strong>Flink</strong> or <strong>Redis hash</strong> per player, <strong>flush</strong> every <strong>N sec</strong> for <strong>co-op</strong> modes with noisy telemetry</td>
+</tr>
+</tbody>
+</table>
+<h3 id="45-top-n-rank-and-nearby-player-queries">4.5 Top-N, rank, and nearby-player queries<a class="headerlink" href="#45-top-n-rank-and-nearby-player-queries" title="Permanent link">&para;</a></h3>
+<p><strong>Top-N:</strong> <code>ZREVRANGE key 0 (N-1) WITHSCORES</code> — <strong>O(log N + M)</strong>.</p>
+<p><strong>My rank:</strong> <code>ZREVRANK key member</code> — <strong>O(log N)</strong>.</p>
+<p><strong>Nearby (±K):</strong> first <code>rank = ZREVRANK key member</code>, then <code>ZREVRANGE key (rank-K) (rank+K) WITHSCORES</code>. Edge cases: <strong>rank &lt; K</strong> or <strong>near bottom</strong>.</p>
+<p><strong>Alternative for mega-boards without knowing rank first:</strong> maintain <strong>secondary index</strong> <code>player:{id}:location:{board}</code> storing <strong>approx rank</strong> updated <strong>periodically</strong> — trades accuracy for speed (often unnecessary if <strong><code>ZREVRANK</code></strong> is fast enough on <strong>sharded</strong> sets of <strong>~10⁴</strong>).</p>
+<h3 id="46-sharding-for-100m-players">4.6 Sharding for 100M+ players<a class="headerlink" href="#46-sharding-for-100m-players" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Symptom</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Single giant ZSET</strong></td>
+<td>Slow <code>ZREVRANGE</code>, huge memory</td>
+<td><strong>Shard</strong> by <code>hash(player_id)</code>; <strong>merge</strong> top-N for <strong>global</strong> view via <strong>sampling</strong> or <strong>hierarchical</strong> aggregation</td>
+</tr>
+<tr>
+<td><strong>Hot shard</strong></td>
+<td>Celebrity player</td>
+<td><strong>Isolate</strong> high-profile tournaments to <strong>dedicated</strong> keys</td>
+</tr>
+<tr>
+<td><strong>Cross-shard global top 100</strong></td>
+<td>No single Redis command</td>
+<td><strong>Map-reduce</strong> partial tops from each shard <strong>periodically</strong> into <strong><code>lb:global:top_cache</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hierarchical merge:</strong> each shard publishes <strong>top 200</strong> to <strong>Kafka</strong>; aggregator builds <strong>global top 100</strong> every <strong>few seconds</strong> into a small <strong>ZSET</strong> <code>lb:{game}:{mode}:global:cache</code>.</p>
+<h3 id="47-write-behind-redis-postgresql">4.7 Write-behind: Redis → PostgreSQL<a class="headerlink" href="#47-write-behind-redis-postgresql" title="Permanent link">&para;</a></h3>
+<p><strong>Pattern:</strong> after <strong><code>ZADD</code></strong>, enqueue row to <strong><code>outbox</code></strong> table (transactional outbox) or emit <strong>compact</strong> Kafka message consumed by <strong>persist</strong> workers.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_id</code></td>
+<td>UUID — <strong>dedup</strong> on insert</td>
+</tr>
+<tr>
+<td><code>player_id</code>, <code>game_id</code>, <code>mode_id</code></td>
+<td>Dimensions</td>
+</tr>
+<tr>
+<td><code>window_id</code>, <code>shard_id</code></td>
+<td>Routing</td>
+</tr>
+<tr>
+<td><code>raw_score</code>, <code>effective_score</code></td>
+<td>Display vs tie-break</td>
+</tr>
+<tr>
+<td><code>accepted_at</code>, <code>fraud_flags</code></td>
+<td>Audit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Batch insert:</strong> <strong>COPY</strong> or multi-row <strong>INSERT</strong> every <strong>100–500 ms</strong> or <strong>N=500</strong> events.</p>
+<h3 id="48-friend-leaderboards-social-graph-intersection">4.8 Friend leaderboards (social graph intersection)<a class="headerlink" href="#48-friend-leaderboards-social-graph-intersection" title="Permanent link">&para;</a></h3>
+<p><strong>Naïve:</strong> fetch <strong>5K</strong> friends → <strong>5K</strong> Redis calls — too slow.</p>
+<p><strong>Better approaches:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Complexity</th>
+<th>Freshness</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Small friend lists (&lt;200)</strong></td>
+<td><code>MULTI/EXEC</code> pipeline <code>ZSCORE</code> for each friend on <strong>shared</strong> board key</td>
+<td>Real-time</td>
+</tr>
+<tr>
+<td><strong>Guild / club</strong></td>
+<td>Separate <strong>ZSET</strong> <code>lb:guild:{guild_id}:...</code> updated on each score</td>
+<td>Real-time, bounded size</td>
+</tr>
+<tr>
+<td><strong>Bitmap / set cache</strong></td>
+<td>Maintain <strong>friend_id set</strong> in Redis <strong>SET</strong>; still need scores</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Periodic materialization</strong></td>
+<td>Every <strong>minute</strong>, compute friend top <strong>50</strong> into <code>lb:friend:{player}:cache</code></td>
+<td><strong>Near</strong> real-time</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Graph storage:</strong> <code>friendships</code> table in PostgreSQL (<strong>bidirectional</strong> rows) or <strong>Neo4j</strong> for complex queries; <strong>cache</strong> adjacency in <strong>Redis</strong> <code>SET friend:{player}</code> with TTL.</p>
+<h3 id="49-anti-cheat-validation-replay-analysis-anomaly-detection">4.9 Anti-cheat: validation, replay analysis, anomaly detection<a class="headerlink" href="#49-anti-cheat-validation-replay-analysis-anomaly-detection" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cryptographic</strong></td>
+<td>Server-signed tokens; <strong>nonce</strong> per attempt</td>
+</tr>
+<tr>
+<td><strong>Physics/statistical</strong></td>
+<td>Max achievable score per map; <strong>distribution</strong> checks vs cohort</td>
+</tr>
+<tr>
+<td><strong>Replay</strong></td>
+<td>Store <strong>minimal</strong> replay blob in object storage; async verifier</td>
+</tr>
+<tr>
+<td><strong>Velocity</strong></td>
+<td><strong>IP/device</strong> rate limits; <strong>impossible</strong> travel between submissions</td>
+</tr>
+<tr>
+<td><strong>ML anomaly</strong></td>
+<td>Isolation Forest / gradient boosting on <strong>feature vector</strong> per session</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Actions:</strong> <strong>shadow ban</strong>, <strong>score quarantine</strong> (exclude from public ZSET until review), <strong>rollback</strong> via <strong><code>ZADD</code> correction</strong> + compensating audit row.</p>
+<h3 id="410-lua-scripts-atomic-read-modify-write-illustrative">4.10 Lua scripts — atomic read-modify-write (illustrative)<a class="headerlink" href="#410-lua-scripts-atomic-read-modify-write-illustrative" title="Permanent link">&para;</a></h3>
+<p>When <strong><code>GT</code>/<code>LT</code></strong> options are insufficient (custom tie-break or mode-specific rules), <strong>Lua</strong> runs atomically on the Redis primary:</p>
+<div class="language-lua highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- Atomic &quot;max score wins; tie-break by earlier timestamp&quot; per member</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">KEYS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">member</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ARGV</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">new_score</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">tonumber</span><span class="p">(</span><span class="nv">ARGV</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">tie_break</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">tonumber</span><span class="p">(</span><span class="nv">ARGV</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="w">  </span><span class="c1">-- lower is better; composite into score if needed</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kd">local</span><span class="w"> </span><span class="nv">cur</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">redis</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="s1">&#39;ZSCORE&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">key</span><span class="p">,</span><span class="w"> </span><span class="nv">member</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kr">if</span><span class="w"> </span><span class="nv">cur</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nv">redis</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="s1">&#39;ZADD&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">key</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">,</span><span class="w"> </span><span class="nv">member</span><span class="p">)</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">}</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="kr">end</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="kd">local</span><span class="w"> </span><span class="nv">cur_score</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">tonumber</span><span class="p">(</span><span class="nv">cur</span><span class="p">)</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="kr">if</span><span class="w"> </span><span class="nv">new_score</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nv">cur_score</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="nv">redis</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="s1">&#39;ZADD&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">key</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">,</span><span class="w"> </span><span class="nv">member</span><span class="p">)</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">}</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="kr">elseif</span><span class="w"> </span><span class="nv">new_score</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nv">cur_score</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nv">tie_break</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">tonumber</span><span class="p">(</span><span class="nv">ARGV</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="nv">redis</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="s1">&#39;ZADD&#39;</span><span class="p">,</span><span class="w"> </span><span class="nv">key</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">,</span><span class="w"> </span><span class="nv">member</span><span class="p">)</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">  </span><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nv">new_score</span><span class="p">}</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="kr">end</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nv">cur_score</span><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Keep Lua scripts <strong>short</strong>—they block the single-threaded Redis event loop. Heavy logic belongs in <strong>Kafka consumers</strong>.</p>
+</div>
+<h3 id="411-global-top-k-from-shards-k-way-merge">4.11 Global top-K from shards — k-way merge<a class="headerlink" href="#411-global-top-k-from-shards-k-way-merge" title="Permanent link">&para;</a></h3>
+<p>Each shard <strong>i</strong> maintains <strong>full</strong> local ZSET. A <strong>scheduled job</strong> (or streaming <strong>Flink</strong> job) every <strong>Δt</strong> seconds:</p>
+<ol>
+<li>For each shard <strong>i</strong>, <code>ZREVRANGE lb:...:s{i} 0 199 WITHSCORES</code> — fetch <strong>200</strong> candidates (over-fetch for ties).</li>
+<li><strong>Merge</strong> <strong>S</strong> sorted lists by score using a <strong>min-heap</strong> of size <strong>K=100</strong> — <strong>O(S × log K)</strong>.</li>
+<li>Write results to <strong><code>lb:{game}:{mode}:global:top</code></strong> as a tiny ZSET or serve from <strong>application memory</strong> with <strong>ETag</strong>.</li>
+</ol>
+<pre class="mermaid"><code>flowchart TB
+  subgraph shards [Per-shard ZSETs]
+    S1[s0..s199]
+    S2[s200..s399]
+    S3[sN]
+  end
+  subgraph merge [Merge service]
+    H[Min-heap K=100]
+    OUT[global:top cache]
+  end
+  S1 --&gt; H
+  S2 --&gt; H
+  S3 --&gt; H
+  H --&gt; OUT</code></pre>
+<p><strong>Staleness:</strong> UI labels <strong>“updated 3s ago”</strong> to set expectations during <strong>mega-events</strong>.</p>
+<h3 id="412-real-time-vs-batch-when-to-use-which">4.12 Real-time vs batch — when to use which<a class="headerlink" href="#412-real-time-vs-batch-when-to-use-which" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Update model</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ranked PvP ladder</strong></td>
+<td><strong>Real-time ZADD</strong></td>
+<td>Players expect <strong>instant</strong> rank movement</td>
+</tr>
+<tr>
+<td><strong>Idle / incremental</strong> games with <strong>noisy</strong> partial scores</td>
+<td><strong>Batch every 30–60s</strong></td>
+<td>Reduces write amplification; <strong>Flink</strong> session window</td>
+</tr>
+<tr>
+<td><strong>End-of-match</strong> only</td>
+<td><strong>Single ZADD</strong> at match end</td>
+<td>Simplest consistency story</td>
+</tr>
+<tr>
+<td><strong>Season rollover</strong></td>
+<td><strong>Cron</strong> + <strong>RENAME</strong>/new key + <strong>TTL</strong> old</td>
+<td>Avoid <strong>mass delete</strong> in one <code>DEL</code> on huge keys—prefer <strong>lazy</strong> expiry</td>
+</tr>
+</tbody>
+</table>
+<h3 id="413-sequence-end-to-end-score-acceptance-happy-path">4.13 Sequence — end-to-end score acceptance (happy path)<a class="headerlink" href="#413-sequence-end-to-end-score-acceptance-happy-path" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+  participant C as Client
+  participant G as Game server
+  participant I as Ingest API
+  participant K as Kafka
+  participant W as Redis writer
+  participant R as Redis primary
+  participant P as PostgreSQL
+
+  C-&gt;&gt;G: Finish match
+  G-&gt;&gt;C: attempt_token
+  C-&gt;&gt;I: POST score + token
+  I-&gt;&gt;I: idempotency + validate
+  I-&gt;&gt;K: produce ScoreEvent
+  K-&gt;&gt;W: consume
+  W-&gt;&gt;W: anti-cheat fast path
+  W-&gt;&gt;R: ZADD shard ZSET
+  W-&gt;&gt;P: async write-behind batch
+  C-&gt;&gt;I: GET leaderboard (read replica)
+  I-&gt;&gt;R: ZREVRANGE / ZREVRANK</code></pre>
+<hr />
+<h2 id="5-technology-selection-tradeoffs">5. Technology Selection &amp; Tradeoffs<a class="headerlink" href="#5-technology-selection-tradeoffs" title="Permanent link">&para;</a></h2>
+<h3 id="leaderboard-hot-store-redis-vs-cassandra-vs-dynamodb">Leaderboard hot store: Redis vs Cassandra vs DynamoDB<a class="headerlink" href="#leaderboard-hot-store-redis-vs-cassandra-vs-dynamodb" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Our Pick + Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis (ZSET)</strong></td>
+<td>Native <strong>sorted-set</strong> ops; <strong>sub-ms</strong> latency; Lua; mature replication</td>
+<td>Memory cost; <strong>not</strong> a long-term analytics DB alone</td>
+<td><strong>Primary hot path</strong> for ranks and tops</td>
+</tr>
+<tr>
+<td><strong>Apache Cassandra</strong></td>
+<td>Wide-column; <strong>tunable</strong> consistency; good for <strong>time-series</strong> partitions</td>
+<td><strong>No</strong> native rank in one partition at huge N; rank queries need <strong>materialized</strong> designs</td>
+<td><strong>Optional</strong> for <strong>historical</strong> partitions + <strong>global</strong> aggregation jobs</td>
+</tr>
+<tr>
+<td><strong>Amazon DynamoDB</strong></td>
+<td>Managed; <strong>DAX</strong> cache; <strong>on-demand</strong> scaling</td>
+<td><strong>No</strong> native sorted rank type; patterns use <strong>GSI</strong> sharding + <strong>Lambda</strong> merges</td>
+<td><strong>Good</strong> for <strong>fully managed</strong> shops; combine with <strong>Redis</strong> for true rank <strong>SLAs</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our pick:</strong> <strong>Redis Cluster</strong> as <strong>authoritative real-time</strong> leaderboard store; <strong>Kafka</strong> for <strong>events</strong>; <strong>PostgreSQL</strong> for <strong>profiles, graph, audit</strong>; optional <strong>Cassandra/Dynamo</strong> for <strong>cold</strong> analytics if needed.</p>
+<h3 id="stream-bus-kafka-vs-alternatives">Stream bus: Kafka vs alternatives<a class="headerlink" href="#stream-bus-kafka-vs-alternatives" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Our Pick + Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Kafka</strong></td>
+<td>High throughput; <strong>replay</strong>; <strong>consumer groups</strong>; ecosystem</td>
+<td>Ops complexity</td>
+<td><strong>Default</strong> for <strong>50K+ evt/s</strong> and <strong>multiple</strong> consumers</td>
+</tr>
+<tr>
+<td><strong>Pulsar</strong></td>
+<td>Multi-tenancy; geo-replication</td>
+<td>Smaller ops talent pool</td>
+<td>If already standardized</td>
+</tr>
+<tr>
+<td><strong>Cloud pub/sub</strong></td>
+<td>Simple</td>
+<td><strong>Per-message</strong> cost at extreme scale</td>
+<td>Smaller titles</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our pick:</strong> <strong>Kafka</strong> — replay is critical when <strong>anti-cheat</strong> logic changes and you must <strong>reprocess</strong> windows.</p>
+<h3 id="primary-oltp-postgresql">Primary OLTP: PostgreSQL<a class="headerlink" href="#primary-oltp-postgresql" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Our Pick + Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td><strong>ACID</strong>, joins, <strong>JSONB</strong>, mature</td>
+<td>Vertical scaling limits</td>
+<td><strong>Source of truth</strong> for <strong>non-hot</strong> data</td>
+</tr>
+<tr>
+<td><strong>MySQL</strong></td>
+<td>Ubiquitous</td>
+<td>Slightly different ecosystem</td>
+<td>Interchangeable for this design</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our pick:</strong> <strong>PostgreSQL</strong> for <strong>players</strong>, <strong>games/modes</strong>, <strong>friendships</strong>, <strong>audit</strong>, <strong>outbox</strong>.</p>
+<h3 id="alternate-dynamodb-leaderboard-modeling-interview-talking-point">Alternate: DynamoDB “leaderboard” modeling (interview talking point)<a class="headerlink" href="#alternate-dynamodb-leaderboard-modeling-interview-talking-point" title="Permanent link">&para;</a></h3>
+<p>DynamoDB has <strong>no</strong> native sorted-set type. Common patterns:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>How it works</th>
+<th>Pain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Partition key = <code>game#mode#window#shard</code></strong>, sort key = <strong>composite score + player_id</strong></td>
+<td><strong>Query</strong> top items with <strong>ScanIndexForward=false</strong>, <strong>Limit=N</strong></td>
+<td><strong>Hot partitions</strong> on popular games; <strong>double</strong> write for <strong>all-time</strong> + <strong>daily</strong></td>
+</tr>
+<tr>
+<td><strong>GSI on player</strong></td>
+<td>Lookup <strong>my</strong> row across windows</td>
+<td><strong>GSI</strong> replication lag</td>
+</tr>
+<tr>
+<td><strong>Materialized global top</strong></td>
+<td><strong>Lambda</strong> on <strong>Dynamo Streams</strong> maintains small <strong>top</strong> table</td>
+<td><strong>Staleness</strong> + <strong>merge</strong> logic</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When Dynamo shines:</strong> <strong>regional</strong> deployments, <strong>IAM</strong> auth, <strong>PITR</strong>, <strong>on-demand</strong> capacity. <strong>Our pick</strong> still pairs <strong>Dynamo</strong> (metadata) with <strong>Redis</strong> (hot rank) when teams demand <strong>fully managed</strong> everything.</p>
+<h3 id="alternate-cassandra-wide-rows">Alternate: Cassandra (wide rows)<a class="headerlink" href="#alternate-cassandra-wide-rows" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Schema idea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Player-centric</strong></td>
+<td><code>PRIMARY KEY ((game, mode, window, shard), score, player)</code> — fast <strong>per-shard</strong> scans <strong>ordered</strong> by score <strong>if</strong> score is clustering key</td>
+</tr>
+<tr>
+<td><strong>Challenge</strong></td>
+<td><strong>Rank</strong> query = <strong>COUNT</strong> of rows with higher score → <strong>expensive</strong> at scale</td>
+</tr>
+</tbody>
+</table>
+<p>Hence <strong>Cassandra</strong> is better for <strong>append-only score history</strong> and <strong>analytics</strong>, not <strong>O(1)</strong> rank—aligns with using <strong>Redis</strong> for the <strong>hot</strong> path.</p>
+<hr />
+<h2 id="6-cap-theorem-analysis">6. CAP Theorem Analysis<a class="headerlink" href="#6-cap-theorem-analysis" title="Permanent link">&para;</a></h2>
+<p>Leaderboards are <strong>not</strong> one CAP choice—they are <strong>layered</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Typical choice</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis primary per shard</strong></td>
+<td><strong>CP</strong> within shard (single primary); <strong>AP</strong> across <strong>multi-region</strong> if async replicated</td>
+<td><strong>Split-brain</strong> avoided via <strong>sentinel/cluster</strong> failover</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td><strong>CP</strong> under configured <strong>min ISR</strong>; producer <strong>acks=all</strong></td>
+<td><strong>Availability</strong> trade when brokers die—design <strong>retry</strong></td>
+</tr>
+<tr>
+<td><strong>PostgreSQL (single primary)</strong></td>
+<td><strong>CP</strong></td>
+<td><strong>Reads</strong> from replicas may lag (<strong>eventual</strong>)</td>
+</tr>
+<tr>
+<td><strong>Global merged top-100 cache</strong></td>
+<td><strong>AP</strong></td>
+<td>Stale by <strong>few seconds</strong> acceptable in UI</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TB
+  subgraph ingest [Ingest + Kafka]
+    K[Kafka cluster]
+    P[Producer acks=all]
+    P --&gt; K
+  end
+
+  subgraph redis_layer [Redis layer]
+    M[Primary shard]
+    R[Replica read]
+    M --&gt; R
+  end
+
+  subgraph cap [CAP story]
+    CP[Strong per-key on primary]
+    AP[Replicas may lag for reads]
+    PART[Partition: prefer availability with bounded staleness OR fail closed for writes]
+  end
+
+  K --&gt; M
+  R --&gt; AP
+  M --&gt; CP</code></pre>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Say: <strong>“We expose linearizable writes per shard on the Redis primary, but accept </strong>eventually consistent<strong> cross-region and </strong>replica lag<strong> for reads with </strong>SLO<strong>-bounded staleness.”</strong></p>
+</div>
+<hr />
+<h2 id="7-sla-and-slo-definitions">7. SLA and SLO Definitions<a class="headerlink" href="#7-sla-and-slo-definitions" title="Permanent link">&para;</a></h2>
+<p><strong>SLI</strong> (indicator) → <strong>SLO</strong> (target) → <strong>SLA</strong> (contract, if any). Below: <strong>internal</strong> SLOs for a competitive platform.</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>SLI</th>
+<th>SLO (monthly rolling)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Score API availability</strong></td>
+<td>Successful <strong><code>POST /scores</code></strong> / total attempts</td>
+<td><strong>99.95%</strong></td>
+<td>Exclude <strong>4xx</strong> client faults</td>
+</tr>
+<tr>
+<td><strong>Read latency</strong></td>
+<td><code>GET</code> leaderboard <strong>p99</strong></td>
+<td><strong>&lt; 40 ms</strong> regional</td>
+<td>Measured at gateway</td>
+</tr>
+<tr>
+<td><strong>Redis read p99</strong></td>
+<td>Command time on replica</td>
+<td><strong>&lt; 5 ms</strong></td>
+<td><strong>Hot</strong> path</td>
+</tr>
+<tr>
+<td><strong>Kafka consumer lag</strong></td>
+<td>Max lag on <strong>ingest→Redis</strong> consumer</td>
+<td><strong>p99 &lt; 5 s</strong></td>
+<td>Burst handling</td>
+</tr>
+<tr>
+<td><strong>Write-behind lag</strong></td>
+<td>Time from Redis accept to <strong>PostgreSQL</strong> row</td>
+<td><strong>p99 &lt; 60 s</strong></td>
+<td>Audit path</td>
+</tr>
+<tr>
+<td><strong>Anti-cheat async</strong></td>
+<td>Time to <strong>quarantine</strong> suspicious score</td>
+<td><strong>p99 &lt; 5 min</strong></td>
+<td>Non-blocking</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Error budget policy:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Budget state</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&gt; 50%</strong> remaining</td>
+<td>Normal feature work</td>
+</tr>
+<tr>
+<td><strong>25–50%</strong></td>
+<td>Freeze <strong>new</strong> ingest experiments</td>
+</tr>
+<tr>
+<td><strong>&lt; 25%</strong></td>
+<td>Freeze deploys except hotfixes; scale consumers/Redis</td>
+</tr>
+<tr>
+<td><strong>Exhausted</strong></td>
+<td>Incident commander; optional <strong>read-only</strong> modes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Formula:</strong> monthly <strong>bad minutes</strong> ≈ <span class="arithmatex">\((1 - \text{SLO}) \times 43{,}200\)</span> minutes for <strong>99.9%</strong> → <strong>~43 minutes</strong>/month.</p>
+<hr />
+<h2 id="8-database-schema-and-data-model">8. Database Schema and Data Model<a class="headerlink" href="#8-database-schema-and-data-model" title="Permanent link">&para;</a></h2>
+<h3 id="postgresql-core-ddl-illustrative">PostgreSQL — core DDL (illustrative)<a class="headerlink" href="#postgresql-core-ddl-illustrative" title="Permanent link">&para;</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">players</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">player_id</span><span class="w">       </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">external_id</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">display_name</span><span class="w">    </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="n">region</span><span class="w">          </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="n">created_at</span><span class="w">      </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="n">banned_until</span><span class="w">    </span><span class="n">TIMESTAMPTZ</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">);</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">games</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="n">game_id</span><span class="w">         </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="n">slug</span><span class="w">            </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="n">title</span><span class="w">           </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="p">);</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">game_modes</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="n">mode_id</span><span class="w">         </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="n">game_id</span><span class="w">         </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">games</span><span class="p">(</span><span class="n">game_id</span><span class="p">),</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="n">slug</span><span class="w">            </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="n">aggregation</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">aggregation</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;highest&#39;</span><span class="p">,</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span><span class="s1">&#39;latest&#39;</span><span class="p">)),</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">    </span><span class="n">timezone</span><span class="w">        </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;UTC&#39;</span><span class="p">,</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="k">UNIQUE</span><span class="w"> </span><span class="p">(</span><span class="n">game_id</span><span class="p">,</span><span class="w"> </span><span class="n">slug</span><span class="p">)</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="p">);</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">friendships</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="n">player_a</span><span class="w">        </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">players</span><span class="p">(</span><span class="n">player_id</span><span class="p">),</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">    </span><span class="n">player_b</span><span class="w">        </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">players</span><span class="p">(</span><span class="n">player_id</span><span class="p">),</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">    </span><span class="n">status</span><span class="w">          </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;pending&#39;</span><span class="p">,</span><span class="s1">&#39;accepted&#39;</span><span class="p">,</span><span class="s1">&#39;blocked&#39;</span><span class="p">)),</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">    </span><span class="n">since</span><span class="w">           </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">player_a</span><span class="p">,</span><span class="w"> </span><span class="n">player_b</span><span class="p">)</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="p">);</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_friendships_a</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">friendships</span><span class="p">(</span><span class="n">player_a</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;accepted&#39;</span><span class="p">;</span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_friendships_b</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">friendships</span><span class="p">(</span><span class="n">player_b</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;accepted&#39;</span><span class="p">;</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">score_attempts</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">    </span><span class="n">event_id</span><span class="w">        </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">    </span><span class="n">player_id</span><span class="w">       </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">players</span><span class="p">(</span><span class="n">player_id</span><span class="p">),</span>
+</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="w">    </span><span class="n">game_id</span><span class="w">         </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">    </span><span class="n">mode_id</span><span class="w">         </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="w">    </span><span class="n">window_id</span><span class="w">       </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="w">    </span><span class="n">shard_id</span><span class="w">        </span><span class="nb">SMALLINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-43"><a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="w">    </span><span class="n">raw_score</span><span class="w">       </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-44"><a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="w">    </span><span class="n">effective_score</span><span class="w"> </span><span class="n">DOUBLE</span><span class="w"> </span><span class="k">PRECISION</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-45"><a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="w">    </span><span class="n">attempt_token</span><span class="w">   </span><span class="n">BYTEA</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-46"><a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="w">    </span><span class="n">kafka_offset</span><span class="w">    </span><span class="nb">BIGINT</span><span class="p">,</span>
+</span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="w">    </span><span class="n">kafka_partition</span><span class="w"> </span><span class="nb">INT</span><span class="p">,</span>
+</span><span id="__span-4-48"><a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="w">    </span><span class="n">ingested_at</span><span class="w">     </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-4-49"><a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a><span class="w">    </span><span class="n">fraud_state</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;clean&#39;</span>
+</span><span id="__span-4-50"><a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a><span class="w">        </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">fraud_state</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span><span class="s1">&#39;flagged&#39;</span><span class="p">,</span><span class="s1">&#39;rejected&#39;</span><span class="p">))</span>
+</span><span id="__span-4-51"><a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a><span class="p">);</span>
+</span><span id="__span-4-52"><a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a>
+</span><span id="__span-4-53"><a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_score_attempts_player_time</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">score_attempts</span><span class="p">(</span><span class="n">player_id</span><span class="p">,</span><span class="w"> </span><span class="n">ingested_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span><span id="__span-4-54"><a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_score_attempts_window</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">score_attempts</span><span class="p">(</span><span class="n">game_id</span><span class="p">,</span><span class="w"> </span><span class="n">mode_id</span><span class="p">,</span><span class="w"> </span><span class="n">window_id</span><span class="p">);</span>
+</span><span id="__span-4-55"><a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a>
+</span><span id="__span-4-56"><a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a><span class="c1">-- Transactional outbox for write-behind (at-least-once delivery to PostgreSQL consumers)</span>
+</span><span id="__span-4-57"><a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">leaderboard_outbox</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-58"><a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a><span class="w">    </span><span class="n">id</span><span class="w">              </span><span class="n">BIGSERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-59"><a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a><span class="w">    </span><span class="n">event_id</span><span class="w">        </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+</span><span id="__span-4-60"><a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="w">    </span><span class="n">payload</span><span class="w">         </span><span class="n">JSONB</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-4-61"><a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a><span class="w">    </span><span class="n">created_at</span><span class="w">      </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-4-62"><a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a><span class="w">    </span><span class="n">processed_at</span><span class="w">    </span><span class="n">TIMESTAMPTZ</span>
+</span><span id="__span-4-63"><a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a><span class="p">);</span>
+</span><span id="__span-4-64"><a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a>
+</span><span id="__span-4-65"><a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_outbox_pending</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">leaderboard_outbox</span><span class="p">(</span><span class="n">created_at</span><span class="p">)</span>
+</span><span id="__span-4-66"><a id="__codelineno-4-66" name="__codelineno-4-66" href="#__codelineno-4-66"></a><span class="w">    </span><span class="k">WHERE</span><span class="w"> </span><span class="n">processed_at</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</span></code></pre></div>
+<p><strong>Outbox pattern:</strong> ingest <strong>writes</strong> <code>score_attempts</code> + <strong><code>leaderboard_outbox</code></strong> in <strong>one DB transaction</strong> (if synchronous PG path); alternatively <strong>Kafka</strong> is the outbox and <strong>idempotent</strong> consumers guarantee <strong>effectively-once</strong> apply to PostgreSQL.</p>
+<h3 id="redis-key-patterns-zset-auxiliary">Redis key patterns (ZSET + auxiliary)<a class="headerlink" href="#redis-key-patterns-zset-auxiliary" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Board shard</strong></td>
+<td>ZSET</td>
+<td><code>lb:{game}:{mode}:daily:20260405:s7</code></td>
+</tr>
+<tr>
+<td><strong>Idempotency</strong></td>
+<td>STRING</td>
+<td><code>idemp:{player_id}:{attempt_id}</code> → <code>1</code></td>
+</tr>
+<tr>
+<td><strong>Global top cache</strong></td>
+<td>ZSET</td>
+<td><code>lb:{game}:{mode}:global:top</code></td>
+</tr>
+<tr>
+<td><strong>Friend cache</strong></td>
+<td>ZSET (small)</td>
+<td><code>lb:friend:{player}:daily:20260405</code></td>
+</tr>
+<tr>
+<td><strong>Rate limit</strong></td>
+<td>SLIDING / TOKEN BUCKET</td>
+<td><code>rl:score:{player_id}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> Redis <strong>cluster</strong> uses <strong>hash tags</strong> for multi-key transactions: <code>lb:{game}:{mode}:daily:20260405:{shard}</code> — keep <strong>shard</strong> in <strong>tag</strong> if using <strong><code>{...}</code></strong> slot pinning.</p>
+<h3 id="redis-cluster-slots-and-hash-tags">Redis Cluster — slots and hash tags<a class="headerlink" href="#redis-cluster-slots-and-hash-tags" title="Permanent link">&para;</a></h3>
+<p>Redis Cluster maps <strong>16384 slots</strong> to nodes. Only keys that <strong>share the same hash tag</strong> (substring <code>{...}</code>) are guaranteed to live in the <strong>same slot</strong>, enabling <strong><code>MULTI</code></strong> across those keys.</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Same slot?</th>
+<th>Example use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lb:{g1}:daily:20260405:s3</code> and <code>meta:{g1}:daily:20260405:s3</code></td>
+<td><strong>Yes</strong> if <code>{g1}</code> is identical</td>
+<td><strong>Lua</strong> that updates <strong>ZSET</strong> + <strong>STRING</strong> counter</td>
+</tr>
+<tr>
+<td><code>lb:g1:daily:20260405:s3</code> and <code>lb:g1:daily:20260405:s4</code></td>
+<td><strong>No</strong></td>
+<td><strong>Different</strong> shards by design</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hot slot mitigation:</strong> if one <strong>game</strong> dominates traffic, <strong>salt</strong> internal keys: <code>lb:{g1}:daily:20260405:s3#v2</code> — still <strong>one</strong> slot per <strong>tag</strong>; for <strong>extreme</strong> hot keys, <strong>split</strong> game across <strong>multiple</strong> logical clusters with <strong>DNS</strong> or <strong>proxy</strong> routing.</p>
+<h3 id="memory-planning-order-of-magnitude">Memory planning (order-of-magnitude)<a class="headerlink" href="#memory-planning-order-of-magnitude" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Formula</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Per ZSET entry</strong></td>
+<td>~64–128 B + <strong>member</strong> length</td>
+<td><strong>UUID</strong> member ≈ <strong>16 B</strong> binary if stored efficiently</td>
+</tr>
+<tr>
+<td><strong>10K entries × 10K shards</strong></td>
+<td><strong>100M</strong> players distributed</td>
+<td><strong>~10 GB</strong> raw <strong>if</strong> one entry per player per board (varies by retention)</td>
+</tr>
+<tr>
+<td><strong>Overhead</strong></td>
+<td>Redis <strong>jmalloc</strong> + <strong>fragmentation</strong></td>
+<td>Plan <strong>+30–50%</strong> headroom</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Eviction:</strong> prefer <strong>volatile-ttl</strong> on <strong>windowed</strong> keys; <strong>never</strong> <code>allkeys-lru</code> on <strong>mixed</strong> DBs without <strong>namespacing</strong>—risk of evicting <strong>all-time</strong> boards.</p>
+<hr />
+<h2 id="9-api-design">9. API Design<a class="headerlink" href="#9-api-design" title="Permanent link">&para;</a></h2>
+<h3 id="endpoints-rest">Endpoints (REST)<a class="headerlink" href="#endpoints-rest" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/games/{game_id}/modes/{mode_id}/scores</code></td>
+<td>Submit score</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/games/{game_id}/modes/{mode_id}/leaderboards/{window}</code></td>
+<td>Top-N + optional <code>around_player_id</code></td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/games/{game_id}/modes/{mode_id}/leaderboards/{window}/players/{player_id}</code></td>
+<td>Player rank detail</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/players/{player_id}/friends/leaderboards/{window}</code></td>
+<td>Friend-relative board</td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-submit-score">Example: submit score<a class="headerlink" href="#example-submit-score" title="Permanent link">&para;</a></h3>
+<p><strong>Request:</strong></p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="err">POST /v1/games/550e8400-e29b-41d4-a716-446655440000/modes/660e8400-e29b-41d4-a716-446655440001/scores</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="err">Authorization: Bearer &lt;jwt&gt;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="err">Content-Type: application/json</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="err">Idempotency-Key: 7c9e6679-7425-40de-944b-e07fc1f90ae7</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="err">{</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="err">  &quot;attempt_id&quot;: &quot;7c9e6679-7425-40de-944b-e07fc1f90ae7&quot;,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="err">  &quot;raw_score&quot;: 984200,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="err">  &quot;attempt_token&quot;: &quot;&lt;base64-server-signed-blob&gt;&quot;,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="err">  &quot;client_meta&quot;: {</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="err">    &quot;build&quot;: &quot;1.42.0&quot;,</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="err">    &quot;platform&quot;: &quot;ios&quot;</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="err">  }</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="err">}</span>
+</span></code></pre></div>
+<p><strong>Response <code>202 Accepted</code> (async anti-cheat):</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;accepted&quot;</span><span class="p">,</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;player_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;9b2c4e10-1111-4b44-9ccc-aaaaaaaaaaaa&quot;</span><span class="p">,</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">&quot;window_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;daily:2026-04-05&quot;</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">&quot;provisional_rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1284</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">&quot;fraud_check&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pending&quot;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Response <code>200 OK</code> (sync path):</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;committed&quot;</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;player_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;9b2c4e10-1111-4b44-9ccc-aaaaaaaaaaaa&quot;</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;effective_score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">984200.000041</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">&quot;window_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;daily:2026-04-05&quot;</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1284</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nt">&quot;total_ranked&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9823412</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="example-top-leaderboard">Example: top leaderboard<a class="headerlink" href="#example-top-leaderboard" title="Permanent link">&para;</a></h3>
+<p><strong>Request:</strong></p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="err">GET /v1/games/550e8400/modes/660e8400/leaderboards/daily:2026-04-05?limit=50</span>
+</span></code></pre></div>
+<p><strong>Response:</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;window_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;daily:2026-04-05&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;aggregation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;highest&quot;</span><span class="p">,</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;entries&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;player_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Nova&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">999999.0</span><span class="p">},</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;player_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vex&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">999001.0</span><span class="p">}</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="nt">&quot;cache_hit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="nt">&quot;stale_after_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="10-scaling-production-considerations">10. Scaling &amp; Production Considerations<a class="headerlink" href="#10-scaling-production-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="scaling">Scaling<a class="headerlink" href="#scaling" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Tactic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ingest</strong></td>
+<td><strong>Horizontal</strong> stateless ingest pods; <strong>Kafka</strong> partition count <strong>≥</strong> peak / <strong>target per partition</strong></td>
+</tr>
+<tr>
+<td><strong>Redis</strong></td>
+<td><strong>Cluster</strong> with <strong>many shards</strong>; <strong>read replicas</strong> per AZ; <strong>separate</strong> clusters per <strong>environment</strong></td>
+</tr>
+<tr>
+<td><strong>Hot keys</strong></td>
+<td><strong>Shard</strong> + <strong>hierarchical</strong> global top; <strong>dedicated</strong> keys for <strong>tournaments</strong></td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td><strong>Partition</strong> <code>score_attempts</code> by <strong>month</strong>; <strong>archive</strong> cold partitions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Alert if</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>redis_cmdstat_zadd</code> QPS</strong></td>
+<td>Sudden <strong>drop</strong> (writer stuck) or <strong>spike</strong> (attack)</td>
+</tr>
+<tr>
+<td><strong>Kafka lag</strong></td>
+<td><strong>p99 &gt; SLO</strong> for ingest consumer group</td>
+</tr>
+<tr>
+<td><strong>Replica lag</strong></td>
+<td><strong>&gt; 200 ms</strong> for read-your-own-write scenarios</td>
+</tr>
+<tr>
+<td><strong>Fraud rate</strong></td>
+<td><strong>&gt; baseline</strong> × <strong>3σ</strong></td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart LR
+  subgraph golden [Golden signals]
+    L[Latency p99/p999]
+    T[Traffic RPS]
+    E[Errors 5xx]
+    S[Saturation CPU/conn]
+  end</code></pre>
+<h3 id="failure-handling">Failure handling<a class="headerlink" href="#failure-handling" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis primary down</strong></td>
+<td><strong>Automatic failover</strong>; replicas <strong>promoted</strong>; brief <strong>write</strong> unavailability</td>
+</tr>
+<tr>
+<td><strong>Kafka unavailable</strong></td>
+<td><strong>Buffer</strong> in ingest (small) + <strong>503</strong> with backoff; <strong>never</strong> silent drop</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL slow</strong></td>
+<td><strong>Decouple</strong> hot path; <strong>extend</strong> write-behind queue; <strong>circuit break</strong></td>
+</tr>
+<tr>
+<td><strong>Regional outage</strong></td>
+<td><strong>Fail over</strong> reads to <strong>other region</strong> with <strong>stale</strong> banner</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-security-compliance-and-data-privacy">11. Security, Compliance, and Data Privacy<a class="headerlink" href="#11-security-compliance-and-data-privacy" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AuthN</strong></td>
+<td><strong>JWT</strong> with <strong>short TTL</strong> + refresh; <strong>mTLS</strong> service-to-service</td>
+</tr>
+<tr>
+<td><strong>AuthZ</strong></td>
+<td><strong>Player</strong> can only submit as <strong>self</strong>; <strong>admin</strong> APIs behind <strong>Okta</strong> + <strong>break-glass</strong></td>
+</tr>
+<tr>
+<td><strong>Anti-tamper</strong></td>
+<td><strong>Server-side</strong> authoritative tokens; <strong>never</strong> trust raw client score alone</td>
+</tr>
+<tr>
+<td><strong>Rate limiting</strong></td>
+<td>Per <strong>IP</strong>, <strong>device</strong>, <strong>player</strong> on <strong><code>POST /scores</code></strong></td>
+</tr>
+<tr>
+<td><strong>PII</strong></td>
+<td><strong><code>display_name</code></strong> moderation; <strong>GDPR</strong> delete flows <strong>anonymize</strong> audit where legal</td>
+</tr>
+<tr>
+<td><strong>Logging</strong></td>
+<td><strong>No</strong> raw <strong>attempt_token</strong> secrets in logs; <strong>hash</strong> identifiers in traces</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>Children’s privacy</strong> (COPPA/Kids) may <strong>prohibit</strong> open leaderboards—product may need <strong>opaque</strong> handles or <strong>disabled</strong> social features by region.</p>
+</div>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<h3 id="likely-follow-ups-faang-style">Likely follow-ups (FAANG-style)<a class="headerlink" href="#likely-follow-ups-faang-style" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Strong answer skeleton</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Why not one Redis ZSET for the whole game?</strong></td>
+<td><strong>Memory</strong>, <strong>hot spot</strong>, <strong><code>ZREVRANGE</code> cost</strong> ∝ log N + M; <strong>shard</strong> + <strong>merge</strong> global top</td>
+</tr>
+<tr>
+<td><strong>How do you get global rank if sharded?</strong></td>
+<td><strong>Exact</strong> rank needs <strong>sum of higher-score counts</strong> across shards → <strong>O(shards)</strong> reads or <strong>approximate</strong> via <strong>histogram</strong> / <strong>streaming</strong></td>
+</tr>
+<tr>
+<td><strong>How to handle ties fairly?</strong></td>
+<td><strong>Composite</strong> score encoding <strong>time</strong> into LSBs; document <strong>tie</strong> policy</td>
+</tr>
+<tr>
+<td><strong>What if Kafka replays?</strong></td>
+<td><strong>Idempotent</strong> consumer: <strong><code>event_id</code></strong> dedup in Redis/Postgres before second <strong><code>ZADD</code></strong></td>
+</tr>
+<tr>
+<td><strong>Cross-region players?</strong></td>
+<td><strong>Single writer</strong> region per <strong>game</strong> or <strong>accept eventual</strong> cross-region ranks; <strong>never</strong> dual-write <strong>same</strong> ZSET without <strong>conflict</strong> rules</td>
+</tr>
+<tr>
+<td><strong>Dynamo vs Redis?</strong></td>
+<td>Dynamo for <strong>durability</strong> + <strong>key-value</strong>; <strong>Redis ZSET</strong> for <strong>native rank</strong> ops—<strong>hybrid</strong> is common</td>
+</tr>
+</tbody>
+</table>
+<h3 id="demo-storyline-2-minutes">Demo storyline (2 minutes)<a class="headerlink" href="#demo-storyline-2-minutes" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Shard</strong> by <code>hash(player_id)</code> → <strong>many</strong> small ZSETs per <strong>window</strong>.</li>
+<li><strong>Kafka</strong> buffers <strong>events</strong>; <strong>consumers</strong> <strong><code>ZADD</code></strong> + <strong>write-behind</strong> to <strong>PostgreSQL</strong>.</li>
+<li><strong>Reads</strong> from <strong>replicas</strong>; <strong><code>ZREVRANGE</code></strong> for top, <strong><code>ZREVRANK</code></strong> for <strong>me</strong>.</li>
+<li><strong>Global</strong> display = <strong>merge</strong> shard tops <strong>every few seconds</strong>.</li>
+<li><strong>Anti-cheat</strong> = <strong>layers</strong>: <strong>token</strong> + <strong>stats</strong> + async <strong>replay</strong>.</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Close with <strong>trade-offs</strong>: <strong>exact global rank</strong> is <strong>expensive</strong>; <strong>product</strong> often accepts <strong>shard-local</strong> exact + <strong>global</strong> approximate.</p>
+</div>
+<h3 id="python-k-way-merge-sketch-interview-pseudocode">Python — k-way merge sketch (interview pseudocode)<a class="headerlink" href="#python-k-way-merge-sketch-interview-pseudocode" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">heapq</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">ShardList</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">merge_top_k</span><span class="p">(</span><span class="n">shard_lists</span><span class="p">:</span> <span class="n">ShardList</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Each inner list is sorted descending by score. Returns global top-k.&quot;&quot;&quot;</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">heap</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">lst</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shard_lists</span><span class="p">):</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>        <span class="k">if</span> <span class="n">lst</span><span class="p">:</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>            <span class="n">pid</span><span class="p">,</span> <span class="n">sc</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>            <span class="n">heapq</span><span class="o">.</span><span class="n">heappush</span><span class="p">(</span><span class="n">heap</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">sc</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="n">out</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>    <span class="k">while</span> <span class="n">heap</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>        <span class="n">neg_sc</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pid</span><span class="p">,</span> <span class="o">-</span><span class="n">neg_sc</span><span class="p">))</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>        <span class="n">nxt</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>        <span class="n">row</span> <span class="o">=</span> <span class="n">shard_lists</span><span class="p">[</span><span class="n">si</span><span class="p">]</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>        <span class="k">if</span> <span class="n">nxt</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>            <span class="n">npid</span><span class="p">,</span> <span class="n">nsc</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">nxt</span><span class="p">]</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>            <span class="n">heapq</span><span class="o">.</span><span class="n">heappush</span><span class="p">(</span><span class="n">heap</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">nsc</span><span class="p">,</span> <span class="n">npid</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="n">nxt</span><span class="p">))</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>    <span class="k">return</span> <span class="n">out</span>
+</span></code></pre></div>
+<hr />
+<h2 id="interview-self-check">Interview Self-Check<a class="headerlink" href="#interview-self-check" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Explained</strong> why <strong>ZSET</strong> / <strong>skip list</strong> gives <strong>O(log N)</strong> for <strong><code>ZADD</code></strong> and <strong><code>ZRANK</code></strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Modeled</strong> <strong>daily/weekly/monthly/all-time</strong> as <strong>separate keys</strong> + <strong>TTL</strong> + archival</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Sharding</strong> strategy for <strong>100M+</strong> players; <strong>avoided</strong> single global ZSET</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Idempotency</strong> and <strong>Kafka</strong> replay for <strong>at-least-once</strong> ingest</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Write-behind</strong> to <strong>PostgreSQL</strong> with <strong>outbox</strong> or <strong>durable</strong> queue</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Friend leaderboard</strong> without <strong>O(friends)</strong> full scans at <strong>scale</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>CAP</strong> story <strong>per subsystem</strong> (Redis primary, replicas, Kafka, PG)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>SLOs</strong> for <strong>read</strong>, <strong>ingest lag</strong>, and <strong>async fraud</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Anti-cheat</strong> layers: <strong>crypto</strong>, <strong>stats</strong>, <strong>replay</strong>, <strong>ML</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Real-time vs batch</strong> update trade-offs stated clearly</li>
+</ul>
+<hr />
+<h2 id="quick-reference-tables">Quick Reference Tables<a class="headerlink" href="#quick-reference-tables" title="Permanent link">&para;</a></h2>
+<h3 id="technology-choices">Technology choices<a class="headerlink" href="#technology-choices" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hot leaderboard</td>
+<td><strong>Redis ZSET</strong> (clustered, sharded)</td>
+</tr>
+<tr>
+<td>Event log</td>
+<td><strong>Kafka</strong></td>
+</tr>
+<tr>
+<td>Profiles, graph, audit</td>
+<td><strong>PostgreSQL</strong></td>
+</tr>
+<tr>
+<td>Optional cold analytics</td>
+<td><strong>Cassandra / DynamoDB / warehouse</strong></td>
+</tr>
+<tr>
+<td>Merged global top</td>
+<td><strong>Periodic aggregator</strong> + small <strong>ZSET</strong> cache</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cap-summary">CAP summary<a class="headerlink" href="#cap-summary" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Emphasis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis primary</td>
+<td><strong>Consistency + partition tolerance</strong> per shard</td>
+</tr>
+<tr>
+<td>Read replicas</td>
+<td><strong>Availability</strong> with <strong>staleness</strong></td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td><strong>Durability + ordering</strong> per partition</td>
+</tr>
+<tr>
+<td>Global cache</td>
+<td><strong>AP</strong> — <strong>few-second</strong> lag OK</td>
+</tr>
+</tbody>
+</table>
+<h3 id="redis-command-cheat-sheet">Redis command cheat sheet<a class="headerlink" href="#redis-command-cheat-sheet" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Upsert member score</td>
+<td><code>ZADD key score member</code></td>
+</tr>
+<tr>
+<td>Desc rank</td>
+<td><code>ZREVRANK key member</code></td>
+</tr>
+<tr>
+<td>Top-N</td>
+<td><code>ZREVRANGE key 0 N-1 WITHSCORES</code></td>
+</tr>
+<tr>
+<td>Score range</td>
+<td><code>ZRANGEBYSCORE key min max WITHSCORES LIMIT offset count</code></td>
+</tr>
+<tr>
+<td>Count in range</td>
+<td><code>ZCOUNT key min max</code></td>
+</tr>
+<tr>
+<td>Sum aggregation</td>
+<td><code>ZINCRBY key increment member</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Last updated: this walkthrough is <strong>~900 lines</strong> of interview depth for <strong>gaming leaderboards</strong> at <strong>Redis + Kafka + PostgreSQL</strong> scale; tune all numeric <strong>SLOs</strong> to your prompt.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../ad_click_aggregator/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Ad Click Aggregator">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Ad Click Aggregator
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../api_gateway/" class="md-footer__link md-footer__link--next" aria-label="Next: API Gateway">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                API Gateway
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

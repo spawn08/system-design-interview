@@ -1,0 +1,4429 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI">
+      
+      
+        <meta name="author" content="Amarsingh Thakur">
+      
+      
+        <link rel="canonical" href="https://spawn08.github.io/system-design-interview/software_system_design/video_streaming/">
+      
+      
+        <link rel="prev" href="../distributed_cache/">
+      
+      
+        <link rel="next" href="../photo_sharing/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>Video Streaming (YouTube) - System Design Interview Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/theme.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#video-streaming-youtube" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+<style>
+  .md-banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+    color: white;
+  }
+  .md-banner__inner {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+</style>
+75+ topics &bull; Software &bull; ML &bull; GenAI &mdash; Architecture diagrams, code examples &amp; interview transcripts
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Interview Guide" class="md-header__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Interview Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Video Streaming (YouTube)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Interview Guide" class="md-nav__button md-logo" aria-label="System Design Interview Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v2M4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9v2m0 8h1v-2H9v2M5 5v2h2V5H5m0 8v2h2v-2H5Z"/></svg>
+
+    </a>
+    System Design Interview Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/spawn08/system-design-interview" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    spawn08/system-design-interview
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/interview_framework/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interview Framework
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimation & Planning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/networking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Networking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/databases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Databases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/caching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Caching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/load_balancer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load Balancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/api_design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/concurrency/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concurrency
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/security/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/scalability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalability & Reliability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basics/distributed_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../advanced/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/message_queues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message Queues & Streaming
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/search_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Systems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/data_warehousing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Warehousing & Lakes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/microservices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Microservices Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consistency_patterns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consistency Patterns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/object_storage_cdn/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Object Storage & CDN
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_locking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Locking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/event_sourcing_cqrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Sourcing & CQRS
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/consensus_algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Consensus Algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/distributed_transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/sharding_partitioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sharding & Partitioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/behavioral_leadership/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Behavioral & Leadership (L6)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    System Design Examples
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            System Design Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../staff_engineer_expectations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Staff Engineer Interview Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../url_shortening/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URL Shortener (TinyURL)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../voting-system-design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Voting System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key_value_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Key-Value Store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate_limiter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rate Limiter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web_crawler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web Crawler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chat_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Chat System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../news_feed/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News Feed / Timeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search_autocomplete/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Autocomplete
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_cache/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Video Streaming (YouTube)
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-were-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      What We're Building
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What We're Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-problem-is-hard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why This Problem Is Hard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-level-system-context-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      High-Level System Context (Preview)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-functional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-Functional Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Design
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cap-theorem-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAP Theorem Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-and-slo-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      SLA and SLO Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-back-of-the-envelope-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Back-of-the-Envelope Estimation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-high-level-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: High-Level Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: High-Level Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-level-architecture-mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      High-Level Architecture (Mermaid)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Flow Summary
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-video-upload-and-processing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Video Upload and Processing Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-video-transcoding-adaptive-bitrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Video Transcoding (Adaptive Bitrate)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-cdn-and-video-delivery-hlsdash" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 CDN and Video Delivery (HLS/DASH)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-video-metadata-and-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Video Metadata and Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-thumbnail-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Thumbnail Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-view-counting-and-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.6 View Counting and Analytics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-recommendation-feed" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.7 Recommendation Feed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deduplication-and-content-addressed-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deduplication and Content-Addressed Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copyright-detection-high-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Copyright Detection (High Level)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-scaling-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: Scaling &amp; Production
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: Scaling & Production">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#operational-concerns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational Concerns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#failure-modes-short" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failure Modes (Short)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interview-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interview Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#interview-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interview Checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-interview-dialogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Interview Dialogue
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-sketches-multi-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Sketches (Multi-Language)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photo_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photo Sharing (Instagram)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collaborative_editor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Collaborative Editor (Google Docs)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ride_sharing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ride Sharing (Uber/Lyft)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloud_storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloud Storage (Google Drive)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event_booking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Booking (Ticketmaster)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_scheduler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Scheduler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Payment System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proximity_service/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proximity Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message_queue/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Message Queue
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_monitoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics & Monitoring System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email_delivery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Email Delivery System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed_file_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed File System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad_click_aggregator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gaming_leaderboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Gaming Leaderboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../content_delivery_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Content Delivery Network (CDN)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_basics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI/ML Fundamentals
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI/ML Fundamentals
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/model_serving/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Serving
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/feature_stores/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Stores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/data_pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Pipelines for ML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_systems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Large Language Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/distributed_training/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributed Training
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/llm_evaluation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_basics/rlhf_alignment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RLHF & Alignment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ML System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            ML System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_caption_generator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Caption Generator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/recommendation_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recommendation System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/fraud_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Fraud Detection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/image_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image Search System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/search_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search Ranking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/realtime_personalization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Personalization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/ads_ranking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ads Ranking System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/feature_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Real-time Feature Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/machine_translation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Machine Translation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ml_system_design/speech_recognition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech Recognition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../genai_ml_system_design/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    GenAI System Design
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            GenAI System Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_chatbot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM-Powered Chatbot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/enterprise_rag/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Enterprise RAG System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_code_assistant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Code Assistant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/content_moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Content Moderation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ml_training_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/multimodal_search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multi-Modal Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/ai_agent_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AI Agent System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/llm_gateway/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Gateway
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/text_to_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Text-to-Image Generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../genai_ml_system_design/vector_database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vector Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="video-streaming-youtube">Video Streaming (YouTube)<a class="headerlink" href="#video-streaming-youtube" title="Permanent link">&para;</a></h1>
+<h2 id="what-were-building">What We're Building<a class="headerlink" href="#what-were-building" title="Permanent link">&para;</a></h2>
+<p>A <strong>video streaming platform</strong> lets creators upload long-form and short-form video, processes those files into multiple formats and bitrates, stores and indexes metadata, and delivers playback to viewers worldwide with adaptive quality, low startup latency, and high availability. The canonical reference product is <strong>YouTube</strong>; similar patterns appear in <strong>Vimeo</strong>, <strong>Twitch</strong> (live differs but shares CDN and transcoding ideas), and enterprise <strong>VOD</strong> stacks.</p>
+<p><strong>Core capabilities we will cover:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Brief description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Resumable upload</strong></td>
+<td>Chunked uploads with checksums so large files survive flaky networks</td>
+</tr>
+<tr>
+<td><strong>Transcoding</strong></td>
+<td>FFmpeg (or cloud encoder APIs) to produce H.264/VP9/AV1 ladders</td>
+</tr>
+<tr>
+<td><strong>Adaptive streaming</strong></td>
+<td>HLS or DASH segments + manifests for ABR clients</td>
+</tr>
+<tr>
+<td><strong>CDN delivery</strong></td>
+<td>Edge caching of segments and manifests close to viewers</td>
+</tr>
+<tr>
+<td><strong>Metadata and search</strong></td>
+<td>Titles, tags, channels, inverted indexes, sometimes ASR captions</td>
+</tr>
+<tr>
+<td><strong>Thumbnails</strong></td>
+<td>Sprites or keyframe extractions for previews and seek bars</td>
+</tr>
+<tr>
+<td><strong>View analytics</strong></td>
+<td>Approximate counts, aggregation pipelines, fraud resistance</td>
+</tr>
+<tr>
+<td><strong>Recommendations</strong></td>
+<td>Candidate generation + ranking (often separate ML stack)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-this-problem-is-hard">Why This Problem Is Hard<a class="headerlink" href="#why-this-problem-is-hard" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Egress cost</strong></td>
+<td>Video bytes dwarf API JSON; CDN and encoding are the main bills</td>
+</tr>
+<tr>
+<td><strong>CPU-heavy transcoding</strong></td>
+<td>Long videos need distributed workers and queue backpressure</td>
+</tr>
+<tr>
+<td><strong>Global latency</strong></td>
+<td>Playback must start quickly; manifests and first segments must be hot at edge</td>
+</tr>
+<tr>
+<td><strong>Consistency vs cost</strong></td>
+<td>Strong consistency everywhere is expensive; many paths are eventual</td>
+</tr>
+<tr>
+<td><strong>Abuse and compliance</strong></td>
+<td>Copyright, CSAM, and spam require detection pipelines and policy</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In interviews, <strong>clarify live vs VOD</strong> early. Live streaming uses RTMP/WebRTC ingest and LL-HLS/WebRTC egress; this page focuses on <strong>VOD</strong> (upload then watch), which matches “Design YouTube” unless the interviewer specifies live.</p>
+</div>
+<h3 id="high-level-system-context-preview">High-Level System Context (Preview)<a class="headerlink" href="#high-level-system-context-preview" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Clients
+        U[Uploader client]
+        V[Viewer client]
+    end
+    subgraph Edge
+        CDN[CDN / Edge POPs]
+    end
+    subgraph API
+        GW[API Gateway]
+        UP[Upload service]
+        META[Metadata service]
+        SRCH[Search service]
+    end
+    subgraph Data
+        OBJ[(Object storage)]
+        DB[(Metadata DB)]
+        IDX[(Search index)]
+        CACHE[(Redis cache)]
+    end
+    subgraph Processing
+        Q[Job queue]
+        DAG[Transcode DAG workers]
+        TH[Thumbnail workers]
+        COPY[Copyright / safety pipeline]
+    end
+    U --&gt; GW
+    V --&gt; CDN
+    GW --&gt; UP
+    GW --&gt; META
+    GW --&gt; SRCH
+    UP --&gt; OBJ
+    UP --&gt; Q
+    Q --&gt; DAG
+    DAG --&gt; OBJ
+    TH --&gt; OBJ
+    META --&gt; DB
+    META --&gt; CACHE
+    SRCH --&gt; IDX
+    COPY --&gt; Q</code></pre>
+<hr />
+<h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-1</td>
+<td>Users can <strong>upload</strong> video files (large, resumable)</td>
+<td>Chunked multipart or gRPC streams</td>
+</tr>
+<tr>
+<td>FR-2</td>
+<td>System <strong>transcodes</strong> uploads into multiple renditions</td>
+<td>Resolution + bitrate ladder</td>
+</tr>
+<tr>
+<td>FR-3</td>
+<td>Viewers <strong>play</strong> video in browser/app with <strong>adaptive bitrate</strong></td>
+<td>HLS and/or DASH</td>
+</tr>
+<tr>
+<td>FR-4</td>
+<td><strong>Metadata</strong>: title, description, tags, channel, visibility</td>
+<td>CRUD + validation</td>
+</tr>
+<tr>
+<td>FR-5</td>
+<td><strong>Search</strong> videos by keyword (and optionally filters)</td>
+<td>Inverted index; ranking later</td>
+</tr>
+<tr>
+<td>FR-6</td>
+<td><strong>Thumbnails</strong> for grid and seek preview</td>
+<td>Generated post-upload</td>
+</tr>
+<tr>
+<td>FR-7</td>
+<td><strong>View counts</strong> and basic analytics for creators</td>
+<td>Often approximate at scale</td>
+</tr>
+<tr>
+<td>FR-8</td>
+<td><strong>Home / feed</strong> surfaces recommended videos</td>
+<td>ML ranking; can be scoped “out of band”</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Mark <strong>recommendations</strong> as a separate sub-system if time is short: ingest signals (views, watches, subs) and serve ranked lists from an offline + online stack.</p>
+</div>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Playback start (p95)</strong></td>
+<td>2–5 s on good networks</td>
+<td>Industry expectation; CDN + small first segments help</td>
+</tr>
+<tr>
+<td><strong>Upload reliability</strong></td>
+<td>Resume after disconnect</td>
+<td>Mobile networks drop often</td>
+</tr>
+<tr>
+<td><strong>Availability</strong></td>
+<td>99.9%+ for read path</td>
+<td>Writes and processing can degrade gracefully with status UI</td>
+</tr>
+<tr>
+<td><strong>Durability</strong></td>
+<td>No loss of committed uploads</td>
+<td>Replicated object storage + job idempotency</td>
+</tr>
+<tr>
+<td><strong>Scale</strong></td>
+<td>Horizontal workers, sharded metadata</td>
+<td>Avoid single-node transcode</td>
+</tr>
+<tr>
+<td><strong>Compliance</strong></td>
+<td>Takedowns, copyright, regional restrictions</td>
+<td>Legal and policy hooks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-design">API Design<a class="headerlink" href="#api-design" title="Permanent link">&para;</a></h3>
+<p>Typical REST (or gRPC internal) surface:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/uploads</code></td>
+<td>Start upload session: returns <code>upload_id</code>, chunk size, object key prefix</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/v1/uploads/{upload_id}/parts/{part_number}</code></td>
+<td>Upload one chunk (with Content-Range or fixed part size)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/uploads/{upload_id}/complete</code></td>
+<td>Finalize multipart upload, trigger processing</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/videos/{video_id}</code></td>
+<td>Metadata + processing status + playback URLs</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/videos/{video_id}/manifest.m3u8</code></td>
+<td>HLS master or redirect to CDN URL</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/search?q=</code></td>
+<td>Keyword search</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/videos/{video_id}/views</code></td>
+<td>Client beacons for views (often batched)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example: start upload response</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;upload_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;up_7f91c2&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;chunk_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8388608</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;max_parts&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;storage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;bucket&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;uploads-prod&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;key_prefix&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;raw/up_7f91c2/&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Never expose <strong>raw storage credentials</strong> to clients. Use <strong>pre-signed URLs</strong> or short-lived upload tokens so the browser talks directly to object storage where appropriate.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>At interview depth, <strong>name 2–3 realistic options per layer</strong>, compare on <strong>ops burden, cost model, and time-to-market</strong>, then commit to a <strong>default “big company” stack</strong> (managed object store + queue + CDN + relational metadata) unless the prompt forces self-hosted or bare-metal.</p>
+<h4 id="video-storage-s3-vs-custom-blob-store-vs-hdfs">Video storage: S3 vs custom blob store vs HDFS<a class="headerlink" href="#video-storage-s3-vs-custom-blob-store-vs-hdfs" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th><strong>S3 (or compatible: GCS, Azure Blob)</strong></th>
+<th><strong>Custom blob store</strong> (MinIO cluster, Ceph, internal key-value blobs)</th>
+<th><strong>HDFS</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Best for</strong></td>
+<td>Default production path; global durability SLAs; multipart + lifecycle APIs</td>
+<td>Full control of hardware, tenancy isolation, or air-gapped deploys</td>
+<td>Batch analytics on huge files; <strong>not</strong> a great fit for small random reads at CDN scale</td>
+</tr>
+<tr>
+<td><strong>Durability / HA</strong></td>
+<td>Vendor-managed replication across AZs/ regions</td>
+<td>You own erasure coding, repair, and upgrades</td>
+<td>NameNode SPOF patterns unless heavily engineered; tuned for <strong>sequential</strong> big reads</td>
+</tr>
+<tr>
+<td><strong>API ergonomics</strong></td>
+<td>Pre-signed uploads, versioning, tiering, inventory</td>
+<td>Must build auth, metering, lifecycle yourself</td>
+<td>POSIX/HDFS client assumptions; poor match for <strong>HTTP range</strong> + CDN origin patterns</td>
+</tr>
+<tr>
+<td><strong>Cost</strong></td>
+<td>Pay egress + API + storage; predictable at scale</td>
+<td>CapEx + small team to run it</td>
+<td>Cheap TB for warehouse-style jobs; <strong>egress to internet</strong> is awkward</td>
+</tr>
+<tr>
+<td><strong>Interview risk</strong></td>
+<td>“Everyone uses it” — explain <strong>multi-part</strong>, <strong>checksums</strong>, <strong>lifecycle to Glacier</strong></td>
+<td>Show you know <strong>when</strong> (regulated, repatriation, margin)</td>
+<td>Only if interviewer asks data-lake adjacency; say <strong>not primary for user-facing VOD</strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="transcoding-ffmpeg-workers-vs-cloud-transcoding-vs-gpu-accelerated">Transcoding: FFmpeg workers vs cloud transcoding vs GPU-accelerated<a class="headerlink" href="#transcoding-ffmpeg-workers-vs-cloud-transcoding-vs-gpu-accelerated" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th><strong>Self-managed FFmpeg on CPU workers</strong></th>
+<th><strong>Cloud transcoding (e.g. MediaConvert, Transcoder API)</strong></th>
+<th><strong>GPU-accelerated (NVENC / cloud GPU pools)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Control</strong></td>
+<td>Full codec knobs, custom DAGs, per-title tuning</td>
+<td>Opinionated pipelines; faster integration</td>
+<td>Highest throughput per watt for certain codecs; complex capacity planning</td>
+</tr>
+<tr>
+<td><strong>Cost model</strong></td>
+<td>You pay compute + ops; <strong>spot</strong> instances for batch</td>
+<td>Per-minute or per-output pricing; less ops</td>
+<td>GPU $/hour can beat CPU for <strong>throughput</strong> if utilization is high</td>
+</tr>
+<tr>
+<td><strong>Latency to first rendition</strong></td>
+<td>Depends on queue + worker pool</td>
+<td>Often good regional pools; less tuning</td>
+<td>Great for <strong>live</strong> or huge parallel ladders</td>
+</tr>
+<tr>
+<td><strong>Why choose</strong></td>
+<td>Maximum flexibility; industry default in diagrams</td>
+<td>Startup or when ops headcount is limited</td>
+<td>Peak transcode, <strong>live</strong>, or AV1/HEVC at scale with hardware assist</td>
+</tr>
+</tbody>
+</table>
+<h4 id="streaming-protocol-hls-vs-dash-vs-cmaf-vs-webrtc-live">Streaming protocol: HLS vs DASH vs CMAF vs WebRTC (live)<a class="headerlink" href="#streaming-protocol-hls-vs-dash-vs-cmaf-vs-webrtc-live" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th><strong>HLS</strong></th>
+<th><strong>DASH</strong></th>
+<th><strong>CMAF (fMP4)</strong></th>
+<th><strong>WebRTC</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Container</strong></td>
+<td>Traditionally MPEG-TS; modern: <strong>fMP4</strong></td>
+<td>fMP4 segments + MPD</td>
+<td><strong>Common segment format</strong> for HLS and DASH</td>
+<td>RTP; not segment-cache like VOD</td>
+</tr>
+<tr>
+<td><strong>Client support</strong></td>
+<td>Excellent on Apple/Safari; industry default for ABR VOD</td>
+<td>Strong on Android/TV; needs polyfill on some browsers</td>
+<td><strong>One encode</strong> packaged to both HLS and DASH manifests</td>
+<td><strong>Ultra-low latency</strong>; signaling + peer/server infra</td>
+</tr>
+<tr>
+<td><strong>Caching</strong></td>
+<td>Segment URLs cache well on CDN</td>
+<td>Same</td>
+<td>Same; aligns segment boundaries across renditions</td>
+<td>Harder to cache “like HLS”; different architecture</td>
+</tr>
+<tr>
+<td><strong>Typical use</strong></td>
+<td><strong>VOD + live (LL-HLS)</strong></td>
+<td>VOD + smart TV ecosystems</td>
+<td><strong>Reduce duplicate storage</strong> when serving both HLS and DASH</td>
+<td><strong>Live</strong> interactive (sub-second), not primary for long VOD</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cdn-cloudfront-vs-akamai-vs-custom-edge-vs-multi-cdn">CDN: CloudFront vs Akamai vs custom edge vs multi-CDN<a class="headerlink" href="#cdn-cloudfront-vs-akamai-vs-custom-edge-vs-multi-cdn" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th><strong>CloudFront (example: AWS-native)</strong></th>
+<th><strong>Akamai / Fastly-class global CDNs</strong></th>
+<th><strong>Custom edge</strong> (your POPs)</th>
+<th><strong>Multi-CDN</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Integration</strong></td>
+<td>Tight with S3/API Gateway; fast to sketch</td>
+<td>Mature WAF, media features, global footprint</td>
+<td>Rare unless Netflix-scale; huge CapEx + peering</td>
+<td><strong>Avoid lock-in</strong>, failover, price arbitrage</td>
+</tr>
+<tr>
+<td><strong>Features</strong></td>
+<td>Signed URLs, origin shield, geo headers</td>
+<td>Deep edge logic, large peer ecosystem</td>
+<td>Full control</td>
+<td>Routing layer chooses provider per region/cost</td>
+</tr>
+<tr>
+<td><strong>When to mention</strong></td>
+<td>Default AWS answer</td>
+<td>“We need maximum edge POP density or compliance”</td>
+<td>“We’re hyperscaler-scale”</td>
+<td>“Egress is 40% of COGS; we <strong>steer</strong> traffic”</td>
+</tr>
+</tbody>
+</table>
+<h4 id="metadata-database-postgresql-vs-dynamodb-vs-cassandra-view-counts">Metadata database: PostgreSQL vs DynamoDB vs Cassandra (view counts)<a class="headerlink" href="#metadata-database-postgresql-vs-dynamodb-vs-cassandra-view-counts" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th><strong>PostgreSQL</strong></th>
+<th><strong>DynamoDB</strong></th>
+<th><strong>Cassandra</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Strength</strong></td>
+<td><strong>ACID</strong> transactions, joins, constraints; great for <strong>video + channel</strong> rows</td>
+<td>Predictable <strong>partition-key</strong> scale; <strong>DynamoDB Streams</strong> for pipelines</td>
+<td>Massive <strong>write</strong> throughput for <strong>wide</strong> partitions when modeled carefully</td>
+</tr>
+<tr>
+<td><strong>Hot keys</strong></td>
+<td>Viral <code>video_id</code> row can bottleneck <strong>counters</strong></td>
+<td>Hot partition unless sharded/split patterns</td>
+<td>Still need careful <strong>partition</strong> design</td>
+</tr>
+<tr>
+<td><strong>View counts</strong></td>
+<td>Fine behind <strong>async aggregation</strong>, not raw per-click row updates</td>
+<td>Good for <strong>sharded counters</strong> + atomic adds</td>
+<td>Good for <strong>time-bucket</strong> counters and high ingest</td>
+</tr>
+<tr>
+<td><strong>Interview story</strong></td>
+<td>“Source of truth for metadata; cache reads”</td>
+<td>“Fully managed, regional, key-value at huge QPS”</td>
+<td>“Write-heavy, multi-region if we already operate C*”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice (typical VOD platform):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Blob storage</strong></td>
+<td><strong>S3-compatible object storage</strong></td>
+<td>Multipart uploads, pre-signed URLs, <strong>11 nines</strong> durability narrative, lifecycle tiers — minimizes undifferentiated heavy lifting.</td>
+</tr>
+<tr>
+<td><strong>Transcoding</strong></td>
+<td><strong>FFmpeg-based workers on autoscaled CPU</strong> (optional GPU pool for peak)</td>
+<td>Flexibility for <strong>DAG</strong> stages; cloud transcoder as alternative for teams optimizing for speed over control.</td>
+</tr>
+<tr>
+<td><strong>Packaging</strong></td>
+<td><strong>HLS + fMP4 (CMAF)</strong> where possible</td>
+<td>One segment format, <strong>CDN-friendly</strong>, broad player support; add DASH if Android/TV needs dominate.</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td><strong>Major managed CDN</strong> + path to <strong>multi-CDN</strong> at scale</td>
+<td>Correct default; multi-CDN when <strong>egress cost</strong> and <strong>availability</strong> dominate.</td>
+</tr>
+<tr>
+<td><strong>Metadata</strong></td>
+<td><strong>PostgreSQL</strong> for relational truth; <strong>Redis</strong> for hot reads; <strong>stream processing</strong> + KV/OLAP for <strong>views</strong></td>
+<td>Keeps <strong>strong consistency</strong> for “what exists” while isolating <strong>write-heavy analytics</strong> from OLTP.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Tie each choice to <strong>constraints</strong>: “We optimize for <strong>time-to-market</strong> and <strong>managed durability</strong> on blobs; we <strong>don’t</strong> optimize for running our own HDFS for user-facing bytes.”</p>
+</div>
+<h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
+<p><strong>CAP</strong> (in the practical sense used in interviews): partition tolerance <strong>P</strong> is non-negotiable at global scale, so you choose <strong>C vs A</strong> <strong>per subsystem</strong>, not once for the whole company.</p>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Typical CAP stance</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Video upload (multipart)</strong></td>
+<td><strong>CP</strong> toward <strong>durability</strong>: completion must be <strong>consistent</strong> (no “lost” acknowledged parts)</td>
+<td>Use storage <strong>strong read-after-write</strong> semantics on complete; <strong>idempotent</strong> APIs so retries don’t double-commit</td>
+</tr>
+<tr>
+<td><strong>Metadata (video row, channel)</strong></td>
+<td><strong>CP</strong> within a region (Postgres <strong>ACID</strong>); <strong>AP</strong> across regions if async multi-master</td>
+<td>Users expect <strong>correct title/status</strong>; cross-region can be <strong>eventual</strong> with CRDTs or last-writer-wins for rare conflicts</td>
+</tr>
+<tr>
+<td><strong>Streaming / playback (CDN + segments)</strong></td>
+<td><strong>AP</strong>: <strong>availability</strong> and <strong>low latency</strong> beat <strong>strong</strong> consistency of “view count” on the manifest</td>
+<td>Segments are <strong>immutable</strong> once published → <strong>easy eventual consistency</strong>; CDN serves <strong>stale</strong> rarely matters if URLs are versioned</td>
+</tr>
+<tr>
+<td><strong>Recommendations</strong></td>
+<td><strong>AP</strong>: personalized lists can be <strong>stale minutes</strong></td>
+<td>Ranking features updated <strong>offline</strong>; <strong>fresh enough</strong> beats <strong>globally consistent</strong></td>
+</tr>
+<tr>
+<td><strong>View counts</strong></td>
+<td><strong>AP</strong> with <strong>eventual</strong> aggregation</td>
+<td>Exact global total in real time <strong>sacrifices A or P</strong> under viral load; <strong>accept delay</strong> + <strong>reconcile</strong></td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TB
+  subgraph CP["CP-biased (control plane)"]
+    U[Multipart upload complete]
+    M[Metadata OLTP]
+    J[Job queue state / orchestration]
+  end
+  subgraph AP["AP-biased (data plane / scale)"]
+    C[CDN segment delivery]
+    R[Recommendations]
+    V[View count aggregates]
+  end
+  U --&gt; M
+  M --&gt; J
+  J --&gt; C
+  M -.-&gt;|eventual| R
+  M -.-&gt;|async| V</code></pre>
+<p><strong>Why this split wins interviews:</strong> <strong>Immutability</strong> of packaged segments makes playback <strong>highly available</strong> without coordination; <strong>upload and processing</strong> use <strong>queues + durable storage</strong> so you <strong>don’t lose work</strong>; <strong>counters and ML</strong> move to <strong>async</strong> paths so spikes don’t <strong>brick</strong> the OLTP database.</p>
+<h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
+<p>Define <strong>SLI → SLO → error budget</strong> so you can talk about <strong>on-call</strong>, <strong>prioritization</strong>, and <strong>throttling</strong> coherently.</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th><strong>SLI (what we measure)</strong></th>
+<th><strong>Example SLO</strong></th>
+<th><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Video start time</strong></td>
+<td>Time from <strong>play intent</strong> to <strong>first decoded video frame</strong> (or <strong>TTFB</strong> on first segment)</td>
+<td><strong>p95 ≤ 3 s</strong>, <strong>p99 ≤ 5 s</strong> on “good” residential networks</td>
+<td>Separate <strong>API</strong> (metadata) from <strong>CDN</strong> (segments); track <strong>per region</strong></td>
+</tr>
+<tr>
+<td><strong>Rebuffering ratio</strong></td>
+<td><strong>Rebuffer events / playback minutes</strong> (or stall seconds / watched seconds)</td>
+<td><strong>≤ 0.5%</strong> rebuffer minutes monthly (global blend)</td>
+<td>Correlate with <strong>CDN errors</strong>, <strong>origin 5xx</strong>, <strong>player bugs</strong></td>
+</tr>
+<tr>
+<td><strong>Upload processing time</strong></td>
+<td>Wall clock from <strong><code>COMPLETE</code> upload</strong> to <strong><code>READY</code> playable</strong></td>
+<td><strong>p95 ≤ 15 min</strong> for typical 1080p; <strong>p99 ≤ 60 min</strong></td>
+<td>Depends on <strong>queue depth</strong>; publish internal <strong>ETA</strong> from orchestrator</td>
+</tr>
+<tr>
+<td><strong>Content availability</strong></td>
+<td>Time from <strong>upload complete</strong> to <strong>first manifest+segments visible on CDN</strong></td>
+<td><strong>p95 ≤ 20 min</strong> end-to-end for standard ladder</td>
+<td>Distinct from “processing done” if <strong>regional</strong> rollout</td>
+</tr>
+<tr>
+<td><strong>CDN cache hit ratio</strong></td>
+<td><strong>Edge bytes served / origin bytes</strong> (or request hit ratio)</td>
+<td><strong>≥ 90–95%</strong> for segment URLs on popular content</td>
+<td>Low hits → <strong>origin</strong> cost and <strong>latency</strong> spike</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Error budget policy (how teams use SLOs):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Policy element</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget</strong></td>
+<td>Monthly <strong>allowed bad events</strong> = <span class="arithmatex">\((1 - \text{SLO}) \times \text{total eligible events}\)</span></td>
+</tr>
+<tr>
+<td><strong>Burn alerts</strong></td>
+<td><strong>Fast burn</strong> (budget gone in hours) vs <strong>slow burn</strong> (gradual drift) — page <strong>playback</strong> hotter than <strong>view count delay</strong></td>
+</tr>
+<tr>
+<td><strong>Release gates</strong></td>
+<td>If <strong>playback SLO</strong> budget is low, <strong>freeze</strong> risky CDN config / encoder rollouts; <strong>processing</strong> SLO can use <strong>separate</strong> budget</td>
+</tr>
+<tr>
+<td><strong>Customer comms</strong></td>
+<td><strong>SLO</strong> is internal; external <strong>SLA</strong> may promise <strong>money back</strong> on stricter or narrower terms</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In interviews, say <strong>why</strong> two numbers differ: <strong>TTFB</strong> is user-perceived; <strong>cache hit ratio</strong> is a <strong>leading indicator</strong> of both <strong>cost</strong> and <strong>TTFB</strong> at scale.</p>
+</div>
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">&para;</a></h3>
+<p>Schemas below are <strong>illustrative</strong> (PostgreSQL-style). At scale, <strong>partition</strong> <code>view_history</code> and <strong>never</strong> store raw view increments on the <code>videos</code> row — use <strong>aggregation pipelines</strong>.</p>
+<p><strong><code>users</code> (abbreviated — auth identity lives elsewhere)</strong></p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">id</span><span class="w"> </span><span class="n">BIGSERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">email</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">created_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">()</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">);</span>
+</span></code></pre></div>
+<p><strong><code>channels</code> (creators)</strong></p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">channels</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">id</span><span class="w">              </span><span class="n">BIGSERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">owner_user_id</span><span class="w">   </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">slug</span><span class="w">            </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="n">display_name</span><span class="w">    </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">description</span><span class="w">     </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">subscriber_count</span><span class="w"> </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="c1">-- denormalized; fed by async pipeline</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="n">created_at</span><span class="w">      </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="n">updated_at</span><span class="w">      </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">()</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">);</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_channels_owner</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">channels</span><span class="p">(</span><span class="n">owner_user_id</span><span class="p">);</span>
+</span></code></pre></div>
+<p><strong><code>videos</code></strong></p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">videos</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">id</span><span class="w">                </span><span class="n">BIGSERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">uploader_id</span><span class="w">       </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">channel_id</span><span class="w">        </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">channels</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">title</span><span class="w">             </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">description</span><span class="w">       </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">status</span><span class="w">            </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">                    </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;UPLOADING&#39;</span><span class="p">,</span><span class="s1">&#39;PROCESSING&#39;</span><span class="p">,</span><span class="s1">&#39;READY&#39;</span><span class="p">,</span><span class="s1">&#39;FAILED&#39;</span><span class="p">,</span><span class="s1">&#39;BLOCKED&#39;</span><span class="p">)),</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="n">storage_key</span><span class="w">       </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">    </span><span class="c1">-- raw or mezzanine object key prefix</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="n">duration_ms</span><span class="w">       </span><span class="nb">BIGINT</span><span class="p">,</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">resolution_ladder</span><span class="w"> </span><span class="n">JSONB</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;[]&#39;</span><span class="p">,</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="c1">-- e.g. [{&quot;h&quot;:1080,&quot;codecs&quot;:[&quot;av1&quot;,&quot;h264&quot;],&quot;max_br_kbps&quot;:8000}, ...]</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="n">visibility</span><span class="w">        </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;PUBLIC&#39;</span><span class="p">,</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="n">created_at</span><span class="w">        </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="n">updated_at</span><span class="w">        </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="n">published_at</span><span class="w">      </span><span class="n">TIMESTAMPTZ</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="p">);</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_videos_channel_created</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">videos</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span><span class="w"> </span><span class="n">created_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_videos_status</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">videos</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="s1">&#39;READY&#39;</span><span class="p">;</span>
+</span></code></pre></div>
+<p><strong><code>video_segments</code> (packaged segments per quality rung)</strong></p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">video_segments</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">id</span><span class="w">              </span><span class="n">BIGSERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">video_id</span><span class="w">        </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">videos</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">quality</span><span class="w">         </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">       </span><span class="c1">-- e.g. &#39;1080p&#39;, &#39;720p&#39;, &#39;audio_only&#39;</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">segment_number</span><span class="w">  </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">segment_number</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">storage_key</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">     </span><span class="c1">-- object key for .m4s or .ts</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="n">duration_ms</span><span class="w">     </span><span class="nb">INT</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="n">byte_length</span><span class="w">     </span><span class="nb">BIGINT</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="k">UNIQUE</span><span class="w"> </span><span class="p">(</span><span class="n">video_id</span><span class="p">,</span><span class="w"> </span><span class="n">quality</span><span class="p">,</span><span class="w"> </span><span class="n">segment_number</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">);</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_segments_video_quality</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">video_segments</span><span class="p">(</span><span class="n">video_id</span><span class="p">,</span><span class="w"> </span><span class="n">quality</span><span class="p">);</span>
+</span></code></pre></div>
+<p><strong><code>view_history</code> (per-user progress; high read/write — shard at scale)</strong></p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">view_history</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">user_id</span><span class="w">     </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">video_id</span><span class="w">    </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">videos</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">progress_ms</span><span class="w"> </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">progress_ms</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="n">last_watched_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">created_at</span><span class="w">  </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">video_id</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">);</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_history_user_last</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">view_history</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">last_watched_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span></code></pre></div>
+<p><strong>Why these shapes:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th><strong>Interview talking point</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>videos.resolution_ladder</code></strong></td>
+<td><strong>JSONB</strong> for evolving ladder <strong>without</strong> schema churn; or normalize to <strong><code>video_renditions</code></strong> if you want strict FKs.</td>
+</tr>
+<tr>
+<td><strong><code>video_segments</code></strong></td>
+<td>Optional if you only store <strong>prefix</strong> + naming convention; <strong>explicit rows</strong> help <strong>partial re-transcode</strong> and <strong>CDN debugging</strong>.</td>
+</tr>
+<tr>
+<td><strong><code>view_history</code></strong></td>
+<td><strong>Resume playback</strong>; <strong>not</strong> global view count — that lives in <strong>analytics</strong> stores.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-2-back-of-the-envelope-estimation">Step 2: Back-of-the-Envelope Estimation<a class="headerlink" href="#step-2-back-of-the-envelope-estimation" title="Permanent link">&para;</a></h2>
+<p>Assume a simplified global VOD service (not YouTube’s exact numbers):</p>
+<table>
+<thead>
+<tr>
+<th>Assumption</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Daily video uploads</td>
+<td>10 million</td>
+</tr>
+<tr>
+<td>Average raw size per upload</td>
+<td>500 MB</td>
+</tr>
+<tr>
+<td>Average views per uploaded video (first month)</td>
+<td>200</td>
+</tr>
+<tr>
+<td>Average watch: 40% of duration, 1080p equivalent egress</td>
+<td>blended bitrate ~ 5 Mbps</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ingest storage per day (raw):</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>10^7 uploads × 500 MB = 5 × 10^15 bytes ≈ 5 PB/day raw
+</span></code></pre></div>
+<p>In practice, not all stay forever; lifecycle policies and deduplication reduce <strong>net</strong> growth. Transcoded ladder might add <strong>2–4×</strong> raw for all renditions and segments.</p>
+<p><strong>Transcoding compute (order of magnitude):</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Assume 1 CPU-hour encodes 20 minutes of 1080p (varies by codec and preset)
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>10^7 uploads/day × 20 min avg length = 2×10^8 minutes/day
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>CPU-hours ≈ (2×10^8 / 20) = 10^7 CPU-hours/day
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>→ hundreds of thousands of parallel cores at peak if not spread evenly
+</span></code></pre></div>
+<p><strong>Read path egress (very rough):</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>10^7 uploads × 200 views × 20 min × 40% watched × 5 Mbps
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>= 10^7 × 200 × 1200 s × 0.4 × 625 KB/s
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>≈ huge PB-scale/month; CDN caches reduce origin hits
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Estimation <strong>validates architecture</strong>: you need <strong>queues</strong>, <strong>worker autoscaling</strong>, <strong>CDN</strong>, and <strong>tiered storage</strong>. Exact digits matter less than magnitude.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Bottleneck signal</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Object storage</td>
+<td>PB/month growth</td>
+<td>Lifecycle to cold tier; dedupe</td>
+</tr>
+<tr>
+<td>Transcode workers</td>
+<td>Queue lag</td>
+<td>Horizontal scale; spot instances for batch</td>
+</tr>
+<tr>
+<td>CDN</td>
+<td>Egress bill</td>
+<td>Cache hit ratio, regional POPs</td>
+</tr>
+<tr>
+<td>Metadata DB</td>
+<td>Hot rows on viral video</td>
+<td>Cache + read replicas; avoid contended counters</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
+<h3 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload service</strong></td>
+<td>Sessions, chunk validation, multipart completion, dedupe hints</td>
+</tr>
+<tr>
+<td><strong>Object storage</strong></td>
+<td>Raw uploads, transcoded segments, thumbnails (S3-compatible)</td>
+</tr>
+<tr>
+<td><strong>Job queue / orchestrator</strong></td>
+<td>Kafka, SQS, or Temporal for durable work items</td>
+</tr>
+<tr>
+<td><strong>Transcode DAG engine</strong></td>
+<td>Dependency graph: demux → decode → multiple encodes → package</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Cache manifests and <code>.ts</code> / <code>.m4s</code> segments at edge</td>
+</tr>
+<tr>
+<td><strong>Metadata service</strong></td>
+<td>Postgres / Dynamo-style store for video and channel rows</td>
+</tr>
+<tr>
+<td><strong>Search</strong></td>
+<td>Elasticsearch/OpenSearch or managed search</td>
+</tr>
+<tr>
+<td><strong>View pipeline</strong></td>
+<td>Ingest beacons → stream processing → aggregated counts</td>
+</tr>
+<tr>
+<td><strong>Recommendation</strong></td>
+<td>Offline features + online serving (two-tower, etc.)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="high-level-architecture-mermaid">High-Level Architecture (Mermaid)<a class="headerlink" href="#high-level-architecture-mermaid" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph UploadPath[Upload path]
+        C[Client] --&gt; APIGW[API Gateway]
+        APIGW --&gt; US[Upload service]
+        US --&gt;|presigned| S3[(Object storage)]
+        US --&gt;|enqueue| K[Kafka topics]
+    end
+    subgraph ProcessPath[Processing]
+        K --&gt; ORC[Orchestrator / DAG]
+        ORC --&gt; TC[Transcode pool]
+        TC --&gt; S3
+        ORC --&gt; TH2[Thumbnail service]
+        TH2 --&gt; S3
+        ORC --&gt; META2[Metadata indexer]
+    end
+    subgraph ReadPath[Read path]
+        V2[Viewer] --&gt; CDN2[CDN]
+        CDN2 --&gt;|miss| S3
+        V2 --&gt; APIGW2[API Gateway]
+        APIGW2 --&gt; VID[Video API]
+        VID --&gt; DB[(DB)]
+    end</code></pre>
+<h3 id="data-flow-summary">Data Flow Summary<a class="headerlink" href="#data-flow-summary" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Upload</strong>: Client obtains <code>upload_id</code>, sends chunks to storage, completes session; upload service emits <strong>VideoReceived</strong> event.</li>
+<li><strong>Process</strong>: Orchestrator builds a <strong>DAG</strong> (see deep dive); workers write renditions and segments to object storage; metadata updated to <code>READY</code>.</li>
+<li><strong>Play</strong>: Client fetches metadata API for <strong>CDN URLs</strong> of HLS/DASH; player downloads manifest then segments <strong>from CDN</strong>.</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Keep <strong>control plane</strong> (APIs, auth) separate from <strong>data plane</strong> (bytes to CDN). Mixing them complicates scaling and security reviews.</p>
+</div>
+<hr />
+<h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="41-video-upload-and-processing-pipeline">4.1 Video Upload and Processing Pipeline<a class="headerlink" href="#41-video-upload-and-processing-pipeline" title="Permanent link">&para;</a></h3>
+<p><strong>Chunked / resumable upload</strong> reduces failure rates. Common pattern:</p>
+<ol>
+<li><code>POST /uploads</code> → receive <code>upload_id</code> and per-part size.</li>
+<li>For each part: <code>PUT</code> with part number and <strong>MD5 or SHA-256</strong> (for multipart ETags in S3).</li>
+<li><code>POST /complete</code> with ordered <strong>part list</strong>; storage merges multipart object.</li>
+<li>Upload service publishes message <code>{ upload_id, object_key, user_id, content_hash }</code>.</li>
+</ol>
+<p><strong>Deduplication:</strong> compute <strong>perceptual hash</strong> or cryptographic hash of source (after normalize) to skip re-transcoding identical uploads, or to map to a single canonical asset (policy-dependent).</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant CL as Client
+    participant API as Upload API
+    participant OS as Object Storage
+    participant Q as Queue
+    participant OR as Orchestrator
+    CL-&gt;&gt;API: POST /uploads (metadata)
+    API-&gt;&gt;CL: upload_id, presigned URLs
+    loop chunks
+        CL-&gt;&gt;OS: PUT part n
+        OS-&gt;&gt;CL: ETag / checksum
+    end
+    CL-&gt;&gt;API: POST /complete (parts, hashes)
+    API-&gt;&gt;OS: CompleteMultipartUpload
+    API-&gt;&gt;Q: VideoUploaded event
+    Q-&gt;&gt;OR: consume
+    OR-&gt;&gt;OR: build DAG, schedule jobs</code></pre>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Copyright and policy</strong> checks often run in parallel or after ingest: fingerprinting (e.g. Content ID–style), hash lists, and ML classifiers. Mention <strong>latency vs safety</strong> trade-off: block publish until cleared vs publish then remove.</p>
+</div>
+<h3 id="42-video-transcoding-adaptive-bitrate">4.2 Video Transcoding (Adaptive Bitrate)<a class="headerlink" href="#42-video-transcoding-adaptive-bitrate" title="Permanent link">&para;</a></h3>
+<p><strong>Transcoding</strong> converts mezzanine (uploaded) video into:</p>
+<ul>
+<li>Multiple <strong>resolutions</strong> (e.g. 2160p, 1440p, 1080p, 720p, 480p, 360p)</li>
+<li>Multiple <strong>bitrates</strong> per resolution (ladder)</li>
+<li>Packaged as <strong>HLS</strong> (<code>.m3u8</code> + <code>.ts</code> or fMP4) or <strong>DASH</strong> (<code>.mpd</code> + <code>.m4s</code>)</li>
+</ul>
+<p><strong>FFmpeg</strong> is the de facto tool in examples; in production you may wrap <strong>ffmpeg</strong> CLI or use <strong>libav</strong> APIs, cloud encoders, or GPU farms.</p>
+<p><strong>DAG-based pipeline</strong> example nodes:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Output</th>
+<th>Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Probe</strong></td>
+<td>codecs, duration, audio tracks</td>
+<td>raw object</td>
+</tr>
+<tr>
+<td><strong>Audio normalize</strong></td>
+<td>AAC 128k stereo</td>
+<td>probe</td>
+</tr>
+<tr>
+<td><strong>Video ladder</strong></td>
+<td>H.264/H.265/VP9 per rung</td>
+<td>probe</td>
+</tr>
+<tr>
+<td><strong>Package HLS</strong></td>
+<td>segments + playlist</td>
+<td>ladder</td>
+</tr>
+<tr>
+<td><strong>Thumbnail strip</strong></td>
+<td>sprite or keyframes</td>
+<td>ladder or raw</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart TB
+    A[Raw object in storage] --&gt; B[Probe node]
+    B --&gt; C[Audio transcode]
+    B --&gt; D[Video 1080p]
+    B --&gt; E[Video 720p]
+    B --&gt; F[Video 480p]
+    D --&gt; G[HLS packager 1080p]
+    E --&gt; H[HLS packager 720p]
+    F --&gt; I[HLS packager 480p]
+    G --&gt; J[Master playlist]
+    H --&gt; J
+    I --&gt; J
+    J --&gt; K[Write manifests + segments to storage]</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Adaptive bitrate (ABR)</strong> players switch between renditions based on bandwidth and buffer. <strong>Per-title encoding</strong> optimizes ladders per asset; <strong>chunked CMAF</strong> helps align segment boundaries across renditions.</p>
+</div>
+<h3 id="43-cdn-and-video-delivery-hlsdash">4.3 CDN and Video Delivery (HLS/DASH)<a class="headerlink" href="#43-cdn-and-video-delivery-hlsdash" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Manifest</strong> (master <code>.m3u8</code>) lists variant streams; each variant playlist lists <strong>segment URLs</strong>.</li>
+<li><strong>CDN</strong> caches by URL; use <strong>cache-friendly paths</strong> with version or content hash in path to bust stale entries after re-transcode.</li>
+<li><strong>TLS</strong> everywhere; <strong>signed URLs</strong> for private or premium content.</li>
+<li><strong>Origin shield</strong> (optional) collapses requests from many POPs to fewer origin hits.</li>
+</ul>
+<p><strong>Playback URL shape (illustrative):</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>https://cdn.example.com/v/{video_id}/v3/hls/master.m3u8
+</span></code></pre></div>
+<p>Low-latency variants (LL-HLS) use partial segments; mostly relevant for live, but worth mentioning if interviewer asks.</p>
+<h3 id="44-video-metadata-and-search">4.4 Video Metadata and Search<a class="headerlink" href="#44-video-metadata-and-search" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Relational store</strong> for channel, video row, status (<code>PROCESSING</code>, <code>READY</code>, <code>FAILED</code>), timestamps.</li>
+<li><strong>Search index</strong> built from title, description, tags; <strong>async</strong> updates from change data capture or message bus.</li>
+<li><strong>Ranking</strong> for search blends text relevance, engagement, freshness.</li>
+</ul>
+<p>Denormalize <strong>channel name</strong> and <strong>view counts</strong> for display with care (eventual consistency).</p>
+<h3 id="45-thumbnail-generation">4.5 Thumbnail Generation<a class="headerlink" href="#45-thumbnail-generation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Extract <strong>keyframes</strong> at intervals or use <strong>scene detection</strong>.</li>
+<li>Store multiple sizes for grid vs hero image.</li>
+<li><strong>Sprite sheets</strong> for hover preview on seek bar (mapping time range to sprite coordinates).</li>
+</ul>
+<h3 id="46-view-counting-and-analytics">4.6 View Counting and Analytics<a class="headerlink" href="#46-view-counting-and-analytics" title="Permanent link">&para;</a></h3>
+<p>At scale, <strong>exact</strong> per-request increments on a single DB row <strong>do not scale</strong> for viral videos.</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shard counters</strong></td>
+<td>Higher write throughput</td>
+<td>Reconciliation, complexity</td>
+</tr>
+<tr>
+<td><strong>Buffered increments</strong> (Redis flush)</td>
+<td>Fast</td>
+<td>Loss window on crash unless careful</td>
+</tr>
+<tr>
+<td><strong>Stream processing</strong> (Flink/Kafka)</td>
+<td>Scalable aggregation</td>
+<td>Delayed visibility</td>
+</tr>
+<tr>
+<td><strong>HyperLogLog / sampling</strong></td>
+<td>Cheap</td>
+<td>Approximate</td>
+</tr>
+</tbody>
+</table>
+<p>Mitigate <strong>fraud</strong> with bot detection, rate limits per IP/account, and anomaly detection on spikes.</p>
+<h3 id="47-recommendation-feed">4.7 Recommendation Feed<a class="headerlink" href="#47-recommendation-feed" title="Permanent link">&para;</a></h3>
+<p>Typically:</p>
+<ul>
+<li><strong>Candidate generation</strong>: subs, related channels, embeddings nearest neighbors.</li>
+<li><strong>Ranking</strong>: shallow models online; heavy training offline.</li>
+<li><strong>Exploration</strong>: multi-armed bandit for new creators.</li>
+</ul>
+<p>Log <strong>impressions and clicks</strong> for training; separate <strong>data warehouse</strong> from serving path.</p>
+<h3 id="deduplication-and-content-addressed-storage">Deduplication and Content-Addressed Storage<a class="headerlink" href="#deduplication-and-content-addressed-storage" title="Permanent link">&para;</a></h3>
+<p>For <strong>ingest deduplication</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client or server computes <strong>SHA-256</strong> of each uploaded part</td>
+<td>Detect identical byte streams</td>
+</tr>
+<tr>
+<td>After complete, <strong>finalize</strong> hash of full object</td>
+<td>Lookup in <strong>content-addressed</strong> table</td>
+</tr>
+<tr>
+<td>If match exists</td>
+<td>Point new <code>video_id</code> at existing <code>storage_key</code> for transcoded outputs (policy allowing)</td>
+</tr>
+</tbody>
+</table>
+<p>Benefits: lower <strong>storage</strong> and <strong>CPU</strong> for duplicate viral re-uploads. Risks: <strong>legal</strong> nuance (same file, different uploader); product may still require <strong>separate metadata rows</strong> and <strong>per-uploader takedowns</strong>.</p>
+<h3 id="copyright-detection-high-level">Copyright Detection (High Level)<a class="headerlink" href="#copyright-detection-high-level" title="Permanent link">&para;</a></h3>
+<p>Production systems combine <strong>multiple signals</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Perceptual audio/video fingerprints</strong></td>
+<td>Match against rights-holder database (Content ID–class systems)</td>
+</tr>
+<tr>
+<td><strong>Allowlist/blocklist hashes</strong></td>
+<td>Known infringing or disallowed files</td>
+</tr>
+<tr>
+<td><strong>ML classifiers</strong></td>
+<td>Policy violations (non-copyright)</td>
+</tr>
+<tr>
+<td><strong>Dispute workflow</strong></td>
+<td>Counter-notification and appeals outside core infra</td>
+</tr>
+</tbody>
+</table>
+<p>Mention in interviews: detection runs on <strong>processing pipeline</strong> or <strong>separate workers</strong>; <strong>blocking publish</strong> vs <strong>monetization rules</strong> vs <strong>geo-blocking</strong> are product decisions. Never claim you can solve copyright completely in code alone.</p>
+<hr />
+<h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload</strong></td>
+<td>Direct-to-S3 multipart; client-side retry; resume state in local storage</td>
+</tr>
+<tr>
+<td><strong>Transcode</strong></td>
+<td>Autoscale worker pools; priority queues for premium creators; spot for batch</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>Tiering; delete aborted multipart uploads; <strong>dedupe</strong> canonical blobs</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>High TTL for immutable segments; short TTL for manifests if needed</td>
+</tr>
+<tr>
+<td><strong>DB</strong></td>
+<td>Shard by <code>channel_id</code> or <code>video_id</code>; read replicas; cache hot metadata</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>Per-stage pipeline latency, queue depth, CDN hit ratio, SLO burn rates</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Trade-offs (summary):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Option A</th>
+<th>Option B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transcode location</td>
+<td>On-prem GPU</td>
+<td>Managed cloud encoder</td>
+</tr>
+<tr>
+<td>Segment format</td>
+<td>TS</td>
+<td>fMP4 (CMAF)</td>
+</tr>
+<tr>
+<td>View count</td>
+<td>Approximate fast</td>
+<td>Stronger consistency, costlier</td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Managed OpenSearch</td>
+<td>Self-operated (ops burden)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Single hot video</strong> can overload recommendation and metadata caches; use <strong>cache partitioning</strong>, <strong>request coalescing</strong>, and <strong>overload protection</strong> (drop non-critical work first).</p>
+</div>
+<h3 id="operational-concerns">Operational Concerns<a class="headerlink" href="#operational-concerns" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stuck transcode</strong></td>
+<td>Visibility timeout on queue consumers; <strong>DLQ</strong> after N attempts; alert on job age p99</td>
+</tr>
+<tr>
+<td><strong>Poison message</strong></td>
+<td>Schema validation at enqueue; <strong>dead-letter</strong> with payload inspection</td>
+</tr>
+<tr>
+<td><strong>Codec rollout</strong></td>
+<td>Canary new encoder version on subset of workers; compare <strong>VMAF/PSNR</strong> and bitrate</td>
+</tr>
+<tr>
+<td><strong>Cost controls</strong></td>
+<td>Cap concurrent encodes per tenant; defer non-urgent <strong>4K</strong> to off-peak</td>
+</tr>
+<tr>
+<td><strong>Regional compliance</strong></td>
+<td>Geo-restrict manifest URLs; metadata residency in specific regions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="failure-modes-short">Failure Modes (Short)<a class="headerlink" href="#failure-modes-short" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Origin overload</strong>: CDN shield, rate limit origin, increase segment immutability so TTL can be long.</li>
+<li><strong>Bad upload</strong>: Client retries with same <code>upload_id</code>; server rejects incomplete multipart after TTL <strong>AbortMultipartUpload</strong> lifecycle.</li>
+<li><strong>Partial transcode</strong>: DAG marks failed stage; <strong>partial outputs</strong> may be deleted or kept for debug; user sees <code>FAILED</code> with retry action.</li>
+</ol>
+<hr />
+<h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
+<h3 id="interview-checklist">Interview Checklist<a class="headerlink" href="#interview-checklist" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Checklist item</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Clarify</strong></td>
+<td>VOD vs live; user scale; regions; monetization (ads) in scope?</td>
+</tr>
+<tr>
+<td><strong>Draw</strong></td>
+<td>Upload path, queue, workers, storage, CDN, playback</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Rough ingest PB, transcode CPU, CDN egress magnitude</td>
+</tr>
+<tr>
+<td><strong>Deep dive</strong></td>
+<td>Pick <strong>one</strong>: transcoding ladder, CDN caching, or view counting</td>
+</tr>
+<tr>
+<td><strong>Trade-offs</strong></td>
+<td>Consistency vs cost; processing latency vs upload UX</td>
+</tr>
+<tr>
+<td><strong>Wrap</strong></td>
+<td>Monitoring, failure modes (stuck jobs, poison messages), compliance mention</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sample-interview-dialogue">Sample Interview Dialogue<a class="headerlink" href="#sample-interview-dialogue" title="Permanent link">&para;</a></h3>
+<p><strong>Interviewer:</strong> “Design a video streaming service like YouTube.”</p>
+<p><strong>Candidate:</strong> “I’ll assume <strong>VOD</strong>: upload, process, then playback. Out of scope unless you want it: <strong>live streaming</strong>. Key flows: <strong>resumable upload</strong> to object storage, <strong>async transcoding</strong> to an ABR ladder, <strong>HLS/DASH</strong> delivery via <strong>CDN</strong>, plus <strong>metadata, search, thumbnails</strong>, and <strong>approximate view counts</strong>. I’ll walk through APIs, a rough size estimate, then a diagram.”</p>
+<p><strong>Interviewer:</strong> “How do you handle huge files?”</p>
+<p><strong>Candidate:</strong> “<strong>Multipart upload</strong> with fixed chunk size, checksum per part, and <strong>resume</strong> using uploaded part list. Server returns <strong>pre-signed URLs</strong> so data goes <strong>directly to object storage</strong>. On complete, we emit an event to a <strong>queue</strong> and a <strong>DAG orchestrator</strong> schedules probe, encode, package, and thumbnail jobs. Failed stages <strong>retry</strong> with idempotent job ids.”</p>
+<p><strong>Interviewer:</strong> “What about duplicate videos?”</p>
+<p><strong>Candidate:</strong> “We can hash the <strong>source file</strong> or a normalized intermediate. If it matches an existing <strong>canonical asset</strong>, we <strong>skip transcode</strong> and attach new metadata rows pointing at the same storage prefix, subject to <strong>policy</strong> (copyright still applies per upload).”</p>
+<p><strong>Interviewer:</strong> “How do view counts work at scale?”</p>
+<p><strong>Candidate:</strong> “A per-row counter in one DB row <strong>doesn’t scale</strong> for viral spikes. I’d use <strong>sharded counters</strong>, <strong>Redis buffers</strong> with periodic flush, or a <strong>stream processor</strong> aggregating view events—often <strong>eventually consistent</strong> with fraud controls. <strong>Exact</strong> totals can be reconciled offline.”</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>End with <strong>two failures</strong>: stuck transcoding (dead-letter queue, alert on age), and <strong>CDN miss storm</strong> (origin protection, request coalescing).</p>
+</div>
+<h3 id="code-sketches-multi-language">Code Sketches (Multi-Language)<a class="headerlink" href="#code-sketches-multi-language" title="Permanent link">&para;</a></h3>
+<p><strong>Java — upload session handler (Spring-style)</strong></p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nd">@PostMapping</span><span class="p">(</span><span class="s">&quot;/v1/uploads&quot;</span><span class="p">)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">ResponseEntity</span><span class="o">&lt;</span><span class="n">UploadSessionResponse</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">startUpload</span><span class="p">(</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nd">@RequestBody</span><span class="w"> </span><span class="n">StartUploadRequest</span><span class="w"> </span><span class="n">req</span><span class="p">,</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nd">@AuthenticationPrincipal</span><span class="w"> </span><span class="n">UserPrincipal</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="n">String</span><span class="w"> </span><span class="n">uploadId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idGenerator</span><span class="p">.</span><span class="na">nextId</span><span class="p">();</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="n">String</span><span class="w"> </span><span class="n">keyPrefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;raw/&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="na">getId</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">uploadId</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="p">;</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="n">List</span><span class="o">&lt;</span><span class="n">PresignedPart</span><span class="o">&gt;</span><span class="w"> </span><span class="n">parts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storageService</span><span class="p">.</span><span class="na">presignMultipartUpload</span><span class="p">(</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="n">BUCKET</span><span class="p">,</span><span class="w"> </span><span class="n">keyPrefix</span><span class="p">,</span><span class="w"> </span><span class="n">req</span><span class="p">.</span><span class="na">getContentType</span><span class="p">(),</span><span class="w"> </span><span class="n">req</span><span class="p">.</span><span class="na">getTotalBytes</span><span class="p">());</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span><span class="n">UploadSessionResponse</span><span class="w"> </span><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">UploadSessionResponse</span><span class="p">(</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">      </span><span class="n">uploadId</span><span class="p">,</span><span class="w"> </span><span class="n">PART_SIZE_BYTES</span><span class="p">,</span><span class="w"> </span><span class="n">parts</span><span class="p">);</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">ResponseEntity</span><span class="p">.</span><span class="na">status</span><span class="p">(</span><span class="n">HttpStatus</span><span class="p">.</span><span class="na">CREATED</span><span class="p">).</span><span class="na">body</span><span class="p">(</span><span class="n">body</span><span class="p">);</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Python — transcoding worker job (FFmpeg invoke)</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">transcode_rendition</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bitrate_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;video_</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">p.mp4&quot;</span><span class="p">)</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>        <span class="s2">&quot;ffmpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;-y&quot;</span><span class="p">,</span> <span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="n">src_path</span><span class="p">,</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        <span class="s2">&quot;-vf&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;scale=-2:</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        <span class="s2">&quot;-c:v&quot;</span><span class="p">,</span> <span class="s2">&quot;libx264&quot;</span><span class="p">,</span> <span class="s2">&quot;-b:v&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bitrate_k</span><span class="si">}</span><span class="s2">k&quot;</span><span class="p">,</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        <span class="s2">&quot;-c:a&quot;</span><span class="p">,</span> <span class="s2">&quot;aac&quot;</span><span class="p">,</span> <span class="s2">&quot;-b:a&quot;</span><span class="p">,</span> <span class="s2">&quot;128k&quot;</span><span class="p">,</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>        <span class="n">out</span><span class="p">,</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="p">]</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="k">return</span> <span class="n">out</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">package_hls</span><span class="p">(</span><span class="n">renditions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="c1"># Simplified: real pipeline uses separate package step or ffmpeg HLS flags</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>    <span class="n">concat</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">renditions</span><span class="p">)</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>        <span class="p">[</span><span class="s2">&quot;ffmpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;-y&quot;</span><span class="p">,</span> <span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;concat:</span><span class="si">{</span><span class="n">concat</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;copy&quot;</span><span class="p">,</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>         <span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;hls&quot;</span><span class="p">,</span> <span class="s2">&quot;-hls_time&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;index.m3u8&quot;</span><span class="p">)],</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>        <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>    <span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Production code adds <strong>logging</strong>, <strong>timeouts</strong>, <strong>resource limits</strong>, and often <strong>hardware encoders</strong>; the above illustrates the <strong>FFmpeg boundary</strong>.</p>
+</div>
+<p><strong>Go — streaming HTTP handler (redirect to CDN manifest)</strong></p>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="s">&quot;net/http&quot;</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="s">&quot;path&quot;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">)</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">Server</span><span class="p">)</span><span class="w"> </span><span class="nx">ServeHLS</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="nx">videoID</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">path</span><span class="p">.</span><span class="nx">Base</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">Dir</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">URL</span><span class="p">.</span><span class="nx">Path</span><span class="p">))</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="nx">meta</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">Meta</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="nx">videoID</span><span class="p">)</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">        </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;not found&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusNotFound</span><span class="p">)</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">        </span><span class="k">return</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">meta</span><span class="p">.</span><span class="nx">Status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;READY&quot;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">        </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;processing&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusAccepted</span><span class="p">)</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">        </span><span class="k">return</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">    </span><span class="c1">// Immutable CDN URL; long cache TTL on segments</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">    </span><span class="nx">cdnURL</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">CDN</span><span class="p">.</span><span class="nx">BaseURL</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/v/&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">videoID</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/hls/master.m3u8&quot;</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">Redirect</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="nx">cdnURL</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusFound</span><span class="p">)</span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Takeaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Upload</strong></td>
+<td>Multipart, resumable, pre-signed direct-to-storage; complete triggers pipeline</td>
+</tr>
+<tr>
+<td><strong>Processing</strong></td>
+<td><strong>DAG</strong> of probe, encode, package; <strong>FFmpeg</strong>-class workers; idempotent stages</td>
+</tr>
+<tr>
+<td><strong>Playback</strong></td>
+<td><strong>HLS/DASH</strong> ABR; <strong>CDN</strong> caches segments and manifests</td>
+</tr>
+<tr>
+<td><strong>Metadata / search</strong></td>
+<td>OLTP + async search index</td>
+</tr>
+<tr>
+<td><strong>Thumbnails</strong></td>
+<td>Keyframes or sprites; multiple resolutions</td>
+</tr>
+<tr>
+<td><strong>Views</strong></td>
+<td>Sharded or streaming aggregates; fraud controls</td>
+</tr>
+<tr>
+<td><strong>Recommendations</strong></td>
+<td>Usually separate; log-rich training data</td>
+</tr>
+<tr>
+<td><strong>Compliance</strong></td>
+<td><strong>Copyright</strong> fingerprinting and policy; safety classifiers</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You will not build all subsystems in 45 minutes. <strong>Narrow</strong> with the interviewer, draw <strong>one</strong> solid data flow, and <strong>deep dive</strong> on transcoding, CDN, or analytics—whichever they care about most.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../distributed_cache/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Distributed Cache">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Distributed Cache
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../photo_sharing/" class="md-footer__link md-footer__link--next" aria-label="Next: Photo Sharing (Instagram)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Photo Sharing (Instagram)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 System Design Interview Guide contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/spawn08/system-design-interview" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.path", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+        <script src="../../assets/js/mermaid-config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
