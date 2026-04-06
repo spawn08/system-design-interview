@@ -242,49 +242,48 @@ flowchart TD
     }
 
     public void close() { producer.close(); }
-}
-
-// Consumer — processes order events with at-least-once semantics
-public class OrderEventConsumer implements Runnable {
-    private final KafkaConsumer<String, String> consumer;
-    private final OrderProcessor processor;
-    private volatile boolean running = true;
-
-    public OrderEventConsumer(String bootstrapServers, String groupId,
-                               String topic, OrderProcessor processor) {
-        this.processor = processor;
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // manual commit
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-
-        this.consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(List.of(topic));
     }
-
-    @Override
-    public void run() {
-        while (running) {
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
-            for (ConsumerRecord<String, String> record : records) {
-                try {
-                    processor.process(record.key(), record.value(), record.offset());
-                } catch (Exception e) {
-                    // send to dead-letter queue for manual inspection
-                    publishToDeadLetterQueue(record, e);
-                }
-            }
-            consumer.commitSync(); // commit after successful processing
+    
+    // Consumer — processes order events with at-least-once semantics
+    public class OrderEventConsumer implements Runnable {
+        private final KafkaConsumer<String, String> consumer;
+        private final OrderProcessor processor;
+        private volatile boolean running = true;
+    
+        public OrderEventConsumer(String bootstrapServers, String groupId,
+                                   String topic, OrderProcessor processor) {
+            this.processor = processor;
+            Properties props = new Properties();
+            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+            props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // manual commit
+            props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+    
+            this.consumer = new KafkaConsumer<>(props);
+            consumer.subscribe(List.of(topic));
         }
-        consumer.close();
+    
+        @Override
+        public void run() {
+            while (running) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+                for (ConsumerRecord<String, String> record : records) {
+                    try {
+                        processor.process(record.key(), record.value(), record.offset());
+                    } catch (Exception e) {
+                        publishToDeadLetterQueue(record, e);
+                    }
+                }
+                consumer.commitSync();
+            }
+            consumer.close();
+        }
+    
+        public void shutdown() { running = false; }
     }
-
-    public void shutdown() { running = false; }
-}
     ```
 
 === "Go"
