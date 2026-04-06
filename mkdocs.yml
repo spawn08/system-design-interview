@@ -10,8 +10,9 @@ theme:
   name: material
   custom_dir: overrides
   features:
-    - navigation.tabs
-    - navigation.tabs.sticky
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
     - navigation.sections
     - navigation.expand
     - navigation.indexes
@@ -19,13 +20,13 @@ theme:
     - navigation.path
     - navigation.footer
     - toc.follow
+    - toc.integrate
     - search.suggest
     - search.highlight
     - search.share
     - content.code.copy
     - content.code.annotate
     - content.tabs.link
-    - header.autohide
   icon:
     logo: material/server-network
     repo: fontawesome/brands/github
@@ -35,17 +36,17 @@ theme:
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: custom
-      accent: custom
+      primary: deep purple
+      accent: cyan
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-night
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: custom
-      accent: custom
+      primary: deep purple
+      accent: cyan
       toggle:
-        icon: material/brightness-7
+        icon: material/weather-sunny
         name: Switch to dark mode
 
 plugins:
