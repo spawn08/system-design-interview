@@ -819,8 +819,11 @@ sequenceDiagram
 === "Java"
 
     ```java
+    import java.util.List;
+    import java.util.Map;
+    
     public class Coordinator {
-        public record Val(String data, Map<String, Integer> vc) {}
+      public record Val(String data, Map<String, Integer> vc) {}
     
         private final List<Replica> replicas;
         private final int n, w, r;

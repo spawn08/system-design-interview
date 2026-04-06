@@ -708,6 +708,11 @@ flowchart TB
 ### Java: optimistic seat reservation (JDBC-style)
 
 ```java
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public final class SeatReservation {
   public record Result(boolean success, int newVersion) {}
 

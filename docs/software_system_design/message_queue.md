@@ -693,6 +693,8 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
 === "Java"
 
     ```java
+    import java.nio.MappedByteBuffer;
+    
     // Illustrative: sparse offset index — map relative offset -> physical position
     public final class OffsetIndex {
         private final MappedByteBuffer mmap;
@@ -887,6 +889,9 @@ flowchart LR
 === "Java"
 
     ```java
+    import java.util.Properties;
+    import org.apache.kafka.clients.producer.ProducerConfig;
+    
     Properties p = new Properties();
     p.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
     p.put(ProducerConfig.ACKS_CONFIG, "all");

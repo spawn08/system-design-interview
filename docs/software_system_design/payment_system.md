@@ -548,6 +548,10 @@ Networks retry; users double-click; workers crash mid-flight. **Exactly-once sid
 **Java (Spring-style): idempotent payment creation**
 
 ```java
+import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class PaymentCommandService {
 

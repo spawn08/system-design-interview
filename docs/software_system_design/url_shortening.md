@@ -1418,6 +1418,17 @@ If short codes are sequential (`1`, `2`, `3`...), attackers can enumerate all UR
 ### Redirect Controller
 
 ```java
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
 @RestController
 public class RedirectController {
     private final UrlShortenerService service;

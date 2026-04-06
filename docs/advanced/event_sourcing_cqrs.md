@@ -318,7 +318,7 @@ The following snippets are illustrative — not production-complete — but show
     ```java
     import java.time.Instant;
     import java.util.List;
-
+    
     // Event record (immutable)
     public record OrderCreated(String orderId, String customerId, Instant occurredAt) {}
     

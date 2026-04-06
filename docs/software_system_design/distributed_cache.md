@@ -954,6 +954,8 @@ flowchart TB
 === "Java"
 
     ```java
+    import java.util.Optional;
+    
     // Cache-aside (illustrative)
     public class CacheAsideUserRepo {
         private final ConcurrentStringCache cache;

@@ -598,6 +598,13 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
 === "Java"
 
     ```java
+    import java.io.IOException;
+    import java.net.URI;
+    import java.net.http.HttpClient;
+    import java.net.http.HttpRequest;
+    import java.net.http.HttpResponse;
+    import java.time.Instant;
+    
     public final class TaskClient {
       private final HttpClient http = HttpClient.newHttpClient();
       private final String baseUrl;
@@ -675,6 +682,8 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
 === "Java"
 
     ```java
+    import java.time.Instant;
+    
     void schedulerTick(Instant now, TimingWheel wheel, ReadyQueue ready) {
       var due = wheel.advance(now);
       for (ScheduledTask t : due) {
@@ -734,6 +743,11 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
 === "Java"
 
     ```java
+    import java.time.Duration;
+    import java.util.concurrent.Executors;
+    import java.util.concurrent.ScheduledExecutorService;
+    import java.util.concurrent.TimeUnit;
+    
     public boolean runWithLease(TaskService svc, String taskId, String workerId, Duration lease) {
       if (!svc.tryLease(taskId, workerId, lease)) {
         return false;

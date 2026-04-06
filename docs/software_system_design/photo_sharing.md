@@ -673,6 +673,14 @@ For interview clarity: **shard by `user_id`** for user-centric tables (posts, pr
 #### Upload handler (Java, Spring-style)
 
 ```java
+import jakarta.validation.Valid;
+import java.time.Duration;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
 @PostMapping("/v1/media/upload-url")
 public ResponseEntity<UploadUrlResponse> issueUploadUrl(
     @AuthenticationPrincipal UserPrincipal user,

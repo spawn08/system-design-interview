@@ -208,9 +208,9 @@ flowchart TD
     import java.util.List;
     import java.util.Properties;
     import java.util.concurrent.CompletableFuture;
-
+    
     import com.fasterxml.jackson.databind.ObjectMapper;
-
+    
     import org.apache.kafka.clients.consumer.ConsumerConfig;
     import org.apache.kafka.clients.consumer.ConsumerRecord;
     import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -221,7 +221,7 @@ flowchart TD
     import org.apache.kafka.clients.producer.RecordMetadata;
     import org.apache.kafka.common.serialization.StringDeserializer;
     import org.apache.kafka.common.serialization.StringSerializer;
-
+    
     // Producer — publishes order events to Kafka
     public class OrderEventProducer {
     private final KafkaProducer<String, String> producer;

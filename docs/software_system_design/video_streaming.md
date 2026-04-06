@@ -683,6 +683,13 @@ Mention in interviews: detection runs on **processing pipeline** or **separate w
 **Java — upload session handler (Spring-style)**
 
 ```java
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 @PostMapping("/v1/uploads")
 public ResponseEntity<UploadSessionResponse> startUpload(
     @RequestBody StartUploadRequest req,
