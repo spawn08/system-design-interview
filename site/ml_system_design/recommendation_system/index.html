@@ -3075,7 +3075,7 @@
 <h2 id="ml-concepts-primer">ML Concepts Primer<a class="headerlink" href="#ml-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="collaborative-filtering">Collaborative Filtering<a class="headerlink" href="#collaborative-filtering" title="Permanent link">&para;</a></h3>
 <p>The core idea: <strong>Users with similar taste will like similar items.</strong></p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Users [Users]
         U1[User A&lt;br/&gt;Likes: Inception, Matrix]
         U2[User B&lt;br/&gt;Likes: Inception, Matrix, Interstellar]
@@ -3086,7 +3086,7 @@
     end
 
     U1 --&gt; R
-    U2 --&gt; R</code></pre>
+    U2 --&gt; R</div>
 <p><strong>Two approaches:</strong></p>
 <table>
 <thead>
@@ -3324,7 +3324,7 @@
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Online [Online Serving]
         API[Recommendation API]
         Ranker[Re-ranking Service]
@@ -3370,10 +3370,10 @@
     Train --&gt; Batch
     Batch --&gt; Cache
 
-    ANN --&gt; ModelReg</code></pre>
+    ANN --&gt; ModelReg</div>
 <h3 id="the-two-stage-architecture">The Two-Stage Architecture<a class="headerlink" href="#the-two-stage-architecture" title="Permanent link">&para;</a></h3>
 <p>Recommendations typically use a <strong>retrieval + ranking</strong> pipeline:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Stage1 [Stage 1: Retrieval]
         direction TB
         All[10M Products] --&gt; Candidates[1000 Candidates]
@@ -3389,7 +3389,7 @@
         Ranked --&gt; Final[Final 10-20]
     end
 
-    Stage1 --&gt; Stage2 --&gt; Stage3</code></pre>
+    Stage1 --&gt; Stage2 --&gt; Stage3</div>
 <table>
 <thead>
 <tr>
@@ -3942,7 +3942,7 @@
 <hr />
 <h2 id="step-8-training-pipeline">Step 8: Training Pipeline<a class="headerlink" href="#step-8-training-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="data-pipeline">Data Pipeline<a class="headerlink" href="#data-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Ingestion [Data Ingestion]
         Events[User Events] --&gt; Kafka[Kafka]
         Kafka --&gt; Flink[Flink Processing]
@@ -3963,7 +3963,7 @@
     subgraph Deployment [Deployment]
         Eval --&gt; Registry[Model Registry]
         Registry --&gt; Serving[Model Serving]
-    end</code></pre>
+    end</div>
 <h3 id="training-data-generation">Training Data Generation<a class="headerlink" href="#training-data-generation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">TrainingDataGenerator</span><span class="p">:</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate training data from user interactions.&quot;&quot;&quot;</span>

@@ -2767,11 +2767,11 @@
 <hr />
 <h2 id="the-problem">The Problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>A single logical operation spans multiple services or databases:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   C[Client] --&gt; O[Order Service]
   O --&gt; I[Inventory Service]
   O --&gt; P[Payment Service]
-  O --&gt; N[Notification Service]</code></pre>
+  O --&gt; N[Notification Service]</div>
 <p>If the payment succeeds but inventory deduction fails, the system is <strong>inconsistent</strong>. We need a mechanism to ensure all-or-nothing (or compensating) semantics.</p>
 <hr />
 <h2 id="two-phase-commit-2pc">Two-Phase Commit (2PC)<a class="headerlink" href="#two-phase-commit-2pc" title="Permanent link">&para;</a></h2>
@@ -2797,7 +2797,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Coordinator
   participant P1 as Orders DB
   participant P2 as Inventory DB
@@ -2812,7 +2812,7 @@
   Note over C: All voted commit
   C-&gt;&gt;P1: COMMIT
   C-&gt;&gt;P2: COMMIT
-  C-&gt;&gt;P3: COMMIT</code></pre>
+  C-&gt;&gt;P3: COMMIT</div>
 <h3 id="failure-modes">Failure Modes<a class="headerlink" href="#failure-modes" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2938,7 +2938,7 @@
 </tbody>
 </table>
 <p><strong>Orchestration example:</strong></p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant SO as Saga Orchestrator
   participant O as Order Service
   participant I as Inventory Service
@@ -2954,14 +2954,14 @@
   SO-&gt;&gt;I: Release inventory (compensate)
   I--&gt;&gt;SO: Released
   SO-&gt;&gt;O: Cancel order (compensate)
-  O--&gt;&gt;SO: Cancelled</code></pre>
+  O--&gt;&gt;SO: Cancelled</div>
 <p><strong>Choreography example:</strong></p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   O[Order Created Event] --&gt; I[Inventory Service]
   I --&gt;|Reserved Event| P[Payment Service]
   P --&gt;|Payment Failed Event| I
   I --&gt;|Inventory Released Event| O2[Order Service]
-  O2 --&gt;|Order Cancelled Event| Done</code></pre>
+  O2 --&gt;|Order Cancelled Event| Done</div>
 <h3 id="saga-design-considerations">Saga Design Considerations<a class="headerlink" href="#saga-design-considerations" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3026,14 +3026,14 @@
 </span></code></pre></div>
 <h3 id="solution-outbox-table">Solution: Outbox Table<a class="headerlink" href="#solution-outbox-table" title="Permanent link">&para;</a></h3>
 <p>Write the event to an <strong>outbox table</strong> in the same database transaction as the business data. A separate process reads the outbox and publishes to the message broker.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Same DB Transaction
     BT[Business Table] 
     OT[Outbox Table]
   end
   CDC[CDC / Poller] --&gt; OT
   CDC --&gt; K[Kafka / Message Broker]
-  K --&gt; DS[Downstream Services]</code></pre>
+  K --&gt; DS[Downstream Services]</div>
 <table>
 <thead>
 <tr>

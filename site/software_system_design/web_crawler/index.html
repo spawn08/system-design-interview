@@ -3752,7 +3752,7 @@
 </table>
 <p><strong>Why dedup “must be consistent” but frontier “can be AP”:</strong> Duplicate frontier work wastes bandwidth but is <strong>safe if dedup and storage are idempotent</strong>. Wrong dedup <strong>loses coverage</strong>—harder to fix than wasting a fetch.</p>
 <h3 id="diagram">Diagram<a class="headerlink" href="#diagram" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph CP["CP-leaning (ground truth)"]
     Dedup[(Authoritative dedup\nRocksDB / DB)]
     Meta[(Crawl metadata\ncommitted state)]
@@ -3766,7 +3766,7 @@
   Frontier --&gt;|at-least-once URL| Workers
   Workers --&gt; Dedup
   Workers --&gt; Meta
-  Polite -.-&gt;|best-effort delay| Workers</code></pre>
+  Polite -.-&gt;|best-effort delay| Workers</div>
 <p>Under a partition, <strong>prefer</strong>: frontier may <strong>duplicate</strong>, workers may <strong>re-fetch</strong> occasionally, but <strong>dedup + idempotent writes</strong> prevent permanent inconsistency in “what the corpus contains.”</p>
 <hr />
 <h2 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h2>
@@ -4157,7 +4157,7 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Input [Input]
         Seeds[Seed URLs]
     end
@@ -4213,9 +4213,9 @@
     P2 --&gt; Dedup
     PN --&gt; Dedup
 
-    Dedup --&gt; Queue</code></pre>
+    Dedup --&gt; Queue</div>
 <h3 id="crawl-workflow">Crawl Workflow<a class="headerlink" href="#crawl-workflow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Frontier as URL Frontier
     participant Scheduler as Politeness Scheduler
     participant Fetcher
@@ -4241,7 +4241,7 @@
 
     Parser-&gt;&gt;Dedup: Check new URLs
     Dedup-&gt;&gt;Dedup: Filter seen URLs
-    Dedup-&gt;&gt;Frontier: Add new URLs</code></pre>
+    Dedup-&gt;&gt;Frontier: Add new URLs</div>
 <hr />
 <h2 id="step-4-component-deep-dive">Step 4: Component Deep Dive<a class="headerlink" href="#step-4-component-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-url-frontier">4.1 URL Frontier<a class="headerlink" href="#41-url-frontier" title="Permanent link">&para;</a></h3>
@@ -4250,7 +4250,7 @@
 - <strong>Politeness:</strong> Don't hammer same host
 - <strong>Freshness:</strong> Re-crawl changed pages</p>
 <p><strong>Architecture:</strong></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Frontier [URL Frontier]
         Input[New URLs]
         Prioritizer[Prioritizer]
@@ -4274,7 +4274,7 @@
     Q2 --&gt; Selector
     QN --&gt; Selector
 
-    Selector --&gt; Output</code></pre>
+    Selector --&gt; Output</div>
 <p><strong>Implementation:</strong></p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">Java</label><label for="__tabbed_1_3">Go</label></div>
 <div class="tabbed-content">
@@ -5061,7 +5061,7 @@
 <h2 id="step-5-distributed-architecture">Step 5: Distributed Architecture<a class="headerlink" href="#step-5-distributed-architecture" title="Permanent link">&para;</a></h2>
 <p>For crawling billions of pages, we need a distributed system.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Coordinator [Coordinator Cluster]
         C1[Coordinator 1]
         C2[Coordinator 2]
@@ -5108,7 +5108,7 @@
 
     W1 --&gt; Kafka
     W2 --&gt; Kafka
-    W3 --&gt; Kafka</code></pre>
+    W3 --&gt; Kafka</div>
 <h3 id="url-distribution-strategy">URL Distribution Strategy<a class="headerlink" href="#url-distribution-strategy" title="Permanent link">&para;</a></h3>
 <p>Use consistent hashing to assign URLs to workers:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>

@@ -3883,7 +3883,7 @@
 <li><strong>Merge</strong> <strong>S</strong> sorted lists by score using a <strong>min-heap</strong> of size <strong>K=100</strong> — <strong>O(S × log K)</strong>.</li>
 <li>Write results to <strong><code>lb:{game}:{mode}:global:top</code></strong> as a tiny ZSET or serve from <strong>application memory</strong> with <strong>ETag</strong>.</li>
 </ol>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph shards [Per-shard ZSETs]
     S1[s0..s199]
     S2[s200..s399]
@@ -3896,7 +3896,7 @@
   S1 --&gt; H
   S2 --&gt; H
   S3 --&gt; H
-  H --&gt; OUT</code></pre>
+  H --&gt; OUT</div>
 <p><strong>Staleness:</strong> UI labels <strong>“updated 3s ago”</strong> to set expectations during <strong>mega-events</strong>.</p>
 <h3 id="412-real-time-vs-batch-when-to-use-which">4.12 Real-time vs batch — when to use which<a class="headerlink" href="#412-real-time-vs-batch-when-to-use-which" title="Permanent link">&para;</a></h3>
 <table>
@@ -3931,7 +3931,7 @@
 </tbody>
 </table>
 <h3 id="413-sequence-end-to-end-score-acceptance-happy-path">4.13 Sequence — end-to-end score acceptance (happy path)<a class="headerlink" href="#413-sequence-end-to-end-score-acceptance-happy-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant G as Game server
   participant I as Ingest API
@@ -3950,7 +3950,7 @@
   W-&gt;&gt;R: ZADD shard ZSET
   W-&gt;&gt;P: async write-behind batch
   C-&gt;&gt;I: GET leaderboard (read replica)
-  I-&gt;&gt;R: ZREVRANGE / ZREVRANK</code></pre>
+  I-&gt;&gt;R: ZREVRANGE / ZREVRANK</div>
 <hr />
 <h2 id="5-technology-selection-tradeoffs">5. Technology Selection &amp; Tradeoffs<a class="headerlink" href="#5-technology-selection-tradeoffs" title="Permanent link">&para;</a></h2>
 <h3 id="leaderboard-hot-store-redis-vs-cassandra-vs-dynamodb">Leaderboard hot store: Redis vs Cassandra vs DynamoDB<a class="headerlink" href="#leaderboard-hot-store-redis-vs-cassandra-vs-dynamodb" title="Permanent link">&para;</a></h3>
@@ -4126,7 +4126,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph ingest [Ingest + Kafka]
     K[Kafka cluster]
     P[Producer acks=all]
@@ -4147,7 +4147,7 @@
 
   K --&gt; M
   R --&gt; AP
-  M --&gt; CP</code></pre>
+  M --&gt; CP</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Say: <strong>“We expose linearizable writes per shard on the Redis primary, but accept </strong>eventually consistent<strong> cross-region and </strong>replica lag<strong> for reads with </strong>SLO<strong>-bounded staleness.”</strong></p>
@@ -4534,13 +4534,13 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph golden [Golden signals]
     L[Latency p99/p999]
     T[Traffic RPS]
     E[Errors 5xx]
     S[Saturation CPU/conn]
-  end</code></pre>
+  end</div>
 <h3 id="failure-handling">Failure handling<a class="headerlink" href="#failure-handling" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

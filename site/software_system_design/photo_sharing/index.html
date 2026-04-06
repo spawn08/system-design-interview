@@ -3467,7 +3467,7 @@
 </table>
 <p><strong>Why uploads favor consistency:</strong> Losing a photo after a success response destroys trust; <strong>durability + metadata agreement</strong> outweigh shaving milliseconds. <strong>Feeds</strong> can degrade to <strong>last known good</strong> cache.</p>
 <p><strong>Why engagement needs care:</strong> A user who sees “Liked” expects <strong>monotonic</strong> behavior; <strong>eventual</strong> is fine for <strong>aggregated counts</strong> on non-critical surfaces if product allows <strong>approximate</strong> counts—not for the user’s own action confirmation.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph UploadPath["Upload path — CP-leaning"]
     U1[Pre-signed PUT to object store]
     U2[POST /posts — metadata txn]
@@ -3490,7 +3490,7 @@
     P1[Profile API]
     P2[Cache + origin DB]
     P1 --&gt; P2
-  end</code></pre>
+  end</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In interviews, say: <strong>“We don’t choose one letter globally; we isolate consistency requirements to the write path and tolerate eventual freshness on reads.”</strong></p>
@@ -3882,7 +3882,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level: <strong>clients</strong> talk to <strong>API gateways</strong>; <strong>stateless app services</strong> handle auth, post creation, and feed reads; <strong>object storage (e.g., S3)</strong> holds blobs; <strong>CDN</strong> serves public URLs; <strong>async workers</strong> resize images and enqueue <strong>fan-out</strong> tasks; <strong>caches / feed stores</strong> materialize per-user feeds; <strong>databases</strong> shard by <code>user_id</code> for profiles and graph edges.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Clients
     M[Mobile / Web]
   end
@@ -3924,7 +3924,7 @@
   IP --&gt; OS
   FW --&gt; RC
   SG --&gt; G
-  PS --&gt; OS</code></pre>
+  PS --&gt; OS</div>
 <p><strong>Responsibility split</strong></p>
 <table>
 <thead>
@@ -4010,7 +4010,7 @@
 <li>Emit event for fan-out / notifications.</li>
 </ol>
 <p>Failure handling: retry with backoff; dead-letter queue for poison blobs; post remains “processing” in UI.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant API as Post API
   participant S3 as Object storage
@@ -4026,7 +4026,7 @@
   W-&gt;&gt;W: decode resize encode
   W-&gt;&gt;S3: PUT renditions
   W-&gt;&gt;DB: update renditions + active
-  W-&gt;&gt;Q: fan-out event</code></pre>
+  W-&gt;&gt;Q: fan-out event</div>
 <h3 id="43-news-feed-generation">4.3 News Feed Generation<a class="headerlink" href="#43-news-feed-generation" title="Permanent link">&para;</a></h3>
 <p><strong>Feed item</strong> is typically <code>{ post_id, author_id, created_at, score? }</code>. Reads:</p>
 <ol>
@@ -4036,13 +4036,13 @@
 <li><strong>Rank</strong> (chronological baseline or ML scoring).</li>
 <li>Hydrate details (caption, CDN URLs, like counts) from DB/cache in batch.</li>
 </ol>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Read["Feed read path"]
     A[GET /feed] --&gt; B[Load candidate ids]
     B --&gt; C[Filter + rank]
     C --&gt; D[Batch hydrate metadata]
     D --&gt; E[JSON + next_cursor]
-  end</code></pre>
+  end</div>
 <h3 id="44-fan-out-strategy">4.4 Fan-out Strategy<a class="headerlink" href="#44-fan-out-strategy" title="Permanent link">&para;</a></h3>
 <p>Two classic strategies:</p>
 <table>

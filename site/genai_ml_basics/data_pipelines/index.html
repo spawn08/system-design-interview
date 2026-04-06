@@ -2909,7 +2909,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TB
+<div class="mermaid">graph TB
     subgraph Data Sources
         DB[(Operational DBs)]
         API[External APIs]
@@ -2958,8 +2958,8 @@
     AIRFLOW --&gt; TRANSFORM
     AIRFLOW --&gt; VALIDATE
     AIRFLOW --&gt; FEATURE
-    AIRFLOW --&gt; MONITOR</code></pre>
-<pre class="mermaid"><code>sequenceDiagram
+    AIRFLOW --&gt; MONITOR</div>
+<div class="mermaid">sequenceDiagram
     participant S as Data Source
     participant I as Ingestion
     participant R as Raw Store
@@ -2982,7 +2982,7 @@
         FS-&gt;&gt;M: Training dataset (point-in-time)
     else Validation fails
         V-&gt;&gt;V: Alert + quarantine bad data
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="step-4-data-ingestion">Step 4: Data Ingestion<a class="headerlink" href="#step-4-data-ingestion" title="Permanent link">&para;</a></h2>
 <h3 id="ingestion-patterns">Ingestion Patterns<a class="headerlink" href="#ingestion-patterns" title="Permanent link">&para;</a></h3>
@@ -3751,7 +3751,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-9-pipeline-monitoring-alerting">Step 9: Pipeline Monitoring &amp; Alerting<a class="headerlink" href="#step-9-pipeline-monitoring-alerting" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TB
+<div class="mermaid">graph TB
     PIPELINE[Pipeline Tasks] --&gt;|emit| METRICS[Metrics]
     PIPELINE --&gt;|emit| LOGS[Structured Logs]
 
@@ -3767,7 +3767,7 @@
         QUALITY[Validation Pass Rate]
         DURATION[Task Duration&lt;br/&gt;P50 / P95]
         COST[Compute Cost&lt;br/&gt;per pipeline run]
-    end</code></pre>
+    end</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>

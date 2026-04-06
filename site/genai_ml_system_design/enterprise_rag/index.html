@@ -2956,14 +2956,14 @@
 <hr />
 <h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="the-rag-pipeline">The RAG Pipeline<a class="headerlink" href="#the-rag-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Q[User Query] --&gt; QU[Query&lt;br/&gt;Understanding]
     QU --&gt; Retrieval[Retrieval&lt;br/&gt;BM25 + Dense]
     Retrieval --&gt; Rerank[Re-Ranking&lt;br/&gt;Cross-Encoder]
     Rerank --&gt; Prompt[Prompt&lt;br/&gt;Assembly]
     Prompt --&gt; LLM[LLM&lt;br/&gt;Generation]
     LLM --&gt; Citation[Citation&lt;br/&gt;Injection]
-    Citation --&gt; Answer[Cited&lt;br/&gt;Answer]</code></pre>
+    Citation --&gt; Answer[Cited&lt;br/&gt;Answer]</div>
 <h3 id="chunking-strategies">Chunking Strategies<a class="headerlink" href="#chunking-strategies" title="Permanent link">&para;</a></h3>
 <p>Documents must be split into chunks for embedding. Chunking quality directly determines retrieval quality.</p>
 <table>
@@ -3312,7 +3312,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Ingestion [Ingestion Pipeline]
         Connectors[Source Connectors&lt;br/&gt;Drive, Confluence, Slack]
         Parser[Document Parser&lt;br/&gt;PDF, HTML, Markdown]
@@ -3359,11 +3359,11 @@
 
     CitationEngine --&gt; FeedbackAPI
     FeedbackAPI --&gt; EvalPipeline
-    EvalPipeline --&gt; Analytics</code></pre>
+    EvalPipeline --&gt; Analytics</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-ingestion-pipeline">4.1 Ingestion Pipeline<a class="headerlink" href="#41-ingestion-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Sources [Data Sources]
         GDrive[Google Drive]
         Confluence[Confluence]
@@ -3392,7 +3392,7 @@
         Meta[(Metadata Store)]
     end
 
-    Sources --&gt; Connectors --&gt; Processing --&gt; Storage</code></pre>
+    Sources --&gt; Connectors --&gt; Processing --&gt; Storage</div>
 <p><strong>Connector design per source:</strong></p>
 <table>
 <thead>
@@ -3739,7 +3739,7 @@
 </tbody>
 </table>
 <h3 id="46-incremental-index-updates">4.6 Incremental Index Updates<a class="headerlink" href="#46-incremental-index-updates" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Events [Change Events]
         Create[Doc Created]
         Update[Doc Updated]
@@ -3763,7 +3763,7 @@
         ACL[(ACL Index)]
     end
 
-    Events --&gt; Queue --&gt; Workers --&gt; Indexes</code></pre>
+    Events --&gt; Queue --&gt; Workers --&gt; Indexes</div>
 <p><strong>Update strategies:</strong></p>
 <table>
 <thead>

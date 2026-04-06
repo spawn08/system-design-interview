@@ -3020,7 +3020,7 @@
 <p><strong>Envelope sender</strong> (Return-Path / bounce address) can differ from <strong>From:</strong> header. This mismatch is <strong>normal</strong> (mailing lists, ESPs) but must be <strong>authorized</strong> via SPF/DKIM/DMARC or mail may be rejected.</p>
 </div>
 <p><strong>Classic SMTP submission flow (simplified):</strong></p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Sending MTA (Client)
     participant S as Receiving MTA (Server)
     C-&gt;&gt;S: CONNECT (TCP 25 or 587)
@@ -3039,7 +3039,7 @@
     S--&gt;&gt;C: 354 Start mail input
     C-&gt;&gt;S: Headers + blank line + body + .
     S--&gt;&gt;C: 250 Message accepted for delivery
-    C-&gt;&gt;S: QUIT</code></pre>
+    C-&gt;&gt;S: QUIT</div>
 <p><strong>Command cheat sheet:</strong></p>
 <table>
 <thead>
@@ -3246,13 +3246,13 @@
 </div>
 <h3 id="arf-abuse-reporting-format-at-a-glance">ARF (Abuse Reporting Format) at a glance<a class="headerlink" href="#arf-abuse-reporting-format-at-a-glance" title="Permanent link">&para;</a></h3>
 <p>Complaint feedback loops often deliver a <strong>multipart/report</strong> message where one part is <strong><code>message/feedback-report</code></strong> with fields like <strong><code>User-Agent</code></strong>, <strong><code>Original-Mail-From</code></strong>, <strong><code>Original-Rcpt-To</code></strong>, and <strong><code>Feedback-Type: abuse</code></strong>. Another part may include <strong>redacted</strong> copy of offending message. Your parser extracts <strong>tenant</strong> and <strong>message id</strong> (from <strong>custom headers</strong> you injected) to <strong>suppress</strong> the recipient and <strong>notify</strong> the customer.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     ISP[ISP mailbox] --&gt; ARF[Inbound ARF email]
     ARF --&gt; PARSE[ARF + DSN parser]
     PARSE --&gt; ID[Resolve internal message / tenant]
     ID --&gt; SUP[Suppression store]
     SUP --&gt; WH[Webhook: complaint event]
-    WH --&gt; DASH[Customer dashboard + API]</code></pre>
+    WH --&gt; DASH[Customer dashboard + API]</div>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional">Functional<a class="headerlink" href="#functional" title="Permanent link">&para;</a></h3>
@@ -3589,7 +3589,7 @@
 </tbody>
 </table>
 <p><strong>Durability vs CAP:</strong> Strictly speaking <strong>durability</strong> is not the “C” in CAP (that’s <strong>linearizability</strong> of reads/writes). In interviews, connect <strong>“no loss of accepted mail”</strong> to <strong>replicated queues + WAL</strong>, and <strong>“inbox must load”</strong> to <strong>replicas + caches</strong> — and acknowledge <strong>partition</strong> scenarios (e.g., <strong>split-brain</strong> mitigated by <strong>fencing tokens</strong> and <strong>single-writer</strong> per mailbox where needed).</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph cp["CP-biased (strong guarantees)"]
         Q[Replicated queue / WAL&lt;br/&gt;accept before ACK]
         M[Metadata primary + sync replica&lt;br/&gt;or quorum writes]
@@ -3603,7 +3603,7 @@
     Q --&gt; M
     M --&gt; R
     M --&gt; S
-    M --&gt; F</code></pre>
+    M --&gt; F</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Message delivery</strong> to <strong>recipient MX</strong> is <strong>best-effort</strong> in the real world — your SLO is about <strong>your</strong> attempts and <strong>observable</strong> outcomes, not <strong>guaranteed</strong> placement in the user’s inbox.</p>
@@ -4200,7 +4200,7 @@
 <p><strong>Idempotency:</strong> API <code>Idempotency-Key</code> + tenant → persisted <strong>intent record</strong> prevents duplicate sends on client retries. Workers carry <strong>dedupe tokens</strong> into the queue.</p>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph ingress["Ingress"]
         API[Send / Templates API]
         AUTH[AuthZ + Quotas + Idempotency]
@@ -4234,7 +4234,7 @@
     SMTP -. NDR / FBL .-&gt; BH
     BH --&gt; SUP
     SUP -. filter before enqueue .-&gt; VAL
-    MTA --&gt; WEB</code></pre>
+    MTA --&gt; WEB</div>
 <p><strong>Transactional vs marketing separation:</strong></p>
 <table>
 <thead>
@@ -4766,7 +4766,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph failures["Failure modes"]
         Q[Queue backlog growth]
         MXF[MX / TLS failures]
@@ -4781,7 +4781,7 @@
     Q --&gt; SH
     MXF --&gt; CB
     R --&gt; GEO
-    Q --&gt; DLQ</code></pre>
+    Q --&gt; DLQ</div>
 <table>
 <thead>
 <tr>

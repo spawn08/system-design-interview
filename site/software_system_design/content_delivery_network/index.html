@@ -4005,7 +4005,7 @@
 <li>Each <strong>edge agent</strong> receives <strong>batched</strong> purges (URLs, prefixes, surrogate keys); applies <strong>local</strong> index eviction.</li>
 <li><strong>Surrogate key → cache key hashes</strong> stored in <strong>Postgres</strong> or <strong>Redis Cluster</strong> for <strong>tag purge</strong>: resolve tags to <strong>hashes</strong>, stream <strong>delete</strong> commands.</li>
 </ol>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Customer API
   participant API as Purge API
   participant DB as PostgreSQL
@@ -4022,7 +4022,7 @@
   loop each PoP
     P-&gt;&gt;E: broadcast invalidate (batched)
     E-&gt;&gt;E: drop keys + optional soft-purge
-  end</code></pre>
+  end</div>
 <p><strong>Idempotency:</strong> clients send <strong><code>Idempotency-Key</code></strong>; duplicate events <strong>no-op</strong> at edge using <strong><code>(tenant_id, pattern, version)</code></strong> tuple.</p>
 <h3 id="411-real-time-analytics-pipeline-and-cardinality">4.11 Real-time analytics: pipeline and cardinality<a class="headerlink" href="#411-real-time-analytics-pipeline-and-cardinality" title="Permanent link">&para;</a></h3>
 <p><strong>Ingest:</strong> every edge emits <strong>structured</strong> log line (binary protobuf or <strong>OTLP</strong>-like) with:</p>
@@ -4289,7 +4289,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph AP["AP-biased (data plane)"]
     E[Edge caches]
     S[Shield]
@@ -4305,10 +4305,10 @@
   P --&gt;|publish| E
   C --&gt;|deploy| E
   U -.-&gt;|seconds lag| E
-  D -.-&gt;|resolver cache| Clients[Clients]</code></pre>
+  D -.-&gt;|resolver cache| Clients[Clients]</div>
 <p><strong>Interview punchline:</strong> <strong>Immutability</strong> (versioned asset URLs) avoids <strong>coordination</strong>; <strong>mutable</strong> APIs need <strong>purge</strong> or <strong>short TTL</strong> — there is <strong>no global linearizable cache</strong> at CDN scale for all keys.</p>
 <h3 id="read-path-under-partition-conceptual">Read path under partition (conceptual)<a class="headerlink" href="#read-path-under-partition-conceptual" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant U as User
   participant E as Edge (PoP A)
   participant O as Origin
@@ -4319,7 +4319,7 @@
     E--&gt;&gt;U: 200 stale body (AP)
   else no stale copy
     E--&gt;&gt;U: 502 or 504 (degraded)
-  end</code></pre>
+  end</div>
 <p><strong>Design choice:</strong> for <strong>product catalog JSON</strong>, ship <strong><code>stale-if-error</code></strong> semantics at edge so <strong>partition</strong> toward origin still returns <strong>last good</strong> representation (bounded by <strong>max stale</strong> policy).</p>
 <hr />
 <h2 id="7-sla-and-slo-definitions">7. SLA and SLO Definitions<a class="headerlink" href="#7-sla-and-slo-definitions" title="Permanent link">&para;</a></h2>

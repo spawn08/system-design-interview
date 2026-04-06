@@ -3063,7 +3063,7 @@
 <h2 id="ml-concepts-for-image-search">ML Concepts for Image Search<a class="headerlink" href="#ml-concepts-for-image-search" title="Permanent link">&para;</a></h2>
 <h3 id="how-image-similarity-works">How Image Similarity Works<a class="headerlink" href="#how-image-similarity-works" title="Permanent link">&para;</a></h3>
 <p>The key insight: Convert images to <strong>embeddings</strong> (vectors), then find similar vectors.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Encoding [Encoding]
         Image[Image] --&gt; CNN[CNN/ViT&lt;br/&gt;Encoder]
         CNN --&gt; Embedding[512-dim&lt;br/&gt;Vector]
@@ -3072,7 +3072,7 @@
     subgraph Search [Search]
         Embedding --&gt; ANN[ANN Index]
         ANN --&gt; Similar[Similar&lt;br/&gt;Images]
-    end</code></pre>
+    end</div>
 <p><strong>Embeddings:</strong> A neural network compresses an image into a compact vector (e.g., 512 numbers) that captures its visual meaning. Similar images have similar vectors.</p>
 <h3 id="visual-similarity-vs-semantic-similarity">Visual Similarity vs Semantic Similarity<a class="headerlink" href="#visual-similarity-vs-semantic-similarity" title="Permanent link">&para;</a></h3>
 <table>
@@ -3286,7 +3286,7 @@
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Query [Query Layer]
         API[Search API]
         ImageProc[Image Processor]
@@ -3335,9 +3335,9 @@
     VectorDB --&gt; ANN
 
     ANN --&gt; Cache
-    Filter --&gt; Metadata</code></pre>
+    Filter --&gt; Metadata</div>
 <h3 id="request-flow-image-search">Request Flow: Image Search<a class="headerlink" href="#request-flow-image-search" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client
     participant API
     participant Encoder as Image Encoder
@@ -3369,7 +3369,7 @@
         API-&gt;&gt;Cache: Cache results
     end
 
-    API--&gt;&gt;Client: Top-N similar products</code></pre>
+    API--&gt;&gt;Client: Top-N similar products</div>
 <hr />
 <h2 id="step-3-image-encoding-pipeline">Step 3: Image Encoding Pipeline<a class="headerlink" href="#step-3-image-encoding-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="preprocessing">Preprocessing<a class="headerlink" href="#preprocessing" title="Permanent link">&para;</a></h3>
@@ -3504,13 +3504,13 @@
 <h2 id="step-4-vector-index">Step 4: Vector Index<a class="headerlink" href="#step-4-vector-index" title="Permanent link">&para;</a></h2>
 <h3 id="index-architecture">Index Architecture<a class="headerlink" href="#index-architecture" title="Permanent link">&para;</a></h3>
 <p>For 100 million vectors, we need an approximate nearest neighbor (ANN) index.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Index [Vector Index Architecture]
         Query[Query Vector] --&gt; Coarse[Coarse Quantizer&lt;br/&gt;Find clusters]
         Coarse --&gt; Clusters[Search relevant clusters]
         Clusters --&gt; Fine[Fine-grained search&lt;br/&gt;within clusters]
         Fine --&gt; TopK[Top-K results]
-    end</code></pre>
+    end</div>
 <h3 id="faiss-implementation">FAISS Implementation<a class="headerlink" href="#faiss-implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

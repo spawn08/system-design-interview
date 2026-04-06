@@ -3003,14 +3003,14 @@
 - Each server handles ~1,700 requests → fast responses → happy users
 - If one server crashes, 5 remain → degraded but operational</p>
 <h3 id="how-load-balancing-works">How Load Balancing Works<a class="headerlink" href="#how-load-balancing-works" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Users[Users] --&gt; LB[Load Balancer]
     LB --&gt; S1[Server 1]
     LB --&gt; S2[Server 2]
     LB --&gt; S3[Server 3]
     S1 --&gt; DB[(Database)]
     S2 --&gt; DB
-    S3 --&gt; DB</code></pre>
+    S3 --&gt; DB</div>
 <ol>
 <li><strong>User sends request</strong> to your domain (e.g., api.example.com)</li>
 <li><strong>DNS resolves</strong> to the load balancer's IP address</li>
@@ -3356,7 +3356,7 @@
 <p>Almost everything moves!</p>
 <p><strong>Consistent hashing solution:</strong></p>
 <p>Place servers on a virtual ring (0 to 2^32). Hash each request to a point on the ring, then walk clockwise to find the first server.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Ring [Consistent Hash Ring]
         direction TB
         A[Server A] --- B[Server B]
@@ -3365,7 +3365,7 @@
     end
     R1[Request 1] -.-&gt; A
     R2[Request 2] -.-&gt; B
-    R3[Request 3] -.-&gt; C</code></pre>
+    R3[Request 3] -.-&gt; C</div>
 <p>Adding a new server only affects keys between it and its predecessor.</p>
 <p><strong>Virtual nodes:</strong></p>
 <p>To improve distribution, each physical server gets multiple positions on the ring.</p>
@@ -3571,14 +3571,14 @@
 <p>Adding servers doesn't help users stuck on overloaded servers.</p>
 <h3 id="better-alternative-externalized-session-state">Better Alternative: Externalized Session State<a class="headerlink" href="#better-alternative-externalized-session-state" title="Permanent link">&para;</a></h3>
 <p>Instead of server-local sessions, store sessions in a shared store:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     User[User] --&gt; LB[Load Balancer]
     LB --&gt; S1[Server 1]
     LB --&gt; S2[Server 2]
     LB --&gt; S3[Server 3]
     S1 --&gt; Redis[(Redis/Session Store)]
     S2 --&gt; Redis
-    S3 --&gt; Redis</code></pre>
+    S3 --&gt; Redis</div>
 <p><strong>Implementation:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
 </span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
@@ -3664,7 +3664,7 @@
 <h2 id="global-server-load-balancing-gslb">Global Server Load Balancing (GSLB)<a class="headerlink" href="#global-server-load-balancing-gslb" title="Permanent link">&para;</a></h2>
 <p>Traditional load balancers work within a single data center. GSLB distributes traffic globally across multiple data centers.</p>
 <h3 id="how-gslb-works">How GSLB Works<a class="headerlink" href="#how-gslb-works" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     User[User in Tokyo] --&gt; DNS[DNS Query: api.example.com]
     DNS --&gt; GSLB[GSLB/GeoDNS]
     GSLB --&gt; DC1[Tokyo DC: 52.0.0.1]
@@ -3672,7 +3672,7 @@
     GSLB --&gt; DC3[Virginia DC: 35.0.0.1]
     GSLB -.-&gt;|Returns Tokyo IP| User
     User --&gt; TokyoLB[Tokyo Load Balancer]
-    TokyoLB --&gt; Servers[Tokyo Servers]</code></pre>
+    TokyoLB --&gt; Servers[Tokyo Servers]</div>
 <ol>
 <li>User queries DNS for api.example.com</li>
 <li>GSLB (acting as DNS) considers:</li>

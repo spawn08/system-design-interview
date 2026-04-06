@@ -2874,16 +2874,16 @@
 <hr />
 <h2 id="why-message-queues">Why Message Queues?<a class="headerlink" href="#why-message-queues" title="Permanent link">&para;</a></h2>
 <p>In any distributed system, services need to communicate. Direct synchronous calls (REST, gRPC) create tight coupling — if the downstream service is slow or down, the caller blocks or fails. Message queues break this dependency by introducing an intermediary that stores messages until the consumer is ready.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Synchronous
         A1[Order Service] --&gt;|HTTP POST /charge| B1[Payment Service]
-        B1 --&gt;|slow or down?| A1
+        B1 --&gt;|"slow or down?"| A1
     end
 
     subgraph Asynchronous
         A2[Order Service] --&gt;|publish| Q[Message Queue]
         Q --&gt;|consume| B2[Payment Service]
-    end</code></pre>
+    end</div>
 <h3 id="when-to-use-message-queues">When to Use Message Queues<a class="headerlink" href="#when-to-use-message-queues" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2923,29 +2923,29 @@
 <h2 id="message-queue-models">Message Queue Models<a class="headerlink" href="#message-queue-models" title="Permanent link">&para;</a></h2>
 <h3 id="point-to-point-queue">Point-to-Point (Queue)<a class="headerlink" href="#point-to-point-queue" title="Permanent link">&para;</a></h3>
 <p>Each message is consumed by exactly one consumer. Once acknowledged, the message is removed.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     P1[Producer 1] --&gt; Q[(Queue)]
     P2[Producer 2] --&gt; Q
     Q --&gt; C1[Consumer 1]
     Q --&gt; C2[Consumer 2]
 
-    style Q fill:#1a5276,stroke:#2980b9</code></pre>
+    style Q fill:#1a5276,stroke:#2980b9</div>
 <p><strong>Use case:</strong> Task distribution, job queues, work items.</p>
 <h3 id="publish-subscribe-topic">Publish-Subscribe (Topic)<a class="headerlink" href="#publish-subscribe-topic" title="Permanent link">&para;</a></h3>
 <p>Each message is delivered to all subscribed consumers. Messages are retained for a configurable period.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     P[Producer] --&gt; T[Topic]
     T --&gt; S1[Subscriber 1&lt;br/&gt;Email Service]
     T --&gt; S2[Subscriber 2&lt;br/&gt;Analytics Service]
     T --&gt; S3[Subscriber 3&lt;br/&gt;Notification Service]
 
-    style T fill:#1a5276,stroke:#2980b9</code></pre>
+    style T fill:#1a5276,stroke:#2980b9</div>
 <p><strong>Use case:</strong> Event broadcasting, notifications, data replication.</p>
 <hr />
 <h2 id="apache-kafka-deep-dive">Apache Kafka Deep Dive<a class="headerlink" href="#apache-kafka-deep-dive" title="Permanent link">&para;</a></h2>
 <p>Kafka is a distributed event streaming platform built around an immutable, append-only <strong>log</strong>. It is the backbone of event-driven architectures at LinkedIn, Netflix, Uber, and most large-scale systems.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Kafka Cluster
         subgraph Broker 1
             TP0[Topic-A&lt;br/&gt;Partition 0&lt;br/&gt;Leader]
@@ -2973,7 +2973,7 @@
 
     ZK[ZooKeeper / KRaft] --&gt; Broker 1
     ZK --&gt; Broker 2
-    ZK --&gt; Broker 3</code></pre>
+    ZK --&gt; Broker 3</div>
 <h3 id="core-concepts">Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3320,14 +3320,14 @@
 <h2 id="rabbitmq">RabbitMQ<a class="headerlink" href="#rabbitmq" title="Permanent link">&para;</a></h2>
 <p>RabbitMQ is a traditional message broker implementing AMQP (Advanced Message Queuing Protocol). Unlike Kafka's log-based approach, RabbitMQ focuses on flexible routing, acknowledgments, and message-level operations.</p>
 <h3 id="architecture_1">Architecture<a class="headerlink" href="#architecture_1" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     P[Producer] --&gt;|publish| EX{Exchange}
     EX --&gt;|routing key: order.*| Q1[Queue: Orders]
     EX --&gt;|routing key: payment.*| Q2[Queue: Payments]
     EX --&gt;|routing key: #| Q3[Queue: Audit Log]
     Q1 --&gt; C1[Consumer 1]
     Q2 --&gt; C2[Consumer 2]
-    Q3 --&gt; C3[Consumer 3]</code></pre>
+    Q3 --&gt; C3[Consumer 3]</div>
 <h3 id="exchange-types">Exchange Types<a class="headerlink" href="#exchange-types" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3362,13 +3362,13 @@
 </table>
 <h3 id="dead-letter-queues-dlq">Dead-Letter Queues (DLQ)<a class="headerlink" href="#dead-letter-queues-dlq" title="Permanent link">&para;</a></h3>
 <p>Messages that cannot be processed (rejected, expired, queue full) are routed to a dead-letter exchange for later inspection and retry.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     P[Producer] --&gt; EX[Exchange] --&gt; Q[Main Queue]
     Q --&gt; C[Consumer]
     C --&gt;|reject/nack| Q
     Q --&gt;|max retries exceeded&lt;br/&gt;or TTL expired| DLX[Dead-Letter Exchange]
     DLX --&gt; DLQ[Dead-Letter Queue]
-    DLQ --&gt; RETRY[Retry Worker&lt;br/&gt;or Manual Review]</code></pre>
+    DLQ --&gt; RETRY[Retry Worker&lt;br/&gt;or Manual Review]</div>
 <h3 id="kafka-vs-rabbitmq-decision-matrix">Kafka vs RabbitMQ Decision Matrix<a class="headerlink" href="#kafka-vs-rabbitmq-decision-matrix" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3472,7 +3472,7 @@
 </table>
 <h3 id="apache-flink">Apache Flink<a class="headerlink" href="#apache-flink" title="Permanent link">&para;</a></h3>
 <p>Flink is the leading stream processing framework, designed for stateful computations over unbounded and bounded data streams.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Sources
         K[Kafka Topic]
         F[File System]
@@ -3494,7 +3494,7 @@
     F --&gt; SM
     WIN --&gt; DB
     WIN --&gt; K2
-    WIN --&gt; ES</code></pre>
+    WIN --&gt; ES</div>
 <p><strong>Key Flink concepts:</strong></p>
 <table>
 <thead>
@@ -3531,7 +3531,7 @@
 </tbody>
 </table>
 <h3 id="windowing-strategies">Windowing Strategies<a class="headerlink" href="#windowing-strategies" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>gantt
+<div class="mermaid">gantt
     title Window Types
     dateFormat X
     axisFormat %s
@@ -3541,14 +3541,14 @@
     Window 2 :5, 10
     Window 3 :10, 15
 
-    section Sliding (size=5, slide=2)
+    section Sliding size5 slide2
     Window 1 :0, 5
     Window 2 :2, 7
     Window 3 :4, 9
 
-    section Session (gap=3)
+    section Session gap3
     Session 1 :0, 4
-    Session 2 :8, 13</code></pre>
+    Session 2 :8, 13</div>
 <table>
 <thead>
 <tr>
@@ -3630,14 +3630,14 @@
 <h2 id="event-driven-architecture-patterns">Event-Driven Architecture Patterns<a class="headerlink" href="#event-driven-architecture-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="event-sourcing">Event Sourcing<a class="headerlink" href="#event-sourcing" title="Permanent link">&para;</a></h3>
 <p>Instead of storing current state, store the sequence of events that led to the current state. The state is derived by replaying events.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     CMD[Command:&lt;br/&gt;PlaceOrder] --&gt; ES[Event Store]
     ES --&gt;|append| E1[OrderCreated]
     ES --&gt;|append| E2[PaymentReceived]
     ES --&gt;|append| E3[OrderShipped]
 
     ES --&gt;|replay| STATE[Current State:&lt;br/&gt;Order is Shipped]
-    ES --&gt;|project| READ[Read Model&lt;br/&gt;Materialized View]</code></pre>
+    ES --&gt;|project| READ[Read Model&lt;br/&gt;Materialized View]</div>
 <p><strong>Benefits:</strong>
 - Complete audit trail
 - Temporal queries ("what was the state at time T?")
@@ -3648,7 +3648,7 @@
 - Eventual consistency for read models</p>
 <h3 id="saga-pattern">Saga Pattern<a class="headerlink" href="#saga-pattern" title="Permanent link">&para;</a></h3>
 <p>A saga is a sequence of local transactions across multiple services. Each step has a compensating action to undo it if a later step fails.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant OS as Order Service
     participant PS as Payment Service
     participant IS as Inventory Service
@@ -3668,7 +3668,7 @@
     IS-&gt;&gt;PS: Refund payment
     PS-&gt;&gt;PS: Credit $100
     PS-&gt;&gt;OS: Cancel order
-    OS-&gt;&gt;OS: Order CANCELLED</code></pre>
+    OS-&gt;&gt;OS: Order CANCELLED</div>
 <p><strong>Orchestration vs Choreography:</strong></p>
 <table>
 <thead>
@@ -3774,25 +3774,25 @@
 </table>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
-    Q[Need async communication?] --&gt; MODEL{What model?}
+<div class="mermaid">flowchart TD
+    Q["Need async communication?"] --&gt; MODEL{"What model?"}
     MODEL --&gt;|One consumer per message| QUEUE[Point-to-Point Queue]
     MODEL --&gt;|Multiple consumers per message| PUBSUB[Publish-Subscribe]
 
-    QUEUE --&gt; TECH1{Requirements?}
+    QUEUE --&gt; TECH1{"Requirements?"}
     TECH1 --&gt;|Complex routing, RPC| RMQ[RabbitMQ]
     TECH1 --&gt;|High throughput, replay| KAFKA[Kafka]
     TECH1 --&gt;|Managed, simple| SQS[Amazon SQS]
 
-    PUBSUB --&gt; TECH2{Requirements?}
+    PUBSUB --&gt; TECH2{"Requirements?"}
     TECH2 --&gt;|Event streaming, replay| KAFKA2[Kafka]
     TECH2 --&gt;|Managed pub/sub| SNS[SNS + SQS / Pub/Sub]
     TECH2 --&gt;|Real-time fan-out| REDIS[Redis Pub/Sub]
 
-    KAFKA --&gt; PROC{Need processing?}
+    KAFKA --&gt; PROC{"Need processing?"}
     PROC --&gt;|Simple transforms| KS[Kafka Streams]
     PROC --&gt;|Complex, stateful| FLINK[Apache Flink]
-    PROC --&gt;|Micro-batch OK| SPARK[Spark Streaming]</code></pre>
+    PROC --&gt;|Micro-batch OK| SPARK[Spark Streaming]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, always state your delivery guarantee requirement (at-most-once, at-least-once, exactly-once) and explain why. Most systems use <strong>at-least-once with idempotent consumers</strong> — it gives reliability without the complexity of exactly-once.</p>

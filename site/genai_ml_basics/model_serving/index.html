@@ -3057,7 +3057,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TB
+<div class="mermaid">graph TB
     subgraph Clients
         APP[Application] --&gt; LB[Load Balancer]
         BATCH[Batch Jobs] --&gt; BATCHQ[Batch Queue]
@@ -3096,8 +3096,8 @@
 
     REG -.-&gt; SRV1
     REG -.-&gt; SRV2
-    REG -.-&gt; SPARK</code></pre>
-<pre class="mermaid"><code>sequenceDiagram
+    REG -.-&gt; SPARK</div>
+<div class="mermaid">sequenceDiagram
     participant C as Client
     participant GW as API Gateway
     participant R as Router
@@ -3114,7 +3114,7 @@
     S--&gt;&gt;R: Response
     R--&gt;&gt;GW: Response
     GW--&gt;&gt;C: {"prediction": [...], "model_version": "v2"}
-    S-&gt;&gt;M: Log latency, prediction distribution</code></pre>
+    S-&gt;&gt;M: Log latency, prediction distribution</div>
 <hr />
 <h2 id="step-4-online-vs-batch-prediction">Step 4: Online vs Batch Prediction<a class="headerlink" href="#step-4-online-vs-batch-prediction" title="Permanent link">&para;</a></h2>
 <h3 id="when-to-use-each">When to Use Each<a class="headerlink" href="#when-to-use-each" title="Permanent link">&para;</a></h3>
@@ -3246,7 +3246,7 @@
 <h2 id="step-5-model-registry-versioning">Step 5: Model Registry &amp; Versioning<a class="headerlink" href="#step-5-model-registry-versioning" title="Permanent link">&para;</a></h2>
 <p>A model registry is the source of truth for all trained models. It stores artifacts, metadata, lineage, and deployment status.</p>
 <h3 id="registry-design">Registry Design<a class="headerlink" href="#registry-design" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>graph LR
+<div class="mermaid">graph LR
     subgraph Model Registry
         META[(Metadata DB)]
         ARTIFACTS[(Artifact Store&lt;br/&gt;S3 / GCS)]
@@ -3257,7 +3257,7 @@
 
     META --&gt;|promote to prod| DEPLOY[Deployment Pipeline]
     ARTIFACTS --&gt;|pull model| DEPLOY
-    DEPLOY --&gt; SERVING[Serving Cluster]</code></pre>
+    DEPLOY --&gt; SERVING[Serving Cluster]</div>
 <h3 id="version-lifecycle">Version Lifecycle<a class="headerlink" href="#version-lifecycle" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3642,7 +3642,7 @@
 <hr />
 <h2 id="step-7-ab-testing-models">Step 7: A/B Testing Models<a class="headerlink" href="#step-7-ab-testing-models" title="Permanent link">&para;</a></h2>
 <h3 id="traffic-splitting-architecture">Traffic Splitting Architecture<a class="headerlink" href="#traffic-splitting-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>graph LR
+<div class="mermaid">graph LR
     REQ[Request] --&gt; SPLIT{Traffic Splitter}
     SPLIT --&gt;|80%| V1[Model v1&lt;br/&gt;Control]
     SPLIT --&gt;|10%| V2[Model v2&lt;br/&gt;Treatment A]
@@ -3651,7 +3651,7 @@
     V1 --&gt; LOG[Event Logger]
     V2 --&gt; LOG
     V3 --&gt; LOG
-    LOG --&gt; ANALYSIS[Statistical Analysis&lt;br/&gt;Sequential Testing]</code></pre>
+    LOG --&gt; ANALYSIS[Statistical Analysis&lt;br/&gt;Sequential Testing]</div>
 <h3 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -3953,7 +3953,7 @@
 <hr />
 <h2 id="step-9-model-monitoring-drift-detection">Step 9: Model Monitoring &amp; Drift Detection<a class="headerlink" href="#step-9-model-monitoring-drift-detection" title="Permanent link">&para;</a></h2>
 <h3 id="monitoring-architecture">Monitoring Architecture<a class="headerlink" href="#monitoring-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>graph TB
+<div class="mermaid">graph TB
     SERVING[Model Server] --&gt;|predictions + features| LOGGER[Prediction Logger]
     LOGGER --&gt; STORE[(Prediction Store&lt;br/&gt;BigQuery / S3)]
     STORE --&gt; DRIFT[Drift Detector&lt;br/&gt;Scheduled Job]
@@ -3973,7 +3973,7 @@
     SERVING --&gt; LATENCY
     SERVING --&gt; THROUGHPUT
     SERVING --&gt; ERRORS
-    PERF --&gt; BUSINESS</code></pre>
+    PERF --&gt; BUSINESS</div>
 <h3 id="drift-detection-implementation">Drift Detection Implementation<a class="headerlink" href="#drift-detection-implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
@@ -4138,7 +4138,7 @@
 <hr />
 <h2 id="step-10-scaling-strategies">Step 10: Scaling Strategies<a class="headerlink" href="#step-10-scaling-strategies" title="Permanent link">&para;</a></h2>
 <h3 id="auto-scaling-architecture">Auto-Scaling Architecture<a class="headerlink" href="#auto-scaling-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>graph LR
+<div class="mermaid">graph LR
     METRICS[Prometheus Metrics] --&gt; HPA[Horizontal Pod Autoscaler]
     HPA --&gt; SCALE{Scale Decision}
     SCALE --&gt;|Scale Up| ADD[Add GPU Pods]
@@ -4148,7 +4148,7 @@
     CUSTOM[Custom Metrics] --&gt; HPA
     CUSTOM --- QPS[QPS per Pod]
     CUSTOM --- GPU[GPU Utilization]
-    CUSTOM --- QUEUE[Queue Depth]</code></pre>
+    CUSTOM --- QUEUE[Queue Depth]</div>
 <h3 id="scaling-dimensions">Scaling Dimensions<a class="headerlink" href="#scaling-dimensions" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

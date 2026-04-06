@@ -3252,7 +3252,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph HighResource [High-resource pairs]
         A[Large parallel corpora]
     end
@@ -3266,7 +3266,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     B --&gt; D
     C --&gt; E[Back-translation &amp; denoising]
     E --&gt; D
-    D --&gt; F[Pivot: X→EN→Y as fallback]</code></pre>
+    D --&gt; F[Pivot: X→EN→Y as fallback]</div>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3449,7 +3449,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-flow">End-to-end flow<a class="headerlink" href="#end-to-end-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Inputs [Inputs]
         T[Text]
         I[Image / OCR]
@@ -3468,15 +3468,15 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     I --&gt; OCR[OCR + script detection] --&gt; LD
     S --&gt; ASR[ASR] --&gt; LD
 
-    BATCH[Batch / Document Pipeline] --&gt; SEG[Segmentation + doc context cache] --&gt; ROUTE</code></pre>
+    BATCH[Batch / Document Pipeline] --&gt; SEG[Segmentation + doc context cache] --&gt; ROUTE</div>
 <h3 id="batch-and-document-path">Batch and document path<a class="headerlink" href="#batch-and-document-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     DOC[User uploads 40-page PDF] --&gt; EXTRACT[Extract text + layout]
     EXTRACT --&gt; CHUNK[Chunk / sentence segmentation]
     CHUNK --&gt; CACHE_CTX[Cross-sentence context window]
     CACHE_CTX --&gt; MTB[MT workers with KV-cache]
     MTB --&gt; STITCH[Stitch + format preservation]
-    STITCH --&gt; QE2[QE + glossary enforcement]</code></pre>
+    STITCH --&gt; QE2[QE + glossary enforcement]</div>
 <p><strong>Router</strong> chooses:</p>
 <ul>
 <li><strong>Model variant</strong> (tiny vs large; speech vs text)</li>
@@ -4231,7 +4231,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph OfflineEval [Offline regression]
         G[Golden parallel sets per pair]
         M[Metrics: BLEU/chrF/COMET]
@@ -4246,7 +4246,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     G --&gt; M --&gt; Gate{Release gate}
     L --&gt; Gate
     Q --&gt; Gate
-    U --&gt; Gate</code></pre>
+    U --&gt; Gate</div>
 <h3 id="trade-offs-interview-gold">Trade-offs (interview gold)<a class="headerlink" href="#trade-offs-interview-gold" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

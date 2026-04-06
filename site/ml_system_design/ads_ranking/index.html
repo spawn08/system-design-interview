@@ -3361,7 +3361,7 @@
 </tbody>
 </table>
 <p>ML rankers should not <strong>optimize on fraudulent clicks</strong> — labels are often <strong>filtered</strong> using <strong>rules + models</strong> before training.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Primer [Concept map]
         A[pCTR / pCVR models]
         B[Auction: bid × quality × predictions]
@@ -3373,7 +3373,7 @@
     A --&gt; B
     C --&gt; B
     D --&gt; A
-    E --&gt; A</code></pre>
+    E --&gt; A</div>
 <hr />
 <h2 id="step-1-requirements-clarification">Step 1: Requirements Clarification<a class="headerlink" href="#step-1-requirements-clarification" title="Permanent link">&para;</a></h2>
 <h3 id="questions-to-ask-the-interviewer">Questions to ask the interviewer<a class="headerlink" href="#questions-to-ask-the-interviewer" title="Permanent link">&para;</a></h3>
@@ -3623,7 +3623,7 @@
 </div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Request [Request path]
         AR[Ad Request]
     end
@@ -3662,14 +3662,14 @@
     UF --&gt; ASM
     ADF --&gt; ASM
     CF --&gt; ASM
-    ASM --&gt; M --&gt; E --&gt; SEL --&gt; SRV</code></pre>
+    ASM --&gt; M --&gt; E --&gt; SEL --&gt; SRV</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>At scale, <strong>retrieval</strong> and <strong>feature fetch</strong> often dominate — not the neural net alone. Call out <strong>parallelism</strong> and <strong>candidate reduction</strong> explicitly.</p>
 </div>
 <h3 id="offline-training-and-logging-companion-path">Offline training and logging (companion path)<a class="headerlink" href="#offline-training-and-logging-companion-path" title="Permanent link">&para;</a></h3>
 <p>The <strong>online</strong> path scores a request in milliseconds; the <strong>offline</strong> path ingests <strong>impression / click / conversion</strong> logs for training. These are <strong>decoupled</strong> systems with <strong>shared schemas</strong> and strict <strong>feature parity</strong> checks.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Online [Online serving]
         REQ[Ad request logs]
         WIN[Winning ad + price]
@@ -3693,7 +3693,7 @@
     IMP --&gt; JOIN
     CLK --&gt; JOIN
     CNV --&gt; JOIN
-    JOIN --&gt; FEAT --&gt; TUNE --&gt; REL</code></pre>
+    JOIN --&gt; FEAT --&gt; TUNE --&gt; REL</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Point-in-time correctness</strong>: features in training must match what was <strong>knowable</strong> at impression time — no <strong>future</strong> clicks in the feature vector.</p>
@@ -4565,7 +4565,7 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Goals [Advertiser goals]
         T[tCPA / tROAS target]
         B[Budget + schedule]
@@ -4597,7 +4597,7 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
     SP --&gt; L
     SP --&gt; PID
     P --&gt; EB
-    SP --&gt; P</code></pre>
+    SP --&gt; P</div>
 <h4 id="tcpa-optimization-pid-style-controller-toy">tCPA optimization — PID-style controller (toy)<a class="headerlink" href="#tcpa-optimization-pid-style-controller-toy" title="Permanent link">&para;</a></h4>
 <p><strong>PID</strong> (proportional–integral–derivative) is a <strong>common engineering baseline</strong>: <strong>P</strong> reacts to current CPA error, <strong>I</strong> removes steady-state offset (persistent “too expensive”), <strong>D</strong> dampens oscillation when CPA <strong>spikes</strong>.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -4912,7 +4912,7 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph SLI [SLOs]
         L[Latency P99]
         Q[Quality score]
@@ -4925,7 +4925,7 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
         E[Incident: degrade path]
     end
 
-    SLI --&gt; Ops</code></pre>
+    SLI --&gt; Ops</div>
 <hr />
 <h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
 <table>

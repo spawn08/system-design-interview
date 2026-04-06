@@ -3197,11 +3197,11 @@
 <li><strong>Transactions</strong> — atomic <strong>write to multiple partitions</strong> and/or <strong>commit consumer offsets</strong> with produced output (<strong>read-process-write</strong>).</li>
 <li><strong>Idempotent consumer / sink</strong> — downstream <strong>upsert by id</strong>, <strong>dedupe table</strong>, or <strong>effectively-once</strong> handling of duplicates.</li>
 </ol>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   IP[Idempotent producer]
   TX[Transactions / atomic read-process-write]
   IC[Idempotent consumer or sink]
-  IP --&gt; TX --&gt; IC</code></pre>
+  IP --&gt; TX --&gt; IC</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In interviews, say <strong>exactly-once <em>effects</em></strong> require <strong>all three layers</strong> in the path of side effects—not just broker flags.</p>
@@ -3579,7 +3579,7 @@
 <p><strong>CAP</strong> is about <strong>network partition</strong>, not “disk died.” Replication and <strong>leader election</strong> are how you map <strong>partition tolerance</strong> to concrete broker behavior.</p>
 </div>
 <p><strong>ISR (in-sync replica) model (sketch):</strong> Each partition has a <strong>leader</strong> and <strong>followers</strong>. The <strong>ISR</strong> is the set of replicas <strong>caught up</strong> within lag bounds. A produce with <strong><code>acks=all</code></strong> is acknowledged only after <strong>all ISR replicas</strong> have the record (Kafka’s exact rules involve <strong>HW</strong> and <strong>leader epochs</strong>—interviews use this story). If a follower <strong>falls behind</strong>, it is <strong>dropped from ISR</strong>; <strong><code>min.insync.replicas</code></strong> blocks commits if the ISR is too small—<strong>CP</strong> over <strong>taking writes without enough copies</strong>.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Healthy["Healthy ISR"]
     L[Leader LEO advances]
     F1[Follower 1 in ISR]
@@ -3593,7 +3593,7 @@
     P --&gt;|acks=all| L2
     L2 -.-&gt;|cannot replicate| F3[Followers unreachable]
   end
-  Healthy --&gt;|split-brain risk if two leaders| Partition</code></pre>
+  Healthy --&gt;|split-brain risk if two leaders| Partition</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Staff sound bite:</strong> Under partition, <strong>Kafka-style</strong> systems with <strong><code>acks=all</code> + min ISR</strong> behave <strong>CP</strong> on the <strong>commit set</strong> (you may <strong>not</strong> get an ack). <strong>Unclean election</strong> trades <strong>C</strong> for <strong>A</strong>—say that only for <strong>explicit</strong> disaster policies.</p>
@@ -3886,7 +3886,7 @@
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
 <p>Modern Kafka uses an internal <strong>metadata quorum</strong> (KRaft — Kafka Raft) in place of ZooKeeper in new deployments; interviews still often mention <strong>ZooKeeper</strong> for historical reasons. Either way, the <strong>control plane</strong> stores topic/partition leadership and cluster membership; the <strong>data plane</strong> is brokers serving partitions.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Producers
     P1[Producer A]
     P2[Producer B]
@@ -3916,9 +3916,9 @@
   B3 --&gt; G2
   B1 -.-&gt; Z
   B2 -.-&gt; Z
-  B3 -.-&gt; Z</code></pre>
+  B3 -.-&gt; Z</div>
 <h3 id="produce-fetch-flow-sequence">Produce → Fetch Flow (Sequence)<a class="headerlink" href="#produce-fetch-flow-sequence" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Pr as Producer
   participant L as Partition Leader
   participant F as Follower
@@ -3929,7 +3929,7 @@
   F-&gt;&gt;F: Append follower log
   F--&gt;&gt;L: next fetch with high watermark advance
   L--&gt;&gt;Pr: ack (committed offset)
-  Note over Co: On leader failure: elect from ISR</code></pre>
+  Note over Co: On leader failure: elect from ISR</div>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4253,7 +4253,7 @@
 <p>If <strong>min.insync.replicas</strong> is not met, producer with <code>acks=all</code> should <strong>fail</strong>—you trade availability for avoiding silent data loss. Explain this trade-off.</p>
 </div>
 <p><strong>Rack awareness:</strong> place replicas on <strong>different racks/AZs</strong> so a single failure domain does not wipe ISR. The controller tries to honor <strong>replica placement constraints</strong> when assigning partitions.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph AZ1
     L[Leader]
   end
@@ -4264,7 +4264,7 @@
     F2[Follower]
   end
   L --&gt;|replicate| F1
-  L --&gt;|replicate| F2</code></pre>
+  L --&gt;|replicate| F2</div>
 <hr />
 <h3 id="43-producer-guarantees">4.3 Producer Guarantees<a class="headerlink" href="#43-producer-guarantees" title="Permanent link">&para;</a></h3>
 <p><strong><code>acks</code> (Kafka producer):</strong></p>
@@ -4423,11 +4423,11 @@
 </div>
 <p><strong>Static membership (optional):</strong> <strong>group.instance.id</strong> pins a consumer identity to reduce churn on rolling deploys—fewer unnecessary rebalances when the same container comes back.</p>
 <p><strong>Consumer group state machine (conceptual):</strong></p>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
   [*] --&gt; Stable
   Stable --&gt; Rebalancing: member join/leave
   Rebalancing --&gt; Stable: assignment complete
-  Stable --&gt; Dead: fatal error</code></pre>
+  Stable --&gt; Dead: fatal error</div>
 <hr />
 <h3 id="45-zero-copy-and-high-performance-io">4.5 Zero-Copy and High-Performance I/O<a class="headerlink" href="#45-zero-copy-and-high-performance-io" title="Permanent link">&para;</a></h3>
 <p><strong>Goal:</strong> move bytes from disk/socket to socket with minimal CPU copies.</p>
@@ -4693,7 +4693,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Region_A[Region A]
     PA[Producers]
     CA[Consumers]
@@ -4708,7 +4708,7 @@
     PB --&gt; BB
     BB --&gt; CB
   end
-  BA &lt;--&gt;|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB</code></pre>
+  BA &lt;--&gt;|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB</div>
 <p><strong>Conflict resolution (active-active):</strong> If the <strong>same key</strong> can be written in <strong>both</strong> regions, you need <strong>deterministic merge</strong> rules: <strong>last-write-wins (LWW)</strong> with <strong>vector clocks</strong> / <strong>version fields</strong>, <strong>CRDTs</strong>, or <strong>region-owned key prefixes</strong> (<code>us-east-{id}</code> vs <code>eu-west-{id}</code>) so keys <strong>don’t collide</strong>. The log <strong>does not</strong> magically merge business conflicts.</p>
 <p><strong>RPO / RTO:</strong></p>
 <table>

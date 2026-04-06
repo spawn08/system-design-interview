@@ -3530,7 +3530,7 @@
 <li><strong>Read receipts:</strong> Often <strong>eventual</strong>: delivered/read state propagates asynchronously; duplicates handled by idempotency. You may choose <strong>stronger consistency</strong> for “read cursor” per user in SQL if product demands strict ordering of receipts.</li>
 <li><strong>Group membership:</strong> Usually <strong>CP</strong> in the <strong>authoritative store</strong> (add/remove must not disagree); <strong>cached</strong> membership in Redis is <strong>AP</strong> (stale cache tolerable for milliseconds–seconds with invalidation).</li>
 </ul>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph AP_paths["AP-leaning paths"]
     P[Presence TTL]
     T[Typing indicators]
@@ -3549,7 +3549,7 @@
 
   AP_paths --&gt; UX[Best-effort UX]
   CP_paths --&gt; INV[Invariant: who is in the group / what is persisted]
-  Mixed --&gt; EVC[Eventually consistent across viewers]</code></pre>
+  Mixed --&gt; EVC[Eventually consistent across viewers]</div>
 <p><strong>Per-path summary</strong></p>
 <table>
 <thead>
@@ -3727,7 +3727,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Clients]
         M[Mobile Apps]
         W[Web Clients]
@@ -3772,7 +3772,7 @@
     CS --&gt; CAS
     CS --&gt; RD
     CS --&gt; OBJ
-    CS --&gt; PN</code></pre>
+    CS --&gt; PN</div>
 <h3 id="request-path-conceptual">Request Path (Conceptual)<a class="headerlink" href="#request-path-conceptual" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Client opens <strong>WebSocket</strong> through <strong>LB</strong> to a <strong>gateway</strong> instance.</li>
@@ -4146,7 +4146,7 @@
 <hr />
 <h3 id="42-message-flow-11-and-group">4.2 Message Flow (1:1 and Group)<a class="headerlink" href="#42-message-flow-11-and-group" title="Permanent link">&para;</a></h3>
 <h4 id="11-sequence">1:1 sequence<a class="headerlink" href="#11-sequence" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant A as Client A
     participant GWa as Gateway A
     participant CS as Chat Service
@@ -4163,9 +4163,9 @@
     CS-&gt;&gt;GWb: push to user B session (if online)
     GWb-&gt;&gt;B: WS: message_ack + payload
     B-&gt;&gt;GWb: WS: delivery_ack
-    GWb-&gt;&gt;CS: update delivery state</code></pre>
+    GWb-&gt;&gt;CS: update delivery state</div>
 <h4 id="group-sequence-fan-out-on-write-small-group">Group sequence (fan-out on write — small group)<a class="headerlink" href="#group-sequence-fan-out-on-write-small-group" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant S as Sender Client
     participant GW as Gateway
     participant CS as Chat Service
@@ -4180,7 +4180,7 @@
     loop each member (bounded batch)
         CS-&gt;&gt;MQ: fanout tasks (member_id, message_id)
     end
-    MQ-&gt;&gt;CS: deliver to each recipient pipeline</code></pre>
+    MQ-&gt;&gt;CS: deliver to each recipient pipeline</div>
 <p><strong>Routing</strong>
 - <strong>Partition key</strong>: <code>conversation_id</code> for ordering in Kafka.
 - <strong>Group fan-out</strong>: fetch membership; for each member enqueue delivery task. Large groups switch strategy (below).</p>
@@ -4935,7 +4935,7 @@
 - Include <strong><code>message_id</code></strong> to dedupe on client.</p>
 <p><strong>Batching</strong>
 - Collapse multiple messages: “<strong>3 new messages in #engineering</strong>” instead of 3 pushes.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Triggers
         MSG[New message]
         MEN[Membership change]
@@ -4951,7 +4951,7 @@
     APN[APNs]
 
     MSG --&gt; PRIV --&gt; RATE --&gt; COLLAPSE --&gt; FCM
-    COLLAPSE --&gt; APN</code></pre>
+    COLLAPSE --&gt; APN</div>
 <p><strong>Collapse keys:</strong> per-conversation (<code>user:{uid}:conv:{cid}</code>) for “N new messages in #channel”; per-sender for DM bursts; <strong>no collapse</strong> for security alerts.</p>
 <h4 id="push-batching-and-delivery">Push batching and delivery<a class="headerlink" href="#push-batching-and-delivery" title="Permanent link">&para;</a></h4>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Python</label><label for="__tabbed_5_2">Java</label><label for="__tabbed_5_3">Go</label></div>
@@ -5114,7 +5114,7 @@
 <p>E2EE changes the system: server <strong>cannot</strong> search plaintext; attachments must be encrypted client-side; <strong>key backup</strong> is a product problem (passphrase, secure enclave).</p>
 </div>
 <h4 id="key-exchange-flow">Key exchange flow<a class="headerlink" href="#key-exchange-flow" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant A as Client A
     participant S as Server (directory)
     participant B as Client B
@@ -5125,7 +5125,7 @@
     A-&gt;&gt;S: send initial encrypted message (header)
     S-&gt;&gt;B: relay ciphertext only
     B-&gt;&gt;B: complete X3DH + Double Ratchet init
-    B-&gt;&gt;S: reply ciphertext</code></pre>
+    B-&gt;&gt;S: reply ciphertext</div>
 <table>
 <thead>
 <tr>

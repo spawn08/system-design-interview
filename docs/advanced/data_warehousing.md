@@ -157,6 +157,16 @@ Snowflake: FACT → DIM_PRODUCT → DIM_CATEGORY → DIM_BRAND
 ### Java Example: ETL Pipeline Framework
 
 ```java
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import javax.sql.DataSource;
+
 /**
  * Simple ETL pipeline that extracts data from a source database,
  * transforms it into a star schema, and loads into a data warehouse.

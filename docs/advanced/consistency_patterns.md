@@ -125,6 +125,12 @@ sequenceDiagram
 ### Java Example: Quorum-Based Read/Write
 
 ```java
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Quorum-based replicated store with configurable consistency levels.
  * Demonstrates how W + R > N achieves strong consistency.
@@ -447,6 +453,10 @@ CRDTs are data structures that can be replicated across nodes and updated indepe
 ### Java Example: G-Counter and PN-Counter
 
 ```java
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * G-Counter: a grow-only distributed counter.
  * Each node maintains its own increment count.
@@ -664,6 +674,10 @@ sequenceDiagram
 ### Java Example: Saga Orchestrator
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 public class OrderSagaOrchestrator {
 
     public enum SagaState {

@@ -3148,7 +3148,7 @@
 <p>If you're not from an ML background, here's what you need to know to understand this design.</p>
 <h3 id="how-image-captioning-works">How Image Captioning Works<a class="headerlink" href="#how-image-captioning-works" title="Permanent link">&para;</a></h3>
 <p>Image captioning uses a two-part architecture:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Encoder [Image Encoder]
         Image[Image] --&gt; CNN[CNN/ViT]
         CNN --&gt; Features[Feature Vector]
@@ -3160,7 +3160,7 @@
         LM --&gt; Words[Word by Word]
     end
 
-    Words --&gt; Caption[A dog on a beach]</code></pre>
+    Words --&gt; Caption[A dog on a beach]</div>
 <p><strong>Step 1: Encode the Image</strong></p>
 <p>A Convolutional Neural Network (CNN) or Vision Transformer (ViT) processes the image and produces a "feature vector"—a numerical representation capturing what's in the image.</p>
 <p>Think of it like this: the encoder looks at the image and creates a 2048-dimensional summary (just a list of 2048 numbers) that encodes "there's a dog, it's brown, there's sand, there's water, it's sunny."</p>
@@ -3454,7 +3454,7 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Client Layer]
         Web[Web App]
         Mobile[Mobile App]
@@ -3519,10 +3519,10 @@
     Preprocessor --&gt; Storage
 
     Triton1 --&gt; Metrics
-    APIGw --&gt; Logs</code></pre>
+    APIGw --&gt; Logs</div>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
 <p>Let's trace a complete request:</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client
     participant API as API Gateway
     participant Pre as Preprocessor
@@ -3557,7 +3557,7 @@
 
         Batcher-&gt;&gt;Cache: Store results
         Batcher--&gt;&gt;Client: Return caption
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="step-4-component-deep-dive">Step 4: Component Deep Dive<a class="headerlink" href="#step-4-component-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-image-preprocessing">4.1 Image Preprocessing<a class="headerlink" href="#41-image-preprocessing" title="Permanent link">&para;</a></h3>
@@ -4042,14 +4042,14 @@
 </span></code></pre></div>
 <h3 id="52-multi-model-strategy">5.2 Multi-Model Strategy<a class="headerlink" href="#52-multi-model-strategy" title="Permanent link">&para;</a></h3>
 <p>Use different models based on requirements:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Request[Request] --&gt; Classify{Image Type?}
 
     Classify --&gt;|Simple| Fast[Small/Fast Model&lt;br/&gt;50ms, 90% quality]
     Classify --&gt;|Complex| Quality[Large/Quality Model&lt;br/&gt;200ms, 99% quality]
 
     Fast --&gt; Response[Return Caption]
-    Quality --&gt; Response</code></pre>
+    Quality --&gt; Response</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveModelRouter</span><span class="p">:</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fast_model</span> <span class="o">=</span> <span class="n">load_small_model</span><span class="p">()</span>   <span class="c1"># MobileNet + small decoder</span>
@@ -4070,7 +4070,7 @@
 </span></code></pre></div>
 <h3 id="53-preprocessing-pipeline-optimization">5.3 Preprocessing Pipeline Optimization<a class="headerlink" href="#53-preprocessing-pipeline-optimization" title="Permanent link">&para;</a></h3>
 <p>Move preprocessing to CPU workers, keep GPUs for inference:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph CPU [CPU Workers]
         P1[Preprocess 1]
         P2[Preprocess 2]
@@ -4090,7 +4090,7 @@
     P2 --&gt; Q
     P3 --&gt; Q
     Q --&gt; G1
-    Q --&gt; G2</code></pre>
+    Q --&gt; G2</div>
 <p>This keeps expensive GPU resources focused on inference, not waiting for I/O or preprocessing.</p>
 <hr />
 <h2 id="step-6-caption-quality-improvements">Step 6: Caption Quality Improvements<a class="headerlink" href="#step-6-caption-quality-improvements" title="Permanent link">&para;</a></h2>
@@ -4299,7 +4299,7 @@
 <hr />
 <h2 id="step-8-training-pipeline-and-model-updates">Step 8: Training Pipeline and Model Updates<a class="headerlink" href="#step-8-training-pipeline-and-model-updates" title="Permanent link">&para;</a></h2>
 <h3 id="training-infrastructure">Training Infrastructure<a class="headerlink" href="#training-infrastructure" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Data [Data Pipeline]
         Raw[Raw Images] --&gt; Clean[Cleaning]
         Clean --&gt; Label[Human Labeling]
@@ -4318,7 +4318,7 @@
         Register --&gt; Shadow[Shadow Deployment]
         Shadow --&gt; Canary[Canary Rollout]
         Canary --&gt; Production[Production]
-    end</code></pre>
+    end</div>
 <h3 id="evaluation-metrics">Evaluation Metrics<a class="headerlink" href="#evaluation-metrics" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

@@ -3578,7 +3578,7 @@
 <li><strong>Creates:</strong> The <strong>insert into <code>urls</code> with UNIQUE(short_code)</strong> (or conditional put in DynamoDB) is the <strong>consistency choke point</strong>: two concurrent creators must not succeed with the same code. That is a <strong>CP</strong> moment: you wait for the authoritative node / quorum—not “best effort duplicate.”</li>
 <li><strong>Analytics:</strong> <strong>AP</strong>—duplicate or lost events can be bounded with idempotent consumers; SLAs are softer (see below).</li>
 </ol>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph AP_path["AP-leaning: redirect read path"]
         R[Client] --&gt; Edge[CDN / LB]
         Edge --&gt; App[Redirect service]
@@ -3594,7 +3594,7 @@
     subgraph Analytics_AP["AP: analytics pipeline"]
         App --&gt; Q[Queue]
         Q --&gt; OLAP[(Analytics store)]
-    end</code></pre>
+    end</div>
 <p><strong>One-liner for interviews:</strong> <em>We bias AP on the hot read path for availability and latency, but we enforce CP semantics at write time so short codes are never duplicated.</em></p>
 <hr />
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
@@ -3703,7 +3703,7 @@
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <p>Now let's design the system architecture.</p>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Client Layer]
         Web[Web Browser]
         Mobile[Mobile App]
@@ -3753,7 +3753,7 @@
     Queue --&gt; Worker
     Worker --&gt; Analytics
 
-    AnalyticsSvc --&gt; Analytics</code></pre>
+    AnalyticsSvc --&gt; Analytics</div>
 <h3 id="two-core-flows">Two Core Flows<a class="headerlink" href="#two-core-flows" title="Permanent link">&para;</a></h3>
 <p>The system has two main operations:</p>
 <p><strong>Write Flow (URL Shortening):</strong>
@@ -4076,12 +4076,12 @@
 <h3 id="43-caching-strategy">4.3 Caching Strategy<a class="headerlink" href="#43-caching-strategy" title="Permanent link">&para;</a></h3>
 <p>With a 100:1 read-to-write ratio, caching is essential. Most URLs follow the 80/20 rule: 20% of URLs get 80% of traffic.</p>
 <h3 id="cache-architecture">Cache Architecture<a class="headerlink" href="#cache-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Request[Request] --&gt; Cache{Redis}
     Cache --&gt;|HIT| Return[Return URL]
     Cache --&gt;|MISS| DB[(PostgreSQL)]
     DB --&gt; Store[Store in Cache]
-    Store --&gt; Return</code></pre>
+    Store --&gt; Return</div>
 <h3 id="redis-data-model">Redis Data Model<a class="headerlink" href="#redis-data-model" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Store URL mappings</span>
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>SET<span class="w"> </span>url:aB3xYz1<span class="w"> </span><span class="s2">&quot;https://example.com/long/url&quot;</span><span class="w"> </span>EX<span class="w"> </span><span class="m">86400</span>
@@ -4194,7 +4194,7 @@
 - <strong>302:</strong> Every click hits your server, enabling accurate analytics</p>
 <p><strong>Recommendation:</strong> Use <strong>302</strong> for most use cases. Use <strong>301</strong> only if SEO is critical and analytics aren't.</p>
 <h3 id="complete-redirect-flow">Complete Redirect Flow<a class="headerlink" href="#complete-redirect-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Browser
     participant LB as Load Balancer
     participant App as Redirect Service
@@ -4218,7 +4218,7 @@
     App-&gt;&gt;Queue: Log click event (async, non-blocking)
     App--&gt;&gt;Browser: 302 Redirect → Location: https://example.com/...
 
-    Browser-&gt;&gt;Browser: Follow redirect to destination</code></pre>
+    Browser-&gt;&gt;Browser: Follow redirect to destination</div>
 <h3 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">HTTPException</span>
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">RedirectResponse</span>
@@ -4267,13 +4267,13 @@
 <h3 id="45-analytics-system">4.5 Analytics System<a class="headerlink" href="#45-analytics-system" title="Permanent link">&para;</a></h3>
 <p>Analytics must not slow down redirects. Process them asynchronously.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Redirect[Redirect Service] --&gt;|async| Kafka[Kafka]
     Kafka --&gt; Worker1[Analytics Worker]
     Kafka --&gt; Worker2[Analytics Worker]
     Worker1 --&gt; ClickHouse[(ClickHouse)]
     Worker2 --&gt; ClickHouse
-    ClickHouse --&gt; Dashboard[Analytics Dashboard]</code></pre>
+    ClickHouse --&gt; Dashboard[Analytics Dashboard]</div>
 <h3 id="click-event-schema">Click Event Schema<a class="headerlink" href="#click-event-schema" title="Permanent link">&para;</a></h3>
 <div class="language-json highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p">{</span>
 </span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">    </span><span class="nt">&quot;short_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aB3xYz1&quot;</span><span class="p">,</span>
@@ -4426,12 +4426,12 @@
 </span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="c1"># short_code &quot;xY7zT9q&quot; → Shard 0</span>
 </span></code></pre></div>
 <p><strong>Sharding architecture:</strong></p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     App[Application] --&gt; Router[Shard Router]
     Router --&gt; S0[(Shard 0)]
     Router --&gt; S1[(Shard 1)]
     Router --&gt; S2[(Shard 2)]
-    Router --&gt; S3[(Shard 3)]</code></pre>
+    Router --&gt; S3[(Shard 3)]</div>
 <p><strong>Challenges:</strong>
 - Cross-shard queries are complex
 - Rebalancing shards is painful
@@ -4477,14 +4477,14 @@
 </tbody>
 </table>
 <h3 id="database-high-availability">Database High Availability<a class="headerlink" href="#database-high-availability" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     App[Application] --&gt; Primary[(Primary DB)]
     Primary --&gt;|sync replication| Standby[(Standby DB)]
     Primary --&gt;|async replication| Replica1[(Read Replica 1)]
     Primary --&gt;|async replication| Replica2[(Read Replica 2)]
 
     App -.-&gt;|reads| Replica1
-    App -.-&gt;|reads| Replica2</code></pre>
+    App -.-&gt;|reads| Replica2</div>
 <p><strong>PostgreSQL HA setup:</strong>
 - Primary handles writes
 - Synchronous standby for failover (RPO = 0)

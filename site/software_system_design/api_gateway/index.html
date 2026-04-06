@@ -3698,7 +3698,7 @@
 <li><strong>Response</strong> returns to client with <strong>Retry-After</strong> on 429 if limited.</li>
 </ol>
 <h3 id="end-to-end-sequence-happy-path">End-to-end sequence (happy path)<a class="headerlink" href="#end-to-end-sequence-happy-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant G as Gateway
   participant R as Redis
@@ -3711,15 +3711,15 @@
   G-&gt;&gt;U: proxied request + trace headers
   U--&gt;&gt;G: response
   G-&gt;&gt;O: span + metrics
-  G--&gt;&gt;C: response</code></pre>
+  G--&gt;&gt;C: response</div>
 <h3 id="canary-routing-deterministic">Canary routing (deterministic)<a class="headerlink" href="#canary-routing-deterministic" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   REQ[Incoming request]
   H[Hash user_id or api_key_id]
   P[Bucket 0..99]
   REQ --&gt; H --&gt; P
   P --&gt;|0-94 stable| ST[upstream v1]
-  P --&gt;|95-99 canary| CA[upstream v2]</code></pre>
+  P --&gt;|95-99 canary| CA[upstream v2]</div>
 <hr />
 <h2 id="4-detailed-component-design">4. Detailed Component Design<a class="headerlink" href="#4-detailed-component-design" title="Permanent link">&para;</a></h2>
 <h3 id="41-routing-traffic-management">4.1 Routing &amp; Traffic Management<a class="headerlink" href="#41-routing-traffic-management" title="Permanent link">&para;</a></h3>
@@ -3876,13 +3876,13 @@
 </span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>           failure -&gt; OPEN
 </span></code></pre></div>
 <p>Implement with <strong>sliding failure rate</strong> or <strong>consecutive errors</strong>; export <strong>gauge</strong> <code>cb_state{upstream}</code>.</p>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
   [*] --&gt; Closed
   Closed --&gt; Open: threshold exceeded
   Open --&gt; HalfOpen: after cooldown
   HalfOpen --&gt; Closed: probe ok
   HalfOpen --&gt; Open: probe fails
-  note right of Open: fail fast to client</code></pre>
+  note right of Open: fail fast to client</div>
 <p><strong>Response caching:</strong> key = <code>hash(method, path, normalized query, vary headers)</code>. <strong>TTL</strong> from <code>Cache-Control</code> or route default. <strong>Invalidation:</strong> admin <strong>purge</strong> API writing tombstone in Redis; or <strong>short TTL</strong> for simplicity.</p>
 <table>
 <thead>
@@ -4230,7 +4230,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph DataPlane [Gateway data plane]
     G[Ingress workers]
   end
@@ -4243,14 +4243,14 @@
   end
   G --&gt;|watch routes| E
   G --&gt;|write audit async| PG
-  G --&gt;|Lua token bucket| R</code></pre>
+  G --&gt;|Lua token bucket| R</div>
 <p><strong>Partition scenario (Redis unavailable):</strong></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   P[Network partition / Redis down]
   P --&gt; FO[Fail open: allow traffic]
   P --&gt; FC[Fail closed: 503 or 429]
   FO --&gt; R1[Risk: upstream overload]
-  FC --&gt; R2[Risk: total outage of API]</code></pre>
+  FC --&gt; R2[Risk: total outage of API]</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Say clearly: <strong>CAP applies per subsystem</strong>. The <strong>gateway process</strong> favors <strong>availability</strong> of traffic (often <strong>fail open on RL</strong>) vs <strong>strict quota</strong>—that is a <strong>business</strong> knob, not a theorem misunderstanding.</p>

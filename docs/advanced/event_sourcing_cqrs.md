@@ -316,6 +316,9 @@ The following snippets are illustrative — not production-complete — but show
 === "Java"
 
     ```java
+    import java.time.Instant;
+    import java.util.List;
+
     // Event record (immutable)
     public record OrderCreated(String orderId, String customerId, Instant occurredAt) {}
     

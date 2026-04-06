@@ -3387,7 +3387,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph CP["Control plane (metadata)"]
     M[Namespace + chunkmap]
     J[Replicated edit log]
@@ -3400,7 +3400,7 @@
   end
   CP --&gt;|leases / version| DP
   Clients[Clients] --&gt;|RPC: locations| CP
-  Clients --&gt;|read/write| DP</code></pre>
+  Clients --&gt;|read/write| DP</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Colossus</strong> is not “GFS with bigger disks”—interviewers reward acknowledging <strong>metadata sharding</strong>, <strong>erasure coding</strong>, and <strong>multi-tenant</strong> isolation as <strong>second-generation</strong> lessons.</p>
@@ -3749,7 +3749,7 @@
 <li><strong>Primary + secondaries:</strong> <strong>Consistency</strong> within a chunk is <strong>linearizable</strong> via <strong>primary order</strong>; <strong>across</strong> chunks there is <strong>no</strong> global order—<strong>P</strong> is tolerated at <strong>cluster</strong> level.</li>
 <li><strong>Cross-datacenter:</strong> Often <strong>async</strong> replication → <strong>C</strong> weakens for <strong>DR</strong> copies; <strong>interview</strong> answer: <strong>metadata sync</strong> may be <strong>strong inside cell</strong>, <strong>async</strong> across cells for <strong>bandwidth</strong>.</li>
 </ul>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Meta["Metadata path — CP-leaning"]
     M[Quorum / Raft log]
     NS[Namespace + chunkmap]
@@ -3765,7 +3765,7 @@
   end
   Part -.-&gt;|may isolate| Meta
   Part -.-&gt;|replicas may be split| Data
-  Meta --&gt;|leases + version| Data</code></pre>
+  Meta --&gt;|leases + version| Data</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Interview sound bite:</strong> “We’re <strong>CP</strong> on <strong>metadata</strong> so we never fork the namespace; we’re <strong>AP-oriented on bulk data</strong> because <strong>replicas + primary ordering</strong> give us <strong>durability</strong> without <strong>global transactions</strong>.”</p>
@@ -4149,7 +4149,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Clients
     C1[Batch job client]
     C2[Streaming writer]
@@ -4170,7 +4170,7 @@
   M --&gt;|heartbeats / chunk reports| S1
   M --&gt;|heartbeats / chunk reports| S2
   M --&gt;|heartbeats / chunk reports| S3
-  M --- L</code></pre>
+  M --- L</div>
 <p><strong>Roles:</strong></p>
 <ul>
 <li><strong>Master:</strong> Namespace, <strong>chunk → replica set</strong>, <strong>primary leases</strong>, <strong>replication</strong>, <strong>GC</strong> coordination.</li>
@@ -4178,7 +4178,7 @@
 <li><strong>Client:</strong> Caches <strong>immutable metadata</strong> (with TTL), splits IO into <strong>chunk operations</strong>, <strong>pushes data</strong> along <strong>pipelines</strong> on writes.</li>
 </ul>
 <h3 id="read-path-sequence">Read Path (Sequence)<a class="headerlink" href="#read-path-sequence" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Client
   participant Master
   participant Primary as Chunkserver (any replica)
@@ -4186,9 +4186,9 @@
   Master--&gt;&gt;Client: {chunk_id, version, replica_locations, primary? lease}
   Note over Client: Pick nearest healthy replica
   Client-&gt;&gt;Primary: Read(chunk_id, range, version)
-  Primary--&gt;&gt;Client: Data + checksum verification</code></pre>
+  Primary--&gt;&gt;Client: Data + checksum verification</div>
 <h3 id="write-append-path-sequence">Write / Append Path (Sequence)<a class="headerlink" href="#write-append-path-sequence" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Client
   participant Master
   participant P as Primary replica
@@ -4202,13 +4202,13 @@
   Client-&gt;&gt;P: CommitMutation(serial, offsets)
   P-&gt;&gt;S1: Apply in serial order
   P-&gt;&gt;S2: Apply in serial order
-  P--&gt;&gt;Client: Ack defined offsets / append results</code></pre>
+  P--&gt;&gt;Client: Ack defined offsets / append results</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Data flow</strong> is <strong>pipeline</strong>; <strong>control</strong> (ordering) is <strong>primary-centered</strong>. Separating <strong>control</strong> and <strong>data</strong> keeps the master off the hot path for bytes.</p>
 </div>
 <h3 id="rack-topology-and-replica-placement-mermaid">Rack Topology and Replica Placement (Mermaid)<a class="headerlink" href="#rack-topology-and-replica-placement-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph RackA["Rack A"]
     A1[Chunkserver A1]
     A2[Chunkserver A2]
@@ -4222,7 +4222,7 @@
   R[Replica set for chunk X]
   A1 --- R
   B1 --- R
-  C1 --- R</code></pre>
+  C1 --- R</div>
 <table>
 <thead>
 <tr>
@@ -4594,14 +4594,14 @@
 </span></code></pre></div>
 <h3 id="46-consistency-model">4.6 Consistency Model<a class="headerlink" href="#46-consistency-model" title="Permanent link">&para;</a></h3>
 <p><strong>Defined vs undefined regions</strong> (GFS paper intuition):</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph File tail
     A[Defined: single writer serialized by primary]
     B[Consistent but undefined: concurrent writers interleave]
     C[Inconsistent: partial replica visibility during failure]
   end
   A --&gt; B
-  B --&gt; C</code></pre>
+  B --&gt; C</div>
 <p><strong>Concurrent mutations:</strong> Two writers <strong>without coordination</strong> may produce <strong>interleaved</strong> bytes in overlapping ranges → <strong>undefined</strong> for those offsets.</p>
 <p><strong>Record append guarantees:</strong> <strong>At-least-once</strong> delivery of <strong>whole records</strong> often, but <strong>duplicates</strong> after timeouts; <strong>pads</strong> align chunk boundaries.</p>
 <p><strong>Application implications:</strong> Use <strong>record-oriented</strong> formats with <strong>checksums</strong>, <strong>unique record ids</strong>, <strong>idempotent sinks</strong>, or <strong>two-phase commit</strong> at <strong>higher layers</strong> if needed.</p>

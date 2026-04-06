@@ -3010,7 +3010,7 @@
 <h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="clip-siglip-contrastive-language-image-pre-training">CLIP / SigLIP — Contrastive Language-Image Pre-training<a class="headerlink" href="#clip-siglip-contrastive-language-image-pre-training" title="Permanent link">&para;</a></h3>
 <p>The foundation of multi-modal search. CLIP trains an image encoder and a text encoder <strong>jointly</strong> so that matching image-text pairs have high cosine similarity:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Training [Contrastive Training]
         Img[Image:&lt;br/&gt;"A photo of a cat"]
         Txt[Text:&lt;br/&gt;"A photo of a cat"]
@@ -3021,7 +3021,7 @@
         Img --&gt; ImgEnc --&gt; ImgEmb
         Txt --&gt; TxtEnc --&gt; TxtEmb
         ImgEmb &lt;--&gt;|maximize&lt;br/&gt;similarity| TxtEmb
-    end</code></pre>
+    end</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
@@ -3339,7 +3339,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Query [Query Pipeline]
         QU[Query&lt;br/&gt;Understanding]
         ImgEnc[Image&lt;br/&gt;Encoder]
@@ -3376,7 +3376,7 @@
     Crawler --&gt; MediaProc --&gt; Embedder --&gt; IndexBuilder
     IndexBuilder --&gt; VectorIdx
     MediaProc --&gt; MetaStore
-    MediaProc --&gt; MediaStore</code></pre>
+    MediaProc --&gt; MediaStore</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-query-understanding-and-fusion">4.1 Query Understanding and Fusion<a class="headerlink" href="#41-query-understanding-and-fusion" title="Permanent link">&para;</a></h3>
@@ -3529,7 +3529,7 @@
 - Each shard fits in ~30 GB RAM (with PQ compression)
 - 256 × 3 = 768 machines for the vector index</p>
 <h3 id="43-indexing-pipeline">4.3 Indexing Pipeline<a class="headerlink" href="#43-indexing-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Ingest [Content Ingestion]
         Crawl[Web Crawler /&lt;br/&gt;Product Feed]
         Dedup[Deduplication&lt;br/&gt;Content Hash]
@@ -3553,7 +3553,7 @@
         IndexWriter[Index&lt;br/&gt;Writer]
     end
 
-    Ingest --&gt; Process --&gt; Embed --&gt; Index</code></pre>
+    Ingest --&gt; Process --&gt; Embed --&gt; Index</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IndexingPipeline</span><span class="p">:</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process and index new content for multi-modal search.&quot;&quot;&quot;</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>

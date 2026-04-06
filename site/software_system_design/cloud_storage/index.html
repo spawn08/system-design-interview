@@ -3297,7 +3297,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph cp [CP-leaning paths]
     M[Metadata commit\nfile tree + revision]
     A[ACL grant/revoke]
@@ -3315,7 +3315,7 @@
   P --&gt;|choose| M
   P --&gt;|choose| B
   M --&gt;|may fail closed\nreject ambiguous commits| X[Consistent tree]
-  B --&gt;|still serve\nknown hashes| Y[Available reads]</code></pre>
+  B --&gt;|still serve\nknown hashes| Y[Available reads]</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>PACELC</strong> extension: even <strong>without</strong> a partition, you trade <strong>latency (L)</strong> vs <strong>consistency (C)</strong>—e.g., reading ACL from a cache is faster but may be briefly stale. Mentioning PACELC signals seniority.</p>
@@ -3635,7 +3635,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level: <strong>clients</strong> talk to <strong>API / sync services</strong>, which persist <strong>metadata</strong> in a <strong>transactional store</strong> (often sharded SQL or a strongly consistent KV with careful modeling), and <strong>file bytes</strong> in <strong>object/block storage</strong> addressed by <strong>cryptographic hash</strong>. A <strong>notification service</strong> pushes change events to online clients; others catch up via <strong>long polling</strong> or periodic <strong>change feed</strong> pulls.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph clients [Clients]
     C1[Desktop sync]
     C2[Mobile]
@@ -3674,7 +3674,7 @@
   BS --&gt; OS
   MS --&gt; CACHE
   NS --&gt; C1
-  NS --&gt; C2</code></pre>
+  NS --&gt; C2</div>
 <p><strong>Request path (upload):</strong> client chunks file with CDC, hashes chunks, uploads missing blocks to block service, commits manifest in metadata service.</p>
 <p><strong>Read path:</strong> client lists folder via metadata, resolves file to block list, fetches blocks (often via signed URLs), verifies hashes.</p>
 <div class="admonition important">
@@ -3713,14 +3713,14 @@
 </tbody>
 </table>
 <p><strong>Deduplication:</strong> after chunking, compute <strong>SHA-256</strong> (or BLAKE3) per chunk. Block service stores once keyed by hash; metadata references hashes.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   A[File bytes on disk] --&gt; B[CDC chunker\nRabin boundaries]
   B --&gt; C[Per-chunk cryptographic hash]
   C --&gt; D{Hash exists in store?}
   D -- Yes --&gt; E[Reference only\nmetadata write]
   D -- No --&gt; F[Upload chunk bytes]
   F --&gt; G[Commit manifest]
-  E --&gt; G</code></pre>
+  E --&gt; G</div>
 <p><strong>Java: Rabin fingerprint rolling (illustrative core)</strong></p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">RabinFingerprint</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">MOD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1L</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">61</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">// Mersenne prime (example modulus)</span>
@@ -3788,7 +3788,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Client
   participant API
   participant Meta as Metadata
@@ -3807,7 +3807,7 @@
   Client-&gt;&gt;API: POST /files/{id}/commit
   API-&gt;&gt;Meta: txn: new revision if etag matches
   Meta-&gt;&gt;Notify: publish change event
-  Notify--&gt;&gt;Client: WS push (other devices)</code></pre>
+  Notify--&gt;&gt;Client: WS push (other devices)</div>
 <p><strong>Go: minimal sync client loop (polling variant)</strong></p>
 <div class="language-go highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">sync</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
@@ -3968,12 +3968,12 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   A[Client has base rev B] --&gt; C{Server head == B?}
   C -- Yes --&gt; D[Commit succeeds\nnew rev B+1]
   C -- No --&gt; E{Auto-merge possible?}
   E -- Yes --&gt; F[Merge + commit]
-  E -- No --&gt; G[Create conflict file\nor surface choice UI]</code></pre>
+  E -- No --&gt; G[Create conflict file\nor surface choice UI]</div>
 <p>For <strong>Google Docs–style</strong> products, operational transforms live in a separate editor service; for <strong>binary</strong> Drive files, conflict copies are common.</p>
 <h3 id="46-file-versioning-and-history">4.6 File Versioning and History<a class="headerlink" href="#46-file-versioning-and-history" title="Permanent link">&para;</a></h3>
 <p>Each successful commit creates an immutable <strong>manifest snapshot</strong>. GC reclaims unreferenced chunks <strong>asynchronously</strong> after retention policies expire.</p>

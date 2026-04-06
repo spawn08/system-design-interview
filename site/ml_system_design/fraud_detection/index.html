@@ -3057,7 +3057,7 @@
 </tbody>
 </table>
 <h3 id="the-detection-challenge">The Detection Challenge<a class="headerlink" href="#the-detection-challenge" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Reality [Reality]
         direction TB
         Legit[99.9% Legitimate]
@@ -3072,7 +3072,7 @@
         C4[Evolving patterns]
     end
 
-    Reality --&gt; Challenge</code></pre>
+    Reality --&gt; Challenge</div>
 <hr />
 <h2 id="ml-concepts-for-fraud-detection">ML Concepts for Fraud Detection<a class="headerlink" href="#ml-concepts-for-fraud-detection" title="Permanent link">&para;</a></h2>
 <h3 id="why-its-difficult">Why It's Difficult<a class="headerlink" href="#why-its-difficult" title="Permanent link">&para;</a></h3>
@@ -3318,7 +3318,7 @@
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Ingestion [Transaction Ingestion]
         API[Transaction API]
         Stream[Kafka Stream]
@@ -3377,9 +3377,9 @@
     Events --&gt; Analytics
     Actions --&gt; Cases
     Cases --&gt; Labels
-    Labels --&gt; Training</code></pre>
+    Labels --&gt; Training</div>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client as Payment Client
     participant API as Scoring API
     participant Features as Feature Service
@@ -3418,7 +3418,7 @@
         Decision--&gt;&gt;Client: ALLOW
     end
 
-    Note over Client,Cases: Total time &lt; 100ms</code></pre>
+    Note over Client,Cases: Total time &lt; 100ms</div>
 <hr />
 <h2 id="step-3-feature-engineering">Step 3: Feature Engineering<a class="headerlink" href="#step-3-feature-engineering" title="Permanent link">&para;</a></h2>
 <p>Features are the heart of fraud detection. The model is only as good as its features.</p>

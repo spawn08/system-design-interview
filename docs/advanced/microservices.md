@@ -73,6 +73,13 @@ flowchart TD
 ### Java Example: Service Registry with Health Checks
 
 ```java
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class ServiceRegistry {
 
     public record ServiceInstance(
@@ -309,6 +316,24 @@ flowchart TD
 ### Java Example: Simple API Gateway with Spring Cloud
 
 ```java
+import java.time.Duration;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import reactor.core.publisher.Mono;
+
 @SpringBootApplication
 @EnableDiscoveryClient
 public class ApiGatewayApplication {

@@ -2990,14 +2990,14 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Session [Current session]
         i1[item_1] --&gt; i2[item_2] --&gt; i3[item_3] --&gt; dots[...]
     end
     subgraph Model [Session model]
         enc[Encoder] --&gt; logits[Scores over candidates]
     end
-    Session --&gt; enc</code></pre>
+    Session --&gt; enc</div>
 <h3 id="multi-armed-bandits">Multi-Armed Bandits<a class="headerlink" href="#multi-armed-bandits" title="Permanent link">&para;</a></h3>
 <p>Bandits formalize <strong>exploration vs. exploitation</strong>: show items likely to reward (exploit) while still learning (explore). Useful for <strong>cold items</strong>, <strong>new users</strong>, or <strong>slots</strong> where supervised scores are uncertain.</p>
 <table>
@@ -3171,7 +3171,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-architecture">End-to-end architecture<a class="headerlink" href="#end-to-end-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Clients]
         WEB[Web / App]
     end
@@ -3203,7 +3203,7 @@
     RFS --&gt; FS
     RFS --&gt; SM
     SM --&gt; RS
-    EMB --&gt; RS</code></pre>
+    EMB --&gt; RS</div>
 <p><strong>Offline:</strong> batch features, embedding tables, training data joins, model export.</p>
 <p><strong>Online:</strong> capture events, serve low-latency features, run retrieval + ranking.</p>
 <p><strong>Near-line:</strong> session state, rolling aggregates, trending, delayed corrections (e.g., purchase confirmation).</p>
@@ -3812,7 +3812,7 @@
 <p><strong>Online:</strong> Redis, DynamoDB, Aerospike — <strong>low latency</strong>, key-value or wide columns.</p>
 <p><strong>Offline:</strong> Hive, Iceberg, S3 — <strong>training datasets</strong>, backfills, point-in-time correctness.</p>
 <p><strong>Consistency:</strong> same <strong>feature name → definition</strong> in Feast/Tecton or internal registry; <strong>point-in-time joins</strong> for training.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Train [Training]
         OFS[(Offline Store\nHive / Iceberg)]
         PIT[Point-in-time joins]
@@ -3828,7 +3828,7 @@
     OFS --&gt; PIT --&gt; DS
     SP --&gt; OLF
     OLF --&gt; API
-    DS --&gt;|Export embeddings| OLF</code></pre>
+    DS --&gt;|Export embeddings| OLF</div>
 <p><strong>Python: feature store client (read-through + batch):</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4140,7 +4140,7 @@
 </span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;item_id required&quot;</span>
 </span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span>
 </span></code></pre></div>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Recall [Recall]
         ANN[ANN index\nTwo-tower / co-vis]
         POP[Popular + rules]
@@ -4156,7 +4156,7 @@
         B[Bandit slot]
     end
     ANN --&gt; LR --&gt; DNN --&gt; MMR --&gt; B
-    POP --&gt; LR</code></pre>
+    POP --&gt; LR</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In interviews, explicitly budget <strong>latency per stage</strong>: e.g., 5 ms recall + 10 ms pre-rank + 25 ms rank + 10 ms re-rank with parallel fan-out where possible.</p>

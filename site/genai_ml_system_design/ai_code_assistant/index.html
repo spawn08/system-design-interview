@@ -3246,7 +3246,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph IDE [IDE Plugin Layer]
         VSCode[VS Code&lt;br/&gt;Extension]
         JetBrains[JetBrains&lt;br/&gt;Plugin]
@@ -3293,7 +3293,7 @@
     Serving --&gt; PostProcess
     PostProcess --&gt; Gateway
     Gateway --&gt; IDE
-    IDE --&gt; Telemetry</code></pre>
+    IDE --&gt; Telemetry</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-context-assembly-pipeline">4.1 Context Assembly Pipeline<a class="headerlink" href="#41-context-assembly-pipeline" title="Permanent link">&para;</a></h3>
@@ -3415,7 +3415,7 @@
 </span><span id="__span-10-60"><a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a>        <span class="k">return</span> <span class="kc">False</span>
 </span></code></pre></div>
 <h3 id="43-repository-indexing-pipeline">4.3 Repository Indexing Pipeline<a class="headerlink" href="#43-repository-indexing-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Trigger [Triggers]
         Clone[Repo Clone]
         Push[Git Push]
@@ -3435,7 +3435,7 @@
         DepGraph[(Dependency Graph)]
     end
 
-    Trigger --&gt; Pipeline --&gt; Index</code></pre>
+    Trigger --&gt; Pipeline --&gt; Index</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">RepositoryIndexer</span><span class="p">:</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Index a repository for code-aware context retrieval.&quot;&quot;&quot;</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
@@ -3606,7 +3606,7 @@
 </tbody>
 </table>
 <h3 id="46-ide-integration-architecture">4.6 IDE Integration Architecture<a class="headerlink" href="#46-ide-integration-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Dev as Developer
     participant IDE as IDE
     participant Plugin as Extension
@@ -3635,7 +3635,7 @@
     else Developer keeps typing
         Dev-&gt;&gt;IDE: Reject (keep typing)
         Plugin-&gt;&gt;Server: POST /telemetry (rejected)
-    end</code></pre>
+    end</div>
 <p><strong>Debouncing strategy:</strong></p>
 <table>
 <thead>

@@ -3088,7 +3088,7 @@
 </tbody>
 </table>
 <p><strong>Interview narrative:</strong> “We don’t choose C or A once—we <strong>separate the hot read path</strong> (AP, fast) from <strong>transactional truth</strong> for edits (CP where it matters) and <strong>fan-out aggregates</strong> (eventual).”</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph ap_path [AP: serving path]
     Q[Nearby query]
     IX[(Geospatial shards / Redis GEO)]
@@ -3111,7 +3111,7 @@
 
   OLTP -. async index build .-&gt; IX
   OLTP -. publish change .-&gt; AGG
-  SUM -. read model for cards .-&gt; IX</code></pre>
+  SUM -. read model for cards .-&gt; IX</div>
 <p><strong>Takeaway:</strong> Geospatial <strong>reads</strong> optimize for <strong>availability</strong> and <strong>low latency</strong>; <strong>canonical</strong> place records optimize for <strong>consistency</strong> where the business requires a single truth; <strong>social proof</strong> numbers are <strong>eventually</strong> consistent to protect throughput.</p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p><strong>Terminology (for interviews):</strong></p>
@@ -3361,7 +3361,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level: <strong>clients</strong> call a <strong>stateless API</strong>; <strong>geospatial index</strong> partitions the world so each query touches only <strong>nearby buckets</strong>; <strong>ranking</strong> merges distance with business scores; <strong>caches</strong> absorb hot tiles.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph clients [Clients]
     M[Mobile / Web Maps]
   end
@@ -3393,7 +3393,7 @@
   PS --&gt; RD
   RS --&gt; GS
   PG --&gt; Q --&gt; IDX --&gt; GS
-  OS --&gt; Q</code></pre>
+  OS --&gt; Q</div>
 <h3 id="request-path">Request path<a class="headerlink" href="#request-path" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Validate</strong> lat/lon, radius, limits (reject absurd radii).</li>
@@ -3503,7 +3503,7 @@
 <p>Geohash cells are <strong>rectangles</strong> in lat/lon space, not equal-area on the sphere; distortion grows toward poles. Production systems often pair geohash with <strong>Haversine</strong> filtering or use <strong>S2/H3</strong> when uniformity matters.</p>
 </div>
 <p><strong>Neighbor cells:</strong> A point near a cell edge may need <strong>neighboring</strong> geohashes in queries. Libraries expose <strong>neighbor</strong> APIs (8 neighbors in 2D) to avoid missing POIs just across a boundary.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph grid [Geohash cells conceptual]
     A["9q8yy"]
     B["9q8yz"]
@@ -3511,9 +3511,9 @@
     D["9q8yq"]
   end
   Q[Query point near edge] --&gt; A
-  Q -. neighbor scan .-&gt; B</code></pre>
+  Q -. neighbor scan .-&gt; B</div>
 <p><strong>Grid visualization (prefix nesting):</strong></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph l4 [Prefix length 4 — large cell]
     W[Whole metro area]
   end
@@ -3526,7 +3526,7 @@
   W --&gt; C1
   W --&gt; C2
   W --&gt; C3
-  W --&gt; C4</code></pre>
+  W --&gt; C4</div>
 <hr />
 <h3 id="43-quadtree">4.3 QuadTree<a class="headerlink" href="#43-quadtree" title="Permanent link">&para;</a></h3>
 <p>A <strong>quadtree</strong> recursively subdivides 2D space into four quadrants until each leaf satisfies a <strong>capacity</strong> (e.g., max 50 POIs) or <strong>minimum cell size</strong> is reached.</p>
@@ -3534,13 +3534,13 @@
 <li><strong>Dynamic splitting:</strong> inserting a 51st point into a leaf triggers <strong>split</strong> into four children and redistribution.</li>
 <li><strong>Search:</strong> traverse nodes overlapping the <strong>query circle</strong> (or bbox); descend only into intersecting children.</li>
 </ul>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   R[Root: world bbox]
   R --&gt; NW[NW quadrant]
   R --&gt; NE[NE quadrant]
   R --&gt; SW[SW quadrant]
   R --&gt; SE[SE quadrant]
-  NE --&gt; NE1[Further split if dense]</code></pre>
+  NE --&gt; NE1[Further split if dense]</div>
 <p><strong>Trade-offs:</strong> Excellent for <strong>memory</strong> resident, <strong>skewed</strong> densities; harder to <strong>partition cleanly</strong> across thousands of machines than <strong>fixed geohash/S2</strong> shards. Hybrid: <strong>in-memory quadtree per city shard</strong>.</p>
 <hr />
 <h3 id="44-google-s2-geometry">4.4 Google S2 Geometry<a class="headerlink" href="#44-google-s2-geometry" title="Permanent link">&para;</a></h3>
@@ -3642,7 +3642,7 @@ d = R \cdot c
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant API as Proximity API
   participant IX as Index
@@ -3653,7 +3653,7 @@ d = R \cdot c
   IX--&gt;&gt;API: place IDs + coarse keys
   API-&gt;&gt;R: features distance rating
   R--&gt;&gt;API: ordered list + cursor
-  API--&gt;&gt;C: JSON</code></pre>
+  API--&gt;&gt;C: JSON</div>
 <hr />
 <h3 id="47-real-time-location-updates">4.7 Real-Time Location Updates<a class="headerlink" href="#47-real-time-location-updates" title="Permanent link">&para;</a></h3>
 <p>Not every proximity product tracks <strong>moving</strong> users against static POIs. If requirements include <strong>live</strong> dots (delivery couriers, friends):</p>

@@ -3450,13 +3450,13 @@
 </tbody>
 </table>
 <p><strong>Pre-filter vs post-filter (interview diagram):</strong></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph pre["Pre-filter"]
     P1[Compute eligible ID set] --&gt; P2[ANN only on eligible]
   end
   subgraph post["Post-filter"]
     Q1[ANN top L &gt;&gt; k] --&gt; Q2[Keep first k passing filter]
-  end</code></pre>
+  end</div>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3596,7 +3596,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-write-vs-read-path">Architecture (Write vs Read Path)<a class="headerlink" href="#architecture-write-vs-read-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   Client[Client / Data Plane SDK]
   GW[API Gateway\nAuth, rate limits]
   QC[Query Coordinator\nfan-out, merge top-k]
@@ -3623,9 +3623,9 @@
   WAL --&gt; SEG
   SEG --&gt; OS
   S1 --&gt; OS
-  S2 --&gt; OS</code></pre>
+  S2 --&gt; OS</div>
 <p><strong>Read path (fan-out / merge):</strong></p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant G as API Gateway
   participant Q as Query Coordinator
@@ -3641,7 +3641,7 @@
   S2--&gt;&gt;Q: candidates + scores
   Q-&gt;&gt;Q: merge-heap + dedupe + filter
   Q--&gt;&gt;G: global top-k
-  G--&gt;&gt;C: JSON response</code></pre>
+  G--&gt;&gt;C: JSON response</div>
 <p><strong>Flow:</strong> <strong>Writes</strong> → ingestion → <strong>WAL</strong> → memtable → flushed <strong>immutable segments</strong> in <strong>object storage</strong> with background index <strong>merge</strong>; <strong>reads</strong> → <strong>Query Coordinator</strong> → parallel per-shard <strong>ANN</strong> → <strong>merge-heap</strong> for global top-\(k\).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

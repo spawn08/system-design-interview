@@ -3170,13 +3170,13 @@
 </div>
 <h3 id="traditional-asr-pipeline-acoustic-model-language-model-decoder">Traditional ASR Pipeline: Acoustic Model → Language Model → Decoder<a class="headerlink" href="#traditional-asr-pipeline-acoustic-model-language-model-decoder" title="Permanent link">&para;</a></h3>
 <p>Classical systems decomposed the problem:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     A[Audio] --&gt; F[Feature Extraction]
     F --&gt; AM[Acoustic Model&lt;br/&gt;HMM-DNN / GMM]
     AM --&gt; D[Decoder&lt;br/&gt;WFST search]
     LM[Language Model&lt;br/&gt;n-gram] --&gt; D
     Lex[Lexicon / Pronunciations] --&gt; D
-    D --&gt; T[Text + alignment]</code></pre>
+    D --&gt; T[Text + alignment]</div>
 <table>
 <thead>
 <tr>
@@ -3242,7 +3242,7 @@
 </div>
 <h3 id="whisper-architecture-representative">Whisper Architecture (Representative)<a class="headerlink" href="#whisper-architecture-representative" title="Permanent link">&para;</a></h3>
 <p>Whisper is an <strong>encoder-decoder Transformer</strong> trained on <strong>weakly supervised</strong> web-scale audio with <strong>multitask</strong> objectives:</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Enc[Encoder]
         M[Log-mel spectrogram patches] --&gt; T[Transformer encoder]
     end
@@ -3250,7 +3250,7 @@
         T --&gt; TD[Transformer decoder]
         TD --&gt; O[Token outputs]
     end
-    MT[Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps] --&gt; Dec</code></pre>
+    MT[Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps] --&gt; Dec</div>
 <p><strong>Multitask training</strong> includes:</p>
 <ul>
 <li><strong>Transcription</strong> in many languages</li>
@@ -3502,22 +3502,22 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="batch-offline-path">Batch / Offline Path<a class="headerlink" href="#batch-offline-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     IN[Audio Input&lt;br/&gt;file or chunk] --&gt; FE[Feature Extraction&lt;br/&gt;log-mel spectrogram]
     FE --&gt; AM[ASR Model&lt;br/&gt;encoder-decoder / CTC / RNN-T]
     AM --&gt; DEC[Decoder&lt;br/&gt;beam search / RNN-T joint]
     DEC --&gt; PP[Post-processing&lt;br/&gt;punctuation, ITN, formatting]
     PP --&gt; OUT[Text + timestamps]
-    LM[Language model&lt;br/&gt;optional fusion / rescoring] --&gt; DEC</code></pre>
+    LM[Language model&lt;br/&gt;optional fusion / rescoring] --&gt; DEC</div>
 <h3 id="streaming-path-conceptual">Streaming Path (Conceptual)<a class="headerlink" href="#streaming-path-conceptual" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     MIC[Mic / Stream] --&gt; BUF[Ring buffer&lt;br/&gt;chunked frames]
     BUF --&gt; FE[Streaming features&lt;br/&gt;causal frontend]
     FE --&gt; ENC[Streaming encoder&lt;br/&gt;chunked Conformer / RNN-T]
     ENC --&gt; EP[Endpointer / VAD]
     ENC --&gt; DEC[Incremental decoder&lt;br/&gt;partial + final]
     DEC --&gt; PP[Stabilization + punctuation policy]
-    PP --&gt; UI[Client UI / API callbacks]</code></pre>
+    PP --&gt; UI[Client UI / API callbacks]</div>
 <p><strong>Key differences:</strong></p>
 <ul>
 <li><strong>Chunked inference</strong> every <span class="arithmatex">\(\Delta t\)</span>.</li>
@@ -4182,7 +4182,7 @@
 <p>Regulated customers (healthcare, finance) often require <strong>on-device</strong> or <strong>VPC-isolated</strong> deployment even if cloud accuracy is higher—design for <strong>both</strong>.</p>
 </div>
 <h3 id="training-and-release-pipeline">Training and Release Pipeline<a class="headerlink" href="#training-and-release-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Data[Data plane]
         RAW[Raw corpora + user opt-in] --&gt; LIC[License &amp; PII scrub]
         LIC --&gt; VER[Versioned datasets]
@@ -4197,7 +4197,7 @@
         EVAL --&gt; SHADOW[Shadow traffic]
         SHADOW --&gt; CAN[Canary]
         CAN --&gt; ROLL[Rollout + rollback hooks]
-    end</code></pre>
+    end</div>
 <h3 id="capacity-planning-snapshot">Capacity Planning Snapshot<a class="headerlink" href="#capacity-planning-snapshot" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

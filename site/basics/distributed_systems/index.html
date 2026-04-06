@@ -3003,7 +3003,7 @@
 <p>CAP theorem is also covered from a database perspective in <a href="../databases/">Databases</a>. This section focuses on the distributed systems angle.</p>
 </div>
 <p>The CAP theorem, proposed by Eric Brewer in 2000 and proven by Seth Gilbert and Nancy Lynch in 2002, states that a distributed data store can provide at most <strong>two out of three</strong> guarantees simultaneously:</p>
-<pre class="mermaid"><code>graph TD
+<div class="mermaid">graph TD
     CAP[CAP Theorem] --&gt; C[Consistency]
     CAP --&gt; A[Availability]
     CAP --&gt; P[Partition Tolerance]
@@ -3014,7 +3014,7 @@
     P --&gt; AP
 
     CP --&gt; |Examples| CP_EX[HBase, MongoDB, Redis Cluster]
-    AP --&gt; |Examples| AP_EX[Cassandra, DynamoDB, CouchDB]</code></pre>
+    AP --&gt; |Examples| AP_EX[Cassandra, DynamoDB, CouchDB]</div>
 <h3 id="the-three-guarantees">The Three Guarantees<a class="headerlink" href="#the-three-guarantees" title="Permanent link">&para;</a></h3>
 <p><strong>Consistency (C):</strong> Every read receives the most recent write or an error. All nodes see the same data at the same time.</p>
 <p><strong>Availability (A):</strong> Every request receives a non-error response, without guarantee that it contains the most recent write.</p>
@@ -3295,7 +3295,7 @@
 4. <strong>Integrity:</strong> A node decides at most once</p>
 <h3 id="paxos">Paxos<a class="headerlink" href="#paxos" title="Permanent link">&para;</a></h3>
 <p>Invented by Leslie Lamport, Paxos is the foundational consensus protocol. It uses three roles:</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant P as Proposer
     participant A1 as Acceptor 1
     participant A2 as Acceptor 2
@@ -3318,7 +3318,7 @@
     A2-&gt;&gt;P: Accepted(n=1)
 
     Note over P,L: Phase 3: Learn
-    P-&gt;&gt;L: Decided: "NodeA"</code></pre>
+    P-&gt;&gt;L: Decided: "NodeA"</div>
 <p><strong>Phase 1 (Prepare):</strong> Proposer sends a proposal number <code>n</code> to acceptors. Acceptors promise not to accept proposals with numbers less than <code>n</code>.</p>
 <p><strong>Phase 2 (Accept):</strong> If the proposer receives promises from a majority, it sends an accept request with the value. Acceptors accept if they haven't promised a higher number.</p>
 <p><strong>Phase 3 (Learn):</strong> Once a majority accepts, the value is chosen. Learners are informed.</p>
@@ -3329,13 +3329,13 @@
 <li><strong>Log Replication:</strong> The leader replicates its log entries to followers</li>
 <li><strong>Safety:</strong> If a server has applied a log entry at a given index, no other server will ever apply a different entry at that index</li>
 </ol>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
     [*] --&gt; Follower
     Follower --&gt; Candidate: Election timeout
     Candidate --&gt; Leader: Receives majority votes
     Candidate --&gt; Follower: Discovers current leader
     Candidate --&gt; Candidate: Election timeout (split vote)
-    Leader --&gt; Follower: Discovers higher term</code></pre>
+    Leader --&gt; Follower: Discovers higher term</div>
 <p><strong>Key concepts:</strong>
 - <strong>Term:</strong> A logical clock that increases monotonically. Each term has at most one leader.
 - <strong>Heartbeats:</strong> The leader sends periodic heartbeats to prevent new elections.
@@ -3496,7 +3496,7 @@
 <h2 id="message-queues">Message Queues<a class="headerlink" href="#message-queues" title="Permanent link">&para;</a></h2>
 <p>Message queues decouple producers from consumers, enabling asynchronous communication between services. They are a cornerstone of distributed architectures.</p>
 <h3 id="why-message-queues">Why Message Queues?<a class="headerlink" href="#why-message-queues" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Without Queue
         A1[Service A] --&gt;|direct call| B1[Service B]
     end
@@ -3504,7 +3504,7 @@
     subgraph With Queue
         A2[Service A] --&gt;|publish| Q[Message Queue]
         Q --&gt;|consume| B2[Service B]
-    end</code></pre>
+    end</div>
 <p><strong>Without a queue:</strong> Service A calls Service B directly. If B is slow or down, A blocks or fails. They are tightly coupled.</p>
 <p><strong>With a queue:</strong> Service A publishes a message and moves on. Service B consumes it when ready. If B is down, messages accumulate in the queue and are processed when B recovers.</p>
 <h3 id="key-benefits">Key Benefits<a class="headerlink" href="#key-benefits" title="Permanent link">&para;</a></h3>
@@ -3757,7 +3757,7 @@
 <p>If you have 1 million cached keys and add one server, ~750,000 keys get remapped, causing a massive cache miss storm.</p>
 <h3 id="consistent-hashing">Consistent Hashing<a class="headerlink" href="#consistent-hashing" title="Permanent link">&para;</a></h3>
 <p>Consistent hashing arranges servers on a virtual ring. Each key is assigned to the first server encountered when walking clockwise from the key's position on the ring.</p>
-<pre class="mermaid"><code>graph TD
+<div class="mermaid">graph TD
     subgraph Hash Ring
         N1[Node A&lt;br/&gt;Position: 50] 
         N2[Node B&lt;br/&gt;Position: 150]
@@ -3766,7 +3766,7 @@
 
     K1[Key 'user1'&lt;br/&gt;Hash: 80] --&gt;|clockwise to| N2
     K2[Key 'user2'&lt;br/&gt;Hash: 200] --&gt;|clockwise to| N3
-    K3[Key 'user3'&lt;br/&gt;Hash: 30] --&gt;|clockwise to| N1</code></pre>
+    K3[Key 'user3'&lt;br/&gt;Hash: 30] --&gt;|clockwise to| N1</div>
 <p><strong>When a node is added:</strong> Only the keys between the new node and its predecessor on the ring are remapped. On average, only <code>K/N</code> keys move (where K = total keys, N = total nodes).</p>
 <p><strong>When a node is removed:</strong> Only that node's keys move to the next node on the ring.</p>
 <h3 id="virtual-nodes">Virtual Nodes<a class="headerlink" href="#virtual-nodes" title="Permanent link">&para;</a></h3>
@@ -4002,7 +4002,7 @@
 <hr />
 <h2 id="putting-it-all-together-interview-framework">Putting It All Together: Interview Framework<a class="headerlink" href="#putting-it-all-together-interview-framework" title="Permanent link">&para;</a></h2>
 <p>When a distributed systems question comes up in an interview, structure your answer around these layers:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[Interview Question] --&gt; R[Requirements]
     R --&gt; C[Consistency Requirements]
     R --&gt; A[Availability Requirements]
@@ -4018,7 +4018,7 @@
     MQ2 --&gt; LB
 
     LB --&gt; LE[Leader Election&lt;br/&gt;if needed]
-    LE --&gt; FT[Fault Tolerance&lt;br/&gt;Replication, Retries]</code></pre>
+    LE --&gt; FT[Fault Tolerance&lt;br/&gt;Replication, Retries]</div>
 <h3 id="decision-checklist-for-interviews">Decision Checklist for Interviews<a class="headerlink" href="#decision-checklist-for-interviews" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

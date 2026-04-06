@@ -95,6 +95,24 @@ POST /users/search           ⚠️  Acceptable when query is complex (body need
 ### Java Example: RESTful API with Spring Boot
 
 ```java
+import java.net.URI;
+import java.util.UUID;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -165,6 +183,9 @@ public class UserController {
 Consistent response structures make APIs predictable for consumers:
 
 ```java
+import java.util.List;
+import java.util.Map;
+
 public class ApiResponse<T> {
     private final boolean success;
     private final T data;
@@ -272,6 +293,11 @@ GET /api/v1/orders?cursor=eyJpZCI6MTAwfQ==&size=20
 ### Java Example: Cursor-Based Pagination
 
 ```java
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
+import java.util.function.Function;
+
 public class CursorPaginator<T> {
     
     public record CursorPage<T>(
@@ -427,6 +453,13 @@ Accept: application/json; version=2
 ### Java Example: API Version Routing
 
 ```java
+import java.time.Instant;
+import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
 /**
  * Version-aware controller that routes to the correct handler
  * based on API version extracted from the request path.
@@ -670,6 +703,16 @@ SflKxwRJSMeKKF2QT4fwpM...     ← Signature (HMAC or RSA)
 ### Java Example: JWT Authentication
 
 ```java
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Set;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final long accessTokenValidityMs;
@@ -764,6 +807,16 @@ Without idempotency, the user is charged $200 instead of $100.
 ### Idempotency Key Pattern
 
 ```java
+import java.time.Instant;
+import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 @PostMapping("/api/v1/payments")
 public ResponseEntity<PaymentDto> createPayment(
         @RequestHeader("Idempotency-Key") String idempotencyKey,

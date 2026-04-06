@@ -277,6 +277,9 @@ Where:
 ### Java Example: BM25 Scorer
 
 ```java
+import java.util.List;
+import java.util.Map;
+
 public class BM25Scorer {
     private final double k1;
     private final double b;
@@ -427,6 +430,13 @@ Autocomplete is a search feature that suggests completions as the user types. It
 ### Java Example: Weighted Trie for Autocomplete
 
 ```java
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
 public class AutocompleteTrie {
 
     private static class TrieNode {

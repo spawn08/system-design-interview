@@ -2856,16 +2856,16 @@
 <hr />
 <h2 id="why-consistency-is-hard">Why Consistency Is Hard<a class="headerlink" href="#why-consistency-is-hard" title="Permanent link">&para;</a></h2>
 <p>In a distributed system, data is replicated across multiple nodes for availability and performance. The fundamental challenge: when data changes on one node, how and when do other nodes see the change? The answer defines your consistency model — and choosing the wrong one leads to either data corruption or unnecessary performance penalties.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     CLIENT[Client] --&gt;|write x=5| N1[Node 1&lt;br/&gt;x=5]
     N1 --&gt;|replicate| N2[Node 2&lt;br/&gt;x=5 or x=?]
     N1 --&gt;|replicate| N3[Node 3&lt;br/&gt;x=5 or x=?]
-    CLIENT2[Another Client] --&gt;|read x| N2</code></pre>
+    CLIENT2[Another Client] --&gt;|read x| N2</div>
 <p>Between the moment Node 1 accepts the write and the moment Nodes 2 and 3 receive it, clients reading from those nodes may see stale data. How you handle this window defines everything.</p>
 <hr />
 <h2 id="the-consistency-spectrum">The Consistency Spectrum<a class="headerlink" href="#the-consistency-spectrum" title="Permanent link">&para;</a></h2>
 <p>Consistency is not binary. It's a spectrum from strongest to weakest guarantees, with corresponding trade-offs in latency and availability.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     STRONG[Linearizability&lt;br/&gt;Strongest] --&gt; SEQ[Sequential&lt;br/&gt;Consistency]
     SEQ --&gt; CAUSAL[Causal&lt;br/&gt;Consistency]
     CAUSAL --&gt; RYW[Read-Your-&lt;br/&gt;Writes]
@@ -2873,7 +2873,7 @@
     MONOTONIC --&gt; EVENTUAL[Eventual&lt;br/&gt;Consistency&lt;br/&gt;Weakest]
 
     STRONG -.-&gt;|Higher latency&lt;br/&gt;Lower availability| EVENTUAL
-    EVENTUAL -.-&gt;|Lower latency&lt;br/&gt;Higher availability| STRONG</code></pre>
+    EVENTUAL -.-&gt;|Lower latency&lt;br/&gt;Higher availability| STRONG</div>
 <table>
 <thead>
 <tr>
@@ -2933,7 +2933,7 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Strong consistency requires: W + R &gt; N
 </span></code></pre></div>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Write Quorum (W=2, N=3)
         W_CLIENT[Client Write] --&gt; WN1[Node 1 ✓]
         W_CLIENT --&gt; WN2[Node 2 ✓]
@@ -2948,11 +2948,11 @@
         R_CLIENT --&gt; RN3[Node 3: v=3 stale]
         RN1 --&gt;|v=5| R_CLIENT
         RN2 --&gt;|v=5| R_CLIENT
-    end</code></pre>
+    end</div>
 <p>With W=2, R=2, N=3: at least one node in any read quorum must have the latest write. The client takes the value with the highest version number.</p>
 <h3 id="two-phase-commit-2pc">Two-Phase Commit (2PC)<a class="headerlink" href="#two-phase-commit-2pc" title="Permanent link">&para;</a></h3>
 <p>2PC is a distributed transaction protocol that ensures all participants either commit or abort a transaction — maintaining strong consistency across multiple databases.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Coordinator
     participant P1 as Participant 1&lt;br/&gt;(Order DB)
     participant P2 as Participant 2&lt;br/&gt;(Payment DB)
@@ -2972,7 +2972,7 @@
     C-&gt;&gt;P3: COMMIT
     P1-&gt;&gt;C: ACK
     P2-&gt;&gt;C: ACK
-    P3-&gt;&gt;C: ACK</code></pre>
+    P3-&gt;&gt;C: ACK</div>
 <p><strong>Problems with 2PC:</strong></p>
 <table>
 <thead>
@@ -3174,14 +3174,14 @@
 <h3 id="anti-entropy-read-repair-and-merkle-trees">Anti-Entropy: Read Repair and Merkle Trees<a class="headerlink" href="#anti-entropy-read-repair-and-merkle-trees" title="Permanent link">&para;</a></h3>
 <p><strong>Read Repair:</strong> When a read reveals stale replicas (during a quorum read), the coordinator sends the latest value to the stale replicas in the background.</p>
 <p><strong>Merkle Trees:</strong> To detect which data ranges are inconsistent between replicas without comparing every record, use Merkle trees — hash trees where each leaf is a hash of a data range, and each parent is a hash of its children. Two replicas only need to compare tree roots; if they differ, walk down the tree to find the exact divergent ranges.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     ROOT[Root Hash: abc123]
     ROOT --&gt; L[Left: def456]
     ROOT --&gt; R[Right: ghi789]
     L --&gt; LL[Range 0-25: hash1]
     L --&gt; LR[Range 26-50: hash2]
     R --&gt; RL[Range 51-75: hash3]
-    R --&gt; RR[Range 76-100: hash4]</code></pre>
+    R --&gt; RR[Range 76-100: hash4]</div>
 <hr />
 <h2 id="causal-consistency">Causal Consistency<a class="headerlink" href="#causal-consistency" title="Permanent link">&para;</a></h2>
 <p>Causal consistency preserves the ordering of causally related operations while allowing concurrent (independent) operations to be seen in any order.</p>
@@ -3519,7 +3519,7 @@
 <p>In microservices, you cannot use traditional database transactions across services (each service owns its database). The saga pattern coordinates multi-service transactions through a sequence of local transactions with compensating actions.</p>
 <h3 id="choreography-based-saga">Choreography-Based Saga<a class="headerlink" href="#choreography-based-saga" title="Permanent link">&para;</a></h3>
 <p>Each service publishes events and listens for events from other services.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     OS[Order Service&lt;br/&gt;Create Order] --&gt;|OrderCreated| E1[Event Bus]
     E1 --&gt; PS[Payment Service&lt;br/&gt;Charge Payment]
     PS --&gt;|PaymentCharged| E2[Event Bus]
@@ -3530,10 +3530,10 @@
     SS --&gt;|ShippingFailed| E4[Event Bus]
     E4 --&gt; IS2[Inventory Service&lt;br/&gt;Release Stock]
     IS2 --&gt;|StockReleased| E5[Event Bus]
-    E5 --&gt; PS2[Payment Service&lt;br/&gt;Refund Payment]</code></pre>
+    E5 --&gt; PS2[Payment Service&lt;br/&gt;Refund Payment]</div>
 <h3 id="orchestration-based-saga">Orchestration-Based Saga<a class="headerlink" href="#orchestration-based-saga" title="Permanent link">&para;</a></h3>
 <p>A central orchestrator tells each service what to do.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant O as Saga Orchestrator
     participant OS as Order Service
     participant PS as Payment Service
@@ -3558,7 +3558,7 @@
     O-&gt;&gt;PS: Refund Payment
     PS-&gt;&gt;O: Payment Refunded
     O-&gt;&gt;OS: Cancel Order
-    OS-&gt;&gt;O: Order Cancelled</code></pre>
+    OS-&gt;&gt;O: Order Cancelled</div>
 <h3 id="java-example-saga-orchestrator">Java Example: Saga Orchestrator<a class="headerlink" href="#java-example-saga-orchestrator" title="Permanent link">&para;</a></h3>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OrderSagaOrchestrator</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
@@ -3671,12 +3671,12 @@
 <hr />
 <h2 id="transactional-outbox-pattern">Transactional Outbox Pattern<a class="headerlink" href="#transactional-outbox-pattern" title="Permanent link">&para;</a></h2>
 <p>The outbox pattern ensures that a database write and a message publish happen atomically — without 2PC.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     SVC[Service] --&gt;|1. Write to DB&lt;br/&gt;in single transaction| DB[(Database)]
     DB --&gt;|includes outbox table| OB[Outbox Table]
     RELAY[Message Relay&lt;br/&gt;polls or CDC] --&gt;|2. Read from outbox| OB
     RELAY --&gt;|3. Publish| MQ[Message Queue]
-    RELAY --&gt;|4. Mark as sent| OB</code></pre>
+    RELAY --&gt;|4. Mark as sent| OB</div>
 <p><strong>How it works:</strong>
 1. Service writes business data <strong>and</strong> an outbox record in a single local database transaction
 2. A separate process (relay) reads unpublished outbox records and publishes them to the message queue
@@ -3781,7 +3781,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="choosing-the-right-consistency-pattern">Choosing the Right Consistency Pattern<a class="headerlink" href="#choosing-the-right-consistency-pattern" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[Consistency Requirement] --&gt; DATA{What kind of data?}
     DATA --&gt;|Financial / inventory| STRONG[Strong Consistency&lt;br/&gt;Quorum W+R&gt;N or 2PC]
     DATA --&gt;|User-facing counters| EVENTUAL_CRDT[Eventual + CRDT&lt;br/&gt;G-Counter, PN-Counter]
@@ -3795,7 +3795,7 @@
 
     EVENTUAL --&gt; CONFLICT{Conflicts likely?}
     CONFLICT --&gt;|Rare| LWW[Last-Writer-Wins]
-    CONFLICT --&gt;|Common| MERGE[CRDTs or&lt;br/&gt;application merge]</code></pre>
+    CONFLICT --&gt;|Common| MERGE[CRDTs or&lt;br/&gt;application merge]</div>
 <h3 id="quick-reference-for-interviews">Quick Reference for Interviews<a class="headerlink" href="#quick-reference-for-interviews" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

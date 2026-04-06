@@ -3281,7 +3281,7 @@
 <hr />
 <h3 id="point-in-time-joins-preventing-future-data-leakage">Point-in-time joins: preventing future data leakage<a class="headerlink" href="#point-in-time-joins-preventing-future-data-leakage" title="Permanent link">&para;</a></h3>
 <p><strong>PIT correctness:</strong> For each training example at <strong>decision time</strong> <span class="arithmatex">\(t\)</span>, features may only use information <strong>available at or before</strong> <span class="arithmatex">\(t\)</span> according to the <strong>feature’s own event-time semantics</strong>.</p>
-<pre class="mermaid"><code>gantt
+<div class="mermaid">gantt
     title Point-in-time correctness (conceptual timeline)
     dateFormat X
     axisFormat %s
@@ -3290,10 +3290,10 @@
     Account created           :milestone, 0, 0
     Feature window eligible   :active, 1, 4
     Label event (click)       :crit, 5, 5
-    Future purchase           :done, 7, 7</code></pre>
+    Future purchase           :done, 7, 7</div>
 <p><strong>Wrong join:</strong> joining “all purchases ever” would include the purchase at <span class="arithmatex">\(t=7\)</span> when predicting at <span class="arithmatex">\(t=5\)</span>.</p>
 <p><strong>Right join:</strong> for each example at <span class="arithmatex">\(t=5\)</span>, join feature rows with <code>feature_time &lt;= t5</code> and pick the <strong>latest</strong> such row per feature (depending on semantics).</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant L as Label row (decision_time = t)
     participant PIT as PIT join engine
     participant F as Feature history
@@ -3301,7 +3301,7 @@
     PIT-&gt;&gt;F: filter feature_time &lt;= t
     F--&gt;&gt;PIT: candidate rows (possibly many)
     PIT-&gt;&gt;PIT: pick latest per feature version
-    PIT--&gt;&gt;L: training row with no future info</code></pre>
+    PIT--&gt;&gt;L: training row with no future info</div>
 <hr />
 <h3 id="feature-freshness-when-staleness-actually-hurts">Feature freshness: when staleness actually hurts<a class="headerlink" href="#feature-freshness-when-staleness-actually-hurts" title="Permanent link">&para;</a></h3>
 <table>
@@ -3343,20 +3343,20 @@
 <h3 id="streaming-feature-computation-windows-with-diagrams">Streaming feature computation: windows (with diagrams)<a class="headerlink" href="#streaming-feature-computation-windows-with-diagrams" title="Permanent link">&para;</a></h3>
 <p>Stateful stream processors compute keyed aggregates using <strong>windows</strong>.</p>
 <h4 id="tumbling-window-fixed-size-non-overlapping">Tumbling window (fixed-size, non-overlapping)<a class="headerlink" href="#tumbling-window-fixed-size-non-overlapping" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Tumbling [Tumbling 1h]
         a1[00:00-01:00] --&gt; a2[01:00-02:00] --&gt; a3[02:00-03:00]
-    end</code></pre>
+    end</div>
 <h4 id="sliding-window-fixed-length-moves-with-time">Sliding window (fixed length, moves with time)<a class="headerlink" href="#sliding-window-fixed-length-moves-with-time" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Sliding [Sliding 1h step 10m]
         s1[W ends 01:10] --&gt; s2[W ends 01:20] --&gt; s3[W ends 01:30]
-    end</code></pre>
+    end</div>
 <h4 id="session-window-gap-based">Session window (gap-based)<a class="headerlink" href="#session-window-gap-based" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Session [Gap 30m]
         e1[e1] --&gt; e2[e2] --&gt; gap[gap &amp;gt; 30m] --&gt; e3[e3]
-    end</code></pre>
+    end</div>
 <p><strong>Operational note:</strong> sliding windows are <strong>more expensive</strong> (more overlapping state) than tumbling; session windows need <strong>gap timers</strong> and <strong>state eviction</strong> policies.</p>
 <hr />
 <h3 id="feature-versioning-schema-evolution-backwards-compatibility">Feature versioning, schema evolution, backwards compatibility<a class="headerlink" href="#feature-versioning-schema-evolution-backwards-compatibility" title="Permanent link">&para;</a></h3>
@@ -3584,7 +3584,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-dual-path-batch-streaming-with-unified-semantics">Architecture: dual path (batch + streaming) with unified semantics<a class="headerlink" href="#architecture-dual-path-batch-streaming-with-unified-semantics" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph BatchPath [Batch path]
         DW[(Data Warehouse / Lake)]
         SP[Batch Compute Spark SQL]
@@ -3612,7 +3612,7 @@
         TJ --&gt; DS[Training Dataset PIT joins]
     end
 
-    SP -. backfill .-&gt; ON</code></pre>
+    SP -. backfill .-&gt; ON</div>
 <p><strong>Paths (interview checklist):</strong></p>
 <table>
 <thead>

@@ -31,6 +31,8 @@ An attacker injects malicious SQL through user input, gaining unauthorized acces
 **Vulnerable code:**
 
 ```java
+import org.springframework.jdbc.core.JdbcTemplate;
+
 // NEVER DO THIS — concatenating user input into SQL
 public User findUser(String username) {
     String query = "SELECT * FROM users WHERE username = '" + username + "'";
@@ -44,6 +46,8 @@ public User findUser(String username) {
 **Secure code:**
 
 ```java
+import org.springframework.jdbc.core.JdbcTemplate;
+
 // Use parameterized queries — the database treats input as data, not code
 public User findUser(String username) {
     String query = "SELECT * FROM users WHERE username = ?";
@@ -69,6 +73,16 @@ An attacker injects malicious scripts into web pages viewed by other users.
 **Prevention:**
 
 ```java
+import java.io.IOException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+
 // Input sanitization utility
 public class InputSanitizer {
 
@@ -131,6 +145,11 @@ sequenceDiagram
 **Prevention: Synchronizer Token Pattern**
 
 ```java
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Base64;
+
 public class CsrfTokenManager {
     private final SecureRandom random = new SecureRandom();
 
@@ -279,6 +298,10 @@ A hash function maps arbitrary-size input to a fixed-size output (digest). Unlik
 ### Java Example: Secure Password Hashing
 
 ```java
+import java.security.MessageDigest;
+import java.util.Base64;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
@@ -386,6 +409,17 @@ flowchart TD
 In a microservices architecture, mTLS ensures both the client and server authenticate each other:
 
 ```java
+import javax.net.ssl.SSLContext;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
 // Configuring mTLS in a Spring Boot service
 @Configuration
 public class MtlsConfig {
@@ -434,6 +468,10 @@ flowchart TD
 ### Java Example: Comprehensive Input Validation
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 public class UserRegistrationValidator {
 
     private static final int MAX_NAME_LENGTH = 100;
@@ -534,6 +572,14 @@ flowchart TD
 ### Secrets Management
 
 ```java
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Map;
+import java.security.SecureRandom;
+
 /**
  * Secrets management abstraction that supports multiple backends.
  * In production, use HashiCorp Vault, AWS Secrets Manager, or Azure Key Vault.

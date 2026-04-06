@@ -3083,7 +3083,7 @@
 <p class="admonition-title">Note</p>
 <p><strong>Key insight:</strong> Offline metrics (BLEU, ROUGE, even BERTScore) are <strong>proxies</strong>. They correlate imperfectly with human judgment. Production success is ultimately tied to <strong>task completion</strong>, <strong>safety</strong>, <strong>latency/cost</strong>, and <strong>trust</strong> — not a single scalar on a dev set.</p>
 </div>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Offline["Offline evaluation"]
         REF[Reference / rubric]
         AUTO[Automatic metrics]
@@ -3100,7 +3100,7 @@
 
     Offline --&gt;|"gates releases"| SHIP[Ship candidate]
     SHIP --&gt; Online
-    Online --&gt;|"closes the loop"| Offline</code></pre>
+    Online --&gt;|"closes the loop"| Offline</div>
 <hr />
 <h2 id="evaluation-taxonomy">Evaluation Taxonomy<a class="headerlink" href="#evaluation-taxonomy" title="Permanent link">&para;</a></h2>
 <p>A complete evaluation story combines <strong>where</strong> you measure (offline vs online), <strong>who</strong> scores (humans vs models vs n-gram stats), and <strong>what</strong> you optimize (fluency vs factuality vs safety).</p>
@@ -3143,7 +3143,7 @@
 </table>
 <p><strong>Offline examples:</strong> nightly regression on a <strong>golden set</strong>, MMLU-style accuracy for reasoning, RAGAS faithfulness on labeled QA pairs.</p>
 <p><strong>Online examples:</strong> A/B test on thumbs-up rate, support ticket deflection, “copy code” rate for a coding assistant, session-level task success.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Dev["Development"]
         D1[Curate eval sets]
         D2[Automated metrics]
@@ -3160,7 +3160,7 @@
         P2[Monitoring + alerts]
     end
 
-    Dev --&gt; Staging --&gt; Prod</code></pre>
+    Dev --&gt; Staging --&gt; Prod</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Pair <strong>offline</strong> gates (block bad deploys) with <strong>online</strong> validation (detect drift and UX regressions). Neither alone is sufficient for GenAI.</p>
@@ -3676,7 +3676,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph General["General capability"]
         MMLU[MMLU / ARC]
         HS[HellaSwag]
@@ -3693,7 +3693,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
     end
     General --&gt; SEL[Model + risk profile]
     Domain --&gt; SEL
-    Preference --&gt; SEL</code></pre>
+    Preference --&gt; SEL</div>
 <hr />
 <h3 id="humaneval-and-passk-coding">HumanEval and pass@k (Coding)<a class="headerlink" href="#humaneval-and-passk-coding" title="Permanent link">&para;</a></h3>
 <p><strong>HumanEval</strong> provides 164 hand-written Python problems with <strong>hidden unit tests</strong>. Models generate a completion; you execute tests in a sandbox to mark <strong>pass</strong> or <strong>fail</strong>.</p>
@@ -4079,7 +4079,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
 <p class="admonition-title">Tip</p>
 <p>In interviews, naming <strong>faithfulness vs relevance</strong> separation often earns credit — it shows you know <strong>where</strong> hallucinations enter the pipeline.</p>
 </div>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     Q[User query] --&gt; R[Retriever]
     R --&gt; C[Contexts]
     Q --&gt; G[Generator]
@@ -4088,7 +4088,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
 
     C --&gt; MF[Faithfulness&lt;br/&gt;vs contexts]
     A --&gt; MA[Answer relevance&lt;br/&gt;vs query]
-    R --&gt; MR[Context relevance&lt;br/&gt;/ recall / precision]</code></pre>
+    R --&gt; MR[Context relevance&lt;br/&gt;/ recall / precision]</div>
 <h3 id="python-ragas-style-prompted-checks-illustrative">Python: RAGAS-Style Prompted Checks (Illustrative)<a class="headerlink" href="#python-ragas-style-prompted-checks-illustrative" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="sd">Illustrative RAGAS-style evaluation using LLM prompts.</span>
@@ -4231,7 +4231,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>mindmap
+<div class="mermaid">mindmap
   root((GenAI System))
     Offline
       Benchmarks
@@ -4246,7 +4246,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
       Internal data
     Safety
       Red team
-      Bias suites</code></pre>
+      Bias suites</div>
 <hr />
 <h2 id="interview-tips-google-style-how-would-you-evaluate-this">Interview Tips (Google-Style “How Would You Evaluate This?”)<a class="headerlink" href="#interview-tips-google-style-how-would-you-evaluate-this" title="Permanent link">&para;</a></h2>
 <p>Interviewers expect <strong>structured</strong>, <strong>multi-layer</strong> answers — not a single metric.</p>

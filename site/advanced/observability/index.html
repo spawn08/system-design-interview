@@ -3446,7 +3446,7 @@
 <hr />
 <h2 id="observability-architecture">Observability Architecture<a class="headerlink" href="#observability-architecture" title="Permanent link">&para;</a></h2>
 <p>End-to-end flow from applications to insight:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Apps
         S1[Service A]
         S2[Service B]
@@ -3491,12 +3491,12 @@
     TS --&gt; GF
     LOG --&gt; GF
     TR --&gt; GF
-    TS --&gt; AM</code></pre>
+    TS --&gt; AM</div>
 <p><strong>Collection agents</strong> unify OTLP, logs, and scrapes; <strong>aggregation</strong> routes, samples, and enriches; <strong>storage</strong> optimizes for each signal type; <strong>visualization</strong> ties dashboards and alerts together.</p>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <p>Use this flow in system design discussions when observability comes up:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     START([Interviewer asks about&lt;br/&gt;monitoring or debugging])
     START --&gt; Q1{New greenfield vs&lt;br/&gt;existing stack?}
     Q1 --&gt;|Greenfield| P1[Propose OpenTelemetry&lt;br/&gt;+ Prometheus/Grafana&lt;br/&gt;+ structured logs]
@@ -3513,7 +3513,7 @@
     Q3 --&gt;|No| A2[Cost-optimized retention&lt;br/&gt;debug sampling]
 
     A1 --&gt; ENDNODE([Articulate SLIs/SLOs&lt;br/&gt;error budget policy&lt;br/&gt;runbooks])
-    A2 --&gt; ENDNODE</code></pre>
+    A2 --&gt; ENDNODE</div>
 <p><strong>Talking points:</strong></p>
 <ul>
 <li>Start from <strong>user-visible</strong> SLIs, then derive metrics and traces.</li>

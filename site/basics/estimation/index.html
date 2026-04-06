@@ -2804,12 +2804,12 @@
 <p>Every system design interview includes a step where you estimate the scale of the system. This is not about getting exact numbers—it is about demonstrating that you can think quantitatively, make reasonable assumptions, and use those estimates to drive architectural decisions.</p>
 <p>An interviewer who hears "we'll need approximately 500GB of storage per year, so a single PostgreSQL instance is fine" will trust your design. An interviewer who hears "we need a lot of storage" will not.</p>
 <h3 id="the-estimation-process">The Estimation Process<a class="headerlink" href="#the-estimation-process" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     A[State Assumptions] --&gt; B[Estimate Traffic]
     B --&gt; C[Estimate Storage]
     C --&gt; D[Estimate Bandwidth]
     D --&gt; E[Estimate Compute]
-    E --&gt; F[Drive Architecture Decisions]</code></pre>
+    E --&gt; F[Drive Architecture Decisions]</div>
 <ol>
 <li><strong>State your assumptions clearly</strong> — number of users, read/write ratio, data sizes</li>
 <li><strong>Estimate traffic</strong> — requests per second for reads and writes</li>

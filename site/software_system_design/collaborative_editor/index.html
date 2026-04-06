@@ -3402,7 +3402,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph cp [Control plane - strong consistency preferred]
     ACL[ACL / collaborators in DB]
     TOK[Short-lived WS tokens]
@@ -3421,7 +3421,7 @@
   LOG --&gt; SEQ
   PRES -.-&gt;|best-effort| clients[Active clients]
   LOG --&gt;|authoritative| clients
-  TOK --&gt;|authorize| clients</code></pre>
+  TOK --&gt;|authorize| clients</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Answer template:</strong> “We guarantee <strong>strong per-document operation order</strong> on the log partition; <strong>eventual</strong> materialized document state; <strong>best-effort</strong> presence; <strong>fail-closed</strong> ACL when in doubt.” That shows you separate <strong>hard invariants</strong> from <strong>UX-soft paths</strong>.</p>
@@ -3595,7 +3595,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level, clients maintain a local model (text index or CRDT structure). They send <strong>operations</strong> to a <strong>document service</strong> that assigns a canonical order (or merges via CRDT), persists to an <strong>operation log</strong>, and <strong>fans out</strong> to other subscribers. <strong>Presence</strong> uses a separate high-churn channel or lightweight messages on the same socket. <strong>Object storage</strong> holds snapshots and large blobs.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph clients [Clients]
     A[Browser A]
     B[Browser B]
@@ -3625,7 +3625,7 @@
   DS --&gt; OL
   DS --&gt; DB
   DS --&gt; OS
-  GW --&gt; CACHE</code></pre>
+  GW --&gt; CACHE</div>
 <p><strong>Request path (happy path)</strong></p>
 <ol>
 <li>Client authenticates; receives scoped token; opens WebSocket to a gateway mapped to a <strong>document shard</strong>.</li>
@@ -3633,7 +3633,7 @@
 <li>Session service validates ACL, assigns <strong>server sequence number</strong> (if using OT with central ordering), persists op, transforms if needed, broadcasts to subscribers.</li>
 <li>Clients apply remote ops locally; UI updates.</li>
 </ol>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant CA as Client A
   participant GW as Gateway
   participant S as Doc Service
@@ -3646,7 +3646,7 @@
   S-&gt;&gt;GW: ack + ordered op
   GW-&gt;&gt;CA: ack N+1
   S-&gt;&gt;GW: broadcast op N+1
-  GW-&gt;&gt;CB: remote op N+1</code></pre>
+  GW-&gt;&gt;CB: remote op N+1</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Separate <strong>transport</strong> (gateway) from <strong>document correctness</strong> (service). Gateways should be restartable; session state is either sticky with recovery or fully reconstructable from the log.</p>
@@ -3709,7 +3709,7 @@
 <li>User B inserts <code>"b"</code> at index 0</li>
 </ul>
 <p>A central ordering might process A then B. B's insert must shift to index 1 after A's insert is applied (and symmetrically for the other order).</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   S0[Initial: empty]
   S1[After A: a]
   S2[After A then B: ab]
@@ -3718,7 +3718,7 @@
   S0 --&gt; S1
   S1 --&gt; S2
   S0 --&gt; S4[After B: b]
-  S4 --&gt; S3</code></pre>
+  S4 --&gt; S3</div>
 <p><strong>Java: simplified OT transform for insert/insert on plain text</strong></p>
 <p>Two operations <code>Oa</code> and <code>Ob</code> are transformed against each other to produce <code>Oa'</code> and <code>Ob'</code> such that applying in either order yields the same final text (under the chosen framework's rules). The following illustrates the <strong>index adjustment</strong> pattern only; production OT includes delete/delete, retain spans, rich attributes, and extensive tests.</p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OtInsert</span><span class="w"> </span><span class="p">{</span>
@@ -3795,7 +3795,7 @@
 <p>The snippet is <strong>educational</strong>, not production-complete. Real RGA uses careful <strong>ordering keys</strong>, <strong>tombstone compaction</strong> policies, and <strong>clock</strong> strategies.</p>
 </div>
 <p><strong>Merge intuition (mermaid)</strong></p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph replicaA [Replica A]
     A1[Insert X id=3a]
     A2[Insert Y after X]
@@ -3808,7 +3808,7 @@
   M[Deterministic merge order by id rules]
   A2 --&gt; M
   B1 --&gt; M
-  M --&gt; F[Final: interleaving per CRDT spec]</code></pre>
+  M --&gt; F[Final: interleaving per CRDT spec]</div>
 <h3 id="44-websocket-connection-management">4.4 WebSocket Connection Management<a class="headerlink" href="#44-websocket-connection-management" title="Permanent link">&para;</a></h3>
 <p>Production WebSockets require:</p>
 <table>
@@ -3879,7 +3879,7 @@
 <p>For multi-region, consider <strong>global doc routing</strong> with regional primary, or <strong>CRDT-first</strong> clients that can tolerate partitioned merges with clear UX.</p>
 </div>
 <p><strong>WebSocket architecture (mermaid)</strong></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   C[Clients]
   G1[Gateway AZ1]
   G2[Gateway AZ2]
@@ -3892,7 +3892,7 @@
   G2 --&gt; R
   R --&gt; L
   R --&gt; G1
-  R --&gt; G2</code></pre>
+  R --&gt; G2</div>
 <h3 id="45-document-storage-and-versioning">4.5 Document Storage and Versioning<a class="headerlink" href="#45-document-storage-and-versioning" title="Permanent link">&para;</a></h3>
 <p>Common pattern: <strong>operation log</strong> (Kafka or replicated append-only) + <strong>periodic snapshots</strong> to object storage for fast restarts and reduced replay time.</p>
 <table>
@@ -4202,7 +4202,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph GW1 [Gateway 1 - 50K conns]
     C1[Client A - doc_123]
     C2[Client B - doc_456]
@@ -4215,7 +4215,7 @@
     K[Kafka partition: doc_123]
   end
   C1 --&gt;|op| K
-  K --&gt;|fan-out| C3</code></pre>
+  K --&gt;|fan-out| C3</div>
 <h3 id="hot-document-problem-celebrity-document">Hot Document Problem (Celebrity Document)<a class="headerlink" href="#hot-document-problem-celebrity-document" title="Permanent link">&para;</a></h3>
 <p>When a single document has thousands of concurrent editors (e.g., a company all-hands notes doc):</p>
 <table>

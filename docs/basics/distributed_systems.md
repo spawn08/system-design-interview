@@ -77,6 +77,10 @@ In a real distributed system, network partitions **will** happen. You cannot avo
 ### Java Example: Demonstrating CP vs AP Behavior
 
 ```java
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Demonstrates CP behavior: a distributed counter that rejects writes
  * when it cannot confirm consistency across replicas.
@@ -217,6 +221,11 @@ Operations that are causally related are seen by all nodes in the same order. Co
 ### Java Example: Vector Clock for Causal Consistency
 
 ```java
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Vector clock implementation for tracking causal ordering
  * of events across distributed nodes.
@@ -383,6 +392,8 @@ stateDiagram-v2
 ### Java Example: Simplified Raft Leader Election
 
 ```java
+import java.util.List;
+
 public class RaftNode {
     enum State { FOLLOWER, CANDIDATE, LEADER }
 
@@ -564,6 +575,13 @@ flowchart LR
 ### Java Example: Producer-Consumer with Message Queue Abstraction
 
 ```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * A simplified message queue that demonstrates core concepts:
  * partitioning, consumer groups, and offset management.
@@ -858,6 +876,10 @@ In many distributed systems, one node must act as the **leader** (or primary) to
 ### Java Example: Lease-Based Leader Election
 
 ```java
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Lease-based leader election using a distributed lock store.
  * The leader must periodically renew its lease to remain leader.

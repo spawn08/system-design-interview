@@ -3455,7 +3455,7 @@
 <p><strong>Why “driver location is AP but assignment is CP” is a strong interview answer:</strong><br />
 - <strong>Location</strong> is <strong>high volume</strong> and <strong>softly consistent</strong>—show last-known-good with timestamps.<br />
 - <strong>Assignment</strong> is <strong>low volume</strong> and <strong>hard invariant</strong>—serialize decisions on the trip row or dedicated lock service.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph AP["AP-biased — under partition: keep serving; location may briefly disagree"]
     L[Driver location stream]
     M[Map / ETA display]
@@ -3470,7 +3470,7 @@
 
   L --&gt; M
   A --&gt; T
-  T --&gt; P</code></pre>
+  T --&gt; P</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Mention <strong>idempotency keys</strong> and <strong>single-writer</strong> patterns for the CP side; mention <strong>timestamps + sequence numbers</strong> on the AP side so clients reject garbage after reconnect.</p>
@@ -3850,7 +3850,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Clients["Clients"]
     R[Rider app]
     D[Driver app]
@@ -3893,7 +3893,7 @@
   MS --&gt; RD
   PR --&gt; RD
   PAY --&gt; PG
-  TS --&gt; NS</code></pre>
+  TS --&gt; NS</div>
 <p><strong>Responsibilities</strong>
 - <strong>Trip service</strong>: source of truth for trip state; emits domain events
 - <strong>Matching service</strong>: candidate search, ranking, offer timeouts, reassignment
@@ -3906,7 +3906,7 @@
 <p>Keep <strong>trip state transitions</strong> in a small number of services with clear ownership. Avoid “matching updates trip directly” and “trip calls matching in a circle” without a defined orchestration pattern (saga, outbox).</p>
 </div>
 <h3 id="geospatial-grid-conceptual">Geospatial Grid (conceptual)<a class="headerlink" href="#geospatial-grid-conceptual" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph City["City partitioned into cells"]
     C1[Cell A1]
     C2[Cell A2]
@@ -3915,7 +3915,7 @@
   end
   R[Rider request] --&gt; C2
   C2 --&gt; Q[Query drivers in cell + ring of neighbors]
-  Q --&gt; M[Rank + offer]</code></pre>
+  Q --&gt; M[Rank + offer]</div>
 <p>Cells may be <strong>geohash prefixes</strong>, <strong>S2 cells</strong>, or <strong>quadtree</strong> buckets backed by the same matching API.</p>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
@@ -4014,7 +4014,7 @@
 2. <strong>Rank</strong>: score <code>w1 * eta_pickup + w2 * idle_time + w3 * acceptance_rate + penalties</code>
 3. <strong>Offer</strong>: send push/WebSocket offer; <strong>timeout</strong> (e.g., 10–20 s)
 4. <strong>Fallback</strong>: next candidate; escalate surge or broaden radius</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant R as Rider
   participant T as Trip service
   participant M as Matching
@@ -4028,7 +4028,7 @@
   M-&gt;&gt;M: rank by ETA + rules
   M-&gt;&gt;D: push offer (trip_id, ttl)
   D--&gt;&gt;M: accept / timeout
-  M-&gt;&gt;T: assign(driver_id)</code></pre>
+  M-&gt;&gt;T: assign(driver_id)</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Nearest in straight-line distance</strong> is a common trap. Interviewers reward mentioning <strong>road-network ETA</strong> and <strong>one-way systems</strong>.</p>
@@ -4081,7 +4081,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
   [*] --&gt; REQUESTED
   REQUESTED --&gt; MATCHED : driver assigned
   REQUESTED --&gt; CANCELLED : no driver / rider cancel
@@ -4091,7 +4091,7 @@
   IN_PROGRESS --&gt; COMPLETED : trip end
   IN_PROGRESS --&gt; CANCELLED : support / fraud (rare)
   COMPLETED --&gt; [*]
-  CANCELLED --&gt; [*]</code></pre>
+  CANCELLED --&gt; [*]</div>
 <p><strong>Implementation notes</strong>
 - Persist transitions with <strong>monotonic version</strong> or <strong>state + epoch</strong>
 - All mutating endpoints accept <strong>Idempotency-Key</strong>
@@ -4346,7 +4346,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="appendix-mermaid-matching-flow-end-to-end">Appendix: Mermaid — Matching Flow (end-to-end)<a class="headerlink" href="#appendix-mermaid-matching-flow-end-to-end" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   A[Rider requests trip] --&gt; B[Persist REQUESTED]
   B --&gt; C[Geo query candidates]
   C --&gt; D[Rank by ETA + rules]
@@ -4355,7 +4355,7 @@
   F --&gt; D
   E --&gt;|accept| G[Assign driver MATCHED]
   G --&gt; H[Stream location to rider]
-  H --&gt; I[Complete trip + capture payment]</code></pre>
+  H --&gt; I[Complete trip + capture payment]</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Production systems add <strong>experiments</strong>, <strong>shadow traffic</strong>, and <strong>safety checks</strong> between every step; the diagram is a conceptual backbone for discussion.</p>

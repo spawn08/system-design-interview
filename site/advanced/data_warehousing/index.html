@@ -2799,7 +2799,7 @@
 <hr />
 <h2 id="why-data-infrastructure-matters">Why Data Infrastructure Matters<a class="headerlink" href="#why-data-infrastructure-matters" title="Permanent link">&para;</a></h2>
 <p>Every large-scale system generates massive amounts of data: user actions, transactions, logs, metrics. This data is valuable for analytics, reporting, machine learning, and business intelligence — but your operational database (OLTP) is not designed for heavy analytical queries. You need a separate data infrastructure.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph OLTP
         APP[Application] --&gt; DB[(Operational DB&lt;br/&gt;MySQL, PostgreSQL)]
     end
@@ -2811,7 +2811,7 @@
     end
 
     WH --&gt; BI[BI Dashboards&lt;br/&gt;Tableau, Looker]
-    LH --&gt; ML[ML Pipelines&lt;br/&gt;Feature Engineering]</code></pre>
+    LH --&gt; ML[ML Pipelines&lt;br/&gt;Feature Engineering]</div>
 <table>
 <thead>
 <tr>
@@ -2842,14 +2842,14 @@
 <h2 id="data-warehousing">Data Warehousing<a class="headerlink" href="#data-warehousing" title="Permanent link">&para;</a></h2>
 <p>A data warehouse is a centralized repository of structured, processed data optimized for analytical queries. Data is cleaned, transformed, and loaded (ETL) from multiple source systems.</p>
 <h3 id="etl-vs-elt">ETL vs ELT<a class="headerlink" href="#etl-vs-elt" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph ETL
         S1[Sources] --&gt; T1[Transform&lt;br/&gt;Outside warehouse] --&gt; L1[Load into&lt;br/&gt;Warehouse]
     end
 
     subgraph ELT
         S2[Sources] --&gt; L2[Load raw&lt;br/&gt;into Warehouse] --&gt; T2[Transform&lt;br/&gt;Inside warehouse]
-    end</code></pre>
+    end</div>
 <table>
 <thead>
 <tr>
@@ -2881,7 +2881,7 @@
 <h3 id="dimensional-modeling">Dimensional Modeling<a class="headerlink" href="#dimensional-modeling" title="Permanent link">&para;</a></h3>
 <p>Dimensional modeling organizes warehouse data into <strong>fact tables</strong> (measurements) and <strong>dimension tables</strong> (context), making analytical queries fast and intuitive.</p>
 <h4 id="star-schema">Star Schema<a class="headerlink" href="#star-schema" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>erDiagram
+<div class="mermaid">erDiagram
     FACT_SALES {
         bigint sale_id PK
         bigint product_id FK
@@ -2930,7 +2930,7 @@
     FACT_SALES }o--|| DIM_PRODUCT : "product_id"
     FACT_SALES }o--|| DIM_CUSTOMER : "customer_id"
     FACT_SALES }o--|| DIM_STORE : "store_id"
-    FACT_SALES }o--|| DIM_DATE : "date_id"</code></pre>
+    FACT_SALES }o--|| DIM_DATE : "date_id"</div>
 <p><strong>Fact table:</strong> Central table containing measurements (sales amount, quantity). Has foreign keys to dimension tables. Typically the largest table.</p>
 <p><strong>Dimension tables:</strong> Surrounding tables providing context (who bought, what, where, when). Denormalized for query speed.</p>
 <p><strong>Query example:</strong></p>
@@ -3131,7 +3131,7 @@
 <h2 id="data-lakes">Data Lakes<a class="headerlink" href="#data-lakes" title="Permanent link">&para;</a></h2>
 <p>A data lake is a centralized repository that stores <strong>all</strong> data in its raw, unprocessed format — structured (CSV, Parquet), semi-structured (JSON, XML), and unstructured (images, logs, text).</p>
 <h3 id="data-lake-architecture">Data Lake Architecture<a class="headerlink" href="#data-lake-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Ingestion
         DB[(Databases)] --&gt; INGEST
         API[APIs] --&gt; INGEST
@@ -3145,7 +3145,7 @@
 
     CURATED --&gt; ANALYTICS[Analytics&lt;br/&gt;Presto, Athena]
     CURATED --&gt; ML[ML Training&lt;br/&gt;Spark, SageMaker]
-    CURATED --&gt; BI[BI Tools&lt;br/&gt;Tableau, Looker]</code></pre>
+    CURATED --&gt; BI[BI Tools&lt;br/&gt;Tableau, Looker]</div>
 <h3 id="data-lake-zones-medallion-architecture">Data Lake Zones (Medallion Architecture)<a class="headerlink" href="#data-lake-zones-medallion-architecture" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3283,7 +3283,7 @@
 <hr />
 <h2 id="the-lakehouse-architecture">The Lakehouse Architecture<a class="headerlink" href="#the-lakehouse-architecture" title="Permanent link">&para;</a></h2>
 <p>The lakehouse combines the best of warehouses and lakes: cheap storage (lake) with ACID transactions, schema enforcement, and fast queries (warehouse).</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Traditional
         DL[Data Lake&lt;br/&gt;S3/HDFS] --&gt;|ETL| DW[Data Warehouse&lt;br/&gt;Redshift/BQ]
     end
@@ -3293,7 +3293,7 @@
         LH --&gt;|Fast SQL| ANALYTICS[Analytics]
         LH --&gt;|Direct access| ML[ML Training]
         LH --&gt;|Streaming| STREAM[Real-time]
-    end</code></pre>
+    end</div>
 <h3 id="key-lakehouse-technologies">Key Lakehouse Technologies<a class="headerlink" href="#key-lakehouse-technologies" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3485,13 +3485,13 @@
 <h2 id="data-pipeline-orchestration">Data Pipeline Orchestration<a class="headerlink" href="#data-pipeline-orchestration" title="Permanent link">&para;</a></h2>
 <h3 id="apache-airflow">Apache Airflow<a class="headerlink" href="#apache-airflow" title="Permanent link">&para;</a></h3>
 <p>Airflow is the standard for orchestrating batch data pipelines. Workflows are defined as Directed Acyclic Graphs (DAGs) in Python.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     EXT[Extract&lt;br/&gt;from Sources] --&gt; VAL[Validate&lt;br/&gt;Data Quality]
     VAL --&gt; TRANS[Transform&lt;br/&gt;Clean &amp; Enrich]
     TRANS --&gt; LOAD[Load&lt;br/&gt;into Warehouse]
     LOAD --&gt; NOTIFY[Notify&lt;br/&gt;Stakeholders]
 
-    VAL --&gt;|Failed| ALERT[Alert&lt;br/&gt;On-Call]</code></pre>
+    VAL --&gt;|Failed| ALERT[Alert&lt;br/&gt;On-Call]</div>
 <p><strong>Key Airflow concepts:</strong></p>
 <table>
 <thead>
@@ -3585,7 +3585,7 @@
 <p>Partition pruning: a query with <code>WHERE year = 2025</code> only reads files under <code>year=2025/</code>, skipping all other years entirely.</p>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[Analytics / Data Question] --&gt; NEED{What do you need?}
     NEED --&gt;|Fast SQL on structured data| WH[Data Warehouse]
     NEED --&gt;|Store everything cheaply| LAKE[Data Lake]
@@ -3604,7 +3604,7 @@
     LH --&gt; FORMAT{Table format?}
     FORMAT --&gt;|Databricks ecosystem| DELTA[Delta Lake]
     FORMAT --&gt;|Open ecosystem| ICE[Apache Iceberg]
-    FORMAT --&gt;|Streaming upserts| HUDI[Apache Hudi]</code></pre>
+    FORMAT --&gt;|Streaming upserts| HUDI[Apache Hudi]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, always explain <strong>why</strong> you need a separate analytics system from the OLTP database. Key reasons: (1) analytical queries are expensive and would slow down the production DB, (2) you need to join data from multiple sources, (3) you need historical data that the OLTP DB doesn't retain, (4) different access patterns require different storage optimizations.</p>

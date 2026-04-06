@@ -2995,7 +2995,7 @@
 </table>
 <p>A single CPU core achieves concurrency through <strong>context switching</strong>—rapidly switching between tasks so fast it appears simultaneous.</p>
 <p>True parallelism requires multiple CPU cores or processors.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Concurrent [Concurrency - Single Core]
         C1[Task A] --&gt; C2[Task B] --&gt; C3[Task A] --&gt; C4[Task B]
     end
@@ -3004,7 +3004,7 @@
         direction TB
         P1[Task A] --&gt; P2[Task A cont.]
         P3[Task B] --&gt; P4[Task B cont.]
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="threads-and-processes">Threads and Processes<a class="headerlink" href="#threads-and-processes" title="Permanent link">&para;</a></h2>
 <h3 id="what-is-a-process">What is a Process?<a class="headerlink" href="#what-is-a-process" title="Permanent link">&para;</a></h3>
@@ -3231,14 +3231,14 @@
 </span></code></pre></div>
 <p>Now the counter will correctly reach 200000.</p>
 <p><strong>How a mutex works:</strong></p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     A[Thread wants to enter critical section] --&gt; B{Is lock available?}
     B --&gt;|Yes| C[Acquire lock]
     C --&gt; D[Execute critical section]
     D --&gt; E[Release lock]
     E --&gt; F[Lock available for others]
     B --&gt;|No| G[Wait/Block]
-    G --&gt; B</code></pre>
+    G --&gt; B</div>
 <p><strong>Mutex properties:</strong>
 - Only the thread that acquired the lock can release it
 - Only one thread can hold the lock
@@ -3368,11 +3368,11 @@
 </span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>
 </span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="c1"># DEADLOCK: Thread 1 holds A, wants B. Thread 2 holds B, wants A.</span>
 </span></code></pre></div>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     T1[Thread 1] --&gt;|holds| A[Lock A]
     T2[Thread 2] --&gt;|holds| B[Lock B]
     T1 --&gt;|wants| B
-    T2 --&gt;|wants| A</code></pre>
+    T2 --&gt;|wants| A</div>
 <h3 id="conditions-for-deadlock">Conditions for Deadlock<a class="headerlink" href="#conditions-for-deadlock" title="Permanent link">&para;</a></h3>
 <p>All four must be true for a deadlock:</p>
 <ol>
@@ -3551,7 +3551,7 @@
 <li>Event loop runs another task while waiting</li>
 <li>When I/O completes, original task resumes</li>
 </ol>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     A[Start Task A] --&gt; B[Task A: fetch_url]
     B --&gt; C[I/O wait - yield]
     C --&gt; D[Start Task B]
@@ -3560,7 +3560,7 @@
     F --&gt; G[Task A: I/O complete, resume]
     G --&gt; H[Task A: process result]
     H --&gt; I[Task B: I/O complete, resume]
-    I --&gt; J[Task B: process result]</code></pre>
+    I --&gt; J[Task B: process result]</div>
 <p><strong>Async vs Threads:</strong></p>
 <table>
 <thead>

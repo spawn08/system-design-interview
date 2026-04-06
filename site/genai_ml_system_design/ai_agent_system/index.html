@@ -3298,25 +3298,25 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[Question / goal] --&gt; S1[Step 1 thought]
     S1 --&gt; S2[Step 2 thought]
     S2 --&gt; S3[Step 3 thought]
-    S3 --&gt; A[Action or answer]</code></pre>
-<pre class="mermaid"><code>flowchart TD
+    S3 --&gt; A[Action or answer]</div>
+<div class="mermaid">flowchart TD
     Q[Question] --&gt; B1[Branch A]
     Q --&gt; B2[Branch B]
     B1 --&gt; SA[Score A]
     B2 --&gt; SB[Score B]
     SA --&gt; P{Prune / expand?}
     SB --&gt; P
-    P --&gt; W[Winner path → action]</code></pre>
-<pre class="mermaid"><code>flowchart LR
+    P --&gt; W[Winner path → action]</div>
+<div class="mermaid">flowchart LR
     N1[Idea A] --&gt; N3[Merge AB]
     N2[Idea B] --&gt; N3
     N3 --&gt; N4[Refine C]
     N1 -.-&gt; N4
-    N4 --&gt; OUT[Answer]</code></pre>
+    N4 --&gt; OUT[Answer]</div>
 <p><strong>Graph-of-thought</strong> generalizes: thoughts are <strong>nodes</strong>, edges are <strong>supports</strong>, <strong>contradicts</strong>, <strong>refines</strong>, or <strong>subtask-of</strong> — useful when the task isn’t a straight line (e.g. compare alternatives, then synthesize).</p>
 <h3 id="memory">Memory<a class="headerlink" href="#memory" title="Permanent link">&para;</a></h3>
 <table>
@@ -3568,7 +3568,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="system-diagram">System Diagram<a class="headerlink" href="#system-diagram" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     U[User / Client] --&gt; O[Orchestrator]
     O --&gt; P[Planner LLM]
     P --&gt; TR[Tool Router]
@@ -3583,7 +3583,7 @@
     T3 --&gt; EV
     T4 --&gt; EV
     EV --&gt; O
-    O --&gt; R[Response / Artifacts]</code></pre>
+    O --&gt; R[Response / Artifacts]</div>
 <p><strong>Flow (one iteration):</strong></p>
 <ol>
 <li><strong>Orchestrator</strong> accepts task, loads <strong>policy</strong> + <strong>memory</strong>, initializes trace.</li>
@@ -3594,7 +3594,7 @@
 <li><strong>Evaluator</strong> checks progress, safety, stopping criteria; may <strong>loop</strong> or <strong>escalate</strong>.</li>
 </ol>
 <h3 id="sequence-one-react-iteration-happy-path">Sequence: One ReAct Iteration (Happy Path)<a class="headerlink" href="#sequence-one-react-iteration-happy-path" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant U as User
     participant O as Orchestrator
     participant P as Planner LLM
@@ -3620,7 +3620,7 @@
     else finish
         E--&gt;&gt;O: stop
         O--&gt;&gt;U: final answer + citations
-    end</code></pre>
+    end</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Async path:</strong> long-running tools (deep crawl, batch tests) return a <strong>job id</strong>; orchestrator <strong>suspends</strong> the run and <strong>resumes</strong> on webhook or poll — state machine, not a single blocking thread.</p>
@@ -4061,7 +4061,7 @@
 </span><span id="__span-8-100"><a id="__codelineno-8-100" name="__codelineno-8-100" href="#__codelineno-8-100"></a>            <span class="k">return</span> <span class="n">partials</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="__span-8-101"><a id="__codelineno-8-101" name="__codelineno-8-101" href="#__codelineno-8-101"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve</span><span class="p">(</span><span class="n">partials</span><span class="p">)</span>
 </span></code></pre></div>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     S[Supervisor]
     S --&gt; C[Coder agent]
     S --&gt; T[Tester agent]
@@ -4069,7 +4069,7 @@
     C --&gt; AGG[Result aggregation / conflict resolution]
     T --&gt; AGG
     R --&gt; AGG
-    AGG --&gt; OUT[Final artifact + trace]</code></pre>
+    AGG --&gt; OUT[Final artifact + trace]</div>
 <p><strong>Real-world pipeline (coding + testing + review):</strong></p>
 <ol>
 <li><strong>Coder</strong> implements a patch against a repo sandbox (branch scoped, no direct merge).</li>
@@ -4578,7 +4578,7 @@
 </table>
 <p><strong>Regression gates:</strong> ship planner/router changes only if <strong>offline</strong> suite and <strong>shadow</strong> traffic show <strong>no</strong> degradation on <strong>success rate</strong> and <strong>safety</strong> metrics.</p>
 <h3 id="deployment-topology-multi-region-sketch">Deployment Topology (Multi-Region Sketch)<a class="headerlink" href="#deployment-topology-multi-region-sketch" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph region_eu[Region EU]
         OE[Orchestrator]
         PE[Planner pool]
@@ -4592,7 +4592,7 @@
         MU[(Memory US)]
     end
     G[Global DNS / LB] --&gt; region_eu
-    G --&gt; region_us</code></pre>
+    G --&gt; region_us</div>
 <p><strong>Sticky routing</strong> per tenant keeps <strong>memory</strong> and <strong>compliance</strong> coherent; <strong>async</strong> cross-region replication only where policy allows.</p>
 <hr />
 <h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
@@ -4801,7 +4801,7 @@ We’re at time. Thanks — this was a strong <strong>systems</strong> discussio
 <li><strong>Evaluation</strong>: task rubrics, <strong>tool-use</strong> accuracy, <strong>long-horizon</strong> success — expect interview follow-ups on <strong>what you measure</strong> and <strong>how you regress</strong>.</li>
 </ul>
 <h3 id="mental-model-one-diagram">Mental Model (One Diagram)<a class="headerlink" href="#mental-model-one-diagram" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph control[Control Plane]
         POL[Policy + Budgets]
         REG[Tool Registry]
@@ -4817,7 +4817,7 @@ We’re at time. Thanks — this was a strong <strong>systems</strong> discussio
     PL &lt;--&gt; TW
     TW --&gt; MEM
     MEM --&gt; PL
-    EV --&gt; PL</code></pre>
+    EV --&gt; PL</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>In interviews, <strong>point</strong> to <strong>control plane vs data plane</strong> — it signals you know how to <strong>operate</strong> the system, not only draw boxes.</p>

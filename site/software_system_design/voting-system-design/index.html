@@ -3706,7 +3706,7 @@
 <li><strong>All CP:</strong> You maximize correctness but <strong>sacrifice availability</strong> under partitions (e.g. strict quorum everywhere), hurting peak traffic.</li>
 </ul>
 <h3 id="diagram-logical-partitions-of-consistency">Diagram: logical partitions of consistency<a class="headerlink" href="#diagram-logical-partitions-of-consistency" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph CP_Path [CP-oriented: vote integrity]
         VS[Vote submission path]
         UC[(DB UNIQUE / conditional write)]
@@ -3726,7 +3726,7 @@
         Q --&gt; CACHE
     end
 
-    UC -.-&gt;|reconcile / async projection| CACHE</code></pre>
+    UC -.-&gt;|reconcile / async projection| CACHE</div>
 <p><strong>Interview takeaway:</strong> Say clearly: <strong>dedup is a consistency problem</strong>; <strong>fan-out reads and UI aggregates are availability/throughput problems</strong>. Separate paths, reconcile.</p>
 <hr />
 <h2 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h2>
@@ -4026,7 +4026,7 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Client Layer]
         Web[Web App]
         Mobile[Mobile App]
@@ -4083,7 +4083,7 @@
     ResultSvc --&gt; Cache
 
     PollSvc --&gt; PollDB
-    PollSvc --&gt; Cache</code></pre>
+    PollSvc --&gt; Cache</div>
 <h3 id="why-async-vote-processing">Why Async Vote Processing?<a class="headerlink" href="#why-async-vote-processing" title="Permanent link">&para;</a></h3>
 <p>At 10,000 votes/second, synchronous database writes would overwhelm PostgreSQL.</p>
 <p><strong>Synchronous approach (won't scale):</strong>
@@ -4119,14 +4119,14 @@
 </span></code></pre></div></p>
 <h3 id="defense-in-depth-strategy">Defense in Depth Strategy<a class="headerlink" href="#defense-in-depth-strategy" title="Permanent link">&para;</a></h3>
 <p>We use multiple layers of protection:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Vote[Vote Request] --&gt; L1{Layer 1:&lt;br/&gt;Redis Check}
     L1 --&gt;|Already voted| Reject1[Reject]
     L1 --&gt;|Not found| L2[Layer 2:&lt;br/&gt;Kafka Dedup]
     L2 --&gt; L3{Layer 3:&lt;br/&gt;DB Constraint}
     L3 --&gt;|Constraint violation| Reject2[Log &amp; Ignore]
     L3 --&gt;|Success| Store[Vote Stored]
-    Store --&gt; UpdateCache[Update Redis]</code></pre>
+    Store --&gt; UpdateCache[Update Redis]</div>
 <h3 id="layer-1-fast-redis-check-api-level">Layer 1: Fast Redis Check (API Level)<a class="headerlink" href="#layer-1-fast-redis-check-api-level" title="Permanent link">&para;</a></h3>
 <p>Before accepting the vote, check if the user already voted:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">VoteService</span><span class="p">:</span>
@@ -4551,12 +4551,12 @@
 </span></code></pre></div>
 <h3 id="dead-letter-queue">Dead Letter Queue<a class="headerlink" href="#dead-letter-queue" title="Permanent link">&para;</a></h3>
 <p>Votes that fail repeatedly need investigation:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Main[votes topic] --&gt; Consumer[Vote Processor]
     Consumer --&gt;|success| Commit[Commit Offset]
     Consumer --&gt;|failure x3| DLQ[votes-dlq topic]
     DLQ --&gt; Alert[Alert Team]
-    DLQ --&gt; Manual[Manual Processing]</code></pre>
+    DLQ --&gt; Manual[Manual Processing]</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
 </span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>
 </span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process_with_retry</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
@@ -4625,7 +4625,7 @@
 </table>
 <h3 id="handling-viral-polls">Handling Viral Polls<a class="headerlink" href="#handling-viral-polls" title="Permanent link">&para;</a></h3>
 <p>When a celebrity creates a poll and 10 million people vote:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Normal [Normal: 100 votes/sec]
         N1[3 API pods]
         N2[3 workers]
@@ -4637,7 +4637,7 @@
     end
 
     Monitor[Metrics] --&gt; HPA[HPA / Auto-scaler]
-    HPA --&gt; |scale up| Viral</code></pre>
+    HPA --&gt; |scale up| Viral</div>
 <p><strong>Auto-scaling rules:</strong>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Kubernetes HPA</span>
 </span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2</span>

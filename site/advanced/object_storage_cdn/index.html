@@ -2931,7 +2931,7 @@
 <li><strong>User metadata</strong>: <code>x-amz-meta-*</code> custom key/value pairs (size limits apply).</li>
 </ul>
 <p>S3-compatible APIs include <strong>AWS S3</strong>, <strong>MinIO</strong>, <strong>Cloudflare R2</strong>, <strong>Google Cloud Storage</strong> (S3 interoperability), <strong>Azure Blob</strong> (similar concepts with different names).</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph API["S3-style HTTP API"]
         PUT[PUT Object]
         GET[GET Object]
@@ -2947,7 +2947,7 @@
     PUT --&gt; K1
     GET --&gt; K1
     MPU --&gt; K2
-    LIST --&gt; Bucket</code></pre>
+    LIST --&gt; Bucket</div>
 <h3 id="consistency-model-eventual-vs-strong-read-after-write">Consistency model (eventual vs strong read-after-write)<a class="headerlink" href="#consistency-model-eventual-vs-strong-read-after-write" title="Permanent link">&para;</a></h3>
 <p>Object stores are often described as <strong>eventually consistent</strong> for <strong>list</strong> operations and <strong>delete markers</strong> in versioned buckets, while <strong>single-key GET</strong> after a successful <strong>PUT</strong> of a new object often provides <strong>read-after-write consistency</strong> for that key in many regions (provider-specific).</p>
 <p>You should be ready to say in an interview:</p>
@@ -3009,11 +3009,11 @@
 <h2 id="content-delivery-networks-cdn">Content Delivery Networks (CDN)<a class="headerlink" href="#content-delivery-networks-cdn" title="Permanent link">&para;</a></h2>
 <h3 id="how-cdns-work-edge-locations-pops-origin-pull-vs-push">How CDNs work: edge locations, PoPs, origin pull vs push<a class="headerlink" href="#how-cdns-work-edge-locations-pops-origin-pull-vs-push" title="Permanent link">&para;</a></h3>
 <p>A <strong>CDN</strong> is a distributed network of <strong>Points of Presence (PoPs)</strong> with <strong>edge caches</strong> that store copies of content closer to end users.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     U[User] --&gt;|DNS / HTTP| EDGE[Edge PoP]
     EDGE --&gt;|cache HIT| U
     EDGE --&gt;|cache MISS| ORIGIN[Origin&lt;br/&gt;Object store or app]
-    ORIGIN --&gt; EDGE</code></pre>
+    ORIGIN --&gt; EDGE</div>
 <ul>
 <li><strong>Origin pull</strong>: On a cache miss, the edge fetches from origin (S3, app server), stores per TTL, then serves subsequent requests.</li>
 <li><strong>Origin push</strong> (less common wording): You <strong>upload</strong> assets directly to the CDN or storage integrated with CDN so edges are populated without your app acting as origin for every first request — often combined with <strong>storage + CDN</strong> products.</li>
@@ -3069,7 +3069,7 @@
 <li><strong>Anycast</strong> advertises the same IP from multiple locations; BGP routes each user to the nearest PoP.</li>
 </ul>
 <p>CDNs use these so users hit a <strong>nearby edge</strong> automatically, reducing latency and load on a single region.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Users
         EU[User EU]
         US[User US]
@@ -3087,7 +3087,7 @@
     EU --&gt; GSLB
     US --&gt; GSLB
     GSLB --&gt; POP_EU
-    GSLB --&gt; POP_US</code></pre>
+    GSLB --&gt; POP_US</div>
 <hr />
 <h2 id="pre-signed-urls-and-access-control">Pre-signed URLs and Access Control<a class="headerlink" href="#pre-signed-urls-and-access-control" title="Permanent link">&para;</a></h2>
 <h3 id="temporary-access-tokens">Temporary access tokens<a class="headerlink" href="#temporary-access-tokens" title="Permanent link">&para;</a></h3>
@@ -3111,15 +3111,15 @@
 <hr />
 <h2 id="cdn-architecture-patterns">CDN Architecture Patterns<a class="headerlink" href="#cdn-architecture-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="static-asset-serving">Static asset serving<a class="headerlink" href="#static-asset-serving" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     CI[CI build] --&gt; BUCKET[Object storage&lt;br/&gt;versioned assets]
     BUCKET --&gt; CDN[CDN distribution]
     CDN --&gt; BROWSER[Browser]
-    BROWSER --&gt;|HTML references&lt;br/&gt;hashed URLs| CDN</code></pre>
+    BROWSER --&gt;|HTML references&lt;br/&gt;hashed URLs| CDN</div>
 <p><strong>Pattern</strong>: Build pipeline uploads to object storage; <strong>CloudFront / Cloudflare / Fastly</strong> fronts the bucket with HTTPS and HTTP/2/3. <strong>Origin Access Control</strong> restricts bucket reads to the CDN only.</p>
 <h3 id="video-streaming-hlsdash-segments">Video streaming (HLS/DASH segments)<a class="headerlink" href="#video-streaming-hlsdash-segments" title="Permanent link">&para;</a></h3>
 <p>Adaptive bitrate streaming splits video into <strong>small segment files</strong> (<code>.ts</code> or CMAF) and <strong>manifests</strong> (<code>.m3u8</code>, <code>.mpd</code>). Each segment is a <strong>cacheable HTTP object</strong>.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Player
     participant CDN as CDN Edge
     participant Origin as Origin / Packager
@@ -3129,7 +3129,7 @@
     Origin--&gt;&gt;CDN: manifest
     CDN--&gt;&gt;Player: manifest
     Player-&gt;&gt;CDN: GET segment_00001.ts
-    CDN--&gt;&gt;Player: segment (HIT after first user)</code></pre>
+    CDN--&gt;&gt;Player: segment (HIT after first user)</div>
 <p>Discuss <strong>segment duration</strong> (latency vs switching granularity), <strong>CDN cache</strong> for popular titles, and <strong>DRM</strong> (license servers separate from segments) for premium content.</p>
 <h3 id="api-response-caching">API response caching<a class="headerlink" href="#api-response-caching" title="Permanent link">&para;</a></h3>
 <p>Use edge caching for <strong>read-heavy, low-personalization</strong> endpoints: product catalog fragments, public leaderboards, feature flags payload (with short TTL).</p>
@@ -3162,7 +3162,7 @@
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <p>Use this flowchart to choose where data lives in a design discussion.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     START([Need to persist binary blob?])
     START --&gt; Q1{Structured query,&lt;br/&gt;transactions, joins?}
     Q1 --&gt;|Yes| DB[(Relational or&lt;br/&gt;document DB)]
@@ -3177,7 +3177,7 @@
     Q4 --&gt;|No| ORIGIN[Origin-only or&lt;br/&gt;private access]
 
     DB --&gt; API[App servers mediate access]
-    CDN --&gt; SEC[Presigned URLs or&lt;br/&gt;OAC for origin]</code></pre>
+    CDN --&gt; SEC[Presigned URLs or&lt;br/&gt;OAC for origin]</div>
 <p><strong>Heuristics:</strong></p>
 <table>
 <thead>

@@ -2996,7 +2996,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph DP [Data Parallelism]
         GPU1_DP[GPU 0&lt;br/&gt;Full Model&lt;br/&gt;Batch 0]
         GPU2_DP[GPU 1&lt;br/&gt;Full Model&lt;br/&gt;Batch 1]
@@ -3017,7 +3017,7 @@
         GPU1_TP[GPU 0&lt;br/&gt;Col 0-2047]
         GPU2_TP[GPU 1&lt;br/&gt;Col 2048-4095]
         GPU1_TP &lt;--&gt;|AllGather| GPU2_TP
-    end</code></pre>
+    end</div>
 <h3 id="gang-scheduling">Gang Scheduling<a class="headerlink" href="#gang-scheduling" title="Permanent link">&para;</a></h3>
 <p>ML training jobs need <strong>all their GPUs simultaneously</strong>. If a job requests 64 GPUs and only 60 are free, it must wait. This is called gang scheduling — all-or-nothing allocation.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Regular scheduling:          Gang scheduling:
@@ -3255,7 +3255,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Users [Users]
         CLI[CLI / SDK]
         WebUI[Web UI]
@@ -3301,7 +3301,7 @@
     ControlPlane --&gt; DataPlane
     DataPlane --&gt; Storage
     DataPlane --&gt; Observability
-    ControlPlane --&gt; Observability</code></pre>
+    ControlPlane --&gt; Observability</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-job-submission-and-lifecycle">4.1 Job Submission and Lifecycle<a class="headerlink" href="#41-job-submission-and-lifecycle" title="Permanent link">&para;</a></h3>

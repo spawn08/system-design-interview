@@ -2991,7 +2991,7 @@
 <p>In interviews, <strong>clarify live vs VOD</strong> early. Live streaming uses RTMP/WebRTC ingest and LL-HLS/WebRTC egress; this page focuses on <strong>VOD</strong> (upload then watch), which matches “Design YouTube” unless the interviewer specifies live.</p>
 </div>
 <h3 id="high-level-system-context-preview">High-Level System Context (Preview)<a class="headerlink" href="#high-level-system-context-preview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients
         U[Uploader client]
         V[Viewer client]
@@ -3030,7 +3030,7 @@
     META --&gt; DB
     META --&gt; CACHE
     SRCH --&gt; IDX
-    COPY --&gt; Q</code></pre>
+    COPY --&gt; Q</div>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3466,7 +3466,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph CP["CP-biased (control plane)"]
     U[Multipart upload complete]
     M[Metadata OLTP]
@@ -3481,7 +3481,7 @@
   M --&gt; J
   J --&gt; C
   M -.-&gt;|eventual| R
-  M -.-&gt;|async| V</code></pre>
+  M -.-&gt;|async| V</div>
 <p><strong>Why this split wins interviews:</strong> <strong>Immutability</strong> of packaged segments makes playback <strong>highly available</strong> without coordination; <strong>upload and processing</strong> use <strong>queues + durable storage</strong> so you <strong>don’t lose work</strong>; <strong>counters and ML</strong> move to <strong>async</strong> paths so spikes don’t <strong>brick</strong> the OLTP database.</p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p>Define <strong>SLI → SLO → error budget</strong> so you can talk about <strong>on-call</strong>, <strong>prioritization</strong>, and <strong>throttling</strong> coherently.</p>
@@ -3777,7 +3777,7 @@
 </tbody>
 </table>
 <h3 id="high-level-architecture-mermaid">High-Level Architecture (Mermaid)<a class="headerlink" href="#high-level-architecture-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph UploadPath[Upload path]
         C[Client] --&gt; APIGW[API Gateway]
         APIGW --&gt; US[Upload service]
@@ -3798,7 +3798,7 @@
         V2 --&gt; APIGW2[API Gateway]
         APIGW2 --&gt; VID[Video API]
         VID --&gt; DB[(DB)]
-    end</code></pre>
+    end</div>
 <h3 id="data-flow-summary">Data Flow Summary<a class="headerlink" href="#data-flow-summary" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Upload</strong>: Client obtains <code>upload_id</code>, sends chunks to storage, completes session; upload service emits <strong>VideoReceived</strong> event.</li>
@@ -3820,7 +3820,7 @@
 <li>Upload service publishes message <code>{ upload_id, object_key, user_id, content_hash }</code>.</li>
 </ol>
 <p><strong>Deduplication:</strong> compute <strong>perceptual hash</strong> or cryptographic hash of source (after normalize) to skip re-transcoding identical uploads, or to map to a single canonical asset (policy-dependent).</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant CL as Client
     participant API as Upload API
     participant OS as Object Storage
@@ -3836,7 +3836,7 @@
     API-&gt;&gt;OS: CompleteMultipartUpload
     API-&gt;&gt;Q: VideoUploaded event
     Q-&gt;&gt;OR: consume
-    OR-&gt;&gt;OR: build DAG, schedule jobs</code></pre>
+    OR-&gt;&gt;OR: build DAG, schedule jobs</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Copyright and policy</strong> checks often run in parallel or after ingest: fingerprinting (e.g. Content ID–style), hash lists, and ML classifiers. Mention <strong>latency vs safety</strong> trade-off: block publish until cleared vs publish then remove.</p>
@@ -3886,7 +3886,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     A[Raw object in storage] --&gt; B[Probe node]
     B --&gt; C[Audio transcode]
     B --&gt; D[Video 1080p]
@@ -3898,7 +3898,7 @@
     G --&gt; J[Master playlist]
     H --&gt; J
     I --&gt; J
-    J --&gt; K[Write manifests + segments to storage]</code></pre>
+    J --&gt; K[Write manifests + segments to storage]</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Adaptive bitrate (ABR)</strong> players switch between renditions based on bandwidth and buffer. <strong>Per-title encoding</strong> optimizes ladders per asset; <strong>chunked CMAF</strong> helps align segment boundaries across renditions.</p>

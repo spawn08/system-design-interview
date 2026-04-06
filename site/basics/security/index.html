@@ -2974,7 +2974,7 @@
 </span></code></pre></div>
 <h3 id="cross-site-request-forgery-csrf">Cross-Site Request Forgery (CSRF)<a class="headerlink" href="#cross-site-request-forgery-csrf" title="Permanent link">&para;</a></h3>
 <p>An attacker tricks a user's browser into making an unwanted request to a site where the user is authenticated.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant V as Victim
     participant E as Evil Site
     participant B as Bank Site
@@ -2983,7 +2983,7 @@
     V-&gt;&gt;E: Visits evil site
     E-&gt;&gt;V: Hidden form: POST bank.com/transfer?to=attacker&amp;amount=10000
     V-&gt;&gt;B: Browser auto-sends cookie with the forged request
-    B-&gt;&gt;B: Valid session → processes transfer!</code></pre>
+    B-&gt;&gt;B: Valid session → processes transfer!</div>
 <p><strong>Prevention: Synchronizer Token Pattern</strong></p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">CsrfTokenManager</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SecureRandom</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SecureRandom</span><span class="p">();</span>
@@ -3012,9 +3012,9 @@
 <p>Encryption transforms readable data (plaintext) into an unreadable format (ciphertext) using a key. Only entities with the correct key can reverse the process.</p>
 <h3 id="symmetric-encryption">Symmetric Encryption<a class="headerlink" href="#symmetric-encryption" title="Permanent link">&para;</a></h3>
 <p>The same key encrypts and decrypts the data.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     PT[Plaintext] --&gt;|Encrypt with Key K| CT[Ciphertext]
-    CT --&gt;|Decrypt with Key K| PT2[Plaintext]</code></pre>
+    CT --&gt;|Decrypt with Key K| PT2[Plaintext]</div>
 <table>
 <thead>
 <tr>
@@ -3092,9 +3092,9 @@
 </span></code></pre></div>
 <h3 id="asymmetric-encryption">Asymmetric Encryption<a class="headerlink" href="#asymmetric-encryption" title="Permanent link">&para;</a></h3>
 <p>Uses a key pair: a <strong>public key</strong> (shared freely) for encryption and a <strong>private key</strong> (kept secret) for decryption.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     PT[Plaintext] --&gt;|Encrypt with&lt;br/&gt;Public Key| CT[Ciphertext]
-    CT --&gt;|Decrypt with&lt;br/&gt;Private Key| PT2[Plaintext]</code></pre>
+    CT --&gt;|Decrypt with&lt;br/&gt;Private Key| PT2[Plaintext]</div>
 <table>
 <thead>
 <tr>
@@ -3307,7 +3307,7 @@
 </div>
 <p>TLS (Transport Layer Security) encrypts data in transit between client and server. SSL is its deprecated predecessor—when someone says "SSL" today, they almost always mean TLS.</p>
 <h3 id="tls-handshake-tls-13">TLS Handshake (TLS 1.3)<a class="headerlink" href="#tls-handshake-tls-13" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Client
     participant S as Server
 
@@ -3321,7 +3321,7 @@
     Note over C,S: Encrypted application data&lt;br/&gt;(symmetric encryption with derived keys)
 
     C-&gt;&gt;S: Application Data (encrypted)
-    S-&gt;&gt;C: Application Data (encrypted)</code></pre>
+    S-&gt;&gt;C: Application Data (encrypted)</div>
 <p><strong>TLS 1.3 improvements over TLS 1.2:</strong></p>
 <table>
 <thead>
@@ -3355,7 +3355,7 @@
 </tbody>
 </table>
 <h3 id="certificate-chain-of-trust">Certificate Chain of Trust<a class="headerlink" href="#certificate-chain-of-trust" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     ROOT[Root CA&lt;br/&gt;Self-signed&lt;br/&gt;Pre-installed in OS/browser] --&gt; INT[Intermediate CA&lt;br/&gt;Signed by Root CA]
     INT --&gt; LEAF[Server Certificate&lt;br/&gt;Signed by Intermediate CA&lt;br/&gt;Contains server's public key]
 
@@ -3363,7 +3363,7 @@
     V --&gt; V1[Signature valid?]
     V --&gt; V2[Not expired?]
     V --&gt; V3[Domain matches?]
-    V --&gt; V4[Not revoked?]</code></pre>
+    V --&gt; V4[Not revoked?]</div>
 <h3 id="mutual-tls-mtls-for-service-to-service">Mutual TLS (mTLS) for Service-to-Service<a class="headerlink" href="#mutual-tls-mtls-for-service-to-service" title="Permanent link">&para;</a></h3>
 <p>In a microservices architecture, mTLS ensures both the client and server authenticate each other:</p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// Configuring mTLS in a Spring Boot service</span>
@@ -3398,11 +3398,11 @@
 <h2 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h2>
 <p>Every piece of data entering your system is potentially malicious. Validate at the boundary—before data reaches business logic or storage.</p>
 <h3 id="validation-strategy-defense-in-depth">Validation Strategy: Defense in Depth<a class="headerlink" href="#validation-strategy-defense-in-depth" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     INPUT[User Input] --&gt; L1[Layer 1: Client-side validation&lt;br/&gt;UX only, not security]
     L1 --&gt; L2[Layer 2: API Gateway&lt;br/&gt;Schema validation, rate limiting]
     L2 --&gt; L3[Layer 3: Application&lt;br/&gt;Business rule validation]
-    L3 --&gt; L4[Layer 4: Database&lt;br/&gt;Constraints, triggers]</code></pre>
+    L3 --&gt; L4[Layer 4: Database&lt;br/&gt;Constraints, triggers]</div>
 <h3 id="java-example-comprehensive-input-validation">Java Example: Comprehensive Input Validation<a class="headerlink" href="#java-example-comprehensive-input-validation" title="Permanent link">&para;</a></h3>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">UserRegistrationValidator</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
@@ -3473,7 +3473,7 @@
 <h2 id="security-architecture-patterns">Security Architecture Patterns<a class="headerlink" href="#security-architecture-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="zero-trust-architecture">Zero Trust Architecture<a class="headerlink" href="#zero-trust-architecture" title="Permanent link">&para;</a></h3>
 <p>Traditional security uses a "castle and moat" model: strong perimeter, trusted interior. Zero Trust assumes no implicit trust—every request is verified.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Traditional
         FW[Firewall] --&gt; INT[Internal Network&lt;br/&gt;Everything trusted]
     end
@@ -3484,7 +3484,7 @@
         A --&gt; E{Encrypt Always}
         E --&gt; L[Log Everything]
         L --&gt; M{Monitor Anomalies}
-    end</code></pre>
+    end</div>
 <p><strong>Zero Trust principles:</strong></p>
 <ol>
 <li><strong>Never trust, always verify</strong> — authenticate and authorize every request</li>
@@ -3595,7 +3595,7 @@
 </table>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[Security Requirement] --&gt; DATA{What data?}
     DATA --&gt;|PII / Financial| HIGH[High Security]
     DATA --&gt;|Public content| LOW[Standard Security]
@@ -3616,7 +3616,7 @@
     AUTH --&gt; AT{Auth type?}
     AT --&gt;|Stateless services| JWT[JWT tokens]
     AT --&gt;|Third-party| OAUTH[OAuth 2.0]
-    AT --&gt;|Service mesh| MTLS[mTLS]</code></pre>
+    AT --&gt;|Service mesh| MTLS[mTLS]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In every system design interview, proactively mention security concerns. Don't wait to be asked. Stating "we need TLS for all communication, parameterized queries to prevent injection, and we should use a secrets manager for API keys" demonstrates production-ready thinking.</p>

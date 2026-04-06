@@ -3458,7 +3458,7 @@
 <p class="admonition-title">Note</p>
 <p><strong>“CP vs AP” for caches</strong> is often <strong>per request class</strong>: user-facing reads may be <strong>AP</strong> (stale OK for 30s), while <strong>financial balances</strong> might bypass cache or use <strong>version checks</strong> — say <strong>explicitly</strong> if the interviewer allows tiered consistency.</p>
 </div>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Partitioned["Network partition"]
     C1[Clients / AZ A]
     N1[Shard primary A]
@@ -3469,7 +3469,7 @@
   N1 -.-&gt;|replication blocked| N2
   C1 --&gt;|choice: fail vs stale| X{Serve stale read?}
   X --&gt;|AP: yes| R[Return replica value + optional version]
-  X --&gt;|CP: no| E[Error / retry / redirect]</code></pre>
+  X --&gt;|CP: no| E[Error / retry / redirect]</div>
 <p><strong>Interview punchline:</strong> Caches <strong>bias toward availability and partition tolerance</strong> for reads; <strong>correctness</strong> comes from <strong>TTL</strong>, <strong>invalidation</strong>, <strong>versioning</strong>, and <strong>application-level invariants</strong>, not from pretending the cache is a strongly consistent store.</p>
 <h3 id="data-model-schema">Data Model &amp; Schema<a class="headerlink" href="#data-model-schema" title="Permanent link">&para;</a></h3>
 <p>Caches are <strong>schema-light</strong> but <strong>not schema-free</strong>: bad key design causes <strong>hot shards</strong>, <strong>inefficient invalidation</strong>, and <strong>unbounded memory</strong>.</p>
@@ -3641,7 +3641,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Clients
     A[App Servers]
   end
@@ -3665,7 +3665,7 @@
   C --&gt; N3
   N1 --&gt; P1
   N2 --&gt; P2
-  N3 --&gt; P2</code></pre>
+  N3 --&gt; P2</div>
 <ul>
 <li><strong>Client library</strong> computes partition (hash ring or slot) and talks to the right node(s).</li>
 <li><strong>Replication</strong> (leader/follower or chained) sits <strong>inside</strong> each partition’s story; diagram simplified.</li>
@@ -4166,7 +4166,7 @@
 <li><strong>Hash tags:</strong> <code>{user123}:profile</code> forces same slot for related keys (Redis).</li>
 </ul>
 <h4 id="mermaid-hash-ring">Mermaid: hash ring<a class="headerlink" href="#mermaid-hash-ring" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Ring["Consistent Hash Ring 0..2^32-1"]
     direction clockwise
     V1((v1))
@@ -4178,7 +4178,7 @@
   V1 -.-&gt; N1[Node A]
   V2 -.-&gt; N1
   V3 -.-&gt; N2[Node B]
-  V4 -.-&gt; N2</code></pre>
+  V4 -.-&gt; N2</div>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Java</label><label for="__tabbed_3_2">Go</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -4310,7 +4310,7 @@
 <p><strong>Failover / leader election:</strong> Often implemented with <strong>Raft</strong> or <strong>ZooKeeper/etcd</strong> for coordination, or <strong>sentinel</strong>-style external watchers.</p>
 <p><strong>Split-brain prevention:</strong> <strong>Quorum</strong> + <strong>fencing</strong> (e.g., epoch numbers); old primary must not accept writes after losing leadership.</p>
 <h4 id="mermaid-replication-topology">Mermaid: replication topology<a class="headerlink" href="#mermaid-replication-topology" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph AZ1
     L[Leader]
   end
@@ -4323,7 +4323,7 @@
   L --&gt;|replication log| F1
   L --&gt;|replication log| F2
   C[Clients] --&gt;|writes| L
-  C --&gt;|reads optional| F1</code></pre>
+  C --&gt;|reads optional| F1</div>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Java</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -4963,14 +4963,14 @@
 </tbody>
 </table>
 <p><strong>Client responsibilities:</strong> maintain <strong>slot → node</strong> cache, refresh on <code>MOVED</code>, follow <code>ASKING</code> plus one-off redirect during migration.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant C as Client
   participant N1 as Node A stale route
   participant N2 as Node B owner
   C-&gt;&gt;N1: GET foo
   N1--&gt;&gt;C: MOVED 3999 10.0.0.12:6379
   C-&gt;&gt;N2: GET foo
-  N2--&gt;&gt;C: value</code></pre>
+  N2--&gt;&gt;C: value</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Clients that ignore <code>MOVED</code> look flaky under cluster operations — mention <strong>cluster-aware clients</strong> for Redis Cluster.</p>
@@ -5173,12 +5173,12 @@
 <p>Dashboard <strong>hit ratio</strong> without <strong>latency</strong> is misleading — optimize for tail latency under load.</p>
 </div>
 <h3 id="production-checklist-mermaid">Production Checklist (Mermaid)<a class="headerlink" href="#production-checklist-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   A[Define SLOs] --&gt; B[Partitioning + replication]
   B --&gt; C[Eviction + maxmemory policy]
   C --&gt; D[Client pooling + timeouts + retries]
   D --&gt; E[Runbooks failover + resharding]
-  E --&gt; F[Dashboards lag + p99 + evictions]</code></pre>
+  E --&gt; F[Dashboards lag + p99 + evictions]</div>
 <hr />
 <h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
 <table>

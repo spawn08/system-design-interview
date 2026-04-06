@@ -3352,7 +3352,7 @@
 <h2 id="graphql">GraphQL<a class="headerlink" href="#graphql" title="Permanent link">&para;</a></h2>
 <p>GraphQL is an alternative to REST that lets clients specify exactly what data they need. Developed by Facebook in 2012 and open-sourced in 2015.</p>
 <h3 id="rest-vs-graphql">REST vs GraphQL<a class="headerlink" href="#rest-vs-graphql" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph REST
         C1[Client] --&gt;|GET /users/1| S1[Server]
         C1 --&gt;|GET /users/1/orders| S1
@@ -3361,7 +3361,7 @@
 
     subgraph GraphQL
         C2[Client] --&gt;|Single query| S2[Server]
-    end</code></pre>
+    end</div>
 <p><strong>The problem REST has:</strong> To show a user profile page with their orders and reviews, you make 3 separate requests (over-fetching on each one since each endpoint returns full objects).</p>
 <p><strong>GraphQL solves this:</strong> One request, one response, exactly the fields you need.</p>
 <div class="language-graphql highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c"># GraphQL query — single request gets everything</span>
@@ -3513,12 +3513,12 @@
 <h3 id="common-algorithms">Common Algorithms<a class="headerlink" href="#common-algorithms" title="Permanent link">&para;</a></h3>
 <h4 id="token-bucket">Token Bucket<a class="headerlink" href="#token-bucket" title="Permanent link">&para;</a></h4>
 <p>A bucket holds tokens. Each request consumes one token. Tokens are added at a fixed rate. Requests are rejected when the bucket is empty.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     R[Request] --&gt; TB{Tokens &gt; 0?}
     TB --&gt;|Yes| A[Allow&lt;br/&gt;tokens--]
     TB --&gt;|No| D[Reject&lt;br/&gt;429 Too Many Requests]
 
-    Refill[Token Refill&lt;br/&gt;every interval] -.-&gt;|Add tokens| TB</code></pre>
+    Refill[Token Refill&lt;br/&gt;every interval] -.-&gt;|Add tokens| TB</div>
 <p><strong>Properties:</strong> Allows bursts (up to bucket capacity), smooth average rate.</p>
 <h4 id="sliding-window-log">Sliding Window Log<a class="headerlink" href="#sliding-window-log" title="Permanent link">&para;</a></h4>
 <p>Record timestamps of all requests. Count requests in the current window. Reject if count exceeds limit.</p>
@@ -3670,7 +3670,7 @@
 </tbody>
 </table>
 <h3 id="jwt-deep-dive">JWT Deep Dive<a class="headerlink" href="#jwt-deep-dive" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Client
     participant Auth as Auth Service
     participant API as API Server
@@ -3685,7 +3685,7 @@
 
     Note over C,API: Token expired
     C-&gt;&gt;Auth: POST /refresh (refresh_token)
-    Auth-&gt;&gt;C: New JWT</code></pre>
+    Auth-&gt;&gt;C: New JWT</div>
 <p><strong>JWT Structure:</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>eyJhbGciOiJIUzI1NiJ9.          ← Header (algorithm, type)
 </span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>eyJzdWIiOiJ1c2VyLTEyMyJ9.     ← Payload (claims: sub, exp, iat, roles)
@@ -3746,7 +3746,7 @@
 </span><span id="__span-19-52"><a id="__codelineno-19-52" name="__codelineno-19-52" href="#__codelineno-19-52"></a><span class="p">}</span>
 </span></code></pre></div>
 <h3 id="oauth-20-authorization-code-flow">OAuth 2.0 Authorization Code Flow<a class="headerlink" href="#oauth-20-authorization-code-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant U as User
     participant App as Your App
     participant Auth as Auth Server (Google, etc.)
@@ -3759,7 +3759,7 @@
     App-&gt;&gt;Auth: POST /token (code + client_secret)
     Auth-&gt;&gt;App: access_token + refresh_token
     App-&gt;&gt;API: GET /api/resource (Bearer token)
-    API-&gt;&gt;App: Protected data</code></pre>
+    API-&gt;&gt;App: Protected data</div>
 <hr />
 <h2 id="idempotency">Idempotency<a class="headerlink" href="#idempotency" title="Permanent link">&para;</a></h2>
 <p>An idempotent operation produces the same result regardless of how many times it is executed. This is critical in distributed systems where network failures can cause clients to retry requests.</p>
@@ -3910,7 +3910,7 @@
 </table>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[API Design Question] --&gt; RT{Resource types?}
     RT --&gt;|Well-defined, few| REST[REST API]
     RT --&gt;|Complex, nested, varying clients| GQL[GraphQL]
@@ -3927,7 +3927,7 @@
     REST --&gt; AUTH{Auth needs?}
     AUTH --&gt;|Stateless microservices| JWT[JWT tokens]
     AUTH --&gt;|Third-party access| OAUTH[OAuth 2.0]
-    AUTH --&gt;|Server-to-server| APIKEY[API keys + mTLS]</code></pre>
+    AUTH --&gt;|Server-to-server| APIKEY[API keys + mTLS]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, always justify your API design choices. Don't just say "I'll use REST"—explain why REST fits better than GraphQL or gRPC for the specific use case. Discuss pagination strategy, error handling, and authentication in your design.</p>

@@ -2957,7 +2957,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TB
+<div class="mermaid">graph TB
     subgraph Data Sources
         KAFKA[Kafka Streams]
         DW[Data Warehouse&lt;br/&gt;BigQuery / Redshift]
@@ -3000,8 +3000,8 @@
 
     SDK --&gt; TRAIN
     SDK --&gt; SERVE
-    SDK --&gt; EXPLORE</code></pre>
-<pre class="mermaid"><code>sequenceDiagram
+    SDK --&gt; EXPLORE</div>
+<div class="mermaid">sequenceDiagram
     participant DS as Data Scientist
     participant REG as Feature Registry
     participant MAT as Materializer
@@ -3021,7 +3021,7 @@
 
     Note over SRV: Serving
     SRV-&gt;&gt;ON: get_online_features(user_id)
-    ON--&gt;&gt;SRV: {user_purchase_count_7d: 12}</code></pre>
+    ON--&gt;&gt;SRV: {user_purchase_count_7d: 12}</div>
 <hr />
 <h2 id="step-4-feature-definition-registry">Step 4: Feature Definition &amp; Registry<a class="headerlink" href="#step-4-feature-definition-registry" title="Permanent link">&para;</a></h2>
 <p>The feature registry is the metadata backbone. Every feature has a typed definition, owner, lineage, and SLA.</p>
@@ -3158,10 +3158,10 @@
 <h2 id="step-5-offline-store-point-in-time-joins">Step 5: Offline Store &amp; Point-in-Time Joins<a class="headerlink" href="#step-5-offline-store-point-in-time-joins" title="Permanent link">&para;</a></h2>
 <p>The offline store provides historical feature values for training. The critical challenge is <strong>point-in-time correctness</strong>: for each training example at time <code>t</code>, we must use feature values as they existed at time <code>t</code> — never future data.</p>
 <h3 id="point-in-time-join">Point-in-Time Join<a class="headerlink" href="#point-in-time-join" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>graph LR
+<div class="mermaid">graph LR
     LABELS[Labels&lt;br/&gt;user_id, timestamp, label] --&gt; JOIN{Point-in-Time&lt;br/&gt;Join}
     FEATURES[Feature Table&lt;br/&gt;user_id, timestamp, features] --&gt; JOIN
-    JOIN --&gt; TRAIN[Training Dataset&lt;br/&gt;features as-of label timestamp]</code></pre>
+    JOIN --&gt; TRAIN[Training Dataset&lt;br/&gt;features as-of label timestamp]</div>
 <table>
 <thead>
 <tr>

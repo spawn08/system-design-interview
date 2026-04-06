@@ -3100,7 +3100,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
 </table>
 <h3 id="super-resolution-cascades">Super-Resolution Cascades<a class="headerlink" href="#super-resolution-cascades" title="Permanent link">&para;</a></h3>
 <p>Generate <strong>base</strong> (e.g. 64→256 latent) then <strong>refine</strong> with <strong>image-conditioned</strong> SR models (sometimes <strong>multi-stage</strong>: 256→512→1024). Reduces cost of <strong>full-resolution</strong> diffusion in one shot.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph base["Base generation (cheap latent)"]
     zT[z_T ~ noise]
     zT --&gt; UN[U-Net denoising N steps]
@@ -3113,7 +3113,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
     SR1 --&gt; mid[Mid-res]
     mid --&gt; SR2[SR 2× or refiner]
     SR2 --&gt; hi[Final high-res]
-  end</code></pre>
+  end</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Preview vs final:</strong> many products show <strong>fast</strong> low-step or low-res outputs first, then <strong>replace</strong> with the SR-enhanced asset once ready — this improves <strong>perceived latency</strong> without breaking the <strong>&lt;10s</strong> SLO for <em>final</em> pixels.</p>
@@ -3293,7 +3293,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
 <p><strong>Total per replica:</strong> <strong>single-digit GB</strong> in FP16 — fits in <strong>one</strong> high-end GPU <strong>if</strong> activations fit; large batches or giant models may require <strong>tensor parallel</strong> or <strong>pipeline parallel</strong>.</p>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   U[User / Client] --&gt; API[API Gateway + Auth]
   API --&gt; Q[Queue + Scheduler]
   Q --&gt; INSAFE[Input Safety &amp; Policy]
@@ -3307,7 +3307,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
   OBJ --&gt; CDN[CDN]
   CDN --&gt; U
   Q -.-&gt; MET[Metrics + Tracing]
-  LD -.-&gt; MET</code></pre>
+  LD -.-&gt; MET</div>
 <p><strong>Path highlights:</strong></p>
 <ol>
 <li><strong>Input safety</strong> before expensive GPU work (cheap wins).</li>
@@ -3992,7 +3992,7 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
 <p><strong>Fine-tuning.</strong> <strong>LoRA</strong>: low-rank updates to attention/MLP weights for <strong>cheap</strong> style adapters. <strong>DreamBooth</strong>: few images of a subject + rare token for <strong>identity</strong> without full retrain. <strong>Textual inversion</strong>: learn <strong>pseudo-tokens</strong> in embedding space for <strong>new concepts</strong>.</p>
 <p><strong>Preference alignment (image).</strong> Train a <strong>reward model</strong> (often <strong>CLIP + human ratings</strong> or a <strong>ViT head</strong>) on pairwise <strong>which image is better</strong> data. Optimize with <strong>RL</strong> (policy gradient on denoising — expensive) or <strong>DPO</strong>-style <strong>direct preference</strong> losses on <strong>completed samples</strong> or <strong>last-step</strong> latents depending on setup — product stacks often use <strong>offline</strong> preference batches + <strong>KL</strong> to a <strong>reference</strong> model.</p>
 <p><strong>Compute &amp; distributed training.</strong> <strong>Multi-GPU</strong> data parallel for throughput; <strong>FSDP / ZeRO</strong> for <strong>large</strong> U-Nets/DiTs; <strong>gradient checkpointing</strong> to fit <strong>activation</strong> memory. <strong>BF16</strong> mixed precision; <strong>EMA</strong> weights for evaluation. Typical <strong>cluster</strong>: hundreds–thousands of <strong>A100/H100</strong> GPU-hours per <strong>large</strong> run — <strong>checkpoint</strong> to object storage every <strong>N</strong> thousand steps.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph data["Data"]
     RAW[Web crawl / licensed sets]
     DEDUP[pHash + CLIP dedup]
@@ -4019,7 +4019,7 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
   SHARD --&gt; RM
   RM --&gt; RL
   DM --&gt; RL
-  CKPT --&gt; EVAL --&gt; SRV</code></pre>
+  CKPT --&gt; EVAL --&gt; SRV</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Copyright</strong> on training data is a <strong>legal and product</strong> issue: <strong>document</strong> sources, honor <strong>robots.txt</strong> / <strong>licenses</strong>, support <strong>creator opt-out</strong>, and separate <strong>technical</strong> dedup from <strong>licensing</strong> compliance.</p>

@@ -3279,7 +3279,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 </span></code></pre></div></p>
 <p>To read all emails, you only read the email column. Great for analytics!</p>
 <p><strong>Cassandra architecture:</strong></p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Client[Client] --&gt; Node1[Node 1]
     Client --&gt; Node2[Node 2]
     Client --&gt; Node3[Node 3]
@@ -3292,7 +3292,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
         Node1
         Node2
         Node3
-    end</code></pre>
+    end</div>
 <ul>
 <li>No master node (peer-to-peer)</li>
 <li>Data partitioned across nodes using consistent hashing</li>
@@ -3367,7 +3367,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 <h3 id="why-you-can-only-have-two">Why You Can Only Have Two<a class="headerlink" href="#why-you-can-only-have-two" title="Permanent link">&para;</a></h3>
 <p>In a distributed system, network partitions (nodes can't communicate) WILL happen. It's not if, but when.</p>
 <p><strong>Scenario: Two database nodes, network partition occurs</strong></p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph DC1 [Data Center 1]
         Client1[Client] --&gt; Node1[(Node A)]
     end
@@ -3376,7 +3376,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
         Client2[Client] --&gt; Node2[(Node B)]
     end
 
-    Node1 -.-x|Network Partition| Node2</code></pre>
+    Node1 -.-x|Network Partition| Node2</div>
 <p>Client 1 writes <code>x = 1</code> to Node A. But Node A can't replicate to Node B due to the partition.</p>
 <p>Now Client 2 reads from Node B. What should happen?</p>
 <p><strong>Option 1: Choose Consistency (CP)</strong>
@@ -3467,13 +3467,13 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 <h4 id="replication">Replication<a class="headerlink" href="#replication" title="Permanent link">&para;</a></h4>
 <p>Copy data to multiple servers. </p>
 <p><strong>Master-Replica (Primary-Secondary):</strong></p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     App[Application] --&gt; Primary[(Primary)]
     Primary --&gt; Replica1[(Replica 1)]
     Primary --&gt; Replica2[(Replica 2)]
 
     App -.-&gt;|Reads| Replica1
-    App -.-&gt;|Reads| Replica2</code></pre>
+    App -.-&gt;|Reads| Replica2</div>
 <ul>
 <li>All writes go to the primary</li>
 <li>Reads can go to any replica</li>
@@ -3495,11 +3495,11 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Shard 3: user_id 2,000,001-3,000,000
 </span></code></pre></div>
 <p>Each shard is an independent database containing a subset of the data.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     App[Application] --&gt; Router[Shard Router]
     Router --&gt; Shard1[(Shard 1)]
     Router --&gt; Shard2[(Shard 2)]
-    Router --&gt; Shard3[(Shard 3)]</code></pre>
+    Router --&gt; Shard3[(Shard 3)]</div>
 <p><strong>Sharding strategies:</strong></p>
 <table>
 <thead>
@@ -3721,7 +3721,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 <hr />
 <h2 id="choosing-the-right-database">Choosing the Right Database<a class="headerlink" href="#choosing-the-right-database" title="Permanent link">&para;</a></h2>
 <h3 id="decision-framework">Decision Framework<a class="headerlink" href="#decision-framework" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Start[Start] --&gt; Q1{Need ACID transactions?}
     Q1 --&gt;|Yes| Q2{Complex relationships?}
     Q1 --&gt;|No| Q3{Data structure?}
@@ -3736,7 +3736,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 
     SQL --&gt; Q4{Scale requirements?}
     Q4 --&gt;|Single region| SQL2[Single PostgreSQL]
-    Q4 --&gt;|Multi-region| SQL3[CockroachDB/Spanner]</code></pre>
+    Q4 --&gt;|Multi-region| SQL3[CockroachDB/Spanner]</div>
 <h3 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

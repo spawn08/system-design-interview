@@ -3553,7 +3553,7 @@
 </table>
 <p><strong>Multi-region:</strong> a <strong>single global Redis</strong> optimizes consistency of one number but hurts <strong>latency and partition resilience</strong>. <strong>Per-region Redis</strong> improves availability and RTT but <strong>violates a strict global limit</strong> unless you add async reconciliation (eventually consistent) or a <strong>partitioned budget</strong> (e.g. 200/min per region).</p>
 <p><strong>During a Redis partition:</strong> clients on the minority side may see <strong>stale</strong> or <strong>split-brain</strong> counts if reads go to replicas or split primaries—designs usually <strong>route writes to one primary</strong> per key and accept <strong>unavailability of enforcement</strong> (fail open) rather than wrong hard enforcement. <strong>Split clients</strong> (some to each partition) can <strong>exceed</strong> the intended limit until the partition heals—acknowledge this as <strong>bounded over-admission</strong>.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph CP [Consistency vs availability under partition]
     W[Writers to single Redis primary per shard]
     R[Reads from primary for limit checks]
@@ -3562,7 +3562,7 @@
     R --&gt; P
     P --&gt;|minority partition| FO[Fail open OR queue checks]
     P --&gt;|healed| REC[Reconcile counters / accept over-count]
-  end</code></pre>
+  end</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Sound bite:</strong> <em>“We’re not choosing CAP for the whole company—we’re choosing it for the rate limit path: </em><em>strong consistency per key on the primary</em><em> for correctness, </em><em>partition tolerance</em><em> via Redis clustering, and </em><em>availability of the edge</em><em> via fail-open when the store is unreachable, trading strict enforcement for site uptime.”</em></p>
@@ -4377,7 +4377,7 @@
 <h3 id="32-system-architecture">3.2 System Architecture<a class="headerlink" href="#32-system-architecture" title="Permanent link">&para;</a></h3>
 <p>For a distributed system, we need a centralized store for rate limit state.</p>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Clients]
         C1[Client 1]
         C2[Client 2]
@@ -4419,7 +4419,7 @@
 
     API1 --&gt; Svc
     API2 --&gt; Svc
-    API3 --&gt; Svc</code></pre>
+    API3 --&gt; Svc</div>
 <h3 id="where-to-place-the-rate-limiter">Where to Place the Rate Limiter?<a class="headerlink" href="#where-to-place-the-rate-limiter" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4459,7 +4459,7 @@
 </table>
 <p><strong>Recommendation:</strong> API Gateway or dedicated middleware is usually best.</p>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client
     participant LB as Load Balancer
     participant API as API Server
@@ -4481,7 +4481,7 @@
     else Over limit
         RL--&gt;&gt;API: Rejected
         API--&gt;&gt;Client: 429 Too Many Requests + Retry-After
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-distributed-rate-limiting-with-redis">4.1 Distributed Rate Limiting with Redis<a class="headerlink" href="#41-distributed-rate-limiting-with-redis" title="Permanent link">&para;</a></h3>
@@ -5215,7 +5215,7 @@
 <hr />
 <h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
 <h3 id="redis-cluster-for-high-availability">Redis Cluster for High Availability<a class="headerlink" href="#redis-cluster-for-high-availability" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Cluster [Redis Cluster]
         subgraph Shard1 [Shard 1]
             M1[Master 1]
@@ -5233,7 +5233,7 @@
         end
     end
 
-    API[API Servers] --&gt; Cluster</code></pre>
+    API[API Servers] --&gt; Cluster</div>
 <p><strong>Configuration:</strong>
 - 3+ master nodes for fault tolerance
 - Replica for each master
@@ -5431,14 +5431,14 @@
 </table>
 <h3 id="cascading-failure-and-load-shedding">Cascading Failure and Load Shedding<a class="headerlink" href="#cascading-failure-and-load-shedding" title="Permanent link">&para;</a></h3>
 <p>At L6, connect rate limiting to broader system resilience:</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   RL[Rate Limiter] --&gt;|Rejects excess| Client
   RL --&gt;|Admits requests| API[API Server]
   API --&gt;|Overloaded| CB[Circuit Breaker]
   CB --&gt;|Open| Fallback[Degraded Response]
   CB --&gt;|Closed| Backend[Backend Service]
   Backend --&gt;|Backpressure signal| API
-  API --&gt;|Adaptive limit| RL</code></pre>
+  API --&gt;|Adaptive limit| RL</div>
 <table>
 <thead>
 <tr>

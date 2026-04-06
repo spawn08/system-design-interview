@@ -3381,7 +3381,7 @@
 </tbody>
 </table>
 <p><strong>Interview line:</strong> <em>“We guarantee </em><em>at-least-once delivery</em><em> to the worker boundary; </em><em>exactly-once side effects</em><em> are the application’s job via idempotency keys and transactional outbox.”</em></p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph CP["Partition scenario"]
     S1[Scheduler A]
     S2[Scheduler B]
@@ -3393,7 +3393,7 @@
   S2 --&gt;|writes win or fail| DB
   W1 --&gt;|lease CAS| DB
   W2 --&gt;|lease CAS rejected| DB
-  DB --&gt;|single version per task_id| W1</code></pre>
+  DB --&gt;|single version per task_id| W1</div>
 <p><strong>Reading the diagram:</strong> only <strong>one</strong> path succeeds for <strong>lease acquisition</strong> on a linearizable row; the other worker retries or pulls different work—so you trade <strong>perfect availability of every operation</strong> for <strong>no concurrent double execution</strong> of the same task.</p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p>SLAs are <strong>contracts</strong> with users; <strong>SLOs</strong> are internal targets; <strong>SLIs</strong> are what you measure. For a task platform, separate <strong>scheduling</strong> (when work becomes eligible) from <strong>execution</strong> (when a worker finishes).</p>
@@ -3583,7 +3583,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Clients
     API[API Gateway]
   end
@@ -3606,7 +3606,7 @@
   W1 --&gt; RQ
   W2 --&gt; RQ
   W1 --&gt; SCH
-  W2 --&gt; SCH</code></pre>
+  W2 --&gt; SCH</div>
 <p><strong>Components:</strong></p>
 <table>
 <thead>
@@ -3650,7 +3650,7 @@
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-task-storage-and-state-machine">4.1 Task Storage and State Machine<a class="headerlink" href="#41-task-storage-and-state-machine" title="Permanent link">&para;</a></h3>
 <p>Tasks move through explicit states. The scheduler enforces valid transitions and persists each step.</p>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
   [*] --&gt; PENDING: create
   PENDING --&gt; SCHEDULED: run_at set / delay
   SCHEDULED --&gt; READY: tick &lt;= run_at
@@ -3662,7 +3662,7 @@
   RUNNING --&gt; DLQ: attempts exhausted
   FAILED --&gt; DLQ: policy routes here
   COMPLETED --&gt; [*]
-  DLQ --&gt; [*]</code></pre>
+  DLQ --&gt; [*]</div>
 <table>
 <thead>
 <tr>
@@ -3827,7 +3827,7 @@
 <p><strong>Cascading:</strong> when a slot elapses, move tasks to the inner wheel or push to <strong>ready queue</strong>. Use <strong>one dedicated scheduler process per partition</strong> to avoid cross-thread heap contention.</p>
 </div>
 <h4 id="scheduling-flow">Scheduling flow<a class="headerlink" href="#scheduling-flow" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant T as Ticker
   participant W as Timing Wheel
   participant H as Ready Heap
@@ -3837,11 +3837,11 @@
   W-&gt;&gt;H: promote due tasks
   H-&gt;&gt;Q: push(task_id, priority)
   WK-&gt;&gt;Q: dequeue / poll
-  WK-&gt;&gt;WK: lease(task_id)</code></pre>
+  WK-&gt;&gt;WK: lease(task_id)</div>
 <hr />
 <h3 id="43-worker-pool-and-task-assignment">4.3 Worker Pool and Task Assignment<a class="headerlink" href="#43-worker-pool-and-task-assignment" title="Permanent link">&para;</a></h3>
 <p><strong>Pull model:</strong> workers long-poll the ready queue (or partition-specific queues). <strong>Push model:</strong> scheduler assigns tasks to registered workers (requires presence and load signals). Most large systems prefer <strong>pull</strong> with <strong>lease</strong> for simplicity.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   subgraph Partition P1
     Q1[Ready queue P1]
   end
@@ -3851,7 +3851,7 @@
   W1[Worker A]
   W2[Worker B]
   Q1 --&gt; W1
-  Q2 --&gt; W2</code></pre>
+  Q2 --&gt; W2</div>
 <p><strong>Partitioning tasks across scheduler nodes:</strong></p>
 <table>
 <thead>

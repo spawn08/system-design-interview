@@ -3185,7 +3185,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Ingestion [Content Ingestion]
         Upload[Content Upload&lt;br/&gt;API]
         Stream[Event Stream&lt;br/&gt;Kafka]
@@ -3231,7 +3231,7 @@
 
     HumanLoop --&gt; FeedbackLoop
     Appeals --&gt; FeedbackLoop
-    FeedbackLoop --&gt; Cascade</code></pre>
+    FeedbackLoop --&gt; Cascade</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-multi-stage-classification-pipeline">4.1 Multi-Stage Classification Pipeline<a class="headerlink" href="#41-multi-stage-classification-pipeline" title="Permanent link">&para;</a></h3>
@@ -3400,7 +3400,7 @@
 </span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>        <span class="p">)</span>
 </span></code></pre></div>
 <h3 id="44-human-review-system">4.4 Human Review System<a class="headerlink" href="#44-human-review-system" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Queue [Priority Queue]
         P1[P0: CSAM / Imminent Threat&lt;br/&gt;SLA: 15 min]
         P2[P1: Severe Harassment&lt;br/&gt;SLA: 1 hour]
@@ -3421,7 +3421,7 @@
         InterRater[Inter-Rater&lt;br/&gt;Agreement]
     end
 
-    Queue --&gt; Review --&gt; QA</code></pre>
+    Queue --&gt; Review --&gt; QA</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">HumanReviewQueue</span><span class="p">:</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority-based human review queue with SLA tracking.&quot;&quot;&quot;</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>

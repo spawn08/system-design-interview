@@ -99,6 +99,11 @@ The unique token is required so that only the owner can delete the key (compare 
 === "Java"
 
     ```java
+    import java.util.UUID;
+
+    import io.lettuce.core.ScriptOutputType;
+    import io.lettuce.core.SetArgs;
+
     // Acquire with SET NX PX
     String token = UUID.randomUUID().toString();
     Boolean ok = redisCommands.set(key, token, SetArgs.Builder.nx().px(ttlMs));

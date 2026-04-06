@@ -3420,7 +3420,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients["Client Apps"]
         A[Web / Mobile / Batch Jobs]
     end
@@ -3459,9 +3459,9 @@
     ANT --&gt; PII
     GOO --&gt; PII
     SH --&gt; PII
-    PII --&gt; COST --&gt; LOG --&gt; CW</code></pre>
+    PII --&gt; COST --&gt; LOG --&gt; CW</div>
 <h3 id="streaming-request-lifecycle-sequence">Streaming Request Lifecycle (Sequence)<a class="headerlink" href="#streaming-request-lifecycle-sequence" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     autonumber
     participant C as Client
     participant G as LLM Gateway
@@ -3497,7 +3497,7 @@
         end
         P--&gt;&gt;G: stream end + usage (tokens)
         G-&gt;&gt;SCR: Final scrub + audit record + cache write (if eligible)
-    end</code></pre>
+    end</div>
 <h3 id="request-path-narrative">Request Path (Narrative)<a class="headerlink" href="#request-path-narrative" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Authenticate</strong> the caller → resolve <strong>tenant</strong>, quotas, and routing profile.  </li>
@@ -4013,13 +4013,13 @@
 <li><strong>Streaming</strong> failures need special casing: you generally <strong>cannot</strong> safely retry mid-stream without idempotent generation or user-visible duplication.</li>
 </ul>
 <h4 id="circuit-breaker-state-machine">Circuit breaker state machine<a class="headerlink" href="#circuit-breaker-state-machine" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
     [*] --&gt; Closed
     Closed --&gt; Open : failures &gt;= threshold\nor error_rate &gt; limit
     Open --&gt; HalfOpen : cooldown elapsed
     HalfOpen --&gt; Closed : probe success
     HalfOpen --&gt; Open : probe failure
-    Closed --&gt; Closed : success resets failure window</code></pre>
+    Closed --&gt; Closed : success resets failure window</div>
 <h4 id="provider-health-scoring-weighted-error-rate-latency">Provider health scoring (weighted error rate + latency)<a class="headerlink" href="#provider-health-scoring-weighted-error-rate-latency" title="Permanent link">&para;</a></h4>
 <p>Maintain a rolling window per <strong>(provider, region, model)</strong>. Example <strong>score</strong> in <span class="arithmatex">\([0,100]\)</span> — higher is healthier:</p>
 <div class="arithmatex">\[

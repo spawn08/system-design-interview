@@ -3835,7 +3835,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph cap["CAP Classification"]
     NH["Notification history&lt;br/&gt;(Cassandra) — AP"]
     UP["User preferences&lt;br/&gt;(PostgreSQL) — CP"]
@@ -3843,7 +3843,7 @@
     RL["Rate limits&lt;br/&gt;(Redis) — AP"]
     TM["Templates&lt;br/&gt;(PostgreSQL) — CP"]
     KF["Message queue&lt;br/&gt;(Kafka) — AP"]
-  end</code></pre>
+  end</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>User preferences being <strong>CP</strong> is a deliberate choice with compliance implications. If you use an AP store for preferences and serve a stale "opted-in" state after a user opts out, you may violate <strong>CAN-SPAM</strong> or <strong>GDPR</strong>. In interviews, connecting CAP decisions to business/legal constraints is a strong signal.</p>
@@ -4419,7 +4419,7 @@
 </tbody>
 </table>
 <h3 id="priority-queues">Priority Queues<a class="headerlink" href="#priority-queues" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Input [Notification Input]
         Trans[Transactional&lt;br/&gt;OTPs, Alerts]
         Engage[Engagement&lt;br/&gt;Likes, Comments]
@@ -4442,11 +4442,11 @@
 
     Q1 --&gt; W1
     Q2 --&gt; W1
-    Q3 --&gt; W1</code></pre>
+    Q3 --&gt; W1</div>
 <hr />
 <h3 id="32-architecture-overview">3.2 Architecture Overview<a class="headerlink" href="#32-architecture-overview" title="Permanent link">&para;</a></h3>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Sources [Notification Sources]
         API[API Calls]
         Events[Event Triggers]
@@ -4512,9 +4512,9 @@
     Enricher --&gt; TemplateDB
     PushW --&gt; HistoryDB
     EmailW --&gt; HistoryDB
-    SMSW --&gt; HistoryDB</code></pre>
+    SMSW --&gt; HistoryDB</div>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client as Client/Event
     participant API as Notification API
     participant Validator
@@ -4549,7 +4549,7 @@
             Provider--&gt;&gt;Worker: Delivery status
             Worker-&gt;&gt;History: Log result
         end
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="51-notification-api">5.1 Notification API<a class="headerlink" href="#51-notification-api" title="Permanent link">&para;</a></h3>
@@ -5164,13 +5164,13 @@
 </span></code></pre></div>
 <h3 id="dead-letter-queue">Dead Letter Queue<a class="headerlink" href="#dead-letter-queue" title="Permanent link">&para;</a></h3>
 <p>Handle persistent failures:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Queue[Main Queue] --&gt; Worker[Worker]
     Worker --&gt;|Success| Done[Done]
     Worker --&gt;|Retry| Queue
     Worker --&gt;|Max Retries| DLQ[Dead Letter Queue]
     DLQ --&gt; Alert[Alert Ops]
-    DLQ --&gt; Manual[Manual Review]</code></pre>
+    DLQ --&gt; Manual[Manual Review]</div>
 <hr />
 <h3 id="47-rate-limiting-and-throttling">4.7 Rate Limiting and Throttling<a class="headerlink" href="#47-rate-limiting-and-throttling" title="Permanent link">&para;</a></h3>
 <p>Prevent notification fatigue and respect provider limits.</p>
@@ -5376,7 +5376,7 @@
 <h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
 <h3 id="51-scaling-strategies">5.1 Scaling Strategies<a class="headerlink" href="#51-scaling-strategies" title="Permanent link">&para;</a></h3>
 <h3 id="horizontal-scaling">Horizontal Scaling<a class="headerlink" href="#horizontal-scaling" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph API [API Layer - Stateless]
         API1[API 1]
         API2[API 2]
@@ -5412,7 +5412,7 @@
 
     EmailQ --&gt; EW1
     EmailQ --&gt; EW2
-    EmailQ --&gt; EWN</code></pre>
+    EmailQ --&gt; EWN</div>
 <h3 id="auto-scaling">Auto-Scaling<a class="headerlink" href="#auto-scaling" title="Permanent link">&para;</a></h3>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Kubernetes HPA for workers</span>
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2</span>
@@ -6014,14 +6014,14 @@
 </div>
 <h3 id="transactional-outbox-pattern">Transactional Outbox Pattern<a class="headerlink" href="#transactional-outbox-pattern" title="Permanent link">&para;</a></h3>
 <p>For notifications triggered by a database event (e.g., "order placed"), avoid the dual-write problem:</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Transaction
     DB[(Orders DB)]
     OB[(Outbox Table)]
   end
   CDC[CDC / Poller] --&gt; OB
   CDC --&gt; K[Kafka]
-  K --&gt; NW[Notification Worker]</code></pre>
+  K --&gt; NW[Notification Worker]</div>
 <table>
 <thead>
 <tr>
@@ -6072,12 +6072,12 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   Q[Kafka Queue] --&gt; W{Worker}
   W --&gt;|FCM healthy| FCM[FCM Provider]
   W --&gt;|FCM circuit open| DQ[Delayed Retry Queue]
   W --&gt;|Max retries| DLQ[Dead Letter Queue]
-  DQ --&gt;|After cooldown| W</code></pre>
+  DQ --&gt;|After cooldown| W</div>
 <h3 id="multi-region-notification-delivery">Multi-Region Notification Delivery<a class="headerlink" href="#multi-region-notification-delivery" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

@@ -3482,7 +3482,7 @@ L^{\text{CLIP}}(\theta) = \mathbb{E}_t\left[
 </div>
 <hr />
 <h3 id="full-pipeline-mermaid-diagram-sft-rm-ppo">Full pipeline: Mermaid diagram (SFT → RM → PPO)<a class="headerlink" href="#full-pipeline-mermaid-diagram-sft-rm-ppo" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Pretrain["Pre-trained base LM"]
     PT[Next-token objective\nweb-scale corpus]
   end
@@ -3513,7 +3513,7 @@ L^{\text{CLIP}}(\theta) = \mathbb{E}_t\left[
     Roll --&gt; Adv --&gt; PPOupd
     PiSFT -. reference π_ref .-&gt; PPOupd
     PPOupd --&gt; PiAligned[Aligned policy π*]
-  end</code></pre>
+  end</div>
 <hr />
 <h2 id="direct-preference-optimization-dpo">Direct Preference Optimization (DPO)<a class="headerlink" href="#direct-preference-optimization-dpo" title="Permanent link">&para;</a></h2>
 <p><strong>DPO</strong> (Direct Preference Optimization) reframes preference alignment as a <strong>classification loss</strong> on policies, avoiding an <strong>explicit reward model</strong> and <strong>online RL</strong> loop.</p>
@@ -4143,7 +4143,7 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
 </tbody>
 </table>
 <h3 id="mermaid-production-alignment-loop">Mermaid: production alignment loop<a class="headerlink" href="#mermaid-production-alignment-loop" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
   Users[Users / Apps] --&gt; Logs[Interaction logs\nfeedback signals]
   Logs --&gt; Filter[Privacy + PII scrubbing]
   Filter --&gt; Store[(Preference / SFT dataset)]
@@ -4154,7 +4154,7 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
   Metrics --&gt;|fail| Rollback[Rollback + RCA]
   Prod --&gt; Users
   Metrics --&gt; RedTeam[Red team backlog]
-  RedTeam --&gt; Store</code></pre>
+  RedTeam --&gt; Store</div>
 <hr />
 <h2 id="how-this-connects-to-system-design">How This Connects to System Design<a class="headerlink" href="#how-this-connects-to-system-design" title="Permanent link">&para;</a></h2>
 <table>
@@ -4183,7 +4183,7 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph App["Application layer"]
     GW[API gateway]
     MOD[Moderation]
@@ -4197,7 +4197,7 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
 
   Users((Users)) --&gt; GW --&gt; MOD --&gt; RAG --&gt; AL
   AL --&gt; RM
-  RM -. evaluation / routing .-&gt; GW</code></pre>
+  RM -. evaluation / routing .-&gt; GW</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Alignment is <strong>not</strong> a single offline step—it’s a <strong>lifecycle</strong> tied to evaluation, data governance, and release discipline.</p>

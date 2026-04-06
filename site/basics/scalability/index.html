@@ -2904,7 +2904,7 @@
 </tbody>
 </table>
 <h3 id="horizontal-vs-vertical-scaling">Horizontal vs Vertical Scaling<a class="headerlink" href="#horizontal-vs-vertical-scaling" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     subgraph Vertical Scaling
         V1[Small Server&lt;br/&gt;4 CPU, 8GB RAM] --&gt; V2[Bigger Server&lt;br/&gt;32 CPU, 128GB RAM]
         V2 --&gt; V3[Biggest Server&lt;br/&gt;128 CPU, 1TB RAM]
@@ -2920,7 +2920,7 @@
         LB --&gt; H2
         LB --&gt; H3
         LB --&gt; H4
-    end</code></pre>
+    end</div>
 <table>
 <thead>
 <tr>
@@ -2999,14 +2999,14 @@
 </span></code></pre></div>
 <h3 id="auto-scaling">Auto-Scaling<a class="headerlink" href="#auto-scaling" title="Permanent link">&para;</a></h3>
 <p>Auto-scaling automatically adjusts the number of running instances based on current load.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     M[Metrics&lt;br/&gt;CPU, Memory, RPS] --&gt; AS{Auto-Scaler}
     AS --&gt;|CPU &gt; 70%| UP[Scale Up&lt;br/&gt;Add instances]
     AS --&gt;|CPU &lt; 30%| DOWN[Scale Down&lt;br/&gt;Remove instances]
     AS --&gt;|Within range| KEEP[Maintain]
 
     UP --&gt; CD[Cooldown Period&lt;br/&gt;Wait before next action]
-    DOWN --&gt; CD</code></pre>
+    DOWN --&gt; CD</div>
 <p><strong>Key parameters:</strong></p>
 <table>
 <thead>
@@ -3046,14 +3046,14 @@
 </table>
 <h3 id="scaling-patterns">Scaling Patterns<a class="headerlink" href="#scaling-patterns" title="Permanent link">&para;</a></h3>
 <h4 id="database-read-replicas">Database Read Replicas<a class="headerlink" href="#database-read-replicas" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     APP[Application] --&gt;|writes| PRIMARY[(Primary DB)]
     APP --&gt;|reads| R1[(Read Replica 1)]
     APP --&gt;|reads| R2[(Read Replica 2)]
     APP --&gt;|reads| R3[(Read Replica 3)]
     PRIMARY --&gt;|async replication| R1
     PRIMARY --&gt;|async replication| R2
-    PRIMARY --&gt;|async replication| R3</code></pre>
+    PRIMARY --&gt;|async replication| R3</div>
 <p>Most applications are read-heavy (90%+ reads). Read replicas handle read traffic, reducing load on the primary database.</p>
 <h4 id="database-sharding">Database Sharding<a class="headerlink" href="#database-sharding" title="Permanent link">&para;</a></h4>
 <p>When a single database cannot hold all data, distribute it across multiple databases (shards).</p>
@@ -3090,7 +3090,7 @@
 </span></code></pre></div>
 <h4 id="cqrs-command-query-responsibility-segregation">CQRS (Command Query Responsibility Segregation)<a class="headerlink" href="#cqrs-command-query-responsibility-segregation" title="Permanent link">&para;</a></h4>
 <p>Separate the write model (commands) from the read model (queries) to scale them independently.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     CLIENT[Client] --&gt;|Write commands| CMD[Command Service]
     CLIENT --&gt;|Read queries| QRY[Query Service]
 
@@ -3098,7 +3098,7 @@
     CMD --&gt;|Events| EB[Event Bus]
     EB --&gt; QS[Query Service Updater]
     QS --&gt; RDB[(Read Database&lt;br/&gt;Denormalized, optimized)]
-    QRY --&gt; RDB</code></pre>
+    QRY --&gt; RDB</div>
 <hr />
 <h2 id="availability">Availability<a class="headerlink" href="#availability" title="Permanent link">&para;</a></h2>
 <p>Availability is the proportion of time a system is operational and accessible to users.</p>
@@ -3160,25 +3160,25 @@ That's 26 hours of downtime per year!</p>
 <h3 id="redundancy-patterns">Redundancy Patterns<a class="headerlink" href="#redundancy-patterns" title="Permanent link">&para;</a></h3>
 <h4 id="active-active">Active-Active<a class="headerlink" href="#active-active" title="Permanent link">&para;</a></h4>
 <p>All instances serve traffic simultaneously. If one fails, the others absorb its load.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     LB[Load Balancer] --&gt; S1[Server 1&lt;br/&gt;Active]
     LB --&gt; S2[Server 2&lt;br/&gt;Active]
     LB --&gt; S3[Server 3&lt;br/&gt;Active]
 
     S1 -.-&gt;|fails| LB
     LB --&gt;|redistributes| S2
-    LB --&gt;|redistributes| S3</code></pre>
+    LB --&gt;|redistributes| S3</div>
 <p><strong>Pros:</strong> Full utilization of all servers, no wasted capacity.
 <strong>Cons:</strong> Requires stateless services or shared state.</p>
 <h4 id="active-passive-failover">Active-Passive (Failover)<a class="headerlink" href="#active-passive-failover" title="Permanent link">&para;</a></h4>
 <p>One instance handles all traffic; a standby instance takes over on failure.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     LB[Load Balancer] --&gt; S1[Server 1&lt;br/&gt;Active]
     S2[Server 2&lt;br/&gt;Standby]
 
     S1 -.-&gt;|fails| LB
     LB --&gt;|promotes| S2
-    S2 --&gt;|becomes Active| LB</code></pre>
+    S2 --&gt;|becomes Active| LB</div>
 <p><strong>Pros:</strong> Simpler, the standby has the same state as the primary.
 <strong>Cons:</strong> Wasted capacity (standby does nothing until failover).</p>
 <h3 id="health-checks-and-failover">Health Checks and Failover<a class="headerlink" href="#health-checks-and-failover" title="Permanent link">&para;</a></h3>
@@ -3366,12 +3366,12 @@ That's 26 hours of downtime per year!</p>
 </span></code></pre></div>
 <h4 id="circuit-breaker">Circuit Breaker<a class="headerlink" href="#circuit-breaker" title="Permanent link">&para;</a></h4>
 <p>Prevents cascading failures by stopping requests to a failing service.</p>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
     [*] --&gt; Closed
     Closed --&gt; Open: Failure threshold exceeded
     Open --&gt; HalfOpen: Timeout expires
     HalfOpen --&gt; Closed: Probe succeeds
-    HalfOpen --&gt; Open: Probe fails</code></pre>
+    HalfOpen --&gt; Open: Probe fails</div>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">CircuitBreaker</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">CLOSED</span><span class="p">,</span><span class="w"> </span><span class="n">OPEN</span><span class="p">,</span><span class="w"> </span><span class="n">HALF_OPEN</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
@@ -3495,7 +3495,7 @@ That's 26 hours of downtime per year!</p>
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     LAST[Last Backup] --&gt;|RPO| FAIL[Failure Occurs]
     FAIL --&gt;|RTO| RECOVER[System Recovered]
 
@@ -3505,7 +3505,7 @@ That's 26 hours of downtime per year!</p>
 
     subgraph Downtime Window
         FAIL --&gt; RECOVER
-    end</code></pre>
+    end</div>
 <h3 id="dr-strategies">DR Strategies<a class="headerlink" href="#dr-strategies" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3549,7 +3549,7 @@ That's 26 hours of downtime per year!</p>
 </tbody>
 </table>
 <h3 id="multi-region-architecture">Multi-Region Architecture<a class="headerlink" href="#multi-region-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     DNS[Global DNS&lt;br/&gt;Route 53 / CloudFlare] --&gt;|US users| R1
     DNS --&gt;|EU users| R2
 
@@ -3563,7 +3563,7 @@ That's 26 hours of downtime per year!</p>
         S2 --&gt; DB2[(Secondary DB)]
     end
 
-    DB1 &lt;--&gt;|Cross-region&lt;br/&gt;replication| DB2</code></pre>
+    DB1 &lt;--&gt;|Cross-region&lt;br/&gt;replication| DB2</div>
 <hr />
 <h2 id="monitoring-and-alerting">Monitoring and Alerting<a class="headerlink" href="#monitoring-and-alerting" title="Permanent link">&para;</a></h2>
 <p>You cannot fix what you cannot observe. Monitoring is the foundation of operational reliability.</p>
@@ -3720,7 +3720,7 @@ That's 26 hours of downtime per year!</p>
 </div>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     Q[System Design Question] --&gt; S{Scale needed?}
     S --&gt;|1000s of users| VERT[Vertical Scaling&lt;br/&gt;Simple, single server]
     S --&gt;|Millions of users| HORIZ[Horizontal Scaling&lt;br/&gt;Load balancer + stateless services]
@@ -3737,7 +3737,7 @@ That's 26 hours of downtime per year!</p>
     HORIZ --&gt; REL{Reliability needs?}
     REL --&gt;|Transient failures| RETRY[Retry + Backoff]
     REL --&gt;|Cascading failures| CB[Circuit Breaker + Bulkhead]
-    REL --&gt;|Data loss prevention| REPL[Replication + Backups]</code></pre>
+    REL --&gt;|Data loss prevention| REPL[Replication + Backups]</div>
 <h3 id="quick-reference-for-interviews">Quick Reference for Interviews<a class="headerlink" href="#quick-reference-for-interviews" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

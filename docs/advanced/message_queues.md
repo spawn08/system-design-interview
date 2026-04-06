@@ -10,7 +10,7 @@ In any distributed system, services need to communicate. Direct synchronous call
 flowchart LR
     subgraph Synchronous
         A1[Order Service] -->|HTTP POST /charge| B1[Payment Service]
-        B1 -->|slow or down?| A1
+        B1 -->|"slow or down?"| A1
     end
 
     subgraph Asynchronous
@@ -204,6 +204,24 @@ flowchart TD
 === "Java"
 
     ```java
+    import java.time.Duration;
+    import java.util.List;
+    import java.util.Properties;
+    import java.util.concurrent.CompletableFuture;
+
+    import com.fasterxml.jackson.databind.ObjectMapper;
+
+    import org.apache.kafka.clients.consumer.ConsumerConfig;
+    import org.apache.kafka.clients.consumer.ConsumerRecord;
+    import org.apache.kafka.clients.consumer.ConsumerRecords;
+    import org.apache.kafka.clients.consumer.KafkaConsumer;
+    import org.apache.kafka.clients.producer.KafkaProducer;
+    import org.apache.kafka.clients.producer.ProducerConfig;
+    import org.apache.kafka.clients.producer.ProducerRecord;
+    import org.apache.kafka.clients.producer.RecordMetadata;
+    import org.apache.kafka.common.serialization.StringDeserializer;
+    import org.apache.kafka.common.serialization.StringSerializer;
+
     // Producer — publishes order events to Kafka
     public class OrderEventProducer {
     private final KafkaProducer<String, String> producer;
@@ -529,12 +547,12 @@ gantt
     Window 2 :5, 10
     Window 3 :10, 15
 
-    section Sliding (size=5, slide=2)
+    section Sliding size5 slide2
     Window 1 :0, 5
     Window 2 :2, 7
     Window 3 :4, 9
 
-    section Session (gap=3)
+    section Session gap3
     Session 1 :0, 4
     Session 2 :8, 13
 ```
@@ -548,6 +566,17 @@ gantt
 ### Java Example: Flink Fraud Detection Pipeline
 
 ```java
+import java.time.Duration;
+
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.time.Time;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+
 public class FraudDetectionPipeline {
 
     public static void main(String[] args) throws Exception {
@@ -683,6 +712,12 @@ Partitions = max(Target_Throughput / Per_Partition_Throughput,
 ### Handling Failures: Dead-Letter Queue Pattern
 
 ```java
+import java.time.Instant;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 public class ResilientConsumer {
     private static final int MAX_RETRIES = 3;
     private final KafkaProducer<String, String> dlqProducer;
@@ -739,21 +774,21 @@ True exactly-once in distributed systems requires coordination at multiple level
 
 ```mermaid
 flowchart TD
-    Q[Need async communication?] --> MODEL{What model?}
+    Q["Need async communication?"] --> MODEL{"What model?"}
     MODEL -->|One consumer per message| QUEUE[Point-to-Point Queue]
     MODEL -->|Multiple consumers per message| PUBSUB[Publish-Subscribe]
     
-    QUEUE --> TECH1{Requirements?}
+    QUEUE --> TECH1{"Requirements?"}
     TECH1 -->|Complex routing, RPC| RMQ[RabbitMQ]
     TECH1 -->|High throughput, replay| KAFKA[Kafka]
     TECH1 -->|Managed, simple| SQS[Amazon SQS]
     
-    PUBSUB --> TECH2{Requirements?}
+    PUBSUB --> TECH2{"Requirements?"}
     TECH2 -->|Event streaming, replay| KAFKA2[Kafka]
     TECH2 -->|Managed pub/sub| SNS[SNS + SQS / Pub/Sub]
     TECH2 -->|Real-time fan-out| REDIS[Redis Pub/Sub]
     
-    KAFKA --> PROC{Need processing?}
+    KAFKA --> PROC{"Need processing?"}
     PROC -->|Simple transforms| KS[Kafka Streams]
     PROC -->|Complex, stateful| FLINK[Apache Flink]
     PROC -->|Micro-batch OK| SPARK[Spark Streaming]

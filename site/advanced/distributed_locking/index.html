@@ -2920,7 +2920,7 @@
 <p class="admonition-title">Note</p>
 <p>Distributed locks are <strong>not</strong> the same as consensus. A lock service can help you serialize access, but you must still reason about failures, clock skew, storage delays, and what happens when a lock holder crashes or runs slowly.</p>
 </div>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Single machine
         P1[Process A] --&gt; M[Mutex]
         P2[Process B] --&gt; M
@@ -2930,7 +2930,7 @@
         S1[Service 1] --&gt; L[Lock service]
         S2[Service 2] --&gt; L
         L --&gt; R[(Shared resource)]
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="lock-fundamentals">Lock Fundamentals<a class="headerlink" href="#lock-fundamentals" title="Permanent link">&para;</a></h2>
 <h3 id="mutex-vs-advisory-locks-in-distributed-context">Mutex vs advisory locks in distributed context<a class="headerlink" href="#mutex-vs-advisory-locks-in-distributed-context" title="Permanent link">&para;</a></h3>
@@ -3044,7 +3044,7 @@
 </div>
 <h3 id="the-redlock-algorithm-multi-node">The Redlock algorithm (multi-node)<a class="headerlink" href="#the-redlock-algorithm-multi-node" title="Permanent link">&para;</a></h3>
 <p><strong>Redlock</strong> (Redis documentation algorithm) uses <strong>multiple independent Redis masters</strong> (typically 5). A client tries to acquire the lock on a majority of nodes with the same TTL, using wall-clock timing to validate that acquisition completed within a small fraction of the TTL. The intent is to survive failure of individual Redis processes without a single centralized coordinator.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     C[Client] --&gt; N1[Redis 1]
     C --&gt; N2[Redis 2]
     C --&gt; N3[Redis 3]
@@ -3056,7 +3056,7 @@
     N4 --&gt; Q
     N5 --&gt; Q
     Q --&gt;|yes| OK[Lock considered held]
-    Q --&gt;|no| ROLL[Rollback partial sets]</code></pre>
+    Q --&gt;|no| ROLL[Rollback partial sets]</div>
 <h3 id="martin-kleppmanns-critique-and-the-fencing-token-response">Martin Kleppmann's critique and the fencing token response<a class="headerlink" href="#martin-kleppmanns-critique-and-the-fencing-token-response" title="Permanent link">&para;</a></h3>
 <p>Martin Kleppmann argued that Redlock's assumptions about <strong>wall-clock time</strong> and <strong>process pauses</strong> (GC, scheduling) can violate safety: a client may believe it holds the lock when it does not, or two clients may both believe they hold the lock under certain failure and timing scenarios.</p>
 <p>The practical response in many designs is not to abandon locks entirely but to combine them with <strong>fencing tokens</strong> (see below): the lock proves who <em>may</em> proceed, and the resource uses a <strong>monotonic token</strong> to reject stale writers.</p>
@@ -3077,7 +3077,7 @@
 <li>The client holds the lock if its znode has the <strong>lowest sequence number</strong> among siblings.</li>
 <li>If not, <strong>watch</strong> the znode immediately before it; when that predecessor disappears, retry the check.</li>
 </ol>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Client
     participant ZK as ZooKeeper
     C-&gt;&gt;ZK: create /locks/r/lock- (ephemeral+sequential)
@@ -3088,7 +3088,7 @@
     Note over C: Not smallest; wait
     ZK--&gt;&gt;C: predecessor deleted
     C-&gt;&gt;ZK: list children again
-    C-&gt;&gt;ZK: I am smallest; critical section</code></pre>
+    C-&gt;&gt;ZK: I am smallest; critical section</div>
 <h3 id="watch-mechanism">Watch mechanism<a class="headerlink" href="#watch-mechanism" title="Permanent link">&para;</a></h3>
 <p><strong>Watches</strong> notify clients when a znode changes, avoiding busy polling. You typically watch the <strong>immediate predecessor</strong> in the queue, not the parent, to reduce thundering herd when the lock is released.</p>
 <h3 id="leader-election-via-locks">Leader election via locks<a class="headerlink" href="#leader-election-via-locks" title="Permanent link">&para;</a></h3>
@@ -3103,12 +3103,12 @@
 <p>Consider: Process <strong>A</strong> acquires a lock, then <strong>stalls</strong> (long GC, pause). The lock <strong>expires</strong>. Process <strong>B</strong> acquires the lock and writes. <strong>A</strong> wakes up, still believing it holds the lock, and writes <strong>again</strong>. You now have two writers who both thought they were protected.</p>
 <h3 id="monotonically-increasing-tokens">Monotonically increasing tokens<a class="headerlink" href="#monotonically-increasing-tokens" title="Permanent link">&para;</a></h3>
 <p>A <strong>fencing token</strong> is a number that <strong>strictly increases</strong> every time the lock is granted (or every time the lock service grants permission to write). The storage layer rejects any write whose token is <strong>less than or equal to</strong> the highest token it has already accepted.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     L[Lock service] --&gt;|token 5| A[Client A]
     L --&gt;|token 6| B[Client B]
     A --&gt;|write token 5| S[(Storage)]
     B --&gt;|write token 6| S
-    A --&gt;|late write token 5| X[Rejected]</code></pre>
+    A --&gt;|late write token 5| X[Rejected]</div>
 <h3 id="how-to-use-fencing-in-practice">How to use fencing in practice<a class="headerlink" href="#how-to-use-fencing-in-practice" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The lock service (or a small coordination service) returns <code>(lock_id, fencing_token)</code> on acquire.</li>
@@ -3217,16 +3217,16 @@
 <p>Classic deadlock requires <strong>wait cycles</strong>. In distributed locks, reduce risk by <strong>total ordering</strong> of lock acquisition (always lock <code>A</code> then <code>B</code>), <strong>timeouts</strong>, and <strong>single lock</strong> per task when possible. General <strong>distributed deadlock detection</strong> is hard; design to avoid needing it.</p>
 <h3 id="lease-renewal-and-heartbeats">Lease renewal and heartbeats<a class="headerlink" href="#lease-renewal-and-heartbeats" title="Permanent link">&para;</a></h3>
 <p>Long work items should use <strong>renewal</strong> (extend lease TTL) on a timer shorter than the TTL. If renewal fails (network partition, process crash), the lease expires and another worker can take over — ensure work is <strong>idempotent</strong> or <strong>resumable</strong>.</p>
-<pre class="mermaid"><code>stateDiagram-v2
+<div class="mermaid">stateDiagram-v2
     [*] --&gt; Holding
     Holding --&gt; Renewing: heartbeat OK
     Renewing --&gt; Holding
     Holding --&gt; Lost: renew fails / TTL expires
-    Lost --&gt; [*]</code></pre>
+    Lost --&gt; [*]</div>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <p>Use this flowchart to structure answers: clarify <strong>consistency requirements</strong>, <strong>failure modes</strong>, and whether you need <strong>fencing</strong>.</p>
-<pre class="mermaid"><code>flowchart TD
+<div class="mermaid">flowchart TD
     START([Need mutual exclusion&lt;br/&gt;across services?]) --&gt; SAME{Same database&lt;br/&gt;transaction possible?}
     SAME --&gt;|yes| DB[Use row locks&lt;br/&gt;SELECT FOR UPDATE&lt;br/&gt;or serializable txn]
     SAME --&gt;|no| CP{Need linearizable&lt;br/&gt;coordination store?}
@@ -3237,7 +3237,7 @@
     FENCE --&gt;|no| DONE[Document failure cases]
     ETCD --&gt; FT
     DB --&gt; DONE
-    FT --&gt; DONE</code></pre>
+    FT --&gt; DONE</div>
 <p><strong>Talking points in an interview:</strong></p>
 <ol>
 <li><strong>Start with the resource</strong> — What exactly must be serialized?</li>

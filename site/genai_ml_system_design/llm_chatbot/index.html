@@ -3277,7 +3277,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Clients [Client Layer]
         Web[Web App]
         Mobile[Mobile App]
@@ -3336,7 +3336,7 @@
     Serving --&gt; Storage
     Safety --&gt; AuditLog
     Clients --&gt; Feedback
-    Feedback --&gt; Eval</code></pre>
+    Feedback --&gt; Eval</div>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3553,7 +3553,7 @@
 </span><span id="__span-11-95"><a id="__codelineno-11-95" name="__codelineno-11-95" href="#__codelineno-11-95"></a><span class="n">EOS_TOKEN</span> <span class="o">=</span> <span class="mi">2</span>
 </span></code></pre></div>
 <h3 id="43-streaming-architecture">4.3 Streaming Architecture<a class="headerlink" href="#43-streaming-architecture" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant Client
     participant Gateway
     participant Safety
@@ -3578,7 +3578,7 @@
         Gateway--&gt;&gt;Client: SSE: data: {"error": "response_filtered"}
     end
 
-    Gateway-&gt;&gt;Gateway: log(audit_record)</code></pre>
+    Gateway-&gt;&gt;Gateway: log(audit_record)</div>
 <p><strong>Key design decisions for streaming:</strong></p>
 <table>
 <thead>
@@ -3612,7 +3612,7 @@
 </tbody>
 </table>
 <h3 id="44-safety-pipeline">4.4 Safety Pipeline<a class="headerlink" href="#44-safety-pipeline" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Input [Input Safety - Pre-Generation]
         I1[Keyword&lt;br/&gt;Blocklist] --&gt; I2[ML Classifier&lt;br/&gt;FastText]
         I2 --&gt; I3[LLM Safety&lt;br/&gt;Classifier]
@@ -3631,7 +3631,7 @@
 
     Input --&gt;|SAFE| Generation
     Generation --&gt; Output
-    Input --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</code></pre>
+    Input --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</div>
 <p><strong>Cascade design — fast filters first:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SafetyPipeline</span><span class="p">:</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-stage safety pipeline. Fast checks first, expensive checks last.&quot;&quot;&quot;</span>
@@ -3771,7 +3771,7 @@
 </tbody>
 </table>
 <h3 id="46-model-routing-and-ab-testing">4.6 Model Routing and A/B Testing<a class="headerlink" href="#46-model-routing-and-ab-testing" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     Request[User Request] --&gt; Router{Model Router}
     Router --&gt;|90%| ModelA[Gemini Pro&lt;br/&gt;Production]
     Router --&gt;|5%| ModelB[Gemini Pro v2&lt;br/&gt;Experiment A]
@@ -3780,7 +3780,7 @@
     ModelA --&gt; Logger[Metrics Logger]
     ModelB --&gt; Logger
     ModelC --&gt; Logger
-    Logger --&gt; Dashboard[A/B Dashboard]</code></pre>
+    Logger --&gt; Dashboard[A/B Dashboard]</div>
 <p><strong>Routing criteria:</strong></p>
 <table>
 <thead>
@@ -3843,7 +3843,7 @@
 </span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">  </span><span class="n">INTERLEAVE</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">PARENT</span><span class="w"> </span><span class="n">conversations</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">;</span>
 </span></code></pre></div>
 <h3 id="48-evaluation-and-feedback-loop">4.8 Evaluation and Feedback Loop<a class="headerlink" href="#48-evaluation-and-feedback-loop" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     subgraph Online [Online Signals]
         ThumbsUp[Thumbs Up / Down]
         Regen[Regenerate Clicks]
@@ -3868,7 +3868,7 @@
     Offline --&gt; Training
     Training --&gt; NewModel[New Model&lt;br/&gt;Candidate]
     NewModel --&gt; ABTest[A/B Test]
-    ABTest --&gt; Production[Promote to&lt;br/&gt;Production]</code></pre>
+    ABTest --&gt; Production[Promote to&lt;br/&gt;Production]</div>
 <p><strong>Evaluation dimensions:</strong></p>
 <table>
 <thead>

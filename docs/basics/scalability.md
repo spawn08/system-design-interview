@@ -72,6 +72,10 @@ flowchart TD
 Horizontal scaling requires **stateless** services—any request can be handled by any server.
 
 ```java
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.data.redis.core.RedisTemplate;
+
 // STATEFUL — hard to scale horizontally
 public class StatefulSessionService {
     // session stored in server memory — request must go to same server
@@ -144,6 +148,11 @@ Most applications are read-heavy (90%+ reads). Read replicas handle read traffic
 When a single database cannot hold all data, distribute it across multiple databases (shards).
 
 ```java
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
+
 /**
  * Shard router that determines which database shard holds a given user's data.
  */
@@ -275,6 +284,19 @@ flowchart TD
 ### Health Checks and Failover
 
 ```java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 /**
  * Health check system that monitors service endpoints and triggers
  * failover when unhealthy thresholds are reached.
@@ -389,6 +411,9 @@ Reliability means the system performs its intended function correctly and consis
 When a transient failure occurs, retry with increasing wait times to avoid overwhelming the target.
 
 ```java
+import java.util.function.Supplier;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class RetryWithBackoff {
     private final int maxRetries;
     private final long initialDelayMs;
@@ -457,6 +482,8 @@ stateDiagram-v2
 ```
 
 ```java
+import java.util.function.Supplier;
+
 public class CircuitBreaker {
     enum State { CLOSED, OPEN, HALF_OPEN }
 
@@ -528,6 +555,15 @@ public class CircuitBreaker {
 Isolate failures so a problem in one component does not bring down the entire system.
 
 ```java
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Thread pool bulkhead: each downstream service gets its own
  * thread pool, preventing one slow service from consuming
@@ -634,6 +670,14 @@ You cannot fix what you cannot observe. Monitoring is the foundation of operatio
 ### Java Example: Metrics Collection
 
 ```java
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Supplier;
+
 /**
  * Service-level metrics collector using Micrometer abstractions.
  */

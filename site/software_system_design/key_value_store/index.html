@@ -3365,7 +3365,7 @@
 </tbody>
 </table>
 <p><strong>W + R &gt; N</strong> ensures <strong>overlapping</strong> replica sets so a <strong>completed</strong> write is likely visible to a <strong>subsequent</strong> quorum read in the <strong>absence of concurrent writes</strong> — but it does <strong>not</strong> replace <strong>consensus</strong> for arbitrary <strong>linearizability</strong>.</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Healthy["Network: no partition"]
     H1[Client]
     H2[Coordinator]
@@ -3389,7 +3389,7 @@
     R3[Reads/writes fail or stale on minority]
     R1 -.-&gt;|no quorum| R2
     R2 --&gt; R3
-  end</code></pre>
+  end</div>
 <p><strong>Interview sound bite:</strong> <em>“We’re </em><em>AP</em><em> at the cluster level: we keep serving with quorum and sloppy quorum, accept </em><em>version conflicts</em><em>, and use </em><em>anti-entropy</em><em>. If the product needed </em><em>CP</em><em>, I’d put </em><em>Raft per shard</em><em> or </em><em>strong leader</em><em> and accept </em><em>write unavailability</em><em> on minority partitions.”</em></p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p><strong>SLA</strong> = contract with users (often <strong>monthly</strong> availability); <strong>SLO</strong> = internal target (stricter than marketing SLA); <strong>SLI</strong> = what we measure. Below are <strong>illustrative</strong> targets for a <strong>single-region, multi-AZ</strong> Dynamo-style KV — tune in the interview.</p>
@@ -3614,7 +3614,7 @@
 <li><strong>Quorum:</strong> Reads and writes contact <strong>R</strong> and <strong>W</strong> replicas respectively, with <strong>W + R &gt; N</strong> for strong-ish overlap (still not linearizable without additional rules).</li>
 <li><strong>Failure handling:</strong> <strong>Sloppy quorum</strong> + <strong>hinted handoff</strong> + <strong>read repair</strong> + <strong>anti-entropy (Merkle trees)</strong>.</li>
 </ul>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph Clients
     C[Application]
   end
@@ -3640,18 +3640,18 @@
   VN1 -.-&gt; N1
   VN2 -.-&gt; N2
   VN3 -.-&gt; N3
-  VN4 -.-&gt; N1</code></pre>
+  VN4 -.-&gt; N1</div>
 <h3 id="replication-on-the-ring">Replication on the Ring<a class="headerlink" href="#replication-on-the-ring" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph Ring
     direction LR
     H[Key hash position] --&gt; R1[Replica 1]
     R1 --&gt; R2[Replica 2]
     R2 --&gt; R3[Replica 3]
-  end</code></pre>
+  end</div>
 <p>The <strong>preference list</strong> is the first <strong>N</strong> distinct physical nodes encountered walking the ring from the key’s position (with virtual node indirection to avoid hotspots).</p>
 <h3 id="gossip-and-membership-overview">Gossip and Membership (Overview)<a class="headerlink" href="#gossip-and-membership-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   N1[Node 1\nmembership state]
   N2[Node 2\nmembership state]
   N3[Node 3\nmembership state]
@@ -3659,7 +3659,7 @@
   N1 &lt;--&gt;|periodic gossip| N2
   N2 &lt;--&gt;|periodic gossip| N3
   N3 &lt;--&gt;|periodic gossip| N4
-  N4 &lt;--&gt;|periodic gossip| N1</code></pre>
+  N4 &lt;--&gt;|periodic gossip| N1</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Seed nodes</strong> bootstrap the first connections; afterward gossip propagates join/leave and failure suspicion. Use <strong>Phi accrual</strong> or similar to avoid flapping on slow networks.</p>
@@ -3829,7 +3829,7 @@
 <hr />
 <h3 id="48-readwrite-path">4.8 Read/Write Path<a class="headerlink" href="#48-readwrite-path" title="Permanent link">&para;</a></h3>
 <p><strong>Write path:</strong></p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Client
   participant Coord as Coordinator
   participant R1 as Replica A
@@ -3842,9 +3842,9 @@
   R1--&gt;&gt;Coord: ack
   R2--&gt;&gt;Coord: ack
   Note over Coord: wait for W acks
-  Coord--&gt;&gt;Client: success + version</code></pre>
+  Coord--&gt;&gt;Client: success + version</div>
 <p><strong>Read path:</strong></p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
   participant Client
   participant Coord as Coordinator
   participant R1 as Replica A
@@ -3857,7 +3857,7 @@
   R1--&gt;&gt;Coord: value v1
   R2--&gt;&gt;Coord: value v2
   Note over Coord: merge versions; optional read repair
-  Coord--&gt;&gt;Client: merged value</code></pre>
+  Coord--&gt;&gt;Client: merged value</div>
 <p><strong>Read repair:</strong> If replicas return different versions, the coordinator <strong>writes back</strong> the merged winner to out-of-date replicas (policy-dependent).</p>
 <p><strong>Sloppy quorum:</strong> If the top <strong>N</strong> nodes in the preference list are not all reachable, use <strong>next available</strong> nodes temporarily to meet W/R; <strong>hinted handoff</strong> stores writes meant for a failed node until it returns.</p>
 <hr />
@@ -4451,7 +4451,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
   subgraph US-East
     L1[Leader Partition 1]
     F2[Follower Partition 2]
@@ -4461,7 +4461,7 @@
     L2[Leader Partition 2]
   end
   L1 --&gt;|async replication| F1
-  L2 --&gt;|async replication| F2</code></pre>
+  L2 --&gt;|async replication| F2</div>
 <h3 id="compaction-strategy-deep-dive">Compaction Strategy Deep Dive<a class="headerlink" href="#compaction-strategy-deep-dive" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

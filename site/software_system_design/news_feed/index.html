@@ -3110,7 +3110,7 @@
 <p>Interview numbers are <strong>approximate</strong>. Cite ranges and explain <em>how</em> you’d validate (metrics, load tests) rather than memorizing exact press stats.</p>
 </div>
 <h3 id="feed-generation-and-ranking-pipeline-conceptual">Feed Generation and Ranking Pipeline (Conceptual)<a class="headerlink" href="#feed-generation-and-ranking-pipeline-conceptual" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Write [Write path]
         P[Post created] --&gt; FS[Fan-out / graph]
         FS --&gt; Cache[Per-user feed cache]
@@ -3120,7 +3120,7 @@
         R[GET /feed] --&gt; Rank[Ranking]
         Cache --&gt; Rank
         Rank --&gt; Resp[JSON + cursors]
-    end</code></pre>
+    end</div>
 <hr />
 <h2 id="step-1-requirements-clarification">Step 1: Requirements Clarification<a class="headerlink" href="#step-1-requirements-clarification" title="Permanent link">&para;</a></h2>
 <h3 id="questions-to-ask">Questions to Ask<a class="headerlink" href="#questions-to-ask" title="Permanent link">&para;</a></h3>
@@ -3488,14 +3488,14 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
   subgraph cap["CAP by Data Store"]
     PG["Post DB (PostgreSQL)&lt;br/&gt;CP — strong consistency"]
     GR["Social graph&lt;br/&gt;CP — follow/unfollow&lt;br/&gt;must be immediate"]
     RC["Feed cache (Redis)&lt;br/&gt;AP — stale feed OK,&lt;br/&gt;downtime not OK"]
     CA["Feed store (Cassandra)&lt;br/&gt;AP — LOCAL_QUORUM&lt;br/&gt;within region"]
     EN["Engagement counts&lt;br/&gt;AP — eventual,&lt;br/&gt;CRDTs or batch sync"]
-  end</code></pre>
+  end</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>A common interview mistake: saying "the whole system is AP." A news feed is <strong>mixed-mode</strong> — the source-of-truth stores (posts, graph) need consistency; the derived stores (feed cache, engagement counts) prioritize availability. Articulate this per-store.</p>
@@ -3799,7 +3799,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     Client[Client apps]
     LB[Load balancer]
     PostAPI[Post Service]
@@ -3823,7 +3823,7 @@
     FeedSvc --&gt; Redis
     FeedSvc --&gt; DB
     Obj --&gt; CDN
-    Client --&gt; CDN</code></pre>
+    Client --&gt; CDN</div>
 <p><strong>Flow:</strong>
 1. <strong>Post Service</strong> — Validates post, stores metadata, enqueues fan-out work, returns post id.
 2. <strong>Fan-out Service</strong> — Consumes events; pushes post ids into followers’ feed caches (or schedules read-time aggregation for celebrities).
@@ -3860,7 +3860,7 @@
 </tr>
 </tbody>
 </table>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     subgraph Push [Fan-out on write]
         A1[New post] --&gt; W1[Write N follower caches]
         R1[Read feed] --&gt; F1[Read 1 key]
@@ -3868,7 +3868,7 @@
     subgraph Pull [Fan-out on read]
         A2[New post] --&gt; W2[Write 1 row]
         R2[Read feed] --&gt; F2[Query K users + merge]
-    end</code></pre>
+    end</div>
 <h3 id="hybrid-approach-production-pattern">Hybrid Approach (Production Pattern)<a class="headerlink" href="#hybrid-approach-production-pattern" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Regular users</strong> (followers &lt; threshold): <strong>push</strong> fan-out into Redis sorted sets (cap list length).</li>
@@ -3911,7 +3911,7 @@
 </table>
 <p><strong>Graph / wide-column alternatives:</strong> <code>follows</code> can live in a graph DB or as adjacency in Dynamo/Cassandra with <code>followee_id</code> as partition for “who follows me” queries.</p>
 <h4 id="post-creation-flow">Post Creation Flow<a class="headerlink" href="#post-creation-flow" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant C as Client
     participant API as Post Service
     participant O as Object Storage
@@ -3922,7 +3922,7 @@
     API-&gt;&gt;DB: INSERT posts, post_media
     API-&gt;&gt;Q: publish PostCreated
     API--&gt;&gt;C: 201 + post_id
-    Note over C,O: Client already uploaded blobs via pre-signed URLs</code></pre>
+    Note over C,O: Client already uploaded blobs via pre-signed URLs</div>
 <h4 id="media-upload-pipeline">Media Upload Pipeline<a class="headerlink" href="#media-upload-pipeline" title="Permanent link">&para;</a></h4>
 <ol>
 <li>Client calls <code>POST /media/upload-url</code> → receives <strong>pre-signed URL</strong> + <code>object_key</code>.</li>
@@ -4170,17 +4170,17 @@
 <ul>
 <li><strong>Threshold</strong> <code>T</code> (e.g., 10k–100k followers): above <code>T</code>, do not push to all followers; use pull + partial materialization.</li>
 </ul>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     E[PostCreated event] --&gt; D{Celebrity?}
     D --&gt;|no| P[Push to Redis ZSET per follower]
     D --&gt;|yes| S[Write to author's recent list only]
     S --&gt; R[Followers merge at read]
-    P --&gt; R</code></pre>
-<pre class="mermaid"><code>flowchart LR
+    P --&gt; R</div>
+<div class="mermaid">flowchart LR
     subgraph OnRead [Fan-out on read]
         L[Load followee ids] --&gt; Q[Parallel fetch recent posts]
         Q --&gt; M[Merge + truncate]
-    end</code></pre>
+    end</div>
 <h4 id="fan-out-worker-with-kafka">Fan-out Worker with Kafka<a class="headerlink" href="#fan-out-worker-with-kafka" title="Permanent link">&para;</a></h4>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Python</label><label for="__tabbed_2_2">Java</label><label for="__tabbed_2_3">Go</label></div>
 <div class="tabbed-content">
@@ -4379,13 +4379,13 @@
 \]</div>
 <p>Where <span class="arithmatex">\(f_{\text{recency}}\)</span> might be exponential decay; <span class="arithmatex">\(g\)</span> could be log-scaled counts to dampen virality.</p>
 <h4 id="ml-based-ranking-pipeline">ML-Based Ranking Pipeline<a class="headerlink" href="#ml-based-ranking-pipeline" title="Permanent link">&para;</a></h4>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     C[Candidates from Redis + retrieval] --&gt; F[Feature joiner]
     F --&gt; M[Model ensemble]
     M --&gt; R[Re-rank top K]
     R --&gt; Out[Response]
     L[Logging] --&gt; T[Offline training]
-    T --&gt; M</code></pre>
+    T --&gt; M</div>
 <ul>
 <li><strong>Retrieval:</strong> cheap candidate generation (time + social + light ML).</li>
 <li><strong>Ranking:</strong> heavier models on smaller sets (hundreds to thousands).</li>
@@ -4653,13 +4653,13 @@
 <p><strong>Pre-signed upload URL:</strong> short TTL, <code>Content-Type</code> constraint, max size in policy.</p>
 <p><strong>Image resizing pipeline (typical):</strong> object created → <strong>S3 event</strong> / queue message → <strong>worker</strong> generates variants (<code>thumb</code>, <code>medium</code>, <code>large</code>, WebP) → writes keys back to <code>post_media</code> → clients get <strong>srcset</strong> URLs.</p>
 <p><strong>Video transcoding:</strong> ingest high-res upload → <strong>transcoder</strong> produces HLS/DASH renditions + poster frame → store manifests in object storage; <strong>player</strong> fetches adaptive bitrate from CDN.</p>
-<pre class="mermaid"><code>flowchart LR
+<div class="mermaid">flowchart LR
     U[Client upload] --&gt; S3[(Raw object)]
     S3 --&gt; Q[Queue]
     Q --&gt; Img[Image workers]
     Q --&gt; Vid[Video transcoder]
     Img --&gt; V[(Variants + CDN)]
-    Vid --&gt; V</code></pre>
+    Vid --&gt; V</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Cache keys</strong> at CDN should include <strong>content hash</strong> or version in the path so updates propagate predictably (<code>/media/{id}/v2/thumb.jpg</code>).</p>
@@ -4694,7 +4694,7 @@
 </table>
 <p><strong>New post to active viewers:</strong> optional <strong>presence</strong> service + <strong>pub/sub</strong> channel per user session; push lightweight “refresh” or incremental post payload.</p>
 <p><strong>Live engagement counts:</strong> <strong>CRDT / periodic aggregation</strong> or <strong>Redis INCR</strong> with batched writes to DB; clients may see slightly stale counts.</p>
-<pre class="mermaid"><code>sequenceDiagram
+<div class="mermaid">sequenceDiagram
     participant A as Author
     participant API as Post API
     participant PS as Pub/Sub
@@ -4704,7 +4704,7 @@
     A-&gt;&gt;API: POST /posts
     API-&gt;&gt;PS: notify followers rooms (batched)
     PS-&gt;&gt;GW: events
-    GW--&gt;&gt;F: {type: "new_post", post_id}</code></pre>
+    GW--&gt;&gt;F: {type: "new_post", post_id}</div>
 <h3 id="48-pagination-cursors-and-idempotency">4.8 Pagination, Cursors, and Idempotency<a class="headerlink" href="#48-pagination-cursors-and-idempotency" title="Permanent link">&para;</a></h3>
 <p><strong>Why cursors:</strong> Offset pagination (<code>?offset=40</code>) performs poorly when new rows arrive while the user pages—items <strong>shift</strong> and users see skips or duplicates. <strong>Cursor</strong> pagination ties each page to a stable position in the ordering key (time or rank).</p>
 <table>
@@ -5072,12 +5072,12 @@
 <p>When a user follows celebrities not fully pushed, the <strong>Feed Service</strong> merges:
 1. Redis ZSET candidates (normal follows).
 2. Recent posts from <strong>celebrity shards</strong> / <strong>author timelines</strong> (bounded K authors × M posts).</p>
-<pre class="mermaid"><code>flowchart TB
+<div class="mermaid">flowchart TB
     R[GET /feed] --&gt; A[Load ZSET ids]
     R --&gt; B[Load celebrity recent]
     A --&gt; M[Merge + dedupe]
     B --&gt; M
-    M --&gt; Rank[Rank / truncate]</code></pre>
+    M --&gt; Rank[Rank / truncate]</div>
 <h4 id="merge-helper">Merge helper<a class="headerlink" href="#merge-helper" title="Permanent link">&para;</a></h4>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Python</label><label for="__tabbed_5_2">Java</label><label for="__tabbed_5_3">Go</label></div>
 <div class="tabbed-content">
