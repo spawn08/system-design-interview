@@ -585,137 +585,139 @@ sequenceDiagram
 
 **Write path:** producer → leader appends batch to **page cache**, eventually flushed/fsync per durability settings; followers pull in **fetch** requests from the leader (Kafka replication).
 
-**Python: segment file + sparse index with binary-search floor lookup**
+**Segment file, sparse index, and naming**
 
 Each record is `length-prefixed` payload bytes. The **sparse index** stores `(relative_offset → physical_position)` every `INDEX_EVERY` records; lookup uses **binary search** for the **floor** entry, then **linear scan** within the segment (same idea as Kafka’s `.index` + scan in `.log`).
 
-```python
-import os
-import struct
-from bisect import bisect_right
-from dataclasses import dataclass
+=== "Python"
 
-_LEN = struct.Struct(">I")
+    ```python
+    import os
+    import struct
+    from bisect import bisect_right
+    from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class IndexEntry:
-    relative_offset: int
-    physical_position: int
+    _LEN = struct.Struct(">I")
 
 
-class Segment:
-    """One on-disk segment: append-only log + sidecar sparse offset index."""
+    @dataclass(frozen=True)
+    class IndexEntry:
+        relative_offset: int
+        physical_position: int
 
-    INDEX_EVERY = 4  # demo: index every N records; production uses byte stride
 
-    def __init__(self, base_offset: int, log_path: str, index_path: str):
-        self.base_offset = base_offset
-        self.log_path = log_path
-        self.index_path = index_path
-        self._entries: list[IndexEntry] = []
-        self._record_count = 0
-        self._rebuild_meta_from_log()
+    class Segment:
+        """One on-disk segment: append-only log + sidecar sparse offset index."""
 
-    def _rebuild_meta_from_log(self) -> None:
-        self._entries = []
-        if not os.path.exists(self.log_path):
-            self._load_index_file()
-            return
-        with open(self.log_path, "rb") as log:
-            pos = 0
-            rel = 0
-            while True:
-                hdr = log.read(4)
-                if len(hdr) < 4:
-                    break
-                (ln,) = _LEN.unpack(hdr)
-                if rel % self.INDEX_EVERY == 0:
-                    self._entries.append(IndexEntry(rel, pos))
-                log.read(ln)
-                pos += 4 + ln
-                rel += 1
-        self._record_count = rel
+        INDEX_EVERY = 4  # demo: index every N records; production uses byte stride
 
-    def _load_index_file(self) -> None:
-        if not os.path.exists(self.index_path) or self._entries:
-            return
-        with open(self.index_path, "rb") as f:
-            raw = f.read()
-        self._entries = []
-        for i in range(0, len(raw), 8):
-            rel, pos = struct.unpack_from(">ii", raw, i)
-            self._entries.append(IndexEntry(rel, pos))
+        def __init__(self, base_offset: int, log_path: str, index_path: str):
+            self.base_offset = base_offset
+            self.log_path = log_path
+            self.index_path = index_path
+            self._entries: list[IndexEntry] = []
+            self._record_count = 0
+            self._rebuild_meta_from_log()
 
-    def _persist_index(self) -> None:
-        with open(self.index_path, "wb") as f:
-            for e in self._entries:
-                f.write(struct.pack(">ii", e.relative_offset, e.physical_position))
+        def _rebuild_meta_from_log(self) -> None:
+            self._entries = []
+            if not os.path.exists(self.log_path):
+                self._load_index_file()
+                return
+            with open(self.log_path, "rb") as log:
+                pos = 0
+                rel = 0
+                while True:
+                    hdr = log.read(4)
+                    if len(hdr) < 4:
+                        break
+                    (ln,) = _LEN.unpack(hdr)
+                    if rel % self.INDEX_EVERY == 0:
+                        self._entries.append(IndexEntry(rel, pos))
+                    log.read(ln)
+                    pos += 4 + ln
+                    rel += 1
+            self._record_count = rel
 
-    def append(self, record_bytes: bytes) -> int:
-        physical = os.path.getsize(self.log_path) if os.path.exists(self.log_path) else 0
-        rel = self._record_count
-        if rel % self.INDEX_EVERY == 0:
-            self._entries.append(IndexEntry(rel, physical))
-        with open(self.log_path, "ab") as log:
-            log.write(_LEN.pack(len(record_bytes)))
-            log.write(record_bytes)
-        self._record_count += 1
-        self._persist_index()
-        return self.base_offset + rel
+        def _load_index_file(self) -> None:
+            if not os.path.exists(self.index_path) or self._entries:
+                return
+            with open(self.index_path, "rb") as f:
+                raw = f.read()
+            self._entries = []
+            for i in range(0, len(raw), 8):
+                rel, pos = struct.unpack_from(">ii", raw, i)
+                self._entries.append(IndexEntry(rel, pos))
 
-    def _floor_entry(self, target_rel: int) -> tuple[int, int]:
-        if not self._entries:
-            return (0, 0)
-        keys = [e.relative_offset for e in self._entries]
-        i = bisect_right(keys, target_rel) - 1
-        if i < 0:
-            return (0, 0)
-        e = self._entries[i]
-        return (e.relative_offset, e.physical_position)
+        def _persist_index(self) -> None:
+            with open(self.index_path, "wb") as f:
+                for e in self._entries:
+                    f.write(struct.pack(">ii", e.relative_offset, e.physical_position))
 
-    def read_at_relative(self, target_rel: int) -> bytes | None:
-        if target_rel < 0 or target_rel >= self._record_count:
-            return None
-        cur_rel, pos = self._floor_entry(target_rel)
-        with open(self.log_path, "rb") as log:
-            log.seek(pos)
-            while cur_rel < target_rel:
+        def append(self, record_bytes: bytes) -> int:
+            physical = os.path.getsize(self.log_path) if os.path.exists(self.log_path) else 0
+            rel = self._record_count
+            if rel % self.INDEX_EVERY == 0:
+                self._entries.append(IndexEntry(rel, physical))
+            with open(self.log_path, "ab") as log:
+                log.write(_LEN.pack(len(record_bytes)))
+                log.write(record_bytes)
+            self._record_count += 1
+            self._persist_index()
+            return self.base_offset + rel
+
+        def _floor_entry(self, target_rel: int) -> tuple[int, int]:
+            if not self._entries:
+                return (0, 0)
+            keys = [e.relative_offset for e in self._entries]
+            i = bisect_right(keys, target_rel) - 1
+            if i < 0:
+                return (0, 0)
+            e = self._entries[i]
+            return (e.relative_offset, e.physical_position)
+
+        def read_at_relative(self, target_rel: int) -> bytes | None:
+            if target_rel < 0 or target_rel >= self._record_count:
+                return None
+            cur_rel, pos = self._floor_entry(target_rel)
+            with open(self.log_path, "rb") as log:
+                log.seek(pos)
+                while cur_rel < target_rel:
+                    (ln,) = _LEN.unpack(log.read(4))
+                    log.read(ln)
+                    cur_rel += 1
                 (ln,) = _LEN.unpack(log.read(4))
-                log.read(ln)
-                cur_rel += 1
-            (ln,) = _LEN.unpack(log.read(4))
-            return log.read(ln)
-```
+                return log.read(ln)
+    ```
 
-**Java (memory-mapped index sketch):**
+=== "Java"
 
-```java
-// Illustrative: sparse offset index — map relative offset -> physical position
-public final class OffsetIndex {
-    private final MappedByteBuffer mmap;
+    ```java
+    // Illustrative: sparse offset index — map relative offset -> physical position
+    public final class OffsetIndex {
+        private final MappedByteBuffer mmap;
 
-    public void append(int relativeOffset, int physicalPosition) {
-        // each entry: 4 bytes relative offset + 4 bytes position
-        mmap.putInt(relativeOffset);
-        mmap.putInt(physicalPosition);
+        public void append(int relativeOffset, int physicalPosition) {
+            // each entry: 4 bytes relative offset + 4 bytes position
+            mmap.putInt(relativeOffset);
+            mmap.putInt(physicalPosition);
+        }
+
+        public int lookup(long targetOffset) {
+            // binary search for floor of targetOffset
+            return 0;
+        }
     }
+    ```
 
-    public int lookup(long targetOffset) {
-        // binary search for floor of targetOffset
-        return 0;
+=== "Go"
+
+    ```go
+    // Segment files: <baseOffset>.log — rolling creates new baseOffset
+    func SegmentName(baseOffset uint64) string {
+        return fmt.Sprintf("%020d.log", baseOffset)
     }
-}
-```
-
-**Go: segment file naming**
-
-```go
-// Segment files: <baseOffset>.log — rolling creates new baseOffset
-func SegmentName(baseOffset uint64) string {
-    return fmt.Sprintf("%020d.log", baseOffset)
-}
-```
+    ```
 
 ### Log compaction preview: tombstones and key-based deduplication
 
@@ -865,30 +867,32 @@ flowchart LR
 
 **Exactly-once (stream processing):** combine **idempotent producer**, **transactions** (atomic write to multiple partitions), and **read-process-write** with correct isolation—or use **external idempotent sinks**.
 
-**Java: producer config snippet**
+**Producer configuration and retry semantics**
 
-```java
-Properties p = new Properties();
-p.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-p.put(ProducerConfig.ACKS_CONFIG, "all");
-p.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
-p.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "payments-tx-1");
-```
+=== "Python"
 
-**Python: retry semantics**
+    ```python
+    def send_with_retries(client, topic: str, key: bytes, value: bytes, max_retry: int = 5):
+        attempt = 0
+        while True:
+            try:
+                return client.send(topic, key=key, value=value, acks="all")
+            except TransientError:
+                attempt += 1
+                if attempt > max_retry:
+                    raise
+                backoff(attempt)
+    ```
 
-```python
-def send_with_retries(client, topic: str, key: bytes, value: bytes, max_retry: int = 5):
-    attempt = 0
-    while True:
-        try:
-            return client.send(topic, key=key, value=value, acks="all")
-        except TransientError:
-            attempt += 1
-            if attempt > max_retry:
-                raise
-            backoff(attempt)
-```
+=== "Java"
+
+    ```java
+    Properties p = new Properties();
+    p.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+    p.put(ProducerConfig.ACKS_CONFIG, "all");
+    p.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+    p.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "payments-tx-1");
+    ```
 
 !!! tip
     State clearly: **EOS** across services usually needs **idempotent consumers** or **dedupe store**—the broker does not magically make downstream DB writes exactly-once without application design.
@@ -934,31 +938,33 @@ def process_batch_txn(producer, consumer, records, output_topic):
 | **Sync commit after work** | At-least-once | Duplicates if process dies after work but before commit |
 | **Transactional read-process-write** | EOS within Kafka transaction | Operational complexity; broker version support |
 
-**Python: at-least-once loop**
+**At-least-once consume and commit**
 
-```python
-def run_at_least_once(consumer, process_batch):
-    while True:
-        batch = consumer.poll(timeout_ms=1000)
-        if not batch:
-            continue
-        process_batch(batch)
-        consumer.commit()  # after successful processing
-```
+=== "Python"
 
-**Go: manual commit pattern**
+    ```python
+    def run_at_least_once(consumer, process_batch):
+        while True:
+            batch = consumer.poll(timeout_ms=1000)
+            if not batch:
+                continue
+            process_batch(batch)
+            consumer.commit()  # after successful processing
+    ```
 
-```go
-for {
-    msg := consumer.Fetch(ctx)
-    if err := handle(msg); err != nil {
-        continue // retry or DLQ — do not commit
+=== "Go"
+
+    ```go
+    for {
+        msg := consumer.Fetch(ctx)
+        if err := handle(msg); err != nil {
+            continue // retry or DLQ — do not commit
+        }
+        consumer.CommitOffsets(map[string]map[int]int64{
+            msg.Topic: {int(msg.Partition): msg.Offset + 1},
+        })
     }
-    consumer.CommitOffsets(map[string]map[int]int64{
-        msg.Topic: {int(msg.Partition): msg.Offset + 1},
-    })
-}
-```
+    ```
 
 !!! note
     **Rebalance storm** during GC pauses or slow processing is a classic production issue—tune **session.timeout.ms**, **max.poll.interval.ms**, and use **cooperative** rebalancing where possible.
@@ -988,34 +994,36 @@ stateDiagram-v2
 | **Batching** | Amortize metadata and round trips (linger.ms, batch.size) |
 | **Compression** | Trade CPU for network/disk (lz4/zstd popular for low CPU) |
 
-**Java NIO:**
+**Zero-copy send path (sketches)**
 
-```java
-FileChannel channel = FileChannel.open(path, StandardOpenOption.READ);
-long sent = channel.transferTo(position, count, socketChannel);
-// maps to sendfile on Linux when possible
-```
+=== "Python"
 
-**Python (conceptual — actual zero-copy is via framework / kernel):**
+    ```python
+    # asyncio streams: high-level; for true zero-copy use OS sendfile via socket.sendfile in CPython 3.9+
+    import socket
 
-```python
-# asyncio streams: high-level; for true zero-copy use OS sendfile via socket.sendfile in CPython 3.9+
-import socket
+    def sendfile_sock(sock: socket.socket, file, offset: int, count: int) -> int:
+        return sock.sendfile(file, offset=offset, count=count)
+    ```
 
-def sendfile_sock(sock: socket.socket, file, offset: int, count: int) -> int:
-    return sock.sendfile(file, offset=offset, count=count)
-```
+=== "Java"
 
-**Go:**
+    ```java
+    FileChannel channel = FileChannel.open(path, StandardOpenOption.READ);
+    long sent = channel.transferTo(position, count, socketChannel);
+    // maps to sendfile on Linux when possible
+    ```
 
-```go
-import "os"
+=== "Go"
 
-func SendFile(conn net.Conn, f *os.File, off int64, n int64) (int64, error) {
-    return io.CopyN(conn, io.NewSectionReader(f, off, n), n)
-}
-// Prefer syscall.Sendfile on Linux for zero-copy when available
-```
+    ```go
+    import "os"
+
+    func SendFile(conn net.Conn, f *os.File, off int64, n int64) (int64, error) {
+        return io.CopyN(conn, io.NewSectionReader(f, off, n), n)
+    }
+    // Prefer syscall.Sendfile on Linux for zero-copy when available
+    ```
 
 !!! tip
     Mention **batching trade-off**: higher `linger.ms` improves throughput and compression ratio but hurts **p99 latency**—tie to SLO.
@@ -1047,26 +1055,28 @@ func SendFile(conn net.Conn, f *os.File, off int64, n int64) (int64, error) {
 partition = murmur2(key) % num_partitions   # Kafka default murmur2 for keys
 ```
 
-**Python:**
+**Partition helper and idempotent producer settings**
 
-```python
-def partition_for_key(key: bytes, num_partitions: int) -> int:
-    h = hash(key)  # interview: replace with stable murmur2
-    return h % num_partitions if num_partitions > 0 else 0
-```
+=== "Python"
+
+    ```python
+    def partition_for_key(key: bytes, num_partitions: int) -> int:
+        h = hash(key)  # interview: replace with stable murmur2
+        return h % num_partitions if num_partitions > 0 else 0
+    ```
+
+=== "Java"
+
+    ```java
+    // Idempotent producer enables safe retries without duplicates
+    props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+    // With idempotence, max.in.flight is capped to 5 in modern Kafka
+    ```
 
 !!! warning
     **Global ordering** across all events usually implies **one partition** or a **central sequencer**—say you’d only do it for rare audit streams, not the main firehose.
 
 **Retries vs ordering:** With `max.in.flight.requests.per.connection > 1` and retries, ordering can break if batches complete out of order—**idempotent producer** + careful `in-flight` settings restore predictable behavior; interviewers often expect you to mention this interaction.
-
-**Java setting (ordering + idempotence):**
-
-```java
-// Idempotent producer enables safe retries without duplicates
-props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
-// With idempotence, max.in.flight is capped to 5 in modern Kafka
-```
 
 ### 4.7 Log Compaction
 

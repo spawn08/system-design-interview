@@ -420,299 +420,302 @@ flowchart TB
 - Client sends **last_received_message_id** / epoch per conversation.
 - Server replays from **history API** + live stream.
 
-#### Java: WebSocket handler (Jetty-style pseudo-code)
+#### WebSocket handler
 
-```java
-package com.example.chat.ws;
+=== "Python"
 
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.*;
+    ```python
+    # asyncio + websockets (conceptual pseudo-code)
+    
+    import asyncio
+    import json
+    import time
+    from typing import Awaitable, Callable, Any
+    
+    import websockets
+    from websockets.server import WebSocketServerProtocol
+    
+    Handler = Callable[[str, dict], Awaitable[None]]
+    
+    
+    class GatewayConnection:
+        def __init__(self, user_id: str, on_message: Handler):
+            self.user_id = user_id
+            self.on_message = on_message
+            self._last_pong = time.monotonic()
+            self._send_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=256)
+    
+        async def writer(self, ws: WebSocketServerProtocol) -> None:
+            while True:
+                payload = await self._send_queue.get()
+                await ws.send(payload)
+    
+        async def heartbeat(self, ws: WebSocketServerProtocol) -> None:
+            while True:
+                await asyncio.sleep(25)
+                try:
+                    pong_waiter = await ws.ping()
+                    await asyncio.wait_for(pong_waiter, timeout=10)
+                    self._last_pong = time.monotonic()
+                except asyncio.TimeoutError:
+                    await ws.close(code=1001, reason="heartbeat timeout")
+                    return
+    
+        def stale(self, timeout_sec: float = 90) -> bool:
+            return (time.monotonic() - self._last_pong) > timeout_sec
+    
+        async def handle_incoming(self, raw: str) -> None:
+            env = json.loads(raw)
+            await self.on_message(self.user_id, env)
+    
+    
+    async def connection_handler(
+        ws: WebSocketServerProtocol,
+        path: str,
+        authenticate: Callable[[WebSocketServerProtocol], str],
+        on_message: Handler,
+    ) -> None:
+        user_id = await authenticate(ws)
+        conn = GatewayConnection(user_id, on_message)
+    
+        writer = asyncio.create_task(conn.writer(ws))
+        beat = asyncio.create_task(conn.heartbeat(ws))
+    
+        try:
+            async for raw in ws:
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8", errors="replace")
+                await conn.handle_incoming(raw)
+        finally:
+            for t in (writer, beat):
+                t.cancel()
+    ```
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+=== "Java"
 
-@WebSocket
-public class ChatWebSocketEndpoint {
-
-    private final String userId;
-    private final ConnectionRegistry registry;
-    private final ScheduledExecutorService heartbeat = Executors.newSingleThreadScheduledExecutor();
-
-    private Session session;
-    private volatile long lastPongNs = System.nanoTime();
-
-    public ChatWebSocketEndpoint(String userId, ConnectionRegistry registry) {
-        this.userId = userId;
-        this.registry = registry;
-    }
-
-    @OnWebSocketConnect
-    public void onOpen(Session session) {
-        this.session = session;
-        registry.register(userId, this);
-        heartbeat.scheduleAtFixedRate(this::sendPing, 25, 25, TimeUnit.SECONDS);
-    }
-
-    private void sendPing() {
-        try {
-            if (session != null && session.isOpen()) {
-                session.getRemote().sendPing(ByteBuffer.wrap("ping".getBytes()));
+    ```java
+    package com.example.chat.ws;
+    
+    import org.eclipse.jetty.websocket.api.Session;
+    import org.eclipse.jetty.websocket.api.annotations.*;
+    
+    import java.io.IOException;
+    import java.nio.ByteBuffer;
+    import java.time.Instant;
+    import java.util.Map;
+    import java.util.concurrent.ConcurrentHashMap;
+    import java.util.concurrent.Executors;
+    import java.util.concurrent.ScheduledExecutorService;
+    import java.util.concurrent.TimeUnit;
+    
+    @WebSocket
+    public class ChatWebSocketEndpoint {
+    
+        private final String userId;
+        private final ConnectionRegistry registry;
+        private final ScheduledExecutorService heartbeat = Executors.newSingleThreadScheduledExecutor();
+    
+        private Session session;
+        private volatile long lastPongNs = System.nanoTime();
+    
+        public ChatWebSocketEndpoint(String userId, ConnectionRegistry registry) {
+            this.userId = userId;
+            this.registry = registry;
+        }
+    
+        @OnWebSocketConnect
+        public void onOpen(Session session) {
+            this.session = session;
+            registry.register(userId, this);
+            heartbeat.scheduleAtFixedRate(this::sendPing, 25, 25, TimeUnit.SECONDS);
+        }
+    
+        private void sendPing() {
+            try {
+                if (session != null && session.isOpen()) {
+                    session.getRemote().sendPing(ByteBuffer.wrap("ping".getBytes()));
+                }
+            } catch (IOException e) {
+                closeQuietly();
             }
-        } catch (IOException e) {
-            closeQuietly();
+        }
+    
+        @OnWebSocketPong
+        public void onPong(ByteBuffer payload) {
+            lastPongNs = System.nanoTime();
+        }
+    
+        @OnWebSocketMessage
+        public void onMessage(String message) {
+            // Parse JSON envelope, dispatch to ChatService (async)
+            // Never block the websocket thread for DB I/O
+            ChatEnvelope env = ChatEnvelope.parse(message);
+            registry.dispatch(userId, env);
+        }
+    
+        @OnWebSocketClose
+        public void onClose(int statusCode, String reason) {
+            registry.unregister(userId, this);
+            heartbeat.shutdownNow();
+        }
+    
+        public void sendJson(String json) throws IOException {
+            if (session != null && session.isOpen()) {
+                session.getRemote().sendString(json);
+            }
+        }
+    
+        public boolean isStale(Instant now, long timeoutSeconds) {
+            long elapsed = System.nanoTime() - lastPongNs;
+            return elapsed > TimeUnit.SECONDS.toNanos(timeoutSeconds);
+        }
+    
+        private void closeQuietly() {
+            try {
+                if (session != null && session.isOpen()) session.close();
+            } catch (Exception ignored) {
+            }
+        }
+    
+        public interface ConnectionRegistry {
+            void register(String userId, ChatWebSocketEndpoint endpoint);
+            void unregister(String userId, ChatWebSocketEndpoint endpoint);
+            void dispatch(String userId, ChatEnvelope env);
+        }
+    
+        public static final class ChatEnvelope {
+            public String type;
+            public String clientMsgId;
+            public String conversationId;
+    
+            static ChatEnvelope parse(String json) {
+                // Use Jackson in production
+                return new ChatEnvelope();
+            }
         }
     }
+    ```
 
-    @OnWebSocketPong
-    public void onPong(ByteBuffer payload) {
-        lastPongNs = System.nanoTime();
+=== "Go"
+
+    ```go
+    package ws
+    
+    import (
+    	"context"
+    	"encoding/json"
+    	"log"
+    	"net/http"
+    	"sync"
+    	"time"
+    
+    	"github.com/coder/websocket"
+    	"github.com/google/uuid"
+    )
+    
+    type Envelope struct {
+    	Type            string `json:"type"`
+    	ClientMsgID     string `json:"client_msg_id"`
+    	ConversationID  string `json:"conversation_id"`
     }
-
-    @OnWebSocketMessage
-    public void onMessage(String message) {
-        // Parse JSON envelope, dispatch to ChatService (async)
-        // Never block the websocket thread for DB I/O
-        ChatEnvelope env = ChatEnvelope.parse(message);
-        registry.dispatch(userId, env);
+    
+    type Hub struct {
+    	mu       sync.RWMutex
+    	userID   string
+    	sendCh   chan []byte
+    	done     chan struct{}
+    	onMessage func(ctx context.Context, userID string, env Envelope) error
     }
-
-    @OnWebSocketClose
-    public void onClose(int statusCode, String reason) {
-        registry.unregister(userId, this);
-        heartbeat.shutdownNow();
+    
+    func NewHub(userID string, onMessage func(context.Context, string, Envelope) error) *Hub {
+    	return &Hub{
+    		userID:    userID,
+    		sendCh:    make(chan []byte, 256),
+    		done:      make(chan struct{}),
+    		onMessage: onMessage,
+    	}
     }
-
-    public void sendJson(String json) throws IOException {
-        if (session != null && session.isOpen()) {
-            session.getRemote().sendString(json);
-        }
+    
+    func (h *Hub) RunWriter(ctx context.Context, c *websocket.Conn) {
+    	ticker := time.NewTicker(25 * time.Second)
+    	defer ticker.Stop()
+    	for {
+    		select {
+    		case <-ctx.Done():
+    			return
+    		case <-h.done:
+    			return
+    		case msg := <-h.sendCh:
+    			writeCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+    			err := c.Write(writeCtx, websocket.MessageText, msg)
+    			cancel()
+    			if err != nil {
+    				log.Printf("write failed: %v", err)
+    				return
+    			}
+    		case <-ticker.C:
+    			pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+    			err := c.Ping(pingCtx)
+    			cancel()
+    			if err != nil {
+    				log.Printf("ping failed: %v", err)
+    				return
+    			}
+    		}
+    	}
     }
-
-    public boolean isStale(Instant now, long timeoutSeconds) {
-        long elapsed = System.nanoTime() - lastPongNs;
-        return elapsed > TimeUnit.SECONDS.toNanos(timeoutSeconds);
+    
+    func (h *Hub) EnqueueServerEvent(payload []byte) {
+    	select {
+    	case h.sendCh <- payload:
+    	default:
+    		// Drop or spill to disk queue — policy choice
+    	}
     }
-
-    private void closeQuietly() {
-        try {
-            if (session != null && session.isOpen()) session.close();
-        } catch (Exception ignored) {
-        }
+    
+    func ServeWS(w http.ResponseWriter, r *http.Request, userID string, onMessage func(context.Context, string, Envelope) error) {
+    	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+    		InsecureSkipVerify: false,
+    	})
+    	if err != nil {
+    		return
+    	}
+    	defer c.Close(websocket.StatusInternalError, "closing")
+    
+    	ctx := r.Context()
+    	h := NewHub(userID, onMessage)
+    
+    	writerCtx, cancel := context.WithCancel(ctx)
+    	defer cancel()
+    	go h.RunWriter(writerCtx, c)
+    
+    	readTimeout := 60 * time.Second
+    	for {
+    		readCtx, readCancel := context.WithTimeout(ctx, readTimeout)
+    		_, data, err := c.Read(readCtx)
+    		readCancel()
+    		if err != nil {
+    			return
+    		}
+    		var env Envelope
+    		if err := json.Unmarshal(data, &env); err != nil {
+    			continue
+    		}
+    		if err := onMessage(ctx, userID, env); err != nil {
+    			log.Printf("handler error: %v", err)
+    		}
+    	}
     }
-
-    public interface ConnectionRegistry {
-        void register(String userId, ChatWebSocketEndpoint endpoint);
-        void unregister(String userId, ChatWebSocketEndpoint endpoint);
-        void dispatch(String userId, ChatEnvelope env);
+    
+    func ExampleTokenMiddleware(next http.Handler) http.Handler {
+    	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    		// Validate JWT, extract userID, set in context
+    		_ = uuid.NewString()
+    		next.ServeHTTP(w, r)
+    	})
     }
+    ```
 
-    public static final class ChatEnvelope {
-        public String type;
-        public String clientMsgId;
-        public String conversationId;
-
-        static ChatEnvelope parse(String json) {
-            // Use Jackson in production
-            return new ChatEnvelope();
-        }
-    }
-}
-```
-
-#### Go: WebSocket server with goroutines
-
-```go
-package ws
-
-import (
-	"context"
-	"encoding/json"
-	"log"
-	"net/http"
-	"sync"
-	"time"
-
-	"github.com/coder/websocket"
-	"github.com/google/uuid"
-)
-
-type Envelope struct {
-	Type            string `json:"type"`
-	ClientMsgID     string `json:"client_msg_id"`
-	ConversationID  string `json:"conversation_id"`
-}
-
-type Hub struct {
-	mu       sync.RWMutex
-	userID   string
-	sendCh   chan []byte
-	done     chan struct{}
-	onMessage func(ctx context.Context, userID string, env Envelope) error
-}
-
-func NewHub(userID string, onMessage func(context.Context, string, Envelope) error) *Hub {
-	return &Hub{
-		userID:    userID,
-		sendCh:    make(chan []byte, 256),
-		done:      make(chan struct{}),
-		onMessage: onMessage,
-	}
-}
-
-func (h *Hub) RunWriter(ctx context.Context, c *websocket.Conn) {
-	ticker := time.NewTicker(25 * time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-h.done:
-			return
-		case msg := <-h.sendCh:
-			writeCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-			err := c.Write(writeCtx, websocket.MessageText, msg)
-			cancel()
-			if err != nil {
-				log.Printf("write failed: %v", err)
-				return
-			}
-		case <-ticker.C:
-			pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-			err := c.Ping(pingCtx)
-			cancel()
-			if err != nil {
-				log.Printf("ping failed: %v", err)
-				return
-			}
-		}
-	}
-}
-
-func (h *Hub) EnqueueServerEvent(payload []byte) {
-	select {
-	case h.sendCh <- payload:
-	default:
-		// Drop or spill to disk queue — policy choice
-	}
-}
-
-func ServeWS(w http.ResponseWriter, r *http.Request, userID string, onMessage func(context.Context, string, Envelope) error) {
-	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		InsecureSkipVerify: false,
-	})
-	if err != nil {
-		return
-	}
-	defer c.Close(websocket.StatusInternalError, "closing")
-
-	ctx := r.Context()
-	h := NewHub(userID, onMessage)
-
-	writerCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	go h.RunWriter(writerCtx, c)
-
-	readTimeout := 60 * time.Second
-	for {
-		readCtx, readCancel := context.WithTimeout(ctx, readTimeout)
-		_, data, err := c.Read(readCtx)
-		readCancel()
-		if err != nil {
-			return
-		}
-		var env Envelope
-		if err := json.Unmarshal(data, &env); err != nil {
-			continue
-		}
-		if err := onMessage(ctx, userID, env); err != nil {
-			log.Printf("handler error: %v", err)
-		}
-	}
-}
-
-func ExampleTokenMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Validate JWT, extract userID, set in context
-		_ = uuid.NewString()
-		next.ServeHTTP(w, r)
-	})
-}
-```
-
-#### Python: WebSocket handler with asyncio
-
-```python
-# asyncio + websockets (conceptual pseudo-code)
-
-import asyncio
-import json
-import time
-from typing import Awaitable, Callable, Any
-
-import websockets
-from websockets.server import WebSocketServerProtocol
-
-Handler = Callable[[str, dict], Awaitable[None]]
-
-
-class GatewayConnection:
-    def __init__(self, user_id: str, on_message: Handler):
-        self.user_id = user_id
-        self.on_message = on_message
-        self._last_pong = time.monotonic()
-        self._send_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=256)
-
-    async def writer(self, ws: WebSocketServerProtocol) -> None:
-        while True:
-            payload = await self._send_queue.get()
-            await ws.send(payload)
-
-    async def heartbeat(self, ws: WebSocketServerProtocol) -> None:
-        while True:
-            await asyncio.sleep(25)
-            try:
-                pong_waiter = await ws.ping()
-                await asyncio.wait_for(pong_waiter, timeout=10)
-                self._last_pong = time.monotonic()
-            except asyncio.TimeoutError:
-                await ws.close(code=1001, reason="heartbeat timeout")
-                return
-
-    def stale(self, timeout_sec: float = 90) -> bool:
-        return (time.monotonic() - self._last_pong) > timeout_sec
-
-    async def handle_incoming(self, raw: str) -> None:
-        env = json.loads(raw)
-        await self.on_message(self.user_id, env)
-
-
-async def connection_handler(
-    ws: WebSocketServerProtocol,
-    path: str,
-    authenticate: Callable[[WebSocketServerProtocol], str],
-    on_message: Handler,
-) -> None:
-    user_id = await authenticate(ws)
-    conn = GatewayConnection(user_id, on_message)
-
-    writer = asyncio.create_task(conn.writer(ws))
-    beat = asyncio.create_task(conn.heartbeat(ws))
-
-    try:
-        async for raw in ws:
-            if isinstance(raw, bytes):
-                raw = raw.decode("utf-8", errors="replace")
-            await conn.handle_incoming(raw)
-    finally:
-        for t in (writer, beat):
-            t.cancel()
-```
 
 !!! tip
     In production, run **message handling** on a bounded thread/executor pool if your stack blocks (e.g., some DB drivers). Never stall the socket loop on slow I/O without backpressure.
@@ -769,241 +772,244 @@ sequenceDiagram
 - **Partition key**: `conversation_id` for ordering in Kafka.
 - **Group fan-out**: fetch membership; for each member enqueue delivery task. Large groups switch strategy (below).
 
-#### Java: Message router
+#### Message routing
 
-```java
-package com.example.chat.router;
+=== "Python"
 
-import java.util.List;
-import java.util.UUID;
-
-public class MessageRouter {
-
-    public sealed interface RouteResult {
-        record Accepted(String serverMessageId) implements RouteResult {}
-        record Duplicate(String serverMessageId) implements RouteResult {}
-        record Rejected(String reason) implements RouteResult {}
-    }
-
-    private final ConversationDirectory directory;
-    private final MessageStore store;
-    private final OutboundQueue queue;
-
-    public MessageRouter(ConversationDirectory directory, MessageStore store, OutboundQueue queue) {
-        this.directory = directory;
-        this.store = store;
-        this.queue = queue;
-    }
-
-    public RouteResult route(String senderId, String clientMsgId, String conversationId, byte[] body) {
-        if (!directory.canSend(senderId, conversationId)) {
-            return new RouteResult.Rejected("forbidden");
-        }
-
-        String serverMessageId = UUID.randomUUID().toString();
-
-        var insert = store.insertIfAbsent(new InsertMessage(
-                serverMessageId,
-                clientMsgId,
-                conversationId,
-                senderId,
-                body
-        ));
-
-        if (!insert.inserted()) {
-            return new RouteResult.Duplicate(insert.existingServerMessageId());
-        }
-
-        var members = directory.members(conversationId);
-        for (String member : members) {
-            if (member.equals(senderId)) continue;
-            queue.enqueue(new OutboundDelivery(member, conversationId, serverMessageId));
-        }
-
-        return new RouteResult.Accepted(serverMessageId);
-    }
-
-    public record InsertMessage(
-            String serverMessageId,
-            String clientMsgId,
-            String conversationId,
-            String senderId,
-            byte[] body
-    ) {}
-
-    public interface ConversationDirectory {
-        boolean canSend(String userId, String conversationId);
-        List<String> members(String conversationId);
-    }
-
-    public interface MessageStore {
-        InsertResult insertIfAbsent(InsertMessage m);
-    }
-
-    public interface OutboundQueue {
-        void enqueue(OutboundDelivery d);
-    }
-
-    public record OutboundDelivery(String recipientUserId, String conversationId, String serverMessageId) {}
-
-    public record InsertResult(boolean inserted, String existingServerMessageId) {}
-}
-```
-
-#### Go: Message dispatcher
-
-```go
-package chat
-
-import (
-	"context"
-	"errors"
-	"fmt"
-)
-
-type SendCommand struct {
-	SenderID         string
-	ClientMsgID      string
-	ConversationID   string
-	Body             []byte
-}
-
-type Dispatcher struct {
-	dir   Directory
-	store MessageStore
-	bus   OutboundBus
-}
-
-func (d *Dispatcher) Dispatch(ctx context.Context, cmd SendCommand) (serverMsgID string, err error) {
-	ok, err := d.dir.CanSend(ctx, cmd.SenderID, cmd.ConversationID)
-	if err != nil {
-		return "", err
-	}
-	if !ok {
-		return "", errors.New("forbidden")
-	}
-
-	res, err := d.store.InsertIdempotent(ctx, IdempotentInsert{
-		ClientMsgID:    cmd.ClientMsgID,
-		ConversationID: cmd.ConversationID,
-		SenderID:       cmd.SenderID,
-		Body:           cmd.Body,
-	})
-	if err != nil {
-		return "", err
-	}
-	if res.Duplicate {
-		return res.ServerMsgID, nil
-	}
-
-	members, err := d.dir.Members(ctx, cmd.ConversationID)
-	if err != nil {
-		return "", err
-	}
-	for _, uid := range members {
-		if uid == cmd.SenderID {
-			continue
-		}
-		if err := d.bus.Publish(ctx, DeliveryJob{
-			RecipientID:    uid,
-			ConversationID: cmd.ConversationID,
-			ServerMsgID:    res.ServerMsgID,
-		}); err != nil {
-			return "", fmt.Errorf("publish: %w", err)
-		}
-	}
-	return res.ServerMsgID, nil
-}
-
-type IdempotentInsert struct {
-	ClientMsgID      string
-	ConversationID   string
-	SenderID         string
-	Body             []byte
-}
-
-type InsertResult struct {
-	Duplicate   bool
-	ServerMsgID string
-}
-
-type DeliveryJob struct {
-	RecipientID      string
-	ConversationID   string
-	ServerMsgID      string
-}
-
-type Directory interface {
-	CanSend(ctx context.Context, userID, conversationID string) (bool, error)
-	Members(ctx context.Context, conversationID string) ([]string, error)
-}
-
-type MessageStore interface {
-	InsertIdempotent(ctx context.Context, in IdempotentInsert) (InsertResult, error)
-}
-
-type OutboundBus interface {
-	Publish(ctx context.Context, job DeliveryJob) error
-}
-```
-
-#### Python: Message handler
-
-```python
-from __future__ import annotations
-
-import dataclasses
-from typing import Protocol, List
-
-
-@dataclasses.dataclass(frozen=True)
-class SendCommand:
-    sender_id: str
-    client_msg_id: str
-    conversation_id: str
-    body: bytes
-
-
-class Directory(Protocol):
-    async def can_send(self, user_id: str, conversation_id: str) -> bool: ...
-    async def members(self, conversation_id: str) -> List[str]: ...
-
-
-class MessageStore(Protocol):
-    async def insert_idempotent(
-        self, client_msg_id: str, conversation_id: str, sender_id: str, body: bytes
-    ) -> tuple[str, bool]:
-        """Returns (server_msg_id, is_duplicate)."""
-        ...
-
-
-class OutboundQueue(Protocol):
-    async def enqueue(self, recipient_id: str, conversation_id: str, server_msg_id: str) -> None: ...
-
-
-class MessageHandler:
-    def __init__(self, directory: Directory, store: MessageStore, outbound: OutboundQueue) -> None:
-        self._directory = directory
-        self._store = store
-        self._outbound = outbound
-
-    async def handle(self, cmd: SendCommand) -> str:
-        if not await self._directory.can_send(cmd.sender_id, cmd.conversation_id):
-            raise PermissionError("forbidden")
-
-        stored_id, dup = await self._store.insert_idempotent(
-            cmd.client_msg_id, cmd.conversation_id, cmd.sender_id, cmd.body
-        )
-        if dup:
+    ```python
+    from __future__ import annotations
+    
+    import dataclasses
+    from typing import Protocol, List
+    
+    
+    @dataclasses.dataclass(frozen=True)
+    class SendCommand:
+        sender_id: str
+        client_msg_id: str
+        conversation_id: str
+        body: bytes
+    
+    
+    class Directory(Protocol):
+        async def can_send(self, user_id: str, conversation_id: str) -> bool: ...
+        async def members(self, conversation_id: str) -> List[str]: ...
+    
+    
+    class MessageStore(Protocol):
+        async def insert_idempotent(
+            self, client_msg_id: str, conversation_id: str, sender_id: str, body: bytes
+        ) -> tuple[str, bool]:
+            """Returns (server_msg_id, is_duplicate)."""
+            ...
+    
+    
+    class OutboundQueue(Protocol):
+        async def enqueue(self, recipient_id: str, conversation_id: str, server_msg_id: str) -> None: ...
+    
+    
+    class MessageHandler:
+        def __init__(self, directory: Directory, store: MessageStore, outbound: OutboundQueue) -> None:
+            self._directory = directory
+            self._store = store
+            self._outbound = outbound
+    
+        async def handle(self, cmd: SendCommand) -> str:
+            if not await self._directory.can_send(cmd.sender_id, cmd.conversation_id):
+                raise PermissionError("forbidden")
+    
+            stored_id, dup = await self._store.insert_idempotent(
+                cmd.client_msg_id, cmd.conversation_id, cmd.sender_id, cmd.body
+            )
+            if dup:
+                return stored_id
+    
+            members = await self._directory.members(cmd.conversation_id)
+            for uid in members:
+                if uid == cmd.sender_id:
+                    continue
+                await self._outbound.enqueue(uid, cmd.conversation_id, stored_id)
             return stored_id
+    ```
 
-        members = await self._directory.members(cmd.conversation_id)
-        for uid in members:
-            if uid == cmd.sender_id:
-                continue
-            await self._outbound.enqueue(uid, cmd.conversation_id, stored_id)
-        return stored_id
-```
+=== "Java"
+
+    ```java
+    package com.example.chat.router;
+    
+    import java.util.List;
+    import java.util.UUID;
+    
+    public class MessageRouter {
+    
+        public sealed interface RouteResult {
+            record Accepted(String serverMessageId) implements RouteResult {}
+            record Duplicate(String serverMessageId) implements RouteResult {}
+            record Rejected(String reason) implements RouteResult {}
+        }
+    
+        private final ConversationDirectory directory;
+        private final MessageStore store;
+        private final OutboundQueue queue;
+    
+        public MessageRouter(ConversationDirectory directory, MessageStore store, OutboundQueue queue) {
+            this.directory = directory;
+            this.store = store;
+            this.queue = queue;
+        }
+    
+        public RouteResult route(String senderId, String clientMsgId, String conversationId, byte[] body) {
+            if (!directory.canSend(senderId, conversationId)) {
+                return new RouteResult.Rejected("forbidden");
+            }
+    
+            String serverMessageId = UUID.randomUUID().toString();
+    
+            var insert = store.insertIfAbsent(new InsertMessage(
+                    serverMessageId,
+                    clientMsgId,
+                    conversationId,
+                    senderId,
+                    body
+            ));
+    
+            if (!insert.inserted()) {
+                return new RouteResult.Duplicate(insert.existingServerMessageId());
+            }
+    
+            var members = directory.members(conversationId);
+            for (String member : members) {
+                if (member.equals(senderId)) continue;
+                queue.enqueue(new OutboundDelivery(member, conversationId, serverMessageId));
+            }
+    
+            return new RouteResult.Accepted(serverMessageId);
+        }
+    
+        public record InsertMessage(
+                String serverMessageId,
+                String clientMsgId,
+                String conversationId,
+                String senderId,
+                byte[] body
+        ) {}
+    
+        public interface ConversationDirectory {
+            boolean canSend(String userId, String conversationId);
+            List<String> members(String conversationId);
+        }
+    
+        public interface MessageStore {
+            InsertResult insertIfAbsent(InsertMessage m);
+        }
+    
+        public interface OutboundQueue {
+            void enqueue(OutboundDelivery d);
+        }
+    
+        public record OutboundDelivery(String recipientUserId, String conversationId, String serverMessageId) {}
+    
+        public record InsertResult(boolean inserted, String existingServerMessageId) {}
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package chat
+    
+    import (
+    	"context"
+    	"errors"
+    	"fmt"
+    )
+    
+    type SendCommand struct {
+    	SenderID         string
+    	ClientMsgID      string
+    	ConversationID   string
+    	Body             []byte
+    }
+    
+    type Dispatcher struct {
+    	dir   Directory
+    	store MessageStore
+    	bus   OutboundBus
+    }
+    
+    func (d *Dispatcher) Dispatch(ctx context.Context, cmd SendCommand) (serverMsgID string, err error) {
+    	ok, err := d.dir.CanSend(ctx, cmd.SenderID, cmd.ConversationID)
+    	if err != nil {
+    		return "", err
+    	}
+    	if !ok {
+    		return "", errors.New("forbidden")
+    	}
+    
+    	res, err := d.store.InsertIdempotent(ctx, IdempotentInsert{
+    		ClientMsgID:    cmd.ClientMsgID,
+    		ConversationID: cmd.ConversationID,
+    		SenderID:       cmd.SenderID,
+    		Body:           cmd.Body,
+    	})
+    	if err != nil {
+    		return "", err
+    	}
+    	if res.Duplicate {
+    		return res.ServerMsgID, nil
+    	}
+    
+    	members, err := d.dir.Members(ctx, cmd.ConversationID)
+    	if err != nil {
+    		return "", err
+    	}
+    	for _, uid := range members {
+    		if uid == cmd.SenderID {
+    			continue
+    		}
+    		if err := d.bus.Publish(ctx, DeliveryJob{
+    			RecipientID:    uid,
+    			ConversationID: cmd.ConversationID,
+    			ServerMsgID:    res.ServerMsgID,
+    		}); err != nil {
+    			return "", fmt.Errorf("publish: %w", err)
+    		}
+    	}
+    	return res.ServerMsgID, nil
+    }
+    
+    type IdempotentInsert struct {
+    	ClientMsgID      string
+    	ConversationID   string
+    	SenderID         string
+    	Body             []byte
+    }
+    
+    type InsertResult struct {
+    	Duplicate   bool
+    	ServerMsgID string
+    }
+    
+    type DeliveryJob struct {
+    	RecipientID      string
+    	ConversationID   string
+    	ServerMsgID      string
+    }
+    
+    type Directory interface {
+    	CanSend(ctx context.Context, userID, conversationID string) (bool, error)
+    	Members(ctx context.Context, conversationID string) ([]string, error)
+    }
+    
+    type MessageStore interface {
+    	InsertIdempotent(ctx context.Context, in IdempotentInsert) (InsertResult, error)
+    }
+    
+    type OutboundBus interface {
+    	Publish(ctx context.Context, job DeliveryJob) error
+    }
+    ```
+
 
 ---
 
@@ -1091,107 +1097,110 @@ CREATE TABLE client_idempotency (
 - Maintain **adjacency** in Redis: `friends:{user}` or `group_members:{gid}`.
 - On change, publish to **presence channel** per watcher batch.
 
-#### Java: presence updater
+#### Presence service
 
-```java
-package com.example.chat.presence;
+=== "Python"
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
+    ```python
+    import asyncio
+    import time
+    from typing import Iterable
+    
+    import redis.asyncio as redis
+    
+    
+    class PresenceService:
+        def __init__(self, r: redis.Redis) -> None:
+            self._r = r
+    
+        async def heartbeat(self, user_id: str) -> None:
+            key = f"presence:{user_id}"
+            pipe = self._r.pipeline(transaction=True)
+            pipe.set(key, "online", ex=90)
+            pipe.zadd("presence:last_seen", {user_id: time.time()})
+            await pipe.execute()
+    
+        async def fanout(self, watchers: Iterable[str], user_id: str, state: str) -> None:
+            payload = f"{user_id}:{state}"
+            await asyncio.gather(
+                *(self._r.publish(f"presence:inbox:{w}", payload) for w in watchers)
+            )
+    ```
 
-import java.time.Duration;
-import java.util.List;
+=== "Java"
 
-public class PresenceService {
-
-    private final Jedis jedis;
-
-    public PresenceService(Jedis jedis) {
-        this.jedis = jedis;
-    }
-
-    public void heartbeat(String userId) {
-        String key = "presence:" + userId;
-        jedis.setex(key, Duration.ofSeconds(90).toSeconds(), "online");
-        jedis.zadd("presence:last_seen", System.currentTimeMillis() / 1000.0, userId);
-    }
-
-    public void fanoutPresence(List<String> watchers, String userId, String state) {
-        try (Pipeline p = jedis.pipelined()) {
-            for (String watcher : watchers) {
-                p.publish("presence:inbox:" + watcher, userId + ":" + state);
+    ```java
+    package com.example.chat.presence;
+    
+    import redis.clients.jedis.Jedis;
+    import redis.clients.jedis.Pipeline;
+    
+    import java.time.Duration;
+    import java.util.List;
+    
+    public class PresenceService {
+    
+        private final Jedis jedis;
+    
+        public PresenceService(Jedis jedis) {
+            this.jedis = jedis;
+        }
+    
+        public void heartbeat(String userId) {
+            String key = "presence:" + userId;
+            jedis.setex(key, Duration.ofSeconds(90).toSeconds(), "online");
+            jedis.zadd("presence:last_seen", System.currentTimeMillis() / 1000.0, userId);
+        }
+    
+        public void fanoutPresence(List<String> watchers, String userId, String state) {
+            try (Pipeline p = jedis.pipelined()) {
+                for (String watcher : watchers) {
+                    p.publish("presence:inbox:" + watcher, userId + ":" + state);
+                }
+                p.sync();
             }
-            p.sync();
         }
     }
-}
-```
+    ```
 
-#### Go: presence with Redis SET + PubSub
+=== "Go"
 
-```go
-package presence
+    ```go
+    package presence
+    
+    import (
+    	"context"
+    	"fmt"
+    	"time"
+    
+    	"github.com/redis/go-redis/v9"
+    )
+    
+    type Service struct {
+    	rdb *redis.Client
+    }
+    
+    func (s *Service) Heartbeat(ctx context.Context, userID string) error {
+    	key := fmt.Sprintf("presence:%s", userID)
+    	pipe := s.rdb.TxPipeline()
+    	pipe.Set(ctx, key, "online", 90*time.Second)
+    	pipe.ZAdd(ctx, "presence:last_seen", redis.Z{Score: float64(time.Now().Unix()), Member: userID})
+    	_, err := pipe.Exec(ctx)
+    	return err
+    }
+    
+    func (s *Service) PublishToWatchers(ctx context.Context, watchers []string, userID, state string) error {
+    	payload := fmt.Sprintf("%s:%s", userID, state)
+    	for _, w := range watchers {
+    		ch := fmt.Sprintf("presence:inbox:%s", w)
+    		if err := s.rdb.Publish(ctx, ch, payload).Err(); err != nil {
+    			return err
+    		}
+    	}
+    	return nil
+    }
+    ```
 
-import (
-	"context"
-	"fmt"
-	"time"
-
-	"github.com/redis/go-redis/v9"
-)
-
-type Service struct {
-	rdb *redis.Client
-}
-
-func (s *Service) Heartbeat(ctx context.Context, userID string) error {
-	key := fmt.Sprintf("presence:%s", userID)
-	pipe := s.rdb.TxPipeline()
-	pipe.Set(ctx, key, "online", 90*time.Second)
-	pipe.ZAdd(ctx, "presence:last_seen", redis.Z{Score: float64(time.Now().Unix()), Member: userID})
-	_, err := pipe.Exec(ctx)
-	return err
-}
-
-func (s *Service) PublishToWatchers(ctx context.Context, watchers []string, userID, state string) error {
-	payload := fmt.Sprintf("%s:%s", userID, state)
-	for _, w := range watchers {
-		ch := fmt.Sprintf("presence:inbox:%s", w)
-		if err := s.rdb.Publish(ctx, ch, payload).Err(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-```
-
-#### Python: asyncio presence
-
-```python
-import asyncio
-import time
-from typing import Iterable
-
-import redis.asyncio as redis
-
-
-class PresenceService:
-    def __init__(self, r: redis.Redis) -> None:
-        self._r = r
-
-    async def heartbeat(self, user_id: str) -> None:
-        key = f"presence:{user_id}"
-        pipe = self._r.pipeline(transaction=True)
-        pipe.set(key, "online", ex=90)
-        pipe.zadd("presence:last_seen", {user_id: time.time()})
-        await pipe.execute()
-
-    async def fanout(self, watchers: Iterable[str], user_id: str, state: str) -> None:
-        payload = f"{user_id}:{state}"
-        await asyncio.gather(
-            *(self._r.publish(f"presence:inbox:{w}", payload) for w in watchers)
-        )
-```
 
 !!! warning
     Presence is **best-effort**. Do not build financial-grade correctness on it; show **last seen** privacy controls in product requirements.
@@ -1241,236 +1250,239 @@ class PresenceService:
 | Delivery dedupe | `(recipient_id, server_msg_id, device_id)` | Duplicate consumer writes ignored |
 | Receipt dedupe | `(conversation_id, server_msg_id, user_id, receipt_type)` | Idempotent upsert |
 
-#### Java: receipt and delivery acknowledgment service
+#### Receipt and delivery acknowledgment
 
-```java
-package com.example.chat.delivery;
+=== "Python"
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- * In-memory dedupe for illustration; production uses Redis SET NX or DB unique index.
- */
-public class ReceiptService {
-
-    private final ConcurrentHashMap<String, Boolean> processedDeliveryAcks = new ConcurrentHashMap<>();
-    private final ReceiptStore store;
-    private final RealtimeFanout realtime;
-
-    public ReceiptService(ReceiptStore store, RealtimeFanout realtime) {
-        this.store = store;
-        this.realtime = realtime;
-    }
-
-    public void onDeliveryAck(String recipientId, String deviceId,
-                              String conversationId, String serverMessageId) {
-        String dedupeKey = recipientId + "|" + serverMessageId + "|" + deviceId;
-        if (processedDeliveryAcks.putIfAbsent(dedupeKey, Boolean.TRUE) != null) {
-            return;
-        }
-        store.markDelivered(conversationId, serverMessageId, recipientId, deviceId);
-        Optional<String> senderId = store.findSender(conversationId, serverMessageId);
-        senderId.ifPresent(sid -> realtime.sendToUser(sid,
-                new ReceiptEvent("delivery", conversationId, serverMessageId, recipientId)));
-    }
-
-    public void onReadCursor(String userId, String conversationId, String lastReadMessageId) {
-        store.markReadUpTo(userId, conversationId, lastReadMessageId);
-        realtime.broadcastConversationParticipants(conversationId,
-                new ReceiptEvent("read", conversationId, lastReadMessageId, userId));
-    }
-
-    public record ReceiptEvent(String kind, String conversationId, String messageId, String actorId) {}
-
-    public interface ReceiptStore {
-        void markDelivered(String conversationId, String serverMessageId, String recipientId, String deviceId);
-        Optional<String> findSender(String conversationId, String serverMessageId);
-        void markReadUpTo(String userId, String conversationId, String lastReadMessageId);
-    }
-
-    public interface RealtimeFanout {
-        void sendToUser(String userId, ReceiptEvent event);
-        void broadcastConversationParticipants(String conversationId, ReceiptEvent event);
-    }
-}
-```
-
-#### Go: offline mailbox + at-least-once consumer guard
-
-```go
-package delivery
-
-import (
-	"context"
-	"fmt"
-	"sync"
-	"time"
-
-	"github.com/redis/go-redis/v9"
-)
-
-type OfflineMailbox struct {
-	rdb *redis.Client
-}
-
-// EnqueueForOffline stores a lightweight pointer so reconnect/history can hydrate.
-func (m *OfflineMailbox) EnqueueForOffline(ctx context.Context, userID, conversationID, serverMsgID string) error {
-	key := fmt.Sprintf("mailbox:%s", userID)
-	mem := &redis.Z{Score: float64(time.Now().UnixMilli()), Member: conversationID + ":" + serverMsgID}
-	return m.rdb.ZAdd(ctx, key, mem).Err()
-}
-
-// Deduper: production systems prefer Redis SET key NX EX <ttl> per dedupe key.
-type Deduper struct {
-	mu   sync.Mutex
-	seen map[string]struct{}
-}
-
-func NewDeduper() *Deduper {
-	return &Deduper{seen: make(map[string]struct{})}
-}
-
-func (d *Deduper) SeenOrSet(key string) bool {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if _, ok := d.seen[key]; ok {
-		return true
-	}
-	d.seen[key] = struct{}{}
-	return false
-}
-
-type Consumer struct {
-	dedupe *Deduper
-	mail   *OfflineMailbox
-	push   PushNotifier
-}
-
-func (c *Consumer) HandleOutbound(ctx context.Context, job OutboundJob, online bool) error {
-	dedupeKey := job.RecipientID + "|" + job.ServerMsgID
-	if c.dedupe.SeenOrSet(dedupeKey) {
-		return nil
-	}
-	if !online {
-		_ = c.mail.EnqueueForOffline(ctx, job.RecipientID, job.ConversationID, job.ServerMsgID)
-		return c.push.Notify(ctx, job.RecipientID, job.ConversationID, job.ServerMsgID)
-	}
-	// else: WebSocket path already attempted by gateway; this branch is queue replay safe
-	return nil
-}
-
-type OutboundJob struct {
-	RecipientID      string
-	ConversationID   string
-	ServerMsgID      string
-}
-
-type PushNotifier interface {
-	Notify(ctx context.Context, userID, conversationID, serverMsgID string) error
-}
-```
-
-#### Python: read/delivered handlers with async idempotency
-
-```python
-from __future__ import annotations
-
-import dataclasses
-import time
-from typing import Protocol, Optional, Dict
-
-
-@dataclasses.dataclass(frozen=True)
-class DeliveryAck:
-    recipient_id: str
-    device_id: str
-    conversation_id: str
-    server_msg_id: str
-
-
-@dataclasses.dataclass(frozen=True)
-class ReadReceipt:
-    user_id: str
-    conversation_id: str
-    last_read_server_msg_id: str
-
-
-class ReceiptStore(Protocol):
-    async def mark_delivered(
-        self, conversation_id: str, server_msg_id: str, recipient_id: str, device_id: str
-    ) -> None: ...
-
-    async def mark_read_up_to(
-        self, user_id: str, conversation_id: str, last_read_server_msg_id: str
-    ) -> None: ...
-
-    async def sender_of(self, conversation_id: str, server_msg_id: str) -> Optional[str]: ...
-
-
-class Realtime(Protocol):
-    async def emit_to_user(self, user_id: str, event: dict) -> None: ...
-
-    async def emit_to_conversation_members(self, conversation_id: str, event: dict) -> None: ...
-
-
-class AsyncIdempotency:
-    """TTL LRU-style dedupe for high-volume receipt events."""
-
-    def __init__(self, ttl_sec: float = 600) -> None:
-        self._ttl = ttl_sec
-        self._m: Dict[str, float] = {}
-
-    def should_skip(self, key: str) -> bool:
-        now = time.time()
-        cutoff = now - self._ttl
-        self._m = {k: t for k, t in self._m.items() if t >= cutoff}
-        if key in self._m:
-            return True
-        self._m[key] = now
-        return False
-
-
-class ReceiptCoordinator:
-    def __init__(self, store: ReceiptStore, rt: Realtime) -> None:
-        self._store = store
-        self._rt = rt
-        self._dedupe = AsyncIdempotency()
-
-    async def on_delivery_ack(self, ack: DeliveryAck) -> None:
-        key = f"d:{ack.recipient_id}:{ack.server_msg_id}:{ack.device_id}"
-        if self._dedupe.should_skip(key):
-            return
-        await self._store.mark_delivered(
-            ack.conversation_id, ack.server_msg_id, ack.recipient_id, ack.device_id
-        )
-        sender = await self._store.sender_of(ack.conversation_id, ack.server_msg_id)
-        if sender:
-            await self._rt.emit_to_user(
-                sender,
+    ```python
+    from __future__ import annotations
+    
+    import dataclasses
+    import time
+    from typing import Protocol, Optional, Dict
+    
+    
+    @dataclasses.dataclass(frozen=True)
+    class DeliveryAck:
+        recipient_id: str
+        device_id: str
+        conversation_id: str
+        server_msg_id: str
+    
+    
+    @dataclasses.dataclass(frozen=True)
+    class ReadReceipt:
+        user_id: str
+        conversation_id: str
+        last_read_server_msg_id: str
+    
+    
+    class ReceiptStore(Protocol):
+        async def mark_delivered(
+            self, conversation_id: str, server_msg_id: str, recipient_id: str, device_id: str
+        ) -> None: ...
+    
+        async def mark_read_up_to(
+            self, user_id: str, conversation_id: str, last_read_server_msg_id: str
+        ) -> None: ...
+    
+        async def sender_of(self, conversation_id: str, server_msg_id: str) -> Optional[str]: ...
+    
+    
+    class Realtime(Protocol):
+        async def emit_to_user(self, user_id: str, event: dict) -> None: ...
+    
+        async def emit_to_conversation_members(self, conversation_id: str, event: dict) -> None: ...
+    
+    
+    class AsyncIdempotency:
+        """TTL LRU-style dedupe for high-volume receipt events."""
+    
+        def __init__(self, ttl_sec: float = 600) -> None:
+            self._ttl = ttl_sec
+            self._m: Dict[str, float] = {}
+    
+        def should_skip(self, key: str) -> bool:
+            now = time.time()
+            cutoff = now - self._ttl
+            self._m = {k: t for k, t in self._m.items() if t >= cutoff}
+            if key in self._m:
+                return True
+            self._m[key] = now
+            return False
+    
+    
+    class ReceiptCoordinator:
+        def __init__(self, store: ReceiptStore, rt: Realtime) -> None:
+            self._store = store
+            self._rt = rt
+            self._dedupe = AsyncIdempotency()
+    
+        async def on_delivery_ack(self, ack: DeliveryAck) -> None:
+            key = f"d:{ack.recipient_id}:{ack.server_msg_id}:{ack.device_id}"
+            if self._dedupe.should_skip(key):
+                return
+            await self._store.mark_delivered(
+                ack.conversation_id, ack.server_msg_id, ack.recipient_id, ack.device_id
+            )
+            sender = await self._store.sender_of(ack.conversation_id, ack.server_msg_id)
+            if sender:
+                await self._rt.emit_to_user(
+                    sender,
+                    {
+                        "type": "receipt.delivery",
+                        "conversation_id": ack.conversation_id,
+                        "message_id": ack.server_msg_id,
+                        "recipient_id": ack.recipient_id,
+                    },
+                )
+    
+        async def on_read_receipt(self, rr: ReadReceipt) -> None:
+            key = f"r:{rr.user_id}:{rr.conversation_id}:{rr.last_read_server_msg_id}"
+            if self._dedupe.should_skip(key):
+                return
+            await self._store.mark_read_up_to(rr.user_id, rr.conversation_id, rr.last_read_server_msg_id)
+            await self._rt.emit_to_conversation_members(
+                rr.conversation_id,
                 {
-                    "type": "receipt.delivery",
-                    "conversation_id": ack.conversation_id,
-                    "message_id": ack.server_msg_id,
-                    "recipient_id": ack.recipient_id,
+                    "type": "receipt.read",
+                    "conversation_id": rr.conversation_id,
+                    "last_read": rr.last_read_server_msg_id,
+                    "user_id": rr.user_id,
                 },
             )
+    ```
 
-    async def on_read_receipt(self, rr: ReadReceipt) -> None:
-        key = f"r:{rr.user_id}:{rr.conversation_id}:{rr.last_read_server_msg_id}"
-        if self._dedupe.should_skip(key):
-            return
-        await self._store.mark_read_up_to(rr.user_id, rr.conversation_id, rr.last_read_server_msg_id)
-        await self._rt.emit_to_conversation_members(
-            rr.conversation_id,
-            {
-                "type": "receipt.read",
-                "conversation_id": rr.conversation_id,
-                "last_read": rr.last_read_server_msg_id,
-                "user_id": rr.user_id,
-            },
-        )
-```
+=== "Java"
+
+    ```java
+    package com.example.chat.delivery;
+    
+    import java.util.Optional;
+    import java.util.concurrent.ConcurrentHashMap;
+    
+    /**
+     * In-memory dedupe for illustration; production uses Redis SET NX or DB unique index.
+     */
+    public class ReceiptService {
+    
+        private final ConcurrentHashMap<String, Boolean> processedDeliveryAcks = new ConcurrentHashMap<>();
+        private final ReceiptStore store;
+        private final RealtimeFanout realtime;
+    
+        public ReceiptService(ReceiptStore store, RealtimeFanout realtime) {
+            this.store = store;
+            this.realtime = realtime;
+        }
+    
+        public void onDeliveryAck(String recipientId, String deviceId,
+                                  String conversationId, String serverMessageId) {
+            String dedupeKey = recipientId + "|" + serverMessageId + "|" + deviceId;
+            if (processedDeliveryAcks.putIfAbsent(dedupeKey, Boolean.TRUE) != null) {
+                return;
+            }
+            store.markDelivered(conversationId, serverMessageId, recipientId, deviceId);
+            Optional<String> senderId = store.findSender(conversationId, serverMessageId);
+            senderId.ifPresent(sid -> realtime.sendToUser(sid,
+                    new ReceiptEvent("delivery", conversationId, serverMessageId, recipientId)));
+        }
+    
+        public void onReadCursor(String userId, String conversationId, String lastReadMessageId) {
+            store.markReadUpTo(userId, conversationId, lastReadMessageId);
+            realtime.broadcastConversationParticipants(conversationId,
+                    new ReceiptEvent("read", conversationId, lastReadMessageId, userId));
+        }
+    
+        public record ReceiptEvent(String kind, String conversationId, String messageId, String actorId) {}
+    
+        public interface ReceiptStore {
+            void markDelivered(String conversationId, String serverMessageId, String recipientId, String deviceId);
+            Optional<String> findSender(String conversationId, String serverMessageId);
+            void markReadUpTo(String userId, String conversationId, String lastReadMessageId);
+        }
+    
+        public interface RealtimeFanout {
+            void sendToUser(String userId, ReceiptEvent event);
+            void broadcastConversationParticipants(String conversationId, ReceiptEvent event);
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package delivery
+    
+    import (
+    	"context"
+    	"fmt"
+    	"sync"
+    	"time"
+    
+    	"github.com/redis/go-redis/v9"
+    )
+    
+    type OfflineMailbox struct {
+    	rdb *redis.Client
+    }
+    
+    // EnqueueForOffline stores a lightweight pointer so reconnect/history can hydrate.
+    func (m *OfflineMailbox) EnqueueForOffline(ctx context.Context, userID, conversationID, serverMsgID string) error {
+    	key := fmt.Sprintf("mailbox:%s", userID)
+    	mem := &redis.Z{Score: float64(time.Now().UnixMilli()), Member: conversationID + ":" + serverMsgID}
+    	return m.rdb.ZAdd(ctx, key, mem).Err()
+    }
+    
+    // Deduper: production systems prefer Redis SET key NX EX <ttl> per dedupe key.
+    type Deduper struct {
+    	mu   sync.Mutex
+    	seen map[string]struct{}
+    }
+    
+    func NewDeduper() *Deduper {
+    	return &Deduper{seen: make(map[string]struct{})}
+    }
+    
+    func (d *Deduper) SeenOrSet(key string) bool {
+    	d.mu.Lock()
+    	defer d.mu.Unlock()
+    	if _, ok := d.seen[key]; ok {
+    		return true
+    	}
+    	d.seen[key] = struct{}{}
+    	return false
+    }
+    
+    type Consumer struct {
+    	dedupe *Deduper
+    	mail   *OfflineMailbox
+    	push   PushNotifier
+    }
+    
+    func (c *Consumer) HandleOutbound(ctx context.Context, job OutboundJob, online bool) error {
+    	dedupeKey := job.RecipientID + "|" + job.ServerMsgID
+    	if c.dedupe.SeenOrSet(dedupeKey) {
+    		return nil
+    	}
+    	if !online {
+    		_ = c.mail.EnqueueForOffline(ctx, job.RecipientID, job.ConversationID, job.ServerMsgID)
+    		return c.push.Notify(ctx, job.RecipientID, job.ConversationID, job.ServerMsgID)
+    	}
+    	// else: WebSocket path already attempted by gateway; this branch is queue replay safe
+    	return nil
+    }
+    
+    type OutboundJob struct {
+    	RecipientID      string
+    	ConversationID   string
+    	ServerMsgID      string
+    }
+    
+    type PushNotifier interface {
+    	Notify(ctx context.Context, userID, conversationID, serverMsgID string) error
+    }
+    ```
+
 
 ---
 
@@ -1505,153 +1517,156 @@ flowchart LR
 
 **Collapse keys:** per-conversation (`user:{uid}:conv:{cid}`) for “N new messages in #channel”; per-sender for DM bursts; **no collapse** for security alerts.
 
-#### Java: push batching coordinator
+#### Push batching and delivery
 
-```java
-package com.example.chat.push;
+=== "Python"
 
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.*;
-
-public class PushBatchingCoordinator {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-    private final Map<String, Accum> pending = new ConcurrentHashMap<>();
-    private final FcmClient fcm;
-    private final Duration quiet = Duration.ofSeconds(3);
-
-    public void onMessageEvent(String userId, String conversationId, String preview) {
-        String ck = userId + ":" + conversationId;
-        pending.compute(ck, (k, cur) -> {
-            if (cur == null) {
-                scheduler.schedule(() -> flush(ck), quiet.toMillis(), TimeUnit.MILLISECONDS);
-                return new Accum(userId, conversationId, preview, 1);
-            }
-            cur.count++;
-            cur.lastPreview = preview;
-            return cur;
-        });
-    }
-
-    private void flush(String ck) {
-        Accum a = pending.remove(ck);
-        if (a == null) return;
-        String body = a.count == 1 ? a.lastPreview : a.count + " new messages";
-        fcm.sendDataMessage(a.userId, Map.of("collapse_key", ck, "conversation_id", a.conversationId, "body", body));
-    }
-
-    private static final class Accum {
-        final String userId, conversationId;
-        String lastPreview;
-        int count;
-        Accum(String u, String c, String p, int count) { userId = u; conversationId = c; lastPreview = p; this.count = count; }
-    }
-
-    public interface FcmClient { void sendDataMessage(String userId, Map<String, String> data); }
-}
-```
-
-#### Go: FCM/APNs notifier with rate limiting
-
-```go
-package push
-
-import (
-	"context"
-	"fmt"
-
-	"golang.org/x/time/rate"
-)
-
-type Notifier struct {
-	limiter *rate.Limiter
-	sender  Sender
-}
-
-func NewNotifier(rps float64, sender Sender) *Notifier {
-	return &Notifier{limiter: rate.NewLimiter(rate.Limit(rps), int(rps*2)), sender: sender}
-}
-
-func (n *Notifier) Notify(ctx context.Context, userID, conversationID, serverMsgID string) error {
-	if err := n.limiter.Wait(ctx); err != nil {
-		return err
-	}
-	return n.sender.Send(ctx, Payload{
-		UserID:       userID,
-		CollapseKey: fmt.Sprintf("%s:%s", userID, conversationID),
-		Conversation: conversationID,
-		MessageID:  serverMsgID,
-		Title:      "New message",
-		Body:       "You have a new message",
-	})
-}
-
-type Payload struct {
-	UserID, CollapseKey, Conversation, MessageID, Title, Body string
-}
-
-type Sender interface {
-	Send(ctx context.Context, p Payload) error
-}
-```
-
-#### Python: async push with collapse and per-user budget
-
-```python
-from __future__ import annotations
-
-import asyncio
-import time
-from dataclasses import dataclass
-from typing import Dict, Protocol
-
-
-@dataclass
-class PushPayload:
-    user_id: str
-    conversation_id: str
-    server_msg_id: str
-    collapse_key: str
-    title: str
-    body: str
-
-
-class PushSender(Protocol):
-    async def send(self, payload: PushPayload) -> None: ...
-
-
-class CollapsingBatcher:
-    """Coalesces multiple events per collapse_key within quiet_window seconds."""
-
-    def __init__(self, sender: PushSender, quiet_window: float = 3.0) -> None:
-        self._sender = sender
-        self._quiet = quiet_window
-        self._tasks: Dict[str, asyncio.Task[None]] = {}
-        self._pending: Dict[str, PushPayload] = {}
-        self._counts: Dict[str, int] = {}
-        self._lock = asyncio.Lock()
-
-    async def submit(self, payload: PushPayload) -> None:
-        key = payload.collapse_key
-        async with self._lock:
-            self._pending[key] = payload
-            self._counts[key] = self._counts.get(key, 0) + 1
-            if key in self._tasks:
+    ```python
+    from __future__ import annotations
+    
+    import asyncio
+    import time
+    from dataclasses import dataclass
+    from typing import Dict, Protocol
+    
+    
+    @dataclass
+    class PushPayload:
+        user_id: str
+        conversation_id: str
+        server_msg_id: str
+        collapse_key: str
+        title: str
+        body: str
+    
+    
+    class PushSender(Protocol):
+        async def send(self, payload: PushPayload) -> None: ...
+    
+    
+    class CollapsingBatcher:
+        """Coalesces multiple events per collapse_key within quiet_window seconds."""
+    
+        def __init__(self, sender: PushSender, quiet_window: float = 3.0) -> None:
+            self._sender = sender
+            self._quiet = quiet_window
+            self._tasks: Dict[str, asyncio.Task[None]] = {}
+            self._pending: Dict[str, PushPayload] = {}
+            self._counts: Dict[str, int] = {}
+            self._lock = asyncio.Lock()
+    
+        async def submit(self, payload: PushPayload) -> None:
+            key = payload.collapse_key
+            async with self._lock:
+                self._pending[key] = payload
+                self._counts[key] = self._counts.get(key, 0) + 1
+                if key in self._tasks:
+                    return
+                self._tasks[key] = asyncio.create_task(self._flush_after(key))
+    
+        async def _flush_after(self, key: str) -> None:
+            await asyncio.sleep(self._quiet)
+            async with self._lock:
+                payload = self._pending.pop(key, None)
+                count = self._counts.pop(key, 0)
+                self._tasks.pop(key, None)
+            if payload is None:
                 return
-            self._tasks[key] = asyncio.create_task(self._flush_after(key))
+            if count > 1:
+                payload.body = f"{count} new messages"
+            await self._sender.send(payload)
+    ```
 
-    async def _flush_after(self, key: str) -> None:
-        await asyncio.sleep(self._quiet)
-        async with self._lock:
-            payload = self._pending.pop(key, None)
-            count = self._counts.pop(key, 0)
-            self._tasks.pop(key, None)
-        if payload is None:
-            return
-        if count > 1:
-            payload.body = f"{count} new messages"
-        await self._sender.send(payload)
-```
+=== "Java"
+
+    ```java
+    package com.example.chat.push;
+    
+    import java.time.Duration;
+    import java.util.Map;
+    import java.util.concurrent.*;
+    
+    public class PushBatchingCoordinator {
+        private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+        private final Map<String, Accum> pending = new ConcurrentHashMap<>();
+        private final FcmClient fcm;
+        private final Duration quiet = Duration.ofSeconds(3);
+    
+        public void onMessageEvent(String userId, String conversationId, String preview) {
+            String ck = userId + ":" + conversationId;
+            pending.compute(ck, (k, cur) -> {
+                if (cur == null) {
+                    scheduler.schedule(() -> flush(ck), quiet.toMillis(), TimeUnit.MILLISECONDS);
+                    return new Accum(userId, conversationId, preview, 1);
+                }
+                cur.count++;
+                cur.lastPreview = preview;
+                return cur;
+            });
+        }
+    
+        private void flush(String ck) {
+            Accum a = pending.remove(ck);
+            if (a == null) return;
+            String body = a.count == 1 ? a.lastPreview : a.count + " new messages";
+            fcm.sendDataMessage(a.userId, Map.of("collapse_key", ck, "conversation_id", a.conversationId, "body", body));
+        }
+    
+        private static final class Accum {
+            final String userId, conversationId;
+            String lastPreview;
+            int count;
+            Accum(String u, String c, String p, int count) { userId = u; conversationId = c; lastPreview = p; this.count = count; }
+        }
+    
+        public interface FcmClient { void sendDataMessage(String userId, Map<String, String> data); }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package push
+    
+    import (
+    	"context"
+    	"fmt"
+    
+    	"golang.org/x/time/rate"
+    )
+    
+    type Notifier struct {
+    	limiter *rate.Limiter
+    	sender  Sender
+    }
+    
+    func NewNotifier(rps float64, sender Sender) *Notifier {
+    	return &Notifier{limiter: rate.NewLimiter(rate.Limit(rps), int(rps*2)), sender: sender}
+    }
+    
+    func (n *Notifier) Notify(ctx context.Context, userID, conversationID, serverMsgID string) error {
+    	if err := n.limiter.Wait(ctx); err != nil {
+    		return err
+    	}
+    	return n.sender.Send(ctx, Payload{
+    		UserID:       userID,
+    		CollapseKey: fmt.Sprintf("%s:%s", userID, conversationID),
+    		Conversation: conversationID,
+    		MessageID:  serverMsgID,
+    		Title:      "New message",
+    		Body:       "You have a new message",
+    	})
+    }
+    
+    type Payload struct {
+    	UserID, CollapseKey, Conversation, MessageID, Title, Body string
+    }
+    
+    type Sender interface {
+    	Send(ctx context.Context, p Payload) error
+    }
+    ```
+
 
 !!! tip
     Add a **per-user push budget** (token bucket) in front of `CollapsingBatcher` so viral channels do not drain mobile batteries.

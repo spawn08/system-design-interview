@@ -345,170 +345,173 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
 | **jemalloc/tcmalloc** | Good general-purpose | Still tune slab classes for tiny objects |
 | **Arena per thread / epoch** | Fast bump alloc | Complex lifecycle |
 
-#### Java: `ConcurrentHashMap`-based cache
+=== "Python"
 
-```java
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
+    ```python
+    # LRU with OrderedDict
+    from __future__ import annotations
 
-/** Illustrative thread-safe string cache with TTL checked on read (lazy expiry). */
-public final class ConcurrentStringCache {
-    private static final class Entry {
-        final byte[] value;
-        final long expireAtNanos; // Long.MAX_VALUE if no expiry
+    from collections import OrderedDict
+    from threading import RLock
+    from typing import Optional, Tuple
+    import time
 
-        Entry(byte[] value, long expireAtNanos) {
-            this.value = value;
-            this.expireAtNanos = expireAtNanos;
+
+    class LRUCache:
+        """O(1) LRU via OrderedDict (Python 3.7+ dict is ordered; we keep explicit LRU API)."""
+
+        def __init__(self, capacity: int) -> None:
+            self._cap = capacity
+            self._data: OrderedDict[str, Tuple[float, bytes]] = OrderedDict()
+            self._lock = RLock()
+
+        def get(self, key: str) -> Optional[bytes]:
+            with self._lock:
+                if key not in self._data:
+                    return None
+                exp, val = self._data[key]
+                if exp and time.time() > exp:
+                    del self._data[key]
+                    return None
+                self._data.move_to_end(key)
+                return val
+
+        def set(self, key: str, value: bytes, ttl_sec: Optional[float] = None) -> None:
+            exp = time.time() + ttl_sec if ttl_sec else 0.0
+            with self._lock:
+                if key in self._data:
+                    del self._data[key]
+                self._data[key] = (exp, value)
+                self._data.move_to_end(key)
+                while len(self._data) > self._cap:
+                    self._data.popitem(last=False)
+    ```
+
+=== "Java"
+
+    ```java
+    // ConcurrentHashMap-based cache
+    import java.util.concurrent.ConcurrentHashMap;
+    import java.util.Optional;
+    import java.util.concurrent.atomic.AtomicLong;
+
+    /** Illustrative thread-safe string cache with TTL checked on read (lazy expiry). */
+    public final class ConcurrentStringCache {
+        private static final class Entry {
+            final byte[] value;
+            final long expireAtNanos; // Long.MAX_VALUE if no expiry
+
+            Entry(byte[] value, long expireAtNanos) {
+                this.value = value;
+                this.expireAtNanos = expireAtNanos;
+            }
+
+            boolean expired() {
+                return expireAtNanos != Long.MAX_VALUE
+                        && System.nanoTime() > expireAtNanos;
+            }
         }
 
-        boolean expired() {
-            return expireAtNanos != Long.MAX_VALUE
-                    && System.nanoTime() > expireAtNanos;
+        private final ConcurrentHashMap<String, Entry> map = new ConcurrentHashMap<>();
+        private final AtomicLong approximateBytes = new AtomicLong(0L);
+
+        public Optional<byte[]> get(String key) {
+            Entry e = map.get(key);
+            if (e == null) return Optional.empty();
+            if (e.expired()) {
+                map.remove(key, e);
+                return Optional.empty();
+            }
+            return Optional.of(e.value);
+        }
+
+        public void set(String key, byte[] value, Optional<Long> ttlMillis) {
+            long exp = ttlMillis
+                    .map(ms -> System.nanoTime() + ms * 1_000_000L)
+                    .orElse(Long.MAX_VALUE);
+            Entry neo = new Entry(value, exp);
+            Entry old = map.put(key, neo);
+            long delta = value.length - (old == null ? 0 : old.value.length);
+            approximateBytes.addAndGet(delta);
+        }
+
+        public void delete(String key) {
+            Entry old = map.remove(key);
+            if (old != null) {
+                approximateBytes.addAndGet(-old.value.length);
+            }
         }
     }
+    ```
 
-    private final ConcurrentHashMap<String, Entry> map = new ConcurrentHashMap<>();
-    private final AtomicLong approximateBytes = new AtomicLong(0L);
+=== "Go"
 
-    public Optional<byte[]> get(String key) {
-        Entry e = map.get(key);
-        if (e == null) return Optional.empty();
-        if (e.expired()) {
-            map.remove(key, e);
-            return Optional.empty();
-        }
-        return Optional.of(e.value);
+    ```go
+    // Sharded maps with RWMutex
+    package cache
+
+    import (
+    	"hash/fnv"
+    	"sync"
+    	"time"
+    )
+
+    type entry struct {
+    	val     []byte
+    	deadline time.Time // zero means no TTL
     }
 
-    public void set(String key, byte[] value, Optional<Long> ttlMillis) {
-        long exp = ttlMillis
-                .map(ms -> System.nanoTime() + ms * 1_000_000L)
-                .orElse(Long.MAX_VALUE);
-        Entry neo = new Entry(value, exp);
-        Entry old = map.put(key, neo);
-        long delta = value.length - (old == null ? 0 : old.value.length);
-        approximateBytes.addAndGet(delta);
+    type shard struct {
+    	mu sync.RWMutex
+    	m  map[string]entry
     }
 
-    public void delete(String key) {
-        Entry old = map.remove(key);
-        if (old != null) {
-            approximateBytes.addAndGet(-old.value.length);
-        }
+    type ShardedCache struct {
+    	shards []*shard
     }
-}
-```
 
-#### Go: sharded maps with `RWMutex`
+    func NewShardedCache(shardCount int) *ShardedCache {
+    	s := make([]*shard, shardCount)
+    	for i := range s {
+    		s[i] = &shard{m: make(map[string]entry)}
+    	}
+    	return &ShardedCache{shards: s}
+    }
 
-```go
-package cache
+    func (c *ShardedCache) shardFor(key string) *shard {
+    	h := fnv.New32a()
+    	_, _ = h.Write([]byte(key))
+    	return c.shards[h.Sum32()%uint32(len(c.shards))]
+    }
 
-import (
-	"hash/fnv"
-	"sync"
-	"time"
-)
+    func (c *ShardedCache) Get(key string) ([]byte, bool) {
+    	sh := c.shardFor(key)
+    	sh.mu.RLock()
+    	e, ok := sh.m[key]
+    	sh.mu.RUnlock()
+    	if !ok {
+    		return nil, false
+    	}
+    	if !e.deadline.IsZero() && time.Now().After(e.deadline) {
+    		sh.mu.Lock()
+    		delete(sh.m, key) // lazy expire
+    		sh.mu.Unlock()
+    		return nil, false
+    	}
+    	return e.val, true
+    }
 
-type entry struct {
-	val     []byte
-	deadline time.Time // zero means no TTL
-}
-
-type shard struct {
-	mu sync.RWMutex
-	m  map[string]entry
-}
-
-type ShardedCache struct {
-	shards []*shard
-}
-
-func NewShardedCache(shardCount int) *ShardedCache {
-	s := make([]*shard, shardCount)
-	for i := range s {
-		s[i] = &shard{m: make(map[string]entry)}
-	}
-	return &ShardedCache{shards: s}
-}
-
-func (c *ShardedCache) shardFor(key string) *shard {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(key))
-	return c.shards[h.Sum32()%uint32(len(c.shards))]
-}
-
-func (c *ShardedCache) Get(key string) ([]byte, bool) {
-	sh := c.shardFor(key)
-	sh.mu.RLock()
-	e, ok := sh.m[key]
-	sh.mu.RUnlock()
-	if !ok {
-		return nil, false
-	}
-	if !e.deadline.IsZero() && time.Now().After(e.deadline) {
-		sh.mu.Lock()
-		delete(sh.m, key) // lazy expire
-		sh.mu.Unlock()
-		return nil, false
-	}
-	return e.val, true
-}
-
-func (c *ShardedCache) Set(key string, val []byte, ttl time.Duration) {
-	sh := c.shardFor(key)
-	sh.mu.Lock()
-	defer sh.mu.Unlock()
-	e := entry{val: val}
-	if ttl > 0 {
-		e.deadline = time.Now().Add(ttl)
-	}
-	sh.m[key] = e
-}
-```
-
-#### Python: LRU with `OrderedDict`
-
-```python
-from __future__ import annotations
-
-from collections import OrderedDict
-from threading import RLock
-from typing import Optional, Tuple
-import time
-
-
-class LRUCache:
-    """O(1) LRU via OrderedDict (Python 3.7+ dict is ordered; we keep explicit LRU API)."""
-
-    def __init__(self, capacity: int) -> None:
-        self._cap = capacity
-        self._data: OrderedDict[str, Tuple[float, bytes]] = OrderedDict()
-        self._lock = RLock()
-
-    def get(self, key: str) -> Optional[bytes]:
-        with self._lock:
-            if key not in self._data:
-                return None
-            exp, val = self._data[key]
-            if exp and time.time() > exp:
-                del self._data[key]
-                return None
-            self._data.move_to_end(key)
-            return val
-
-    def set(self, key: str, value: bytes, ttl_sec: Optional[float] = None) -> None:
-        exp = time.time() + ttl_sec if ttl_sec else 0.0
-        with self._lock:
-            if key in self._data:
-                del self._data[key]
-            self._data[key] = (exp, value)
-            self._data.move_to_end(key)
-            while len(self._data) > self._cap:
-                self._data.popitem(last=False)
-```
+    func (c *ShardedCache) Set(key string, val []byte, ttl time.Duration) {
+    	sh := c.shardFor(key)
+    	sh.mu.Lock()
+    	defer sh.mu.Unlock()
+    	e := entry{val: val}
+    	if ttl > 0 {
+    		e.deadline = time.Now().Add(ttl)
+    	}
+    	sh.m[key] = e
+    }
+    ```
 
 !!! tip
     For **Java**, `ConcurrentHashMap` reduces lock contention; for **Go**, **shard count** (e.g. 256–4096) is a common tuning knob. **Python** GIL makes CPU-bound eviction less parallel — for CPython, extension modules or multiprocessing may be needed at extreme scale.
@@ -531,183 +534,186 @@ class LRUCache:
 | **Lazy** | Check expiry on read; periodic sampling | CPU-efficient; stale keys occupy memory |
 | **Active** | Background thread walks structure | More CPU; tighter memory |
 
-#### Java: LRU cache O(1)
+=== "Python"
 
-```java
-import java.util.HashMap;
-import java.util.Map;
+    ```python
+    # TTL-based eviction helper
+    import heapq
+    import time
+    from dataclasses import dataclass, field
+    from typing import Dict, List, Optional
 
-public class LRUCache {
-    static class Node {
-        String key;
-        String val;
-        Node prev, next;
-        Node(String k, String v) { key = k; val = v; }
-    }
 
-    private final Map<String, Node> index = new HashMap<>();
-    private final Node head = new Node("", "");
-    private final Node tail = new Node("", "");
-    private final int capacity;
+    @dataclass(order=True)
+    class Expiring:
+        deadline: float
+        key: str = field(compare=False)
 
-    public LRUCache(int capacity) {
-        this.capacity = capacity;
-        head.next = tail;
-        tail.prev = head;
-    }
 
-    public String get(String key) {
-        Node n = index.get(key);
-        if (n == null) return null;
-        moveToHead(n);
-        return n.val;
-    }
+    class TTLIndex:
+        """Min-heap of keys by deadline — illustrative active expiry scanner."""
 
-    public void put(String key, String val) {
-        Node n = index.get(key);
-        if (n != null) {
-            n.val = val;
+        def __init__(self) -> None:
+            self._heap: List[Expiring] = []
+            self._entry: Dict[str, bytes] = {}
+
+        def set(self, key: str, val: bytes, ttl_sec: float) -> None:
+            deadline = time.time() + ttl_sec
+            heapq.heappush(self._heap, Expiring(deadline, key))
+            self._entry[key] = val
+
+        def purge_expired(self) -> int:
+            now = time.time()
+            removed = 0
+            while self._heap and self._heap[0].deadline <= now:
+                item = heapq.heappop(self._heap)
+                if item.key in self._entry:  # stale heap entries possible without decrease-key
+                    del self._entry[item.key]
+                    removed += 1
+            return removed
+    ```
+
+=== "Java"
+
+    ```java
+    // LRU cache O(1)
+    import java.util.HashMap;
+    import java.util.Map;
+
+    public class LRUCache {
+        static class Node {
+            String key;
+            String val;
+            Node prev, next;
+            Node(String k, String v) { key = k; val = v; }
+        }
+
+        private final Map<String, Node> index = new HashMap<>();
+        private final Node head = new Node("", "");
+        private final Node tail = new Node("", "");
+        private final int capacity;
+
+        public LRUCache(int capacity) {
+            this.capacity = capacity;
+            head.next = tail;
+            tail.prev = head;
+        }
+
+        public String get(String key) {
+            Node n = index.get(key);
+            if (n == null) return null;
             moveToHead(n);
-            return;
+            return n.val;
         }
-        if (index.size() == capacity) {
-            Node evict = removeTail();
-            index.remove(evict.key);
+
+        public void put(String key, String val) {
+            Node n = index.get(key);
+            if (n != null) {
+                n.val = val;
+                moveToHead(n);
+                return;
+            }
+            if (index.size() == capacity) {
+                Node evict = removeTail();
+                index.remove(evict.key);
+            }
+            Node neo = new Node(key, val);
+            index.put(key, neo);
+            addToHead(neo);
         }
-        Node neo = new Node(key, val);
-        index.put(key, neo);
-        addToHead(neo);
+
+        private void addToHead(Node n) {
+            n.prev = head;
+            n.next = head.next;
+            head.next.prev = n;
+            head.next = n;
+        }
+
+        private void remove(Node n) {
+            n.prev.next = n.next;
+            n.next.prev = n.prev;
+        }
+
+        private void moveToHead(Node n) {
+            remove(n);
+            addToHead(n);
+        }
+
+        private Node removeTail() {
+            Node last = tail.prev;
+            remove(last);
+            return last;
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    // LFU (simplified frequency buckets)
+    package eviction
+
+    import "container/list"
+
+    type lfuItem struct {
+    	key   string
+    	freq  int
+    	elem  *list.Element // element in freqList[freq]
     }
 
-    private void addToHead(Node n) {
-        n.prev = head;
-        n.next = head.next;
-        head.next.prev = n;
-        head.next = n;
+    // LFUCache uses a map + per-frequency doubly linked lists for O(1) typical ops.
+    type LFUCache struct {
+    	cap   int
+    	size  int
+    	min   int
+    	nodes map[string]*lfuItem
+    	freqs map[int]*list.List
     }
 
-    private void remove(Node n) {
-        n.prev.next = n.next;
-        n.next.prev = n.prev;
+    func NewLFU(capacity int) *LFUCache {
+    	return &LFUCache{
+    		cap:   capacity,
+    		nodes: make(map[string]*lfuItem),
+    		freqs: make(map[int]*list.List),
+    	}
     }
 
-    private void moveToHead(Node n) {
-        remove(n);
-        addToHead(n);
+    func (c *LFUCache) Get(key string) (string, bool) {
+    	n, ok := c.nodes[key]
+    	if !ok {
+    		return "", false
+    	}
+    	c.increment(n)
+    	return n.key, true // value stored separately in real impl
     }
 
-    private Node removeTail() {
-        Node last = tail.prev;
-        remove(last);
-        return last;
+    func (c *LFUCache) increment(it *lfuItem) {
+    	// remove from old freq list
+    	oldList := c.freqs[it.freq]
+    	oldList.Remove(it.elem)
+    	if oldList.Len() == 0 {
+    		delete(c.freqs, it.freq)
+    		if c.min == it.freq {
+    			c.min++
+    		}
+    	}
+    	it.freq++
+    	newList, ok := c.freqs[it.freq]
+    	if !ok {
+    		newList = list.New()
+    		c.freqs[it.freq] = newList
+    	}
+    	it.elem = newList.PushFront(it.key)
     }
-}
-```
 
-#### Go: LFU (simplified frequency buckets)
-
-```go
-package eviction
-
-import "container/list"
-
-type lfuItem struct {
-	key   string
-	freq  int
-	elem  *list.Element // element in freqList[freq]
-}
-
-// LFUCache uses a map + per-frequency doubly linked lists for O(1) typical ops.
-type LFUCache struct {
-	cap   int
-	size  int
-	min   int
-	nodes map[string]*lfuItem
-	freqs map[int]*list.List
-}
-
-func NewLFU(capacity int) *LFUCache {
-	return &LFUCache{
-		cap:   capacity,
-		nodes: make(map[string]*lfuItem),
-		freqs: make(map[int]*list.List),
-	}
-}
-
-func (c *LFUCache) Get(key string) (string, bool) {
-	n, ok := c.nodes[key]
-	if !ok {
-		return "", false
-	}
-	c.increment(n)
-	return n.key, true // value stored separately in real impl
-}
-
-func (c *LFUCache) increment(it *lfuItem) {
-	// remove from old freq list
-	oldList := c.freqs[it.freq]
-	oldList.Remove(it.elem)
-	if oldList.Len() == 0 {
-		delete(c.freqs, it.freq)
-		if c.min == it.freq {
-			c.min++
-		}
-	}
-	it.freq++
-	newList, ok := c.freqs[it.freq]
-	if !ok {
-		newList = list.New()
-		c.freqs[it.freq] = newList
-	}
-	it.elem = newList.PushFront(it.key)
-}
-
-func (c *LFUCache) evict() {
-	list := c.freqs[c.min]
-	back := list.Back()
-	list.Remove(back)
-	delete(c.nodes, back.Value.(string))
-	c.size--
-}
-```
-
-#### Python: TTL-based eviction helper
-
-```python
-import heapq
-import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
-
-
-@dataclass(order=True)
-class Expiring:
-    deadline: float
-    key: str = field(compare=False)
-
-
-class TTLIndex:
-    """Min-heap of keys by deadline — illustrative active expiry scanner."""
-
-    def __init__(self) -> None:
-        self._heap: List[Expiring] = []
-        self._entry: Dict[str, bytes] = {}
-
-    def set(self, key: str, val: bytes, ttl_sec: float) -> None:
-        deadline = time.time() + ttl_sec
-        heapq.heappush(self._heap, Expiring(deadline, key))
-        self._entry[key] = val
-
-    def purge_expired(self) -> int:
-        now = time.time()
-        removed = 0
-        while self._heap and self._heap[0].deadline <= now:
-            item = heapq.heappop(self._heap)
-            if item.key in self._entry:  # stale heap entries possible without decrease-key
-                del self._entry[item.key]
-                removed += 1
-        return removed
-```
+    func (c *LFUCache) evict() {
+    	list := c.freqs[c.min]
+    	back := list.Back()
+    	list.Remove(back)
+    	delete(c.nodes, back.Value.(string))
+    	c.size--
+    }
+    ```
 
 !!! note
     Production LFU often uses **W-TinyLFU** (Redis 4+ optional eviction) to handle **frequency burst** vs **LRU recency** — mention by name for bonus points.
@@ -739,98 +745,100 @@ flowchart LR
   V4 -.-> N2
 ```
 
-#### Go: consistent hash ring (Ketama-style sketch)
+=== "Java"
 
-```go
-package shard
+    ```java
+    // Slot-based routing (Redis Cluster–style)
+    public final class SlotRouter {
+        public static final int SLOT_COUNT = 16_384;
 
-import (
-	"crypto/sha1"
-	"hash"
-	"sort"
-	"strconv"
-)
+        private final String[] slotToNode; // simplified: slot -> node id
 
-type Ring struct {
-	hash   hash.Hash
-	replicas int
-	keys     []int
-	hashMap  map[int]string
-}
-
-func NewRing(replicas int) *Ring {
-	return &Ring{
-		hash:     sha1.New(),
-		replicas: replicas,
-		hashMap:  make(map[int]string),
-	}
-}
-
-func (r *Ring) Add(nodes ...string) {
-	for _, node := range nodes {
-		for i := 0; i < r.replicas; i++ {
-			h := r.hashKey(strconv.Itoa(i) + node)
-			r.keys = append(r.keys, h)
-			r.hashMap[h] = node
-		}
-	}
-	sort.Ints(r.keys)
-}
-
-func (r *Ring) hashKey(key string) int {
-	r.hash.Reset()
-	r.hash.Write([]byte(key))
-	bs := r.hash.Sum(nil)
-	return int(bs[3]) | int(bs[2])<<8 | int(bs[1])<<16 | int(bs[0])<<24
-}
-
-func (r *Ring) Get(key string) string {
-	if len(r.keys) == 0 {
-		return ""
-	}
-	h := r.hashKey(key)
-	idx := sort.Search(len(r.keys), func(i int) bool { return r.keys[i] >= h })
-	if idx == len(r.keys) {
-		idx = 0
-	}
-	return r.hashMap[r.keys[idx]]
-}
-```
-
-#### Java: slot-based routing (Redis Cluster–style)
-
-```java
-public final class SlotRouter {
-    public static final int SLOT_COUNT = 16_384;
-
-    private final String[] slotToNode; // simplified: slot -> node id
-
-    public SlotRouter(String[] slotToNode) {
-        if (slotToNode.length != SLOT_COUNT) {
-            throw new IllegalArgumentException("expected " + SLOT_COUNT + " slots");
+        public SlotRouter(String[] slotToNode) {
+            if (slotToNode.length != SLOT_COUNT) {
+                throw new IllegalArgumentException("expected " + SLOT_COUNT + " slots");
+            }
+            this.slotToNode = slotToNode;
         }
-        this.slotToNode = slotToNode;
-    }
 
-    public static int crc16slot(byte[] key) {
-        // Interview: cite Redis CRC16 + mod 16384; implementation omitted for brevity
-        return Math.floorMod(crc16(key), SLOT_COUNT);
-    }
-
-    public String route(byte[] key) {
-        int slot = crc16slot(key);
-        return slotToNode[slot];
-    }
-
-    private static int crc16(byte[] bs) {
-        int crc = 0;
-        for (byte b : bs) {
-            crc = ((crc << 8) ^ (b & 0xFF)) % 65536;
+        public static int crc16slot(byte[] key) {
+            // Interview: cite Redis CRC16 + mod 16384; implementation omitted for brevity
+            return Math.floorMod(crc16(key), SLOT_COUNT);
         }
-        return crc;
+
+        public String route(byte[] key) {
+            int slot = crc16slot(key);
+            return slotToNode[slot];
+        }
+
+        private static int crc16(byte[] bs) {
+            int crc = 0;
+            for (byte b : bs) {
+                crc = ((crc << 8) ^ (b & 0xFF)) % 65536;
+            }
+            return crc;
+        }
     }
-}
-```
+    ```
+
+=== "Go"
+
+    ```go
+    // Consistent hash ring (Ketama-style sketch)
+    package shard
+
+    import (
+    	"crypto/sha1"
+    	"hash"
+    	"sort"
+    	"strconv"
+    )
+
+    type Ring struct {
+    	hash   hash.Hash
+    	replicas int
+    	keys     []int
+    	hashMap  map[int]string
+    }
+
+    func NewRing(replicas int) *Ring {
+    	return &Ring{
+    		hash:     sha1.New(),
+    		replicas: replicas,
+    		hashMap:  make(map[int]string),
+    	}
+    }
+
+    func (r *Ring) Add(nodes ...string) {
+    	for _, node := range nodes {
+    		for i := 0; i < r.replicas; i++ {
+    			h := r.hashKey(strconv.Itoa(i) + node)
+    			r.keys = append(r.keys, h)
+    			r.hashMap[h] = node
+    		}
+    	}
+    	sort.Ints(r.keys)
+    }
+
+    func (r *Ring) hashKey(key string) int {
+    	r.hash.Reset()
+    	r.hash.Write([]byte(key))
+    	bs := r.hash.Sum(nil)
+    	return int(bs[3]) | int(bs[2])<<8 | int(bs[1])<<16 | int(bs[0])<<24
+    }
+
+    func (r *Ring) Get(key string) string {
+    	if len(r.keys) == 0 {
+    		return ""
+    	}
+    	h := r.hashKey(key)
+    	idx := sort.Search(len(r.keys), func(i int) bool { return r.keys[i] >= h })
+    	if idx == len(r.keys) {
+    		idx = 0
+    	}
+    	return r.hashMap[r.keys[idx]]
+    }
+    ```
 
 !!! warning
     **Rebalancing:** Moving slots or ring ranges causes **migration windows**; clients must handle **MOVED/ASK** redirects (Redis) or **dual-read** strategies during transitions.
@@ -870,37 +878,38 @@ flowchart TB
   C -->|reads optional| F1
 ```
 
-#### Java: illustrative replication manager
+=== "Java"
 
-```java
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+    ```java
+    // Illustrative replication manager
+    import java.util.concurrent.BlockingQueue;
+    import java.util.concurrent.LinkedBlockingQueue;
 
-public class ReplicationManager {
-    public record Command(String op, String key, byte[] value) {}
+    public class ReplicationManager {
+        public record Command(String op, String key, byte[] value) {}
 
-    private final BlockingQueue<Command> outbound = new LinkedBlockingQueue<>();
+        private final BlockingQueue<Command> outbound = new LinkedBlockingQueue<>();
 
-    public void replicate(Command cmd) throws InterruptedException {
-        // Leader: append to local WAL, then async fan-out
-        outbound.put(cmd);
-    }
+        public void replicate(Command cmd) throws InterruptedException {
+            // Leader: append to local WAL, then async fan-out
+            outbound.put(cmd);
+        }
 
-    public void followerLoop(Runnable applier) {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Command c = outbound.take();
-                    applier.run(); // apply replicated op
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
+        public void followerLoop(Runnable applier) {
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        Command c = outbound.take();
+                        applier.run(); // apply replicated op
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
-            }
-        }, "follower").start();
+            }, "follower").start();
+        }
     }
-}
-```
+    ```
 
 !!! tip
     Mention **partial resync** (PSYNC in Redis) vs **full sync** after long downtime — interviewers like operational realism.
@@ -916,83 +925,86 @@ public class ReplicationManager {
 | **Write-through** | Strong read-after-write | DB and cache aligned | Higher write latency |
 | **Write-behind** | Write-heavy bursts | Fast writes | Data loss window; complexity |
 
-#### Java: cache-aside (illustrative)
+=== "Python"
 
-```java
-public class CacheAsideUserRepo {
-    private final ConcurrentStringCache cache;
-    private final UserDb db;
+    ```python
+    # Write-behind with queue (simplified)
+    import queue
+    import threading
+    from typing import Callable
 
-    public CacheAsideUserRepo(ConcurrentStringCache cache, UserDb db) {
-        this.cache = cache;
-        this.db = db;
+
+    class WriteBehind:
+        def __init__(self, flush: Callable[[str, bytes], None], workers: int = 2) -> None:
+            self._q: "queue.Queue[tuple[str, bytes]]" = queue.Queue(maxsize=10_000)
+            self._flush = flush
+            for _ in range(workers):
+                threading.Thread(target=self._loop, daemon=True).start()
+
+        def _loop(self) -> None:
+            while True:
+                key, val = self._q.get()
+                self._flush(key, val)
+                self._q.task_done()
+
+        def enqueue(self, key: str, val: bytes) -> None:
+            self._q.put((key, val))
+    ```
+
+=== "Java"
+
+    ```java
+    // Cache-aside (illustrative)
+    public class CacheAsideUserRepo {
+        private final ConcurrentStringCache cache;
+        private final UserDb db;
+
+        public CacheAsideUserRepo(ConcurrentStringCache cache, UserDb db) {
+            this.cache = cache;
+            this.db = db;
+        }
+
+        public byte[] getUser(String id) {
+            return cache.get("user:" + id).orElseGet(() -> {
+                byte[] row = db.loadUser(id);
+                if (row != null) {
+                    cache.set("user:" + id, row, Optional.of(60_000L)); // 60s TTL
+                }
+                return row;
+            });
+        }
+
+        public void updateUser(String id, byte[] row) {
+            db.saveUser(id, row);
+            cache.delete("user:" + id);
+        }
+
+        public interface UserDb {
+            byte[] loadUser(String id);
+            void saveUser(String id, byte[] row);
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    // Write-through sketch
+    type WriteThrough struct {
+    	cache *ShardedCache
+    	db    interface {
+    		Save(key string, val []byte) error
+    	}
     }
 
-    public byte[] getUser(String id) {
-        return cache.get("user:" + id).orElseGet(() -> {
-            byte[] row = db.loadUser(id);
-            if (row != null) {
-                cache.set("user:" + id, row, Optional.of(60_000L)); // 60s TTL
-            }
-            return row;
-        });
+    func (w *WriteThrough) Set(key string, val []byte, ttl time.Duration) error {
+    	if err := w.db.Save(key, val); err != nil {
+    		return err
+    	}
+    	w.cache.Set(key, val, ttl)
+    	return nil
     }
-
-    public void updateUser(String id, byte[] row) {
-        db.saveUser(id, row);
-        cache.delete("user:" + id);
-    }
-
-    public interface UserDb {
-        byte[] loadUser(String id);
-        void saveUser(String id, byte[] row);
-    }
-}
-```
-
-#### Go: write-through sketch
-
-```go
-type WriteThrough struct {
-	cache *ShardedCache
-	db    interface {
-		Save(key string, val []byte) error
-	}
-}
-
-func (w *WriteThrough) Set(key string, val []byte, ttl time.Duration) error {
-	if err := w.db.Save(key, val); err != nil {
-		return err
-	}
-	w.cache.Set(key, val, ttl)
-	return nil
-}
-```
-
-#### Python: write-behind with queue (simplified)
-
-```python
-import queue
-import threading
-from typing import Callable
-
-
-class WriteBehind:
-    def __init__(self, flush: Callable[[str, bytes], None], workers: int = 2) -> None:
-        self._q: "queue.Queue[tuple[str, bytes]]" = queue.Queue(maxsize=10_000)
-        self._flush = flush
-        for _ in range(workers):
-            threading.Thread(target=self._loop, daemon=True).start()
-
-    def _loop(self) -> None:
-        while True:
-            key, val = self._q.get()
-            self._flush(key, val)
-            self._q.task_done()
-
-    def enqueue(self, key: str, val: bytes) -> None:
-        self._q.put((key, val))
-```
+    ```
 
 ---
 
@@ -1003,78 +1015,81 @@ class WriteBehind:
 - **Distributed locks:** **Redlock** (multiple independent Redis instances) is **controversial**; many teams prefer **etcd/Consul** leases or DB advisory locks for **fencing**.
 - **Locking:** Optimistic (version/CAS) vs pessimistic (locks) — trade latency vs conflict rate.
 
-#### Go: lock with lease (single-node demo; not full Redlock)
+=== "Python"
 
-```go
-package distlock
+    ```python
+    # Optimistic versioning
+    from dataclasses import dataclass
+    from typing import Dict, Optional, Tuple
 
-import (
-	"context"
-	"time"
-)
 
-type Locker interface {
-	TryLock(ctx context.Context, key string, ttl time.Duration) (unlock func(), ok bool)
-}
+    @dataclass
+    class VerVal:
+        ver: int
+        data: bytes
 
-// SingleRedisLocker is illustrative; production uses random token + Lua compare-and-del.
-type SingleRedisLocker struct{}
 
-func (SingleRedisLocker) TryLock(ctx context.Context, key string, ttl time.Duration) (func(), bool) {
-	// SET key token NX PX ttl — omitted: connect to Redis
-	return func() {}, true
-}
-```
+    class VersionedStore:
+        def __init__(self) -> None:
+            self._m: Dict[str, VerVal] = {}
 
-#### Java: CAS-style update
+        def cas(self, key: str, expected_ver: int, new_data: bytes) -> bool:
+            cur = self._m.get(key)
+            if cur is None or cur.ver != expected_ver:
+                return False
+            self._m[key] = VerVal(cur.ver + 1, new_data)
+            return True
+    ```
 
-```java
-import java.util.concurrent.atomic.AtomicReference;
+=== "Java"
 
-public class CasValue {
-    private final AtomicReference<Versioned> ref;
+    ```java
+    // CAS-style update
+    import java.util.concurrent.atomic.AtomicReference;
 
-    public CasValue(byte[] initial) {
-        this.ref = new AtomicReference<>(new Versioned(1, initial));
-    }
+    public class CasValue {
+        private final AtomicReference<Versioned> ref;
 
-    public boolean compareAndSet(byte[] expect, byte[] update) {
-        Versioned cur = ref.get();
-        if (!java.util.Arrays.equals(cur.data, expect)) {
-            return false;
+        public CasValue(byte[] initial) {
+            this.ref = new AtomicReference<>(new Versioned(1, initial));
         }
-        Versioned next = new Versioned(cur.version + 1, update);
-        return ref.compareAndSet(cur, next);
+
+        public boolean compareAndSet(byte[] expect, byte[] update) {
+            Versioned cur = ref.get();
+            if (!java.util.Arrays.equals(cur.data, expect)) {
+                return false;
+            }
+            Versioned next = new Versioned(cur.version + 1, update);
+            return ref.compareAndSet(cur, next);
+        }
+
+        private record Versioned(int version, byte[] data) {}
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    // Lock with lease (single-node demo; not full Redlock)
+    package distlock
+
+    import (
+    	"context"
+    	"time"
+    )
+
+    type Locker interface {
+    	TryLock(ctx context.Context, key string, ttl time.Duration) (unlock func(), ok bool)
     }
 
-    private record Versioned(int version, byte[] data) {}
-}
-```
+    // SingleRedisLocker is illustrative; production uses random token + Lua compare-and-del.
+    type SingleRedisLocker struct{}
 
-#### Python: optimistic versioning
-
-```python
-from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
-
-
-@dataclass
-class VerVal:
-    ver: int
-    data: bytes
-
-
-class VersionedStore:
-    def __init__(self) -> None:
-        self._m: Dict[str, VerVal] = {}
-
-    def cas(self, key: str, expected_ver: int, new_data: bytes) -> bool:
-        cur = self._m.get(key)
-        if cur is None or cur.ver != expected_ver:
-            return False
-        self._m[key] = VerVal(cur.ver + 1, new_data)
-        return True
-```
+    func (SingleRedisLocker) TryLock(ctx context.Context, key string, ttl time.Duration) (func(), bool) {
+    	// SET key token NX PX ttl — omitted: connect to Redis
+    	return func() {}, true
+    }
+    ```
 
 ---
 
@@ -1102,70 +1117,72 @@ class VersionedStore:
 | **Client-side cache** | Fewer network hops | Stale data; invalidation story |
 | **Compression** | Less bandwidth | CPU cost; only for large values |
 
-#### Java: connection pool (Hikari-style naming only; illustrative DataSource)
+=== "Python"
 
-```java
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayDeque;
-import java.util.Deque;
+    ```python
+    # Pipeline-style batching (conceptual)
+    from typing import Iterable, List, Tuple, Protocol
 
-public class SimplePool implements AutoCloseable {
-    private final Deque<Connection> pool = new ArrayDeque<>();
-    private final String url;
-    private final int max;
 
-    public SimplePool(String url, int max) {
-        this.url = url;
-        this.max = max;
-    }
+    class RedisLike(Protocol):
+        def get(self, key: str) -> bytes | None: ...
+        def set(self, key: str, val: bytes) -> None: ...
 
-    public synchronized Connection borrow() throws SQLException {
-        if (!pool.isEmpty()) {
-            return pool.pollFirst();
+
+    def pipeline_get(client: RedisLike, keys: Iterable[str]) -> List[bytes | None]:
+        # Real: redis.pipeline(); here: sequential illustration
+        return [client.get(k) for k in keys]
+
+
+    def pipeline_set(client: RedisLike, pairs: List[Tuple[str, bytes]]) -> None:
+        for k, v in pairs:
+            client.set(k, v)
+    ```
+
+=== "Java"
+
+    ```java
+    // Connection pool (Hikari-style naming only; illustrative DataSource)
+    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.SQLException;
+    import java.util.ArrayDeque;
+    import java.util.Deque;
+
+    public class SimplePool implements AutoCloseable {
+        private final Deque<Connection> pool = new ArrayDeque<>();
+        private final String url;
+        private final int max;
+
+        public SimplePool(String url, int max) {
+            this.url = url;
+            this.max = max;
         }
-        return DriverManager.getConnection(url);
-    }
 
-    public synchronized void release(Connection c) {
-        if (pool.size() < max) {
-            pool.addLast(c);
-        } else {
-            try { c.close(); } catch (SQLException ignored) { }
+        public synchronized Connection borrow() throws SQLException {
+            if (!pool.isEmpty()) {
+                return pool.pollFirst();
+            }
+            return DriverManager.getConnection(url);
+        }
+
+        public synchronized void release(Connection c) {
+            if (pool.size() < max) {
+                pool.addLast(c);
+            } else {
+                try { c.close(); } catch (SQLException ignored) { }
+            }
+        }
+
+        public void close() {
+            pool.forEach(c -> { try { c.close(); } catch (SQLException ignored) { } });
+            pool.clear();
         }
     }
-
-    public void close() {
-        pool.forEach(c -> { try { c.close(); } catch (SQLException ignored) { } });
-        pool.clear();
-    }
-}
-```
+    ```
 
 !!! warning
     For Redis, use **Lettuce**/**Jedis** pool or **redis-py** connection pools — the above shows **pooling pattern**, not Redis protocol.
-
-#### Python: pipeline-style batching (conceptual)
-
-```python
-from typing import Iterable, List, Tuple, Protocol
-
-
-class RedisLike(Protocol):
-    def get(self, key: str) -> bytes | None: ...
-    def set(self, key: str, val: bytes) -> None: ...
-
-
-def pipeline_get(client: RedisLike, keys: Iterable[str]) -> List[bytes | None]:
-    # Real: redis.pipeline(); here: sequential illustration
-    return [client.get(k) for k in keys]
-
-
-def pipeline_set(client: RedisLike, pairs: List[Tuple[str, bytes]]) -> None:
-    for k, v in pairs:
-        client.set(k, v)
-```
 
 ---
 
@@ -1174,86 +1191,91 @@ def pipeline_set(client: RedisLike, pairs: List[Tuple[str, bytes]]) -> None:
 - **Pub/Sub:** Fire-and-forget broadcast; **no persistence** of messages (Redis Pub/Sub semantics).
 - **Keyspace notifications:** Server publishes events on key changes; clients subscribe for **cache invalidation** or auditing.
 
-#### Go: minimal in-memory pub/sub
+=== "Python"
 
-```go
-package pubsub
+    ```python
+    # Minimal subscriber sketch
+    from collections import defaultdict
+    from typing import DefaultDict, List
+    import threading
 
-import "sync"
 
-type Bus struct {
-	mu   sync.RWMutex
-	subs map[string][]chan string
-}
+    class SimplePubSub:
+        def __init__(self) -> None:
+            self._lock = threading.RLock()
+            self._topics: DefaultDict[str, List["queue.Queue[str]"]] = defaultdict(list)
 
-func NewBus() *Bus {
-	return &Bus{subs: make(map[string][]chan string)}
-}
+        def publish(self, topic: str, msg: str) -> None:
+            import queue
 
-func (b *Bus) Subscribe(topic string) <-chan string {
-	ch := make(chan string, 16)
-	b.mu.Lock()
-	b.subs[topic] = append(b.subs[topic], ch)
-	b.mu.Unlock()
-	return ch
-}
+            with self._lock:
+                subs = list(self._topics[topic])
+            for q in subs:
+                try:
+                    q.put_nowait(msg)
+                except queue.Full:
+                    pass
+    ```
 
-func (b *Bus) Publish(topic, msg string) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-	for _, ch := range b.subs[topic] {
-		select {
-		case ch <- msg:
-		default:
-		}
-	}
-}
-```
+=== "Java"
 
-#### Java & Python (minimal subscriber sketches)
+    ```java
+    // Minimal subscriber sketch
+    import java.util.concurrent.*;
+    import java.util.concurrent.CopyOnWriteArrayList;
 
-```java
-import java.util.concurrent.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+    public class SimplePubSub {
+        private final ConcurrentHashMap<String, CopyOnWriteArrayList<BlockingQueue<String>>> topics
+                = new ConcurrentHashMap<>();
 
-public class SimplePubSub {
-    private final ConcurrentHashMap<String, CopyOnWriteArrayList<BlockingQueue<String>>> topics
-            = new ConcurrentHashMap<>();
+        public void subscribe(String topic, BlockingQueue<String> q) {
+            topics.computeIfAbsent(topic, t -> new CopyOnWriteArrayList<>()).add(q);
+        }
 
-    public void subscribe(String topic, BlockingQueue<String> q) {
-        topics.computeIfAbsent(topic, t -> new CopyOnWriteArrayList<>()).add(q);
+        public void publish(String topic, String msg) {
+            var subs = topics.get(topic);
+            if (subs == null) return;
+            subs.forEach(q -> q.offer(msg));
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    // Minimal in-memory pub/sub
+    package pubsub
+
+    import "sync"
+
+    type Bus struct {
+    	mu   sync.RWMutex
+    	subs map[string][]chan string
     }
 
-    public void publish(String topic, String msg) {
-        var subs = topics.get(topic);
-        if (subs == null) return;
-        subs.forEach(q -> q.offer(msg));
+    func NewBus() *Bus {
+    	return &Bus{subs: make(map[string][]chan string)}
     }
-}
-```
 
-```python
-from collections import defaultdict
-from typing import DefaultDict, List
-import threading
+    func (b *Bus) Subscribe(topic string) <-chan string {
+    	ch := make(chan string, 16)
+    	b.mu.Lock()
+    	b.subs[topic] = append(b.subs[topic], ch)
+    	b.mu.Unlock()
+    	return ch
+    }
 
-
-class SimplePubSub:
-    def __init__(self) -> None:
-        self._lock = threading.RLock()
-        self._topics: DefaultDict[str, List["queue.Queue[str]"]] = defaultdict(list)
-
-    def publish(self, topic: str, msg: str) -> None:
-        import queue
-
-        with self._lock:
-            subs = list(self._topics[topic])
-        for q in subs:
-            try:
-                q.put_nowait(msg)
-            except queue.Full:
-                pass
-```
+    func (b *Bus) Publish(topic, msg string) {
+    	b.mu.RLock()
+    	defer b.mu.RUnlock()
+    	for _, ch := range b.subs[topic] {
+    		select {
+    		case ch <- msg:
+    		default:
+    		}
+    	}
+    }
+    ```
 
 ---
 
@@ -1273,84 +1295,87 @@ class SimplePubSub:
 | **Distributed lock** | One loader cluster-wide | Strong dedup | Lock service failure modes |
 | **Pre-warming** | Scheduled refresh for known keys | Predictable | Waste if unused |
 
-#### Java: singleflight-style loader (per-key)
+=== "Python"
 
-```java
-import java.util.concurrent.*;
+    ```python
+    # Asyncio lock-per-key (illustrative)
+    import asyncio
+    from typing import Awaitable, Callable, Dict, TypeVar
 
-public class StampedeGuard<K, V> {
-    private final ConcurrentHashMap<K, CompletableFuture<V>> inflight = new ConcurrentHashMap<>();
+    K = TypeVar("K")
+    V = TypeVar("V")
 
-    public V get(K key, Loader<K, V> loader) throws Exception {
-        CompletableFuture<V> fut = inflight.computeIfAbsent(
-                key, k -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return loader.load(k);
-                    } catch (RuntimeException e) {
-                        throw e;
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                }));
-        try {
-            return fut.get();
-        } finally {
-            inflight.remove(key, fut);
+
+    class AsyncSingleFlight:
+        def __init__(self) -> None:
+            self._locks: Dict[K, asyncio.Lock] = {}
+            self._map_lock = asyncio.Lock()
+
+        async def _lock_for(self, key: K) -> asyncio.Lock:
+            async with self._map_lock:
+                if key not in self._locks:
+                    self._locks[key] = asyncio.Lock()
+                return self._locks[key]
+
+        async def do(self, key: K, factory: Callable[[], Awaitable[V]]) -> V:
+            lk = await self._lock_for(key)
+            async with lk:
+                return await factory()
+    ```
+
+=== "Java"
+
+    ```java
+    // Singleflight-style loader (per-key)
+    import java.util.concurrent.*;
+
+    public class StampedeGuard<K, V> {
+        private final ConcurrentHashMap<K, CompletableFuture<V>> inflight = new ConcurrentHashMap<>();
+
+        public V get(K key, Loader<K, V> loader) throws Exception {
+            CompletableFuture<V> fut = inflight.computeIfAbsent(
+                    key, k -> CompletableFuture.supplyAsync(() -> {
+                        try {
+                            return loader.load(k);
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
+                    }));
+            try {
+                return fut.get();
+            } finally {
+                inflight.remove(key, fut);
+            }
+        }
+
+        @FunctionalInterface
+        public interface Loader<K, V> {
+            V load(K key) throws Exception;
         }
     }
+    ```
 
-    @FunctionalInterface
-    public interface Loader<K, V> {
-        V load(K key) throws Exception;
+=== "Go"
+
+    ```go
+    // singleflight pattern
+    package stampede
+
+    import "golang.org/x/sync/singleflight"
+
+    type Guard struct {
+    	g singleflight.Group
     }
-}
-```
 
-#### Go: `singleflight` pattern
-
-```go
-package stampede
-
-import "golang.org/x/sync/singleflight"
-
-type Guard struct {
-	g singleflight.Group
-}
-
-func (g *Guard) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
-	return g.g.Do(key, fn)
-}
-```
+    func (g *Guard) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
+    	return g.g.Do(key, fn)
+    }
+    ```
 
 !!! note
     Prefer `golang.org/x/sync/singleflight` in production; the snippet encodes **one origin load per key** at a time.
-
-#### Python: asyncio lock-per-key (illustrative)
-
-```python
-import asyncio
-from typing import Awaitable, Callable, Dict, TypeVar
-
-K = TypeVar("K")
-V = TypeVar("V")
-
-
-class AsyncSingleFlight:
-    def __init__(self) -> None:
-        self._locks: Dict[K, asyncio.Lock] = {}
-        self._map_lock = asyncio.Lock()
-
-    async def _lock_for(self, key: K) -> asyncio.Lock:
-        async with self._map_lock:
-            if key not in self._locks:
-                self._locks[key] = asyncio.Lock()
-            return self._locks[key]
-
-    async def do(self, key: K, factory: Callable[[], Awaitable[V]]) -> V:
-        lk = await self._lock_for(key)
-        async with lk:
-            return await factory()
-```
 
 #### Hot key: operational patterns
 

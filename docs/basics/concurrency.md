@@ -127,62 +127,62 @@ Process Memory:
 
 ### Creating Threads
 
-**Python (threading):**
+=== "Python"
 
-```python
-import threading
-import time
+    ```python
+    import threading
+    import time
 
-def worker(name):
-    print(f"{name} starting")
-    time.sleep(2)  # Simulate work
-    print(f"{name} done")
+    def worker(name):
+        print(f"{name} starting")
+        time.sleep(2)  # Simulate work
+        print(f"{name} done")
 
-# Create threads
-thread1 = threading.Thread(target=worker, args=("Thread-1",))
-thread2 = threading.Thread(target=worker, args=("Thread-2",))
+    # Create threads
+    thread1 = threading.Thread(target=worker, args=("Thread-1",))
+    thread2 = threading.Thread(target=worker, args=("Thread-2",))
 
-# Start threads
-thread1.start()
-thread2.start()
+    # Start threads
+    thread1.start()
+    thread2.start()
 
-# Wait for completion
-thread1.join()
-thread2.join()
+    # Wait for completion
+    thread1.join()
+    thread2.join()
 
-print("All threads complete")
-```
+    print("All threads complete")
+    ```
 
-**Java:**
+=== "Java"
 
-```java
-public class Worker implements Runnable {
-    private String name;
-    
-    public Worker(String name) {
-        this.name = name;
-    }
-    
-    @Override
-    public void run() {
-        System.out.println(name + " starting");
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    ```java
+    public class Worker implements Runnable {
+        private String name;
+
+        public Worker(String name) {
+            this.name = name;
         }
-        System.out.println(name + " done");
-    }
-}
 
-// Create and start
-Thread t1 = new Thread(new Worker("Thread-1"));
-Thread t2 = new Thread(new Worker("Thread-2"));
-t1.start();
-t2.start();
-t1.join();
-t2.join();
-```
+        @Override
+        public void run() {
+            System.out.println(name + " starting");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            System.out.println(name + " done");
+        }
+    }
+
+    // Create and start
+    Thread t1 = new Thread(new Worker("Thread-1"));
+    Thread t2 = new Thread(new Worker("Thread-2"));
+    t1.start();
+    t2.start();
+    t1.join();
+    t2.join();
+    ```
 
 ### The Global Interpreter Lock (GIL)
 

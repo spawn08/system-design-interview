@@ -71,69 +71,69 @@ SET lock:resource <unique_token> NX PX <ttl_ms>
 
 The unique token is required so that only the owner can delete the key (compare token before `DEL`), avoiding accidental release by another client.
 
-**Python (redis-py):**
+=== "Python"
 
-```python
-import uuid
-import redis
+    ```python
+    import uuid
+    import redis
 
-r = redis.Redis(host="localhost", port=6379, db=0)
-LOCK_KEY = "lock:payments:shard-3"
-TOKEN = str(uuid.uuid4())
-TTL_MS = 10_000
+    r = redis.Redis(host="localhost", port=6379, db=0)
+    LOCK_KEY = "lock:payments:shard-3"
+    TOKEN = str(uuid.uuid4())
+    TTL_MS = 10_000
 
-def acquire() -> bool:
-    return bool(r.set(LOCK_KEY, TOKEN, nx=True, px=TTL_MS))
+    def acquire() -> bool:
+        return bool(r.set(LOCK_KEY, TOKEN, nx=True, px=TTL_MS))
 
-def release() -> None:
-    lua = """
-    if redis.call("get", KEYS[1]) == ARGV[1] then
-        return redis.call("del", KEYS[1])
-    else
-        return 0
-    end
-    """
-    r.eval(lua, 1, LOCK_KEY, TOKEN)
-```
+    def release() -> None:
+        lua = """
+        if redis.call("get", KEYS[1]) == ARGV[1] then
+            return redis.call("del", KEYS[1])
+        else
+            return 0
+        end
+        """
+        r.eval(lua, 1, LOCK_KEY, TOKEN)
+    ```
 
-**Go (go-redis):**
+=== "Java"
 
-```go
-package main
+    ```java
+    // Acquire with SET NX PX
+    String token = UUID.randomUUID().toString();
+    Boolean ok = redisCommands.set(key, token, SetArgs.Builder.nx().px(ttlMs));
 
-import (
-	"context"
-	"time"
+    // Release atomically only if value matches
+    String lua =
+        "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+        "return redis.call('del', KEYS[1]) else return 0 end";
+    redisCommands.eval(lua, ScriptOutputType.INTEGER, new String[]{key}, token);
+    ```
 
-	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
-)
+=== "Go"
 
-var ctx = context.Background()
+    ```go
+    package main
 
-func acquireLock(rdb *redis.Client, key string, ttl time.Duration) (token string, ok bool) {
-	token = uuid.NewString()
-	ok, err := rdb.SetNX(ctx, key, token, ttl).Result()
-	if err != nil || !ok {
-		return "", false
-	}
-	return token, true
-}
-```
+    import (
+    	"context"
+    	"time"
 
-**Java (Lettuce-style pseudo-release with Lua):**
+    	"github.com/google/uuid"
+    	"github.com/redis/go-redis/v9"
+    )
 
-```java
-// Acquire with SET NX PX
-String token = UUID.randomUUID().toString();
-Boolean ok = redisCommands.set(key, token, SetArgs.Builder.nx().px(ttlMs));
+    var ctx = context.Background()
 
-// Release atomically only if value matches
-String lua =
-    "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-    "return redis.call('del', KEYS[1]) else return 0 end";
-redisCommands.eval(lua, ScriptOutputType.INTEGER, new String[]{key}, token);
-```
+    func acquireLock(rdb *redis.Client, key string, ttl time.Duration) (token string, ok bool) {
+    	token = uuid.NewString()
+    	ok, err := rdb.SetNX(ctx, key, token, ttl).Result()
+    	if err != nil || !ok {
+    		return "", false
+    	}
+    	return token, true
+    }
+    ```
 
 ### The Redlock algorithm (multi-node)
 

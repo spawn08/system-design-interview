@@ -129,11 +129,83 @@ flowchart TD
 | **At-least-once** | `acks=all` + consumer manual commit (default) |
 | **Exactly-once** | Idempotent producer + transactional API + EOS consumer |
 
-### Java Example: Kafka Producer and Consumer
+### Kafka Producer and Consumer
 
-```java
-// Producer — publishes order events to Kafka
-public class OrderEventProducer {
+=== "Python"
+
+    ```python
+    from confluent_kafka import Producer, Consumer, KafkaError
+    import json
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    class OrderEventProducer:
+        def __init__(self, bootstrap_servers: str, topic: str):
+            self.topic = topic
+            self.producer = Producer({
+                'bootstrap.servers': bootstrap_servers,
+                'acks': 'all',
+                'enable.idempotence': True,
+                'retries': 3,
+            })
+
+        def publish(self, user_id: str, event: dict) -> None:
+            value = json.dumps(event).encode('utf-8')
+            self.producer.produce(
+                topic=self.topic,
+                key=user_id.encode('utf-8'),
+                value=value,
+                callback=self._delivery_callback,
+            )
+            self.producer.flush()
+
+        @staticmethod
+        def _delivery_callback(err, msg):
+            if err:
+                logger.error(f"Delivery failed: {err}")
+            else:
+                logger.info(f"Delivered to {msg.topic()}[{msg.partition()}] @ offset {msg.offset()}")
+
+    class OrderEventConsumer:
+        def __init__(self, bootstrap_servers: str, group_id: str, topic: str):
+            self.consumer = Consumer({
+                'bootstrap.servers': bootstrap_servers,
+                'group.id': group_id,
+                'auto.offset.reset': 'earliest',
+                'enable.auto.commit': False,
+            })
+            self.consumer.subscribe([topic])
+            self._running = True
+
+        def consume(self, process_fn):
+            while self._running:
+                msg = self.consumer.poll(timeout=1.0)
+                if msg is None:
+                    continue
+                if msg.error():
+                    if msg.error().code() == KafkaError._PARTITION_EOF:
+                        continue
+                    logger.error(f"Consumer error: {msg.error()}")
+                    continue
+
+                try:
+                    event = json.loads(msg.value().decode('utf-8'))
+                    process_fn(msg.key().decode('utf-8'), event)
+                    self.consumer.commit(asynchronous=False)
+                except Exception as e:
+                    logger.error(f"Processing failed: {e}, sending to DLQ")
+
+        def shutdown(self):
+            self._running = False
+            self.consumer.close()
+    ```
+
+=== "Java"
+
+    ```java
+    // Producer — publishes order events to Kafka
+    public class OrderEventProducer {
     private final KafkaProducer<String, String> producer;
     private final String topic;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -213,191 +285,121 @@ public class OrderEventConsumer implements Runnable {
 
     public void shutdown() { running = false; }
 }
-```
+    ```
 
-### Python Example: Kafka with confluent-kafka
+=== "Go"
 
-```python
-from confluent_kafka import Producer, Consumer, KafkaError
-import json
-import logging
+    ```go
+    package messaging
 
-logger = logging.getLogger(__name__)
+    import (
+    	"context"
+    	"encoding/json"
+    	"log"
 
-class OrderEventProducer:
-    def __init__(self, bootstrap_servers: str, topic: str):
-        self.topic = topic
-        self.producer = Producer({
-            'bootstrap.servers': bootstrap_servers,
-            'acks': 'all',
-            'enable.idempotence': True,
-            'retries': 3,
-        })
+    	"github.com/IBM/sarama"
+    )
 
-    def publish(self, user_id: str, event: dict) -> None:
-        value = json.dumps(event).encode('utf-8')
-        self.producer.produce(
-            topic=self.topic,
-            key=user_id.encode('utf-8'),
-            value=value,
-            callback=self._delivery_callback,
-        )
-        self.producer.flush()
+    type OrderEvent struct {
+    	OrderID string  `json:"order_id"`
+    	UserID  string  `json:"user_id"`
+    	Amount  float64 `json:"amount"`
+    	Status  string  `json:"status"`
+    }
 
-    @staticmethod
-    def _delivery_callback(err, msg):
-        if err:
-            logger.error(f"Delivery failed: {err}")
-        else:
-            logger.info(f"Delivered to {msg.topic()}[{msg.partition()}] @ offset {msg.offset()}")
+    // Producer wraps a Kafka sync producer with order event publishing.
+    type Producer struct {
+    	producer sarama.SyncProducer
+    	topic    string
+    }
 
-class OrderEventConsumer:
-    def __init__(self, bootstrap_servers: str, group_id: str, topic: str):
-        self.consumer = Consumer({
-            'bootstrap.servers': bootstrap_servers,
-            'group.id': group_id,
-            'auto.offset.reset': 'earliest',
-            'enable.auto.commit': False,
-        })
-        self.consumer.subscribe([topic])
-        self._running = True
+    func NewProducer(brokers []string, topic string) (*Producer, error) {
+    	config := sarama.NewConfig()
+    	config.Producer.RequiredAcks = sarama.WaitForAll
+    	config.Producer.Idempotent = true
+    	config.Producer.Return.Successes = true
+    	config.Net.MaxOpenRequests = 1 // required for idempotent producer
 
-    def consume(self, process_fn):
-        while self._running:
-            msg = self.consumer.poll(timeout=1.0)
-            if msg is None:
-                continue
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    continue
-                logger.error(f"Consumer error: {msg.error()}")
-                continue
+    	producer, err := sarama.NewSyncProducer(brokers, config)
+    	if err != nil {
+    		return nil, err
+    	}
+    	return &Producer{producer: producer, topic: topic}, nil
+    }
 
-            try:
-                event = json.loads(msg.value().decode('utf-8'))
-                process_fn(msg.key().decode('utf-8'), event)
-                self.consumer.commit(asynchronous=False)
-            except Exception as e:
-                logger.error(f"Processing failed: {e}, sending to DLQ")
+    func (p *Producer) PublishOrderEvent(event OrderEvent) (int32, int64, error) {
+    	value, err := json.Marshal(event)
+    	if err != nil {
+    		return 0, 0, err
+    	}
 
-    def shutdown(self):
-        self._running = False
-        self.consumer.close()
-```
+    	msg := &sarama.ProducerMessage{
+    		Topic: p.topic,
+    		Key:   sarama.StringEncoder(event.UserID), // partition by user
+    		Value: sarama.ByteEncoder(value),
+    	}
+    	partition, offset, err := p.producer.SendMessage(msg)
+    	return partition, offset, err
+    }
 
-### Go Example: Kafka with sarama
+    func (p *Producer) Close() error { return p.producer.Close() }
 
-```go
-package messaging
+    // ConsumerGroupHandler implements sarama.ConsumerGroupHandler for order events.
+    type ConsumerGroupHandler struct {
+    	ProcessFn func(event OrderEvent) error
+    }
 
-import (
-	"context"
-	"encoding/json"
-	"log"
+    func (h *ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+    func (h *ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 
-	"github.com/IBM/sarama"
-)
+    func (h *ConsumerGroupHandler) ConsumeClaim(
+    	session sarama.ConsumerGroupSession,
+    	claim sarama.ConsumerGroupClaim,
+    ) error {
+    	for msg := range claim.Messages() {
+    		var event OrderEvent
+    		if err := json.Unmarshal(msg.Value, &event); err != nil {
+    			log.Printf("Failed to unmarshal: %v", err)
+    			continue
+    		}
 
-type OrderEvent struct {
-	OrderID string  `json:"order_id"`
-	UserID  string  `json:"user_id"`
-	Amount  float64 `json:"amount"`
-	Status  string  `json:"status"`
-}
+    		if err := h.ProcessFn(event); err != nil {
+    			log.Printf("Processing failed for order %s: %v", event.OrderID, err)
+    			// in production: send to dead-letter topic
+    			continue
+    		}
 
-// Producer wraps a Kafka sync producer with order event publishing.
-type Producer struct {
-	producer sarama.SyncProducer
-	topic    string
-}
+    		session.MarkMessage(msg, "") // mark for commit
+    	}
+    	return nil
+    }
 
-func NewProducer(brokers []string, topic string) (*Producer, error) {
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Idempotent = true
-	config.Producer.Return.Successes = true
-	config.Net.MaxOpenRequests = 1 // required for idempotent producer
+    func StartConsumerGroup(ctx context.Context, brokers []string, groupID, topic string,
+    	processFn func(OrderEvent) error) error {
 
-	producer, err := sarama.NewSyncProducer(brokers, config)
-	if err != nil {
-		return nil, err
-	}
-	return &Producer{producer: producer, topic: topic}, nil
-}
+    	config := sarama.NewConfig()
+    	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{
+    		sarama.NewBalanceStrategyRoundRobin(),
+    	}
+    	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-func (p *Producer) PublishOrderEvent(event OrderEvent) (int32, int64, error) {
-	value, err := json.Marshal(event)
-	if err != nil {
-		return 0, 0, err
-	}
+    	group, err := sarama.NewConsumerGroup(brokers, groupID, config)
+    	if err != nil {
+    		return err
+    	}
+    	defer group.Close()
 
-	msg := &sarama.ProducerMessage{
-		Topic: p.topic,
-		Key:   sarama.StringEncoder(event.UserID), // partition by user
-		Value: sarama.ByteEncoder(value),
-	}
-	partition, offset, err := p.producer.SendMessage(msg)
-	return partition, offset, err
-}
-
-func (p *Producer) Close() error { return p.producer.Close() }
-
-// ConsumerGroupHandler implements sarama.ConsumerGroupHandler for order events.
-type ConsumerGroupHandler struct {
-	ProcessFn func(event OrderEvent) error
-}
-
-func (h *ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (h *ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-
-func (h *ConsumerGroupHandler) ConsumeClaim(
-	session sarama.ConsumerGroupSession,
-	claim sarama.ConsumerGroupClaim,
-) error {
-	for msg := range claim.Messages() {
-		var event OrderEvent
-		if err := json.Unmarshal(msg.Value, &event); err != nil {
-			log.Printf("Failed to unmarshal: %v", err)
-			continue
-		}
-
-		if err := h.ProcessFn(event); err != nil {
-			log.Printf("Processing failed for order %s: %v", event.OrderID, err)
-			// in production: send to dead-letter topic
-			continue
-		}
-
-		session.MarkMessage(msg, "") // mark for commit
-	}
-	return nil
-}
-
-func StartConsumerGroup(ctx context.Context, brokers []string, groupID, topic string,
-	processFn func(OrderEvent) error) error {
-
-	config := sarama.NewConfig()
-	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{
-		sarama.NewBalanceStrategyRoundRobin(),
-	}
-	config.Consumer.Offsets.Initial = sarama.OffsetOldest
-
-	group, err := sarama.NewConsumerGroup(brokers, groupID, config)
-	if err != nil {
-		return err
-	}
-	defer group.Close()
-
-	handler := &ConsumerGroupHandler{ProcessFn: processFn}
-	for {
-		if err := group.Consume(ctx, []string{topic}, handler); err != nil {
-			return err
-		}
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-	}
-}
-```
+    	handler := &ConsumerGroupHandler{ProcessFn: processFn}
+    	for {
+    		if err := group.Consume(ctx, []string{topic}, handler); err != nil {
+    			return err
+    		}
+    		if ctx.Err() != nil {
+    			return ctx.Err()
+    		}
+    	}
+    }
+    ```
 
 ---
 

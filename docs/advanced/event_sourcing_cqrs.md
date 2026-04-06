@@ -277,131 +277,131 @@ flowchart TD
 
 The following snippets are illustrative — not production-complete — but show the same concepts in Java, Python, and Go.
 
-### Java
+=== "Python"
 
-```java
-// Event record (immutable)
-public record OrderCreated(String orderId, String customerId, Instant occurredAt) {}
+    ```python
+    from dataclasses import dataclass
+    from typing import Any, Callable, Dict, List, Protocol
 
-public interface EventStore {
-    void append(String streamId, long expectedVersion, List<Object> events);
-    List<Object> readStream(String streamId);
-}
+    @dataclass(frozen=True)
+    class OrderCreated:
+        order_id: str
+        customer_id: str
 
-public final class PlaceOrderHandler {
-    private final EventStore store;
+    class EventStore(Protocol):
+        def append(self, stream_id: str, expected_version: int, events: List[Any]) -> None: ...
+        def read_stream(self, stream_id: str) -> List[Any]: ...
 
-    public PlaceOrderHandler(EventStore store) { this.store = store; }
+    def fold_state(events: List[Any], init: Dict, handler: Callable[[Dict, Any], Dict]) -> Dict:
+        state = init
+        for ev in events:
+            state = handler(state, ev)
+        return state
 
-    public void handle(PlaceOrder command) {
-        var events = store.readStream(command.orderId());
-        long version = events.size(); // simplified versioning
-        if (!events.isEmpty()) throw new IllegalStateException("already exists");
-        store.append(command.orderId(), version,
-            List.of(new OrderCreated(command.orderId(), command.customerId(), Instant.now())));
+    def handle_place_order(cmd: dict, store: EventStore) -> None:
+        stream_id = cmd["order_id"]
+        current = store.read_stream(stream_id)
+        if current:
+            raise ValueError("order already exists")
+        store.append(stream_id, expected_version=len(current), events=[OrderCreated(stream_id, cmd["customer_id"])])
+
+    def project_order_summary(events: List[Any]) -> dict:
+        def step(acc: dict, ev: Any) -> dict:
+            if isinstance(ev, OrderCreated):
+                return {"order_id": ev.order_id, "customer_id": ev.customer_id}
+            return acc
+        return fold_state(events, {}, step)
+    ```
+
+=== "Java"
+
+    ```java
+    // Event record (immutable)
+    public record OrderCreated(String orderId, String customerId, Instant occurredAt) {}
+
+    public interface EventStore {
+        void append(String streamId, long expectedVersion, List<Object> events);
+        List<Object> readStream(String streamId);
     }
-}
 
-// Projection: rebuild read model (pseudo)
-public final class OrderSummaryProjection {
-    public void apply(String streamId, List<Object> events) {
-        for (Object e : events) {
-            if (e instanceof OrderCreated oc) {
-                // upsert into read DB: order summary row
+    public final class PlaceOrderHandler {
+        private final EventStore store;
+
+        public PlaceOrderHandler(EventStore store) { this.store = store; }
+
+        public void handle(PlaceOrder command) {
+            var events = store.readStream(command.orderId());
+            long version = events.size(); // simplified versioning
+            if (!events.isEmpty()) throw new IllegalStateException("already exists");
+            store.append(command.orderId(), version,
+                List.of(new OrderCreated(command.orderId(), command.customerId(), Instant.now())));
+        }
+    }
+
+    // Projection: rebuild read model (pseudo)
+    public final class OrderSummaryProjection {
+        public void apply(String streamId, List<Object> events) {
+            for (Object e : events) {
+                if (e instanceof OrderCreated oc) {
+                    // upsert into read DB: order summary row
+                }
             }
         }
     }
-}
-```
+    ```
 
-### Python
+=== "Go"
 
-```python
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Protocol
+    ```go
+    package es
 
-@dataclass(frozen=True)
-class OrderCreated:
-    order_id: str
-    customer_id: str
+    import "time"
 
-class EventStore(Protocol):
-    def append(self, stream_id: str, expected_version: int, events: List[Any]) -> None: ...
-    def read_stream(self, stream_id: str) -> List[Any]: ...
+    type OrderCreated struct {
+    	OrderID    string
+    	CustomerID string
+    	OccurredAt time.Time
+    }
 
-def fold_state(events: List[Any], init: Dict, handler: Callable[[Dict, Any], Dict]) -> Dict:
-    state = init
-    for ev in events:
-        state = handler(state, ev)
-    return state
+    type EventStore interface {
+    	Append(streamID string, expectedVersion uint64, events []any) error
+    	ReadStream(streamID string) ([]any, error)
+    }
 
-def handle_place_order(cmd: dict, store: EventStore) -> None:
-    stream_id = cmd["order_id"]
-    current = store.read_stream(stream_id)
-    if current:
-        raise ValueError("order already exists")
-    store.append(stream_id, expected_version=len(current), events=[OrderCreated(stream_id, cmd["customer_id"])])
+    type PlaceOrderHandler struct {
+    	store EventStore
+    }
 
-def project_order_summary(events: List[Any]) -> dict:
-    def step(acc: dict, ev: Any) -> dict:
-        if isinstance(ev, OrderCreated):
-            return {"order_id": ev.order_id, "customer_id": ev.customer_id}
-        return acc
-    return fold_state(events, {}, step)
-```
+    func (h *PlaceOrderHandler) Handle(orderID, customerID string) error {
+    	events, err := h.store.ReadStream(orderID)
+    	if err != nil {
+    		return err
+    	}
+    	if len(events) > 0 {
+    		return ErrAlreadyExists
+    	}
+    	ev := OrderCreated{OrderID: orderID, CustomerID: customerID, OccurredAt: time.Now().UTC()}
+    	return h.store.Append(orderID, uint64(len(events)), []any{ev})
+    }
 
-### Go
+    // Projection applies events to a read-model builder.
+    type OrderSummary struct {
+    	OrderID    string
+    	CustomerID string
+    }
 
-```go
-package es
-
-import "time"
-
-type OrderCreated struct {
-	OrderID    string
-	CustomerID string
-	OccurredAt time.Time
-}
-
-type EventStore interface {
-	Append(streamID string, expectedVersion uint64, events []any) error
-	ReadStream(streamID string) ([]any, error)
-}
-
-type PlaceOrderHandler struct {
-	store EventStore
-}
-
-func (h *PlaceOrderHandler) Handle(orderID, customerID string) error {
-	events, err := h.store.ReadStream(orderID)
-	if err != nil {
-		return err
-	}
-	if len(events) > 0 {
-		return ErrAlreadyExists
-	}
-	ev := OrderCreated{OrderID: orderID, CustomerID: customerID, OccurredAt: time.Now().UTC()}
-	return h.store.Append(orderID, uint64(len(events)), []any{ev})
-}
-
-// Projection applies events to a read-model builder.
-type OrderSummary struct {
-	OrderID    string
-	CustomerID string
-}
-
-func ProjectOrderSummary(events []any) OrderSummary {
-	var s OrderSummary
-	for _, e := range events {
-		switch t := e.(type) {
-		case OrderCreated:
-			s.OrderID = t.OrderID
-			s.CustomerID = t.CustomerID
-		}
-	}
-	return s
-}
-```
+    func ProjectOrderSummary(events []any) OrderSummary {
+    	var s OrderSummary
+    	for _, e := range events {
+    		switch t := e.(type) {
+    		case OrderCreated:
+    			s.OrderID = t.OrderID
+    			s.CustomerID = t.CustomerID
+    		}
+    	}
+    	return s
+    }
+    ```
 
 ---
 

@@ -573,219 +573,219 @@ A **lease** is a time-bounded right to execute. If the worker dies, the lease ex
 
 ## Code Sketches
 
-Below are minimal illustrations of **task submission**, a **scheduler tick**, and **worker lease** in **Java**, **Python**, and **Go**. They omit production concerns (metrics, tracing, batching).
+Below are minimal illustrations of **task submission**, a **scheduler tick**, and **worker lease** (content tabs: Python, Java, Go). They omit production concerns (metrics, tracing, batching).
 
 ### Task submission
 
-**Java**
+=== "Python"
 
-```java
-public final class TaskClient {
-  private final HttpClient http = HttpClient.newHttpClient();
-  private final String baseUrl;
+    ```python
+    import requests
+    from datetime import datetime, timezone
 
-  public TaskClient(String baseUrl) { this.baseUrl = baseUrl; }
+    def submit_task(base_url: str, payload: dict, run_at: datetime, idempotency_key: str) -> str:
+        body = {"payload": payload, "run_at": run_at.astimezone(timezone.utc).isoformat()}
+        r = requests.post(
+            f"{base_url}/v1/tasks",
+            json=body,
+            headers={"Idempotency-Key": idempotency_key},
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json()["task_id"]
+    ```
 
-  public String submitTask(String jsonPayload, Instant runAt, String idempotencyKey)
-      throws IOException, InterruptedException {
-    String body = String.format(
-        "{\"payload\":%s,\"run_at\":\"%s\"}", jsonPayload, runAt.toString());
-    HttpRequest req = HttpRequest.newBuilder(URI.create(baseUrl + "/v1/tasks"))
-        .header("Content-Type", "application/json")
-        .header("Idempotency-Key", idempotencyKey)
-        .POST(HttpRequest.BodyPublishers.ofString(body))
-        .build();
-    HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
-    if (res.statusCode() / 100 != 2) {
-      throw new IllegalStateException("submit failed: " + res.body());
+=== "Java"
+
+    ```java
+    public final class TaskClient {
+      private final HttpClient http = HttpClient.newHttpClient();
+      private final String baseUrl;
+
+      public TaskClient(String baseUrl) { this.baseUrl = baseUrl; }
+
+      public String submitTask(String jsonPayload, Instant runAt, String idempotencyKey)
+          throws IOException, InterruptedException {
+        String body = String.format(
+            "{\"payload\":%s,\"run_at\":\"%s\"}", jsonPayload, runAt.toString());
+        HttpRequest req = HttpRequest.newBuilder(URI.create(baseUrl + "/v1/tasks"))
+            .header("Content-Type", "application/json")
+            .header("Idempotency-Key", idempotencyKey)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build();
+        HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() / 100 != 2) {
+          throw new IllegalStateException("submit failed: " + res.body());
+        }
+        // parse task_id from JSON
+        return res.body();
+      }
     }
-    // parse task_id from JSON
-    return res.body();
-  }
-}
-```
+    ```
 
-**Python**
+=== "Go"
 
-```python
-import requests
-from datetime import datetime, timezone
+    ```go
+    type SubmitBody struct {
+    	Payload map[string]any `json:"payload"`
+    	RunAt   string         `json:"run_at"`
+    }
 
-def submit_task(base_url: str, payload: dict, run_at: datetime, idempotency_key: str) -> str:
-    body = {"payload": payload, "run_at": run_at.astimezone(timezone.utc).isoformat()}
-    r = requests.post(
-        f"{base_url}/v1/tasks",
-        json=body,
-        headers={"Idempotency-Key": idempotency_key},
-        timeout=10,
-    )
-    r.raise_for_status()
-    return r.json()["task_id"]
-```
-
-**Go**
-
-```go
-type SubmitBody struct {
-	Payload map[string]any `json:"payload"`
-	RunAt   string         `json:"run_at"`
-}
-
-func SubmitTask(ctx context.Context, base string, payload map[string]any, runAt time.Time, idem string) (string, error) {
-	b := SubmitBody{Payload: payload, RunAt: runAt.UTC().Format(time.RFC3339)}
-	raw, _ := json.Marshal(b)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/v1/tasks", bytes.NewReader(raw))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Idempotency-Key", idem)
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	if res.StatusCode/100 != 2 {
-		return "", fmt.Errorf("submit: %s", res.Status)
-	}
-	var out struct {
-		TaskID string `json:"task_id"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
-		return "", err
-	}
-	return out.TaskID, nil
-}
-```
+    func SubmitTask(ctx context.Context, base string, payload map[string]any, runAt time.Time, idem string) (string, error) {
+    	b := SubmitBody{Payload: payload, RunAt: runAt.UTC().Format(time.RFC3339)}
+    	raw, _ := json.Marshal(b)
+    	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/v1/tasks", bytes.NewReader(raw))
+    	if err != nil {
+    		return "", err
+    	}
+    	req.Header.Set("Content-Type", "application/json")
+    	req.Header.Set("Idempotency-Key", idem)
+    	res, err := http.DefaultClient.Do(req)
+    	if err != nil {
+    		return "", err
+    	}
+    	defer res.Body.Close()
+    	if res.StatusCode/100 != 2 {
+    		return "", fmt.Errorf("submit: %s", res.Status)
+    	}
+    	var out struct {
+    		TaskID string `json:"task_id"`
+    	}
+    	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
+    		return "", err
+    	}
+    	return out.TaskID, nil
+    }
+    ```
 
 ---
 
 ### Scheduler loop (timing wheel tick + promote)
 
-**Java**
+=== "Python"
 
-```java
-void schedulerTick(Instant now, TimingWheel wheel, ReadyQueue ready) {
-  var due = wheel.advance(now);
-  for (ScheduledTask t : due) {
-    if (t.getState() == TaskState.SCHEDULED && !t.getRunAt().isAfter(now)) {
-      t.setState(TaskState.READY);
-      ready.enqueue(t.getId(), t.getPriority());
+    ```python
+    def scheduler_tick(now: float, wheel, ready_queue) -> None:
+        for task in wheel.advance(now):
+            if task.state == "SCHEDULED" and task.run_at <= now:
+                task.state = "READY"
+                ready_queue.enqueue(task.task_id, task.priority)
+    ```
+
+=== "Java"
+
+    ```java
+    void schedulerTick(Instant now, TimingWheel wheel, ReadyQueue ready) {
+      var due = wheel.advance(now);
+      for (ScheduledTask t : due) {
+        if (t.getState() == TaskState.SCHEDULED && !t.getRunAt().isAfter(now)) {
+          t.setState(TaskState.READY);
+          ready.enqueue(t.getId(), t.getPriority());
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-**Python**
+=== "Go"
 
-```python
-def scheduler_tick(now: float, wheel, ready_queue) -> None:
-    for task in wheel.advance(now):
-        if task.state == "SCHEDULED" and task.run_at <= now:
-            task.state = "READY"
-            ready_queue.enqueue(task.task_id, task.priority)
-```
-
-**Go**
-
-```go
-func SchedulerTick(now time.Time, wheel *TimingWheel, ready ReadyQueue) {
-	for _, t := range wheel.Advance(now) {
-		if t.State == Scheduled && !t.RunAt.After(now) {
-			t.State = Ready
-			ready.Enqueue(t.ID, t.Priority)
-		}
-	}
-}
-```
+    ```go
+    func SchedulerTick(now time.Time, wheel *TimingWheel, ready ReadyQueue) {
+    	for _, t := range wheel.Advance(now) {
+    		if t.State == Scheduled && !t.RunAt.After(now) {
+    			t.State = Ready
+    			ready.Enqueue(t.ID, t.Priority)
+    		}
+    	}
+    }
+    ```
 
 ---
 
 ### Worker lease with heartbeat
 
-**Java**
+=== "Python"
 
-```java
-public boolean runWithLease(TaskService svc, String taskId, String workerId, Duration lease) {
-  if (!svc.tryLease(taskId, workerId, lease)) {
-    return false;
-  }
-  ScheduledExecutorService hb = Executors.newSingleThreadScheduledExecutor();
-  hb.scheduleAtFixedRate(
-      () -> svc.heartbeat(taskId, workerId, lease),
-      lease.dividedBy(3).toMillis(),
-      lease.dividedBy(3).toMillis(),
-      TimeUnit.MILLISECONDS);
-  try {
-    doWork(taskId);
-    svc.complete(taskId, workerId);
-    return true;
-  } catch (Exception e) {
-    svc.fail(taskId, workerId, e);
-    return false;
-  } finally {
-    hb.shutdownNow();
-  }
-}
-```
+    ```python
+    import threading
+    import time
 
-**Python**
+    def run_with_lease(svc, task_id: str, worker_id: str, lease_sec: float) -> bool:
+        if not svc.try_lease(task_id, worker_id, lease_sec):
+            return False
+        stop = threading.Event()
 
-```python
-import threading
-import time
+        def heartbeat():
+            while not stop.wait(timeout=lease_sec / 3):
+                svc.heartbeat(task_id, worker_id, lease_sec)
 
-def run_with_lease(svc, task_id: str, worker_id: str, lease_sec: float) -> bool:
-    if not svc.try_lease(task_id, worker_id, lease_sec):
-        return False
-    stop = threading.Event()
+        t = threading.Thread(target=heartbeat, daemon=True)
+        t.start()
+        try:
+            do_work(task_id)
+            svc.complete(task_id, worker_id)
+            return True
+        except Exception:
+            svc.fail(task_id, worker_id)
+            return False
+        finally:
+            stop.set()
+    ```
 
-    def heartbeat():
-        while not stop.wait(timeout=lease_sec / 3):
-            svc.heartbeat(task_id, worker_id, lease_sec)
+=== "Java"
 
-    t = threading.Thread(target=heartbeat, daemon=True)
-    t.start()
-    try:
-        do_work(task_id)
-        svc.complete(task_id, worker_id)
-        return True
-    except Exception:
-        svc.fail(task_id, worker_id)
-        return False
-    finally:
-        stop.set()
-```
+    ```java
+    public boolean runWithLease(TaskService svc, String taskId, String workerId, Duration lease) {
+      if (!svc.tryLease(taskId, workerId, lease)) {
+        return false;
+      }
+      ScheduledExecutorService hb = Executors.newSingleThreadScheduledExecutor();
+      hb.scheduleAtFixedRate(
+          () -> svc.heartbeat(taskId, workerId, lease),
+          lease.dividedBy(3).toMillis(),
+          lease.dividedBy(3).toMillis(),
+          TimeUnit.MILLISECONDS);
+      try {
+        doWork(taskId);
+        svc.complete(taskId, workerId);
+        return true;
+      } catch (Exception e) {
+        svc.fail(taskId, workerId, e);
+        return false;
+      } finally {
+        hb.shutdownNow();
+      }
+    }
+    ```
 
-**Go**
+=== "Go"
 
-```go
-func RunWithLease(ctx context.Context, svc TaskService, taskID, workerID string, lease time.Duration) error {
-	if !svc.TryLease(ctx, taskID, workerID, lease) {
-		return errors.New("lease not acquired")
-	}
-	hctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	go func() {
-		tick := time.NewTicker(lease / 3)
-		defer tick.Stop()
-		for {
-			select {
-			case <-hctx.Done():
-				return
-			case <-tick.C:
-				_ = svc.Heartbeat(hctx, taskID, workerID, lease)
-			}
-		}
-	}()
-	err := DoWork(ctx, taskID)
-	if err != nil {
-		svc.Fail(ctx, taskID, workerID, err)
-		return err
-	}
-	return svc.Complete(ctx, taskID, workerID)
-}
-```
+    ```go
+    func RunWithLease(ctx context.Context, svc TaskService, taskID, workerID string, lease time.Duration) error {
+    	if !svc.TryLease(ctx, taskID, workerID, lease) {
+    		return errors.New("lease not acquired")
+    	}
+    	hctx, cancel := context.WithCancel(ctx)
+    	defer cancel()
+    	go func() {
+    		tick := time.NewTicker(lease / 3)
+    		defer tick.Stop()
+    		for {
+    			select {
+    			case <-hctx.Done():
+    				return
+    			case <-tick.C:
+    				_ = svc.Heartbeat(hctx, taskID, workerID, lease)
+    			}
+    		}
+    	}()
+    	err := DoWork(ctx, taskID)
+    	if err != nil {
+    		svc.Fail(ctx, taskID, workerID, err)
+    		return err
+    	}
+    	return svc.Complete(ctx, taskID, workerID)
+    }
+    ```
 
 ---
 

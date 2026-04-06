@@ -65,89 +65,91 @@ Alternatives include **OpenSearch** (Elasticsearch fork), **Grafana Loki** (labe
 
 A **correlation ID** (or **request ID**) is generated at the edge (API gateway, load balancer) and passed through headers (`X-Request-ID`, `traceparent` with OpenTelemetry). Every log line for that request includes the same ID so you can filter one user's journey across services.
 
-### Java: structured logging with correlation (SLF4J MDC)
+### Structured logging with correlation
 
-```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+=== "Python"
 
-public final class CheckoutHandler {
+    ```python
+    import structlog
+    import logging
 
-    private static final Logger log = LoggerFactory.getLogger(CheckoutHandler.class);
+    structlog.configure(
+        processors=[
+            structlog.stdlib.add_log_level,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.JSONRenderer(),
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+    )
 
-    public void handle(String correlationId, String orderId) {
-        MDC.put("correlation_id", correlationId);
-        MDC.put("order_id", orderId);
-        try {
-            log.info("checkout_started");
-            processPayment(orderId);
-            log.info("checkout_completed");
-        } finally {
-            MDC.clear();
+    log = structlog.get_logger()
+
+    def handle_checkout(correlation_id: str, order_id: str) -> None:
+        bind = log.bind(correlation_id=correlation_id, order_id=order_id)
+        bind.info("checkout_started")
+        bind.warning("payment_retry", attempt=1)
+        bind.info("checkout_completed")
+    ```
+
+=== "Java"
+
+    ```java
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.slf4j.MDC;
+
+    public final class CheckoutHandler {
+
+        private static final Logger log = LoggerFactory.getLogger(CheckoutHandler.class);
+
+        public void handle(String correlationId, String orderId) {
+            MDC.put("correlation_id", correlationId);
+            MDC.put("order_id", orderId);
+            try {
+                log.info("checkout_started");
+                processPayment(orderId);
+                log.info("checkout_completed");
+            } finally {
+                MDC.clear();
+            }
+        }
+
+        private void processPayment(String orderId) {
+            log.warn("payment_retry attempt=1 order_id={}", orderId);
         }
     }
+    ```
 
-    private void processPayment(String orderId) {
-        log.warn("payment_retry attempt=1 order_id={}", orderId);
+=== "Go"
+
+    ```go
+    package main
+
+    import (
+    	"context"
+    	"log/slog"
+    	"os"
+    )
+
+    func main() {
+    	h := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+    	logger := slog.New(h)
+
+    	ctx := context.Background()
+    	logger.InfoContext(ctx, "checkout_started",
+    		slog.String("correlation_id", "req-abc"),
+    		slog.String("order_id", "ord-123"),
+    	)
+    	logger.WarnContext(ctx, "payment_retry",
+    		slog.String("order_id", "ord-123"),
+    		slog.Int("attempt", 1),
+    	)
     }
-}
-```
+    ```
 
 Configure Logback with a JSON encoder (e.g. `logstash-logback-encoder`) so MDC keys become JSON fields.
-
-### Python: JSON logs with `structlog`
-
-```python
-import structlog
-import logging
-
-structlog.configure(
-    processors=[
-        structlog.stdlib.add_log_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.JSONRenderer(),
-    ],
-    wrapper_class=structlog.stdlib.BoundLogger,
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-)
-
-log = structlog.get_logger()
-
-def handle_checkout(correlation_id: str, order_id: str) -> None:
-    bind = log.bind(correlation_id=correlation_id, order_id=order_id)
-    bind.info("checkout_started")
-    bind.warning("payment_retry", attempt=1)
-    bind.info("checkout_completed")
-```
-
-### Go: `slog` with JSON handler
-
-```go
-package main
-
-import (
-	"context"
-	"log/slog"
-	"os"
-)
-
-func main() {
-	h := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-	logger := slog.New(h)
-
-	ctx := context.Background()
-	logger.InfoContext(ctx, "checkout_started",
-		slog.String("correlation_id", "req-abc"),
-		slog.String("order_id", "ord-123"),
-	)
-	logger.WarnContext(ctx, "payment_retry",
-		slog.String("order_id", "ord-123"),
-		slog.Int("attempt", 1),
-	)
-}
-```
 
 ---
 
@@ -205,104 +207,106 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
 - **Group** related alerts; **deduplicate** and **suppress** during maintenance windows.
 - Every alert should have a **runbook** or owner; delete alerts nobody acts on.
 
-### Java: Micrometer with Prometheus
+### Checkout metrics (Prometheus-style)
 
-```java
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
+=== "Python"
 
-public final class OrderService {
+    ```python
+    from prometheus_client import Counter, Histogram, start_http_server
 
-    private final Counter checkoutStarted;
-    private final Timer checkoutLatency;
+    CHECKOUT_STARTED = Counter("checkout_started_total", "Checkout flows started")
+    CHECKOUT_LATENCY = Histogram(
+        "checkout_latency_seconds",
+        "Checkout latency",
+        buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0),
+    )
 
-    public OrderService(MeterRegistry registry) {
-        this.checkoutStarted = Counter.builder("checkout_started_total")
-            .description("Checkout flows started")
-            .register(registry);
-        this.checkoutLatency = Timer.builder("checkout_latency_seconds")
-            .publishPercentileHistogram()
-            .register(registry);
+    def checkout() -> None:
+        CHECKOUT_STARTED.inc()
+        with CHECKOUT_LATENCY.time():
+            do_work()
+
+    def do_work() -> None:
+        pass
+
+    if __name__ == "__main__":
+        start_http_server(8000)
+    ```
+
+=== "Java"
+
+    ```java
+    import io.micrometer.core.instrument.Counter;
+    import io.micrometer.core.instrument.MeterRegistry;
+    import io.micrometer.core.instrument.Timer;
+
+    public final class OrderService {
+
+        private final Counter checkoutStarted;
+        private final Timer checkoutLatency;
+
+        public OrderService(MeterRegistry registry) {
+            this.checkoutStarted = Counter.builder("checkout_started_total")
+                .description("Checkout flows started")
+                .register(registry);
+            this.checkoutLatency = Timer.builder("checkout_latency_seconds")
+                .publishPercentileHistogram()
+                .register(registry);
+        }
+
+        public void checkout() {
+            checkoutStarted.increment();
+            checkoutLatency.recordCallable(() -> {
+                return doWork();
+            });
+        }
+
+        private String doWork() throws Exception {
+            Thread.sleep(10);
+            return "ok";
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package main
+
+    import (
+    	"net/http"
+
+    	"github.com/prometheus/client_golang/prometheus"
+    	"github.com/prometheus/client_golang/prometheus/promauto"
+    	"github.com/prometheus/client_golang/prometheus/promhttp"
+    )
+
+    var (
+    	checkoutStarted = promauto.NewCounter(prometheus.CounterOpts{
+    		Name: "checkout_started_total",
+    		Help: "Checkout flows started",
+    	})
+    	checkoutLatency = promauto.NewHistogram(prometheus.HistogramOpts{
+    		Name:    "checkout_latency_seconds",
+    		Help:    "Checkout latency",
+    		Buckets: prometheus.DefBuckets,
+    	})
+    )
+
+    func checkout() {
+    	checkoutStarted.In()
+    	timer := prometheus.NewTimer(checkoutLatency)
+    	defer timer.ObserveDuration()
+    	doWork()
     }
 
-    public void checkout() {
-        checkoutStarted.increment();
-        checkoutLatency.recordCallable(() -> {
-            return doWork();
-        });
+    func doWork() {}
+
+    func main() {
+    	http.Handle("/metrics", promhttp.Handler())
+    	_ = http.ListenAndServe(":8000", nil)
     }
-
-    private String doWork() throws Exception {
-        Thread.sleep(10);
-        return "ok";
-    }
-}
-```
-
-### Python: `prometheus_client`
-
-```python
-from prometheus_client import Counter, Histogram, start_http_server
-
-CHECKOUT_STARTED = Counter("checkout_started_total", "Checkout flows started")
-CHECKOUT_LATENCY = Histogram(
-    "checkout_latency_seconds",
-    "Checkout latency",
-    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0),
-)
-
-def checkout() -> None:
-    CHECKOUT_STARTED.inc()
-    with CHECKOUT_LATENCY.time():
-        do_work()
-
-def do_work() -> None:
-    pass
-
-if __name__ == "__main__":
-    start_http_server(8000)
-```
-
-### Go: Prometheus client
-
-```go
-package main
-
-import (
-	"net/http"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-)
-
-var (
-	checkoutStarted = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "checkout_started_total",
-		Help: "Checkout flows started",
-	})
-	checkoutLatency = promauto.NewHistogram(prometheus.HistogramOpts{
-		Name:    "checkout_latency_seconds",
-		Help:    "Checkout latency",
-		Buckets: prometheus.DefBuckets,
-	})
-)
-
-func checkout() {
-	checkoutStarted.In()
-	timer := prometheus.NewTimer(checkoutLatency)
-	defer timer.ObserveDuration()
-	doWork()
-}
-
-func doWork() {}
-
-func main() {
-	http.Handle("/metrics", promhttp.Handler())
-	_ = http.ListenAndServe(":8000", nil)
-}
-```
+    ```
 
 ---
 
@@ -338,94 +342,96 @@ func main() {
 - **Exemplars** in Prometheus link a metric data point to example trace IDs (where supported).
 - In Grafana, jumping from a metric spike to representative traces is the ideal workflow.
 
-### Java: OpenTelemetry span
+### OpenTelemetry span example
 
-```java
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Scope;
+=== "Python"
 
-public final class PaymentClient {
+    ```python
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
-    private final Tracer tracer;
+    provider = TracerProvider()
+    provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+    trace.set_tracer_provider(provider)
 
-    public PaymentClient(OpenTelemetry otel) {
-        this.tracer = otel.getTracer("payments", "1.0.0");
-    }
+    tracer = trace.get_tracer(__name__)
 
-    public void charge(String orderId) {
-        Span span = tracer.spanBuilder("charge")
-            .setAttribute("order.id", orderId)
-            .startSpan();
-        try (Scope scope = span.makeCurrent()) {
-            callProvider();
-        } catch (Exception e) {
-            span.recordException(e);
-            throw e;
-        } finally {
-            span.end();
+    def charge(order_id: str) -> None:
+        with tracer.start_as_current_span("charge") as span:
+            span.set_attribute("order.id", order_id)
+            call_provider()
+
+    def call_provider() -> None:
+        pass
+    ```
+
+=== "Java"
+
+    ```java
+    import io.opentelemetry.api.OpenTelemetry;
+    import io.opentelemetry.api.trace.Span;
+    import io.opentelemetry.api.trace.Tracer;
+    import io.opentelemetry.context.Scope;
+
+    public final class PaymentClient {
+
+        private final Tracer tracer;
+
+        public PaymentClient(OpenTelemetry otel) {
+            this.tracer = otel.getTracer("payments", "1.0.0");
+        }
+
+        public void charge(String orderId) {
+            Span span = tracer.spanBuilder("charge")
+                .setAttribute("order.id", orderId)
+                .startSpan();
+            try (Scope scope = span.makeCurrent()) {
+                callProvider();
+            } catch (Exception e) {
+                span.recordException(e);
+                throw e;
+            } finally {
+                span.end();
+            }
+        }
+
+        private void callProvider() {
+            // outbound HTTP would propagate context automatically with OTel instrumentation
         }
     }
+    ```
 
-    private void callProvider() {
-        // outbound HTTP would propagate context automatically with OTel instrumentation
+=== "Go"
+
+    ```go
+    package main
+
+    import (
+    	"context"
+
+    	"go.opentelemetry.io/otel"
+    	"go.opentelemetry.io/otel/attribute"
+    	"go.opentelemetry.io/otel/codes"
+    )
+
+    func charge(ctx context.Context, orderID string) error {
+    	tracer := otel.Tracer("payments")
+    	ctx, span := tracer.Start(ctx, "charge")
+    	defer span.End()
+    	span.SetAttributes(attribute.String("order.id", orderID))
+    	if err := callProvider(ctx); err != nil {
+    		span.RecordError(err)
+    		span.SetStatus(codes.Error, err.Error())
+    		return err
+    	}
+    	return nil
     }
-}
-```
 
-### Python: OpenTelemetry SDK
-
-```python
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-
-provider = TracerProvider()
-provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
-trace.set_tracer_provider(provider)
-
-tracer = trace.get_tracer(__name__)
-
-def charge(order_id: str) -> None:
-    with tracer.start_as_current_span("charge") as span:
-        span.set_attribute("order.id", order_id)
-        call_provider()
-
-def call_provider() -> None:
-    pass
-```
-
-### Go: OpenTelemetry trace
-
-```go
-package main
-
-import (
-	"context"
-
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-)
-
-func charge(ctx context.Context, orderID string) error {
-	tracer := otel.Tracer("payments")
-	ctx, span := tracer.Start(ctx, "charge")
-	defer span.End()
-	span.SetAttributes(attribute.String("order.id", orderID))
-	if err := callProvider(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
-	return nil
-}
-
-func callProvider(ctx context.Context) error {
-	return nil
-}
-```
+    func callProvider(ctx context.Context) error {
+    	return nil
+    }
+    ```
 
 ---
 

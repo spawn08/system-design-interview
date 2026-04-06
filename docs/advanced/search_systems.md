@@ -77,156 +77,158 @@ flowchart TD
     POST --> IDX[(Inverted Index)]
 ```
 
-### Java Example: Building an Inverted Index
+### Building an inverted index
 
-```java
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+=== "Python"
 
-public class InvertedIndex {
+    ```python
+    from collections import defaultdict
+    from dataclasses import dataclass, field
+    import re
 
-    public record Posting(int docId, int termFrequency, List<Integer> positions) {}
+    @dataclass
+    class Posting:
+        doc_id: int
+        term_frequency: int
+        positions: list[int] = field(default_factory=list)
 
-    private final Map<String, List<Posting>> index = new ConcurrentHashMap<>();
-    private final Map<Integer, String> docStore = new ConcurrentHashMap<>();
-    private int docCount = 0;
+    class InvertedIndex:
+        STOP_WORDS = frozenset({
+            'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or',
+            'but', 'in', 'of', 'to', 'for', 'with', 'as', 'by',
+        })
 
-    public void addDocument(int docId, String content) {
-        docStore.put(docId, content);
-        docCount++;
+        def __init__(self):
+            self.index: dict[str, list[Posting]] = defaultdict(list)
+            self.doc_store: dict[int, str] = {}
+            self.doc_count = 0
 
-        String[] tokens = tokenize(content);
-        Map<String, List<Integer>> termPositions = new HashMap<>();
+        def add_document(self, doc_id: int, content: str) -> None:
+            self.doc_store[doc_id] = content
+            self.doc_count += 1
 
-        for (int i = 0; i < tokens.length; i++) {
-            String term = normalize(tokens[i]);
-            if (term != null && !isStopWord(term)) {
-                termPositions.computeIfAbsent(term, k -> new ArrayList<>()).add(i);
+            tokens = self._tokenize(content)
+            term_positions: dict[str, list[int]] = defaultdict(list)
+
+            for pos, token in enumerate(tokens):
+                term = self._normalize(token)
+                if term and term not in self.STOP_WORDS:
+                    term_positions[term].append(pos)
+
+            for term, positions in term_positions.items():
+                self.index[term].append(Posting(doc_id, len(positions), positions))
+
+        def search(self, query: str) -> list[Posting]:
+            term = self._normalize(query.strip())
+            return self.index.get(term, [])
+
+        def boolean_and(self, *terms: str) -> list[int]:
+            if not terms:
+                return []
+            result_sets = [
+                {p.doc_id for p in self.search(t)} for t in terms
+            ]
+            intersection = result_sets[0]
+            for s in result_sets[1:]:
+                intersection &= s
+            return sorted(intersection)
+
+        def _tokenize(self, text: str) -> list[str]:
+            return re.findall(r'\w+', text.lower())
+
+        def _normalize(self, token: str) -> str | None:
+            if len(token) < 2:
+                return None
+            if token.endswith('ing') and len(token) > 5:
+                return token[:-3]
+            if token.endswith('ed') and len(token) > 4:
+                return token[:-2]
+            if token.endswith('s') and not token.endswith('ss'):
+                return token[:-1]
+            return token
+    ```
+
+=== "Java"
+
+    ```java
+    import java.util.*;
+    import java.util.concurrent.ConcurrentHashMap;
+
+    public class InvertedIndex {
+
+        public record Posting(int docId, int termFrequency, List<Integer> positions) {}
+
+        private final Map<String, List<Posting>> index = new ConcurrentHashMap<>();
+        private final Map<Integer, String> docStore = new ConcurrentHashMap<>();
+        private int docCount = 0;
+
+        public void addDocument(int docId, String content) {
+            docStore.put(docId, content);
+            docCount++;
+
+            String[] tokens = tokenize(content);
+            Map<String, List<Integer>> termPositions = new HashMap<>();
+
+            for (int i = 0; i < tokens.length; i++) {
+                String term = normalize(tokens[i]);
+                if (term != null && !isStopWord(term)) {
+                    termPositions.computeIfAbsent(term, k -> new ArrayList<>()).add(i);
+                }
+            }
+
+            for (Map.Entry<String, List<Integer>> entry : termPositions.entrySet()) {
+                String term = entry.getKey();
+                List<Integer> positions = entry.getValue();
+                Posting posting = new Posting(docId, positions.size(), positions);
+                index.computeIfAbsent(term, k -> new ArrayList<>()).add(posting);
             }
         }
 
-        for (Map.Entry<String, List<Integer>> entry : termPositions.entrySet()) {
-            String term = entry.getKey();
-            List<Integer> positions = entry.getValue();
-            Posting posting = new Posting(docId, positions.size(), positions);
-            index.computeIfAbsent(term, k -> new ArrayList<>()).add(posting);
+        public List<Posting> search(String query) {
+            String term = normalize(query.trim());
+            return index.getOrDefault(term, Collections.emptyList());
+        }
+
+        public List<Integer> booleanAndSearch(String query1, String query2) {
+            List<Posting> list1 = search(query1);
+            List<Posting> list2 = search(query2);
+            Set<Integer> docs1 = new HashSet<>();
+            list1.forEach(p -> docs1.add(p.docId()));
+            return list2.stream()
+                .map(Posting::docId)
+                .filter(docs1::contains)
+                .toList();
+        }
+
+        private String[] tokenize(String text) {
+            return text.toLowerCase().split("[\\s\\p{Punct}]+");
+        }
+
+        private String normalize(String token) {
+            if (token == null || token.length() < 2) return null;
+            // simple stemming: remove trailing 's', 'ing', 'ed'
+            if (token.endsWith("ing") && token.length() > 5) {
+                return token.substring(0, token.length() - 3);
+            }
+            if (token.endsWith("ed") && token.length() > 4) {
+                return token.substring(0, token.length() - 2);
+            }
+            if (token.endsWith("s") && !token.endsWith("ss")) {
+                return token.substring(0, token.length() - 1);
+            }
+            return token;
+        }
+
+        private static final Set<String> STOP_WORDS = Set.of(
+            "the", "is", "at", "which", "on", "a", "an", "and", "or", "but",
+            "in", "of", "to", "for", "with", "as", "by", "this", "that"
+        );
+
+        private boolean isStopWord(String term) {
+            return STOP_WORDS.contains(term);
         }
     }
-
-    public List<Posting> search(String query) {
-        String term = normalize(query.trim());
-        return index.getOrDefault(term, Collections.emptyList());
-    }
-
-    public List<Integer> booleanAndSearch(String query1, String query2) {
-        List<Posting> list1 = search(query1);
-        List<Posting> list2 = search(query2);
-        Set<Integer> docs1 = new HashSet<>();
-        list1.forEach(p -> docs1.add(p.docId()));
-        return list2.stream()
-            .map(Posting::docId)
-            .filter(docs1::contains)
-            .toList();
-    }
-
-    private String[] tokenize(String text) {
-        return text.toLowerCase().split("[\\s\\p{Punct}]+");
-    }
-
-    private String normalize(String token) {
-        if (token == null || token.length() < 2) return null;
-        // simple stemming: remove trailing 's', 'ing', 'ed'
-        if (token.endsWith("ing") && token.length() > 5) {
-            return token.substring(0, token.length() - 3);
-        }
-        if (token.endsWith("ed") && token.length() > 4) {
-            return token.substring(0, token.length() - 2);
-        }
-        if (token.endsWith("s") && !token.endsWith("ss")) {
-            return token.substring(0, token.length() - 1);
-        }
-        return token;
-    }
-
-    private static final Set<String> STOP_WORDS = Set.of(
-        "the", "is", "at", "which", "on", "a", "an", "and", "or", "but",
-        "in", "of", "to", "for", "with", "as", "by", "this", "that"
-    );
-
-    private boolean isStopWord(String term) {
-        return STOP_WORDS.contains(term);
-    }
-}
-```
-
-### Python Example: Simple Inverted Index
-
-```python
-from collections import defaultdict
-from dataclasses import dataclass, field
-import re
-
-@dataclass
-class Posting:
-    doc_id: int
-    term_frequency: int
-    positions: list[int] = field(default_factory=list)
-
-class InvertedIndex:
-    STOP_WORDS = frozenset({
-        'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or',
-        'but', 'in', 'of', 'to', 'for', 'with', 'as', 'by',
-    })
-
-    def __init__(self):
-        self.index: dict[str, list[Posting]] = defaultdict(list)
-        self.doc_store: dict[int, str] = {}
-        self.doc_count = 0
-
-    def add_document(self, doc_id: int, content: str) -> None:
-        self.doc_store[doc_id] = content
-        self.doc_count += 1
-
-        tokens = self._tokenize(content)
-        term_positions: dict[str, list[int]] = defaultdict(list)
-
-        for pos, token in enumerate(tokens):
-            term = self._normalize(token)
-            if term and term not in self.STOP_WORDS:
-                term_positions[term].append(pos)
-
-        for term, positions in term_positions.items():
-            self.index[term].append(Posting(doc_id, len(positions), positions))
-
-    def search(self, query: str) -> list[Posting]:
-        term = self._normalize(query.strip())
-        return self.index.get(term, [])
-
-    def boolean_and(self, *terms: str) -> list[int]:
-        if not terms:
-            return []
-        result_sets = [
-            {p.doc_id for p in self.search(t)} for t in terms
-        ]
-        intersection = result_sets[0]
-        for s in result_sets[1:]:
-            intersection &= s
-        return sorted(intersection)
-
-    def _tokenize(self, text: str) -> list[str]:
-        return re.findall(r'\w+', text.lower())
-
-    def _normalize(self, token: str) -> str | None:
-        if len(token) < 2:
-            return None
-        if token.endswith('ing') and len(token) > 5:
-            return token[:-3]
-        if token.endswith('ed') and len(token) > 4:
-            return token[:-2]
-        if token.endswith('s') and not token.endswith('ss'):
-            return token[:-1]
-        return token
-```
+    ```
 
 ---
 

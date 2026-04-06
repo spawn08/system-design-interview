@@ -497,225 +497,225 @@ sequenceDiagram
 
 #### Code Examples: Post Service
 
-**Java (Spring-style)**
+=== "Python"
 
-```java
-package com.example.feed.post;
+    ```python
+    from __future__ import annotations
 
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+    import uuid
+    from datetime import datetime, timezone
+    from typing import List, Optional
 
-public final class CreatePostRequest {
-    public String text;
-    public List<MediaRef> media;
+    from pydantic import BaseModel, Field, field_validator
 
-    public static final class MediaRef {
-        public String objectKey;
-        public String mimeType;
+
+    class MediaRef(BaseModel):
+        object_key: str
+        mime_type: str
+
+
+    class CreatePostRequest(BaseModel):
+        text: Optional[str] = None
+        media: List[MediaRef] = Field(default_factory=list)
+
+        @field_validator("text")
+        @classmethod
+        def strip_text(cls, v: Optional[str]) -> Optional[str]:
+            return v.strip() if isinstance(v, str) else v
+
+        def validate_nonempty(self) -> None:
+            if (not self.text) and not self.media:
+                raise ValueError("empty post")
+            if self.text and len(self.text) > 10_000:
+                raise ValueError("text too long")
+
+
+    class PostRecord(BaseModel):
+        id: str
+        author_id: str
+        text: Optional[str]
+        created_at: datetime
+
+
+    class PostRepository:
+        def insert(
+            self, author_id: str, req: CreatePostRequest
+        ) -> PostRecord:  # pragma: no cover - interface
+            raise NotImplementedError
+
+
+    class EventPublisher:
+        def publish_post_created(self, post: PostRecord, media: List[MediaRef]) -> None:
+            raise NotImplementedError
+
+
+    class PostService:
+        def __init__(self, posts: PostRepository, events: EventPublisher) -> None:
+            self._posts = posts
+            self._events = events
+
+        def create_post(self, author_id: str, req: CreatePostRequest) -> PostRecord:
+            req.validate_nonempty()
+            saved = self._posts.insert(author_id, req)
+            self._events.publish_post_created(saved, req.media)
+            return saved
+
+        @staticmethod
+        def new_id() -> str:
+            return f"p_{uuid.uuid4().hex}"
+
+
+    def utcnow() -> datetime:
+        return datetime.now(timezone.utc)
+    ```
+
+=== "Java"
+
+    ```java
+    package com.example.feed.post;
+
+    import java.time.Instant;
+    import java.util.List;
+    import java.util.UUID;
+
+    public final class CreatePostRequest {
+        public String text;
+        public List<MediaRef> media;
+
+        public static final class MediaRef {
+            public String objectKey;
+            public String mimeType;
+        }
     }
-}
 
-public final class PostRecord {
-    public final String id;
-    public final String authorId;
-    public final String text;
-    public final Instant createdAt;
+    public final class PostRecord {
+        public final String id;
+        public final String authorId;
+        public final String text;
+        public final Instant createdAt;
 
-    public PostRecord(String id, String authorId, String text, Instant createdAt) {
-        this.id = id;
-        this.authorId = authorId;
-        this.text = text;
-        this.createdAt = createdAt;
-    }
-}
-
-public interface PostRepository {
-    PostRecord insert(String authorId, String text, List<CreatePostRequest.MediaRef> media);
-}
-
-public interface EventPublisher {
-    void publishPostCreated(PostRecord post, List<CreatePostRequest.MediaRef> media);
-}
-
-public final class PostService {
-    private final PostRepository posts;
-    private final EventPublisher events;
-
-    public PostService(PostRepository posts, EventPublisher events) {
-        this.posts = posts;
-        this.events = events;
+        public PostRecord(String id, String authorId, String text, Instant createdAt) {
+            this.id = id;
+            this.authorId = authorId;
+            this.text = text;
+            this.createdAt = createdAt;
+        }
     }
 
-    public PostRecord createPost(String authorId, CreatePostRequest req) {
-        validate(req);
-        PostRecord saved = posts.insert(authorId, req.text, req.media);
-        events.publishPostCreated(saved, req.media);
-        return saved;
+    public interface PostRepository {
+        PostRecord insert(String authorId, String text, List<CreatePostRequest.MediaRef> media);
     }
 
-    private static void validate(CreatePostRequest req) {
-        if (req.text == null || req.text.isBlank()) {
-            if (req.media == null || req.media.isEmpty()) {
-                throw new IllegalArgumentException("empty post");
+    public interface EventPublisher {
+        void publishPostCreated(PostRecord post, List<CreatePostRequest.MediaRef> media);
+    }
+
+    public final class PostService {
+        private final PostRepository posts;
+        private final EventPublisher events;
+
+        public PostService(PostRepository posts, EventPublisher events) {
+            this.posts = posts;
+            this.events = events;
+        }
+
+        public PostRecord createPost(String authorId, CreatePostRequest req) {
+            validate(req);
+            PostRecord saved = posts.insert(authorId, req.text, req.media);
+            events.publishPostCreated(saved, req.media);
+            return saved;
+        }
+
+        private static void validate(CreatePostRequest req) {
+            if (req.text == null || req.text.isBlank()) {
+                if (req.media == null || req.media.isEmpty()) {
+                    throw new IllegalArgumentException("empty post");
+                }
+            }
+            if (req.text != null && req.text.length() > 10_000) {
+                throw new IllegalArgumentException("text too long");
             }
         }
-        if (req.text != null && req.text.length() > 10_000) {
-            throw new IllegalArgumentException("text too long");
+
+        public static String newId() {
+            return "p_" + UUID.randomUUID().toString().replace("-", "");
         }
     }
+    ```
 
-    public static String newId() {
-        return "p_" + UUID.randomUUID().toString().replace("-", "");
+=== "Go"
+
+    ```go
+    package post
+
+    import (
+    	"errors"
+    	"fmt"
+    	"strings"
+    	"time"
+
+    	"github.com/google/uuid"
+    )
+
+    type MediaRef struct {
+    	ObjectKey string
+    	MimeType  string
     }
-}
-```
 
-**Python (FastAPI-style)**
+    type CreatePostRequest struct {
+    	Text  string
+    	Media []MediaRef
+    }
 
-```python
-from __future__ import annotations
+    type PostRecord struct {
+    	ID        string
+    	AuthorID  string
+    	Text      string
+    	CreatedAt time.Time
+    }
 
-import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
+    type PostRepository interface {
+    	Insert(authorID string, req CreatePostRequest) (PostRecord, error)
+    }
 
-from pydantic import BaseModel, Field, field_validator
+    type EventPublisher interface {
+    	PublishPostCreated(PostRecord, []MediaRef) error
+    }
 
+    type Service struct {
+    	Posts  PostRepository
+    	Events EventPublisher
+    }
 
-class MediaRef(BaseModel):
-    object_key: str
-    mime_type: str
+    func (s *Service) CreatePost(authorID string, req CreatePostRequest) (PostRecord, error) {
+    	if err := validateCreate(req); err != nil {
+    		return PostRecord{}, err
+    	}
+    	saved, err := s.Posts.Insert(authorID, req)
+    	if err != nil {
+    		return PostRecord{}, err
+    	}
+    	if err := s.Events.PublishPostCreated(saved, req.Media); err != nil {
+    		return PostRecord{}, fmt.Errorf("publish: %w", err)
+    	}
+    	return saved, nil
+    }
 
+    func validateCreate(req CreatePostRequest) error {
+    	text := strings.TrimSpace(req.Text)
+    	if text == "" && len(req.Media) == 0 {
+    		return errors.New("empty post")
+    	}
+    	if len(text) > 10_000 {
+    		return errors.New("text too long")
+    	}
+    	return nil
+    }
 
-class CreatePostRequest(BaseModel):
-    text: Optional[str] = None
-    media: List[MediaRef] = Field(default_factory=list)
-
-    @field_validator("text")
-    @classmethod
-    def strip_text(cls, v: Optional[str]) -> Optional[str]:
-        return v.strip() if isinstance(v, str) else v
-
-    def validate_nonempty(self) -> None:
-        if (not self.text) and not self.media:
-            raise ValueError("empty post")
-        if self.text and len(self.text) > 10_000:
-            raise ValueError("text too long")
-
-
-class PostRecord(BaseModel):
-    id: str
-    author_id: str
-    text: Optional[str]
-    created_at: datetime
-
-
-class PostRepository:
-    def insert(
-        self, author_id: str, req: CreatePostRequest
-    ) -> PostRecord:  # pragma: no cover - interface
-        raise NotImplementedError
-
-
-class EventPublisher:
-    def publish_post_created(self, post: PostRecord, media: List[MediaRef]) -> None:
-        raise NotImplementedError
-
-
-class PostService:
-    def __init__(self, posts: PostRepository, events: EventPublisher) -> None:
-        self._posts = posts
-        self._events = events
-
-    def create_post(self, author_id: str, req: CreatePostRequest) -> PostRecord:
-        req.validate_nonempty()
-        saved = self._posts.insert(author_id, req)
-        self._events.publish_post_created(saved, req.media)
-        return saved
-
-    @staticmethod
-    def new_id() -> str:
-        return f"p_{uuid.uuid4().hex}"
-
-
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
-```
-
-**Go**
-
-```go
-package post
-
-import (
-	"errors"
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/google/uuid"
-)
-
-type MediaRef struct {
-	ObjectKey string
-	MimeType  string
-}
-
-type CreatePostRequest struct {
-	Text  string
-	Media []MediaRef
-}
-
-type PostRecord struct {
-	ID        string
-	AuthorID  string
-	Text      string
-	CreatedAt time.Time
-}
-
-type PostRepository interface {
-	Insert(authorID string, req CreatePostRequest) (PostRecord, error)
-}
-
-type EventPublisher interface {
-	PublishPostCreated(PostRecord, []MediaRef) error
-}
-
-type Service struct {
-	Posts  PostRepository
-	Events EventPublisher
-}
-
-func (s *Service) CreatePost(authorID string, req CreatePostRequest) (PostRecord, error) {
-	if err := validateCreate(req); err != nil {
-		return PostRecord{}, err
-	}
-	saved, err := s.Posts.Insert(authorID, req)
-	if err != nil {
-		return PostRecord{}, err
-	}
-	if err := s.Events.PublishPostCreated(saved, req.Media); err != nil {
-		return PostRecord{}, fmt.Errorf("publish: %w", err)
-	}
-	return saved, nil
-}
-
-func validateCreate(req CreatePostRequest) error {
-	text := strings.TrimSpace(req.Text)
-	if text == "" && len(req.Media) == 0 {
-		return errors.New("empty post")
-	}
-	if len(text) > 10_000 {
-		return errors.New("text too long")
-	}
-	return nil
-}
-
-func NewID() string {
-	return "p_" + strings.ReplaceAll(uuid.New().String(), "-", "")
-}
-```
+    func NewID() string {
+    	return "p_" + strings.ReplaceAll(uuid.New().String(), "-", "")
+    }
+    ```
 
 ---
 
@@ -754,157 +754,157 @@ flowchart LR
     end
 ```
 
-#### Java / Python / Go: Fan-out Worker with Kafka
+#### Fan-out Worker with Kafka
 
-**Java**
+=== "Python"
 
-```java
-package com.example.feed.fanout;
+    ```python
+    from __future__ import annotations
 
-import java.util.List;
+    from dataclasses import dataclass
+    from typing import Iterable, List, Protocol
 
-public record PostCreatedEvent(
-        String postId,
-        String authorId,
-        long createdAtEpochMs,
-        List<String> mediaKeys
-) {}
 
-public interface FollowGraphClient {
-    /** Returns follower ids in pages; fan-out worker iterates. */
-    Iterable<List<String>> followersPaged(String authorId, int pageSize);
-}
+    @dataclass(frozen=True)
+    class PostCreatedEvent:
+        post_id: str
+        author_id: str
+        created_at_epoch_ms: int
+        media_keys: List[str]
 
-public interface FeedCacheClient {
-    void addToFeed(String followerUserId, String postId, long score);
-}
 
-public interface CelebrityPolicy {
-    boolean shouldPushToAllFollowers(String authorId, long followerCount);
-}
+    class FollowGraphClient(Protocol):
+        def followers_paged(self, author_id: str, page_size: int) -> Iterable[List[str]]:
+            ...
 
-public final class FanOutWorker {
-    private final FollowGraphClient graph;
-    private final FeedCacheClient cache;
-    private final CelebrityPolicy policy;
 
-    public FanOutWorker(FollowGraphClient graph, FeedCacheClient cache, CelebrityPolicy policy) {
-        this.graph = graph;
-        this.cache = cache;
-        this.policy = policy;
+    class FeedCacheClient(Protocol):
+        def add_to_feed(self, follower_user_id: str, post_id: str, score: float) -> None:
+            ...
+
+
+    class CelebrityPolicy(Protocol):
+        def should_push_to_all_followers(self, author_id: str, follower_count: int) -> bool:
+            ...
+
+
+    class FanOutWorker:
+        def __init__(
+            self,
+            graph: FollowGraphClient,
+            cache: FeedCacheClient,
+            policy: CelebrityPolicy,
+        ) -> None:
+            self._graph = graph
+            self._cache = cache
+            self._policy = policy
+
+        def on_post_created(self, e: PostCreatedEvent, follower_count: int) -> None:
+            if not self._policy.should_push_to_all_followers(e.author_id, follower_count):
+                return
+            score = float(e.created_at_epoch_ms)
+            for page in self._graph.followers_paged(e.author_id, 5000):
+                for follower_id in page:
+                    self._cache.add_to_feed(follower_id, e.post_id, score)
+    ```
+
+=== "Java"
+
+    ```java
+    package com.example.feed.fanout;
+
+    import java.util.List;
+
+    public record PostCreatedEvent(
+            String postId,
+            String authorId,
+            long createdAtEpochMs,
+            List<String> mediaKeys
+    ) {}
+
+    public interface FollowGraphClient {
+        /** Returns follower ids in pages; fan-out worker iterates. */
+        Iterable<List<String>> followersPaged(String authorId, int pageSize);
     }
 
-    public void onPostCreated(PostCreatedEvent e, long followerCount) {
-        if (!policy.shouldPushToAllFollowers(e.authorId(), followerCount)) {
-            return;
+    public interface FeedCacheClient {
+        void addToFeed(String followerUserId, String postId, long score);
+    }
+
+    public interface CelebrityPolicy {
+        boolean shouldPushToAllFollowers(String authorId, long followerCount);
+    }
+
+    public final class FanOutWorker {
+        private final FollowGraphClient graph;
+        private final FeedCacheClient cache;
+        private final CelebrityPolicy policy;
+
+        public FanOutWorker(FollowGraphClient graph, FeedCacheClient cache, CelebrityPolicy policy) {
+            this.graph = graph;
+            this.cache = cache;
+            this.policy = policy;
         }
-        long score = e.createdAtEpochMs();
-        for (List<String> page : graph.followersPaged(e.authorId(), 5_000)) {
-            for (String followerId : page) {
-                cache.addToFeed(followerId, e.postId(), score);
+
+        public void onPostCreated(PostCreatedEvent e, long followerCount) {
+            if (!policy.shouldPushToAllFollowers(e.authorId(), followerCount)) {
+                return;
+            }
+            long score = e.createdAtEpochMs();
+            for (List<String> page : graph.followersPaged(e.authorId(), 5_000)) {
+                for (String followerId : page) {
+                    cache.addToFeed(followerId, e.postId(), score);
+                }
             }
         }
     }
-}
-```
+    ```
 
-**Python**
+=== "Go"
 
-```python
-from __future__ import annotations
+    ```go
+    package fanout
 
-from dataclasses import dataclass
-from typing import Iterable, List, Protocol
+    type PostCreatedEvent struct {
+    	PostID            string
+    	AuthorID          string
+    	CreatedAtEpochMs  int64
+    	MediaKeys         []string
+    }
 
+    type FollowGraphClient interface {
+    	FollowersPaged(authorID string, pageSize int) (pages [][]string)
+    }
 
-@dataclass(frozen=True)
-class PostCreatedEvent:
-    post_id: str
-    author_id: str
-    created_at_epoch_ms: int
-    media_keys: List[str]
+    type FeedCacheClient interface {
+    	AddToFeed(followerUserID, postID string, score float64) error
+    }
 
+    type CelebrityPolicy interface {
+    	ShouldPushToAllFollowers(authorID string, followerCount int64) bool
+    }
 
-class FollowGraphClient(Protocol):
-    def followers_paged(self, author_id: str, page_size: int) -> Iterable[List[str]]:
-        ...
+    type Worker struct {
+    	Graph   FollowGraphClient
+    	Cache   FeedCacheClient
+    	Policy  CelebrityPolicy
+    }
 
-
-class FeedCacheClient(Protocol):
-    def add_to_feed(self, follower_user_id: str, post_id: str, score: float) -> None:
-        ...
-
-
-class CelebrityPolicy(Protocol):
-    def should_push_to_all_followers(self, author_id: str, follower_count: int) -> bool:
-        ...
-
-
-class FanOutWorker:
-    def __init__(
-        self,
-        graph: FollowGraphClient,
-        cache: FeedCacheClient,
-        policy: CelebrityPolicy,
-    ) -> None:
-        self._graph = graph
-        self._cache = cache
-        self._policy = policy
-
-    def on_post_created(self, e: PostCreatedEvent, follower_count: int) -> None:
-        if not self._policy.should_push_to_all_followers(e.author_id, follower_count):
-            return
-        score = float(e.created_at_epoch_ms)
-        for page in self._graph.followers_paged(e.author_id, 5000):
-            for follower_id in page:
-                self._cache.add_to_feed(follower_id, e.post_id, score)
-```
-
-**Go**
-
-```go
-package fanout
-
-type PostCreatedEvent struct {
-	PostID            string
-	AuthorID          string
-	CreatedAtEpochMs  int64
-	MediaKeys         []string
-}
-
-type FollowGraphClient interface {
-	FollowersPaged(authorID string, pageSize int) (pages [][]string)
-}
-
-type FeedCacheClient interface {
-	AddToFeed(followerUserID, postID string, score float64) error
-}
-
-type CelebrityPolicy interface {
-	ShouldPushToAllFollowers(authorID string, followerCount int64) bool
-}
-
-type Worker struct {
-	Graph   FollowGraphClient
-	Cache   FeedCacheClient
-	Policy  CelebrityPolicy
-}
-
-func (w *Worker) OnPostCreated(e PostCreatedEvent, followerCount int64) error {
-	if !w.Policy.ShouldPushToAllFollowers(e.AuthorID, followerCount) {
-		return nil
-	}
-	score := float64(e.CreatedAtEpochMs)
-	for _, page := range w.Graph.FollowersPaged(e.AuthorID, 5000) {
-		for _, fid := range page {
-			if err := w.Cache.AddToFeed(fid, e.PostID, score); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-```
+    func (w *Worker) OnPostCreated(e PostCreatedEvent, followerCount int64) error {
+    	if !w.Policy.ShouldPushToAllFollowers(e.AuthorID, followerCount) {
+    		return nil
+    	}
+    	score := float64(e.CreatedAtEpochMs)
+    	for _, page := range w.Graph.FollowersPaged(e.AuthorID, 5000) {
+    		for _, fid := range page {
+    			if err := w.Cache.AddToFeed(fid, e.PostID, score); err != nil {
+    				return err
+    			}
+    		}
+    	}
+    	return nil
+    }
+    ```
 
 !!! note
     In production, **fan-out is batched**, **idempotent**, and **back-pressure aware**; Kafka partitions might be keyed by `author_id` to preserve ordering per author while scaling consumers.
@@ -1019,72 +1019,74 @@ class RankingService:
 | **On-demand merge** | Pull path for celebrities or cold users |
 | **Write-through** | Update cache when post deleted (best effort + compensating job) |
 
-#### Java: Feed Cache Manager
+#### Feed Cache Manager
 
-```java
-package com.example.feed.cache;
+=== "Java"
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.params.ZAddParams;
+    ```java
+    package com.example.feed.cache;
 
-public final class FeedCacheManager {
-    private final Jedis jedis;
-    private final int maxEntries;
+    import redis.clients.jedis.Jedis;
+    import redis.clients.jedis.params.ZAddParams;
 
-    public FeedCacheManager(Jedis jedis, int maxEntries) {
-        this.jedis = jedis;
-        this.maxEntries = maxEntries;
+    public final class FeedCacheManager {
+        private final Jedis jedis;
+        private final int maxEntries;
+
+        public FeedCacheManager(Jedis jedis, int maxEntries) {
+            this.jedis = jedis;
+            this.maxEntries = maxEntries;
+        }
+
+        public void addPost(String userId, String postId, double score) {
+            String key = "feed:" + userId;
+            jedis.zadd(key, score, postId, ZAddParams.zAddParams().nx());
+            jedis.zremrangeByRank(key, 0, -maxEntries - 1);
+        }
+
+        public java.util.List<String> getPage(String userId, int limit, double maxScoreExclusive) {
+            String key = "feed:" + userId;
+            return jedis.zrevrangeByScore(key, "(" + maxScoreExclusive, "-inf", 0, limit);
+        }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package cache
+
+    import (
+    	"context"
+    	"fmt"
+
+    	"github.com/redis/go-redis/v9"
+    )
+
+    type FeedCacheManager struct {
+    	Rdb        *redis.Client
+    	MaxEntries int64
     }
 
-    public void addPost(String userId, String postId, double score) {
-        String key = "feed:" + userId;
-        jedis.zadd(key, score, postId, ZAddParams.zAddParams().nx());
-        jedis.zremrangeByRank(key, 0, -maxEntries - 1);
+    func (m *FeedCacheManager) AddPost(ctx context.Context, userID, postID string, score float64) error {
+    	key := fmt.Sprintf("feed:%s", userID)
+    	pipe := m.Rdb.TxPipeline()
+    	pipe.ZAdd(ctx, key, redis.Z{Score: score, Member: postID})
+    	pipe.ZRemRangeByRank(ctx, key, 0, -(m.MaxEntries + 1))
+    	_, err := pipe.Exec(ctx)
+    	return err
     }
 
-    public java.util.List<String> getPage(String userId, int limit, double maxScoreExclusive) {
-        String key = "feed:" + userId;
-        return jedis.zrevrangeByScore(key, "(" + maxScoreExclusive, "-inf", 0, limit);
+    func (m *FeedCacheManager) GetPage(ctx context.Context, userID string, limit int, maxExclusive float64) ([]string, error) {
+    	key := fmt.Sprintf("feed:%s", userID)
+    	opt := &redis.ZRangeBy{
+    		Min:   "-inf",
+    		Max:   fmt.Sprintf("(%f", maxExclusive),
+    		Count: int64(limit),
+    	}
+    	return m.Rdb.ZRevRangeByScore(ctx, key, opt).Result()
     }
-}
-```
-
-#### Go: Feed Cache Manager
-
-```go
-package cache
-
-import (
-	"context"
-	"fmt"
-
-	"github.com/redis/go-redis/v9"
-)
-
-type FeedCacheManager struct {
-	Rdb        *redis.Client
-	MaxEntries int64
-}
-
-func (m *FeedCacheManager) AddPost(ctx context.Context, userID, postID string, score float64) error {
-	key := fmt.Sprintf("feed:%s", userID)
-	pipe := m.Rdb.TxPipeline()
-	pipe.ZAdd(ctx, key, redis.Z{Score: score, Member: postID})
-	pipe.ZRemRangeByRank(ctx, key, 0, -(m.MaxEntries + 1))
-	_, err := pipe.Exec(ctx)
-	return err
-}
-
-func (m *FeedCacheManager) GetPage(ctx context.Context, userID string, limit int, maxExclusive float64) ([]string, error) {
-	key := fmt.Sprintf("feed:%s", userID)
-	opt := &redis.ZRangeBy{
-		Min:   "-inf",
-		Max:   fmt.Sprintf("(%f", maxExclusive),
-		Count: int64(limit),
-	}
-	return m.Rdb.ZRevRangeByScore(ctx, key, opt).Result()
-}
-```
+    ```
 
 ---
 
@@ -1436,129 +1438,129 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
 
 ---
 
-### 4.9 Media Pipeline — Pre-signed URLs (Java / Python / Go)
+### 4.9 Media Pipeline — Pre-signed URLs
 
-**Java (AWS SDK v2 style, illustrative)**
+=== "Python"
 
-```java
-package com.example.feed.media;
+    ```python
+    import uuid
+    from dataclasses import dataclass
 
-import java.net.URL;
-import java.time.Duration;
-import java.util.UUID;
+    import boto3
 
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-public final class PresignedUploadService {
-    private final S3Presigner presigner;
-    private final String bucket;
+    @dataclass(frozen=True)
+    class UploadUrlResponse:
+        upload_url: str
+        object_key: str
 
-    public PresignedUploadService(S3Presigner presigner, String bucket) {
-        this.presigner = presigner;
-        this.bucket = bucket;
+
+    class PresignedUploadService:
+        def __init__(self, bucket: str, region: str) -> None:
+            self._bucket = bucket
+            self._client = boto3.client("s3", region_name=region)
+
+        def create_upload_url(self, user_id: str, content_type: str, max_bytes: int) -> UploadUrlResponse:
+            key = f"u/{user_id}/{uuid.uuid4().hex}"
+            url = self._client.generate_presigned_url(
+                ClientMethod="put_object",
+                Params={
+                    "Bucket": self._bucket,
+                    "Key": key,
+                    "ContentType": content_type,
+                    "ContentLength": max_bytes,
+                },
+                ExpiresIn=600,
+            )
+            return UploadUrlResponse(upload_url=url, object_key=key)
+    ```
+
+=== "Java"
+
+    ```java
+    package com.example.feed.media;
+
+    import java.net.URL;
+    import java.time.Duration;
+    import java.util.UUID;
+
+    import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+    import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+    import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
+    public final class PresignedUploadService {
+        private final S3Presigner presigner;
+        private final String bucket;
+
+        public PresignedUploadService(S3Presigner presigner, String bucket) {
+            this.presigner = presigner;
+            this.bucket = bucket;
+        }
+
+        public UploadUrlResponse createUploadUrl(String userId, String contentType, long maxBytes) {
+            String key = "u/" + userId + "/" + UUID.randomUUID();
+            PutObjectRequest put = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType)
+                    .contentLength(maxBytes)
+                    .build();
+            PutObjectPresignRequest pre = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .putObjectRequest(put)
+                    .build();
+            URL url = presigner.presignPutObject(pre).url();
+            return new UploadUrlResponse(url.toString(), key);
+        }
+
+        public record UploadUrlResponse(String uploadUrl, String objectKey) {}
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package media
+
+    import (
+    	"context"
+    	"fmt"
+    	"time"
+
+    	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+    	"github.com/aws/aws-sdk-go-v2/service/s3"
+    	"github.com/google/uuid"
+    )
+
+    type Presigner struct {
+    	Client    *s3.Client
+    	Presigner *s3.PresignClient
+    	Bucket    string
     }
 
-    public UploadUrlResponse createUploadUrl(String userId, String contentType, long maxBytes) {
-        String key = "u/" + userId + "/" + UUID.randomUUID();
-        PutObjectRequest put = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(contentType)
-                .contentLength(maxBytes)
-                .build();
-        PutObjectPresignRequest pre = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10))
-                .putObjectRequest(put)
-                .build();
-        URL url = presigner.presignPutObject(pre).url();
-        return new UploadUrlResponse(url.toString(), key);
+    type UploadURLResponse struct {
+    	UploadURL string
+    	ObjectKey string
     }
 
-    public record UploadUrlResponse(String uploadUrl, String objectKey) {}
-}
-```
+    func (p *Presigner) CreateUploadURL(ctx context.Context, userID, contentType string, maxBytes int64) (UploadURLResponse, error) {
+    	key := fmt.Sprintf("u/%s/%s", userID, uuid.NewString())
+    	in := &s3.PutObjectInput{
+    		Bucket:        &p.Bucket,
+    		Key:           &key,
+    		ContentType:   &contentType,
+    		ContentLength: &maxBytes,
+    	}
+    	out, err := p.Presigner.PresignPutObject(ctx, in, s3.WithPresignExpires(10*time.Minute))
+    	if err != nil {
+    		return UploadURLResponse{}, err
+    	}
+    	return UploadURLResponse{UploadURL: out.URL, ObjectKey: key}, nil
+    }
 
-**Python (boto3)**
-
-```python
-import uuid
-from dataclasses import dataclass
-
-import boto3
-
-
-@dataclass(frozen=True)
-class UploadUrlResponse:
-    upload_url: str
-    object_key: str
-
-
-class PresignedUploadService:
-    def __init__(self, bucket: str, region: str) -> None:
-        self._bucket = bucket
-        self._client = boto3.client("s3", region_name=region)
-
-    def create_upload_url(self, user_id: str, content_type: str, max_bytes: int) -> UploadUrlResponse:
-        key = f"u/{user_id}/{uuid.uuid4().hex}"
-        url = self._client.generate_presigned_url(
-            ClientMethod="put_object",
-            Params={
-                "Bucket": self._bucket,
-                "Key": key,
-                "ContentType": content_type,
-                "ContentLength": max_bytes,
-            },
-            ExpiresIn=600,
-        )
-        return UploadUrlResponse(upload_url=url, object_key=key)
-```
-
-**Go (aws-sdk-go-v2)**
-
-```go
-package media
-
-import (
-	"context"
-	"fmt"
-	"time"
-
-	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/google/uuid"
-)
-
-type Presigner struct {
-	Client    *s3.Client
-	Presigner *s3.PresignClient
-	Bucket    string
-}
-
-type UploadURLResponse struct {
-	UploadURL string
-	ObjectKey string
-}
-
-func (p *Presigner) CreateUploadURL(ctx context.Context, userID, contentType string, maxBytes int64) (UploadURLResponse, error) {
-	key := fmt.Sprintf("u/%s/%s", userID, uuid.NewString())
-	in := &s3.PutObjectInput{
-		Bucket:        &p.Bucket,
-		Key:           &key,
-		ContentType:   &contentType,
-		ContentLength: &maxBytes,
-	}
-	out, err := p.Presigner.PresignPutObject(ctx, in, s3.WithPresignExpires(10*time.Minute))
-	if err != nil {
-		return UploadURLResponse{}, err
-	}
-	return UploadURLResponse{UploadURL: out.URL, ObjectKey: key}, nil
-}
-
-// v4.Signer used implicitly by PresignClient — keep import if custom signing needed
-var _ = v4.Signer{}
-```
+    // v4.Signer used implicitly by PresignClient — keep import if custom signing needed
+    var _ = v4.Signer{}
+    ```
 
 !!! warning
     Tune **CORS** on the bucket for browser direct uploads; validate **MIME** server-side before attaching media to a post.
@@ -1580,113 +1582,115 @@ flowchart TB
     M --> Rank[Rank / truncate]
 ```
 
-**Java: merge helper**
+#### Merge helper
 
-```java
-package com.example.feed.merge;
+=== "Python"
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+    ```python
+    from __future__ import annotations
 
-public final class FeedMerger {
-    public static List<String> mergeByScore(
-            List<ScoredId> a,
-            List<ScoredId> b,
-            int limit) {
-        PriorityQueue<ScoredId> pq = new PriorityQueue<>(Comparator.comparingDouble(ScoredId::score).reversed());
-        pq.addAll(a);
-        pq.addAll(b);
-        LinkedHashSet<String> seen = new LinkedHashSet<>();
-        List<String> out = new ArrayList<>();
-        while (!pq.isEmpty() && out.size() < limit) {
-            ScoredId x = pq.poll();
-            if (seen.add(x.id())) {
-                out.add(x.id());
+    import heapq
+    from dataclasses import dataclass
+    from typing import Iterable, List, Set
+
+
+    @dataclass(order=True)
+    class ScoredId:
+        neg_score: float
+        post_id: str
+
+        @staticmethod
+        def from_pair(post_id: str, score: float) -> "ScoredId":
+            return ScoredId(neg_score=-score, post_id=post_id)
+
+
+    def merge_by_score(streams: Iterable[List[tuple[str, float]]], limit: int) -> List[str]:
+        heap: List[tuple[float, int, str, int]] = []
+        arrays = [list(s) for s in streams]
+        for i, arr in enumerate(arrays):
+            if arr:
+                pid, sc = arr.pop()
+                heapq.heappush(heap, (-sc, i, pid, 0))
+        out: List[str] = []
+        seen: Set[str] = set()
+        while heap and len(out) < limit:
+            neg_sc, idx, pid, _ = heapq.heappop(heap)
+            if pid not in seen:
+                seen.add(pid)
+                out.append(pid)
+            if arrays[idx]:
+                nxt, sc = arrays[idx].pop()
+                heapq.heappush(heap, (-sc, idx, nxt, 0))
+        return out
+    ```
+
+=== "Java"
+
+    ```java
+    package com.example.feed.merge;
+
+    import java.util.*;
+    import java.util.stream.Collectors;
+    import java.util.stream.Stream;
+
+    public final class FeedMerger {
+        public static List<String> mergeByScore(
+                List<ScoredId> a,
+                List<ScoredId> b,
+                int limit) {
+            PriorityQueue<ScoredId> pq = new PriorityQueue<>(Comparator.comparingDouble(ScoredId::score).reversed());
+            pq.addAll(a);
+            pq.addAll(b);
+            LinkedHashSet<String> seen = new LinkedHashSet<>();
+            List<String> out = new ArrayList<>();
+            while (!pq.isEmpty() && out.size() < limit) {
+                ScoredId x = pq.poll();
+                if (seen.add(x.id())) {
+                    out.add(x.id());
+                }
             }
+            return out;
         }
-        return out;
+
+        public record ScoredId(String id, double score) {}
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package merge
+
+    import "sort"
+
+    type ScoredID struct {
+    	ID    string
+    	Score float64
     }
 
-    public record ScoredId(String id, double score) {}
-}
-```
-
-**Python**
-
-```python
-from __future__ import annotations
-
-import heapq
-from dataclasses import dataclass
-from typing import Iterable, List, Set
-
-
-@dataclass(order=True)
-class ScoredId:
-    neg_score: float
-    post_id: str
-
-    @staticmethod
-    def from_pair(post_id: str, score: float) -> "ScoredId":
-        return ScoredId(neg_score=-score, post_id=post_id)
-
-
-def merge_by_score(streams: Iterable[List[tuple[str, float]]], limit: int) -> List[str]:
-    heap: List[tuple[float, int, str, int]] = []
-    arrays = [list(s) for s in streams]
-    for i, arr in enumerate(arrays):
-        if arr:
-            pid, sc = arr.pop()
-            heapq.heappush(heap, (-sc, i, pid, 0))
-    out: List[str] = []
-    seen: Set[str] = set()
-    while heap and len(out) < limit:
-        neg_sc, idx, pid, _ = heapq.heappop(heap)
-        if pid not in seen:
-            seen.add(pid)
-            out.append(pid)
-        if arrays[idx]:
-            nxt, sc = arrays[idx].pop()
-            heapq.heappush(heap, (-sc, idx, nxt, 0))
-    return out
-```
-
-**Go**
-
-```go
-package merge
-
-import "sort"
-
-type ScoredID struct {
-	ID    string
-	Score float64
-}
-
-func MergeByScore(a, b []ScoredID, limit int) []string {
-	all := append(append([]ScoredID{}, a...), b...)
-	sort.Slice(all, func(i, j int) bool {
-		if all[i].Score == all[j].Score {
-			return all[i].ID < all[j].ID
-		}
-		return all[i].Score > all[j].Score
-	})
-	seen := map[string]struct{}{}
-	var out []string
-	for _, x := range all {
-		if len(out) >= limit {
-			break
-		}
-		if _, ok := seen[x.ID]; ok {
-			continue
-		}
-		seen[x.ID] = struct{}{}
-		out = append(out, x.ID)
-	}
-	return out
-}
-```
+    func MergeByScore(a, b []ScoredID, limit int) []string {
+    	all := append(append([]ScoredID{}, a...), b...)
+    	sort.Slice(all, func(i, j int) bool {
+    		if all[i].Score == all[j].Score {
+    			return all[i].ID < all[j].ID
+    		}
+    		return all[i].Score > all[j].Score
+    	})
+    	seen := map[string]struct{}{}
+    	var out []string
+    	for _, x := range all {
+    		if len(out) >= limit {
+    			break
+    		}
+    		if _, ok := seen[x.ID]; ok {
+    			continue
+    		}
+    		seen[x.ID] = struct{}{}
+    		out = append(out, x.ID)
+    	}
+    	return out
+    }
+    ```
 
 ---
 

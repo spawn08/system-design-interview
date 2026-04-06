@@ -554,71 +554,368 @@ flowchart TB
 
 **Implementation:**
 
-```python
-from dataclasses import dataclass
-from typing import Dict, List, Optional
-import heapq
-import time
-from urllib.parse import urlparse
+=== "Python"
 
-@dataclass
-class URLEntry:
-    url: str
-    priority: float
-    depth: int
-    discovered_at: float
-    
-    def __lt__(self, other):
-        return self.priority > other.priority  # Higher priority first
+    ```python
+    from dataclasses import dataclass
+    from typing import Dict, List, Optional
+    import heapq
+    import time
+    from urllib.parse import urlparse
 
-class URLFrontier:
-    def __init__(self, politeness_delay: float = 1.0):
-        self.host_queues: Dict[str, List[URLEntry]] = {}
-        self.host_last_access: Dict[str, float] = {}
-        self.politeness_delay = politeness_delay
-        self.hosts_ready: List[tuple] = []  # (next_access_time, host)
-    
-    def add_url(self, url: str, priority: float = 1.0, depth: int = 0):
-        """Add URL to appropriate host queue."""
-        host = urlparse(url).netloc
-        
-        if host not in self.host_queues:
-            self.host_queues[host] = []
-            # New host is immediately ready
-            heapq.heappush(self.hosts_ready, (0, host))
-        
-        entry = URLEntry(
-            url=url,
-            priority=priority,
-            depth=depth,
-            discovered_at=time.time()
-        )
-        heapq.heappush(self.host_queues[host], entry)
-    
-    def get_next_url(self) -> Optional[str]:
-        """Get next URL respecting politeness."""
-        now = time.time()
-        
-        while self.hosts_ready:
-            next_time, host = heapq.heappop(self.hosts_ready)
-            
-            if next_time > now:
-                # No host is ready yet
-                heapq.heappush(self.hosts_ready, (next_time, host))
-                return None
-            
-            if host in self.host_queues and self.host_queues[host]:
-                entry = heapq.heappop(self.host_queues[host])
-                
-                # Schedule next access for this host
-                next_access = now + self.politeness_delay
-                heapq.heappush(self.hosts_ready, (next_access, host))
-                
-                self.host_last_access[host] = now
-                return entry.url
-        
-        return None
-```
+    @dataclass
+    class URLEntry:
+        url: str
+        priority: float
+        depth: int
+        discovered_at: float
+
+        def __lt__(self, other):
+            return self.priority > other.priority  # Higher priority first
+
+    class URLFrontier:
+        def __init__(self, politeness_delay: float = 1.0):
+            self.host_queues: Dict[str, List[URLEntry]] = {}
+            self.host_last_access: Dict[str, float] = {}
+            self.politeness_delay = politeness_delay
+            self.hosts_ready: List[tuple] = []  # (next_access_time, host)
+
+        def add_url(self, url: str, priority: float = 1.0, depth: int = 0):
+            """Add URL to appropriate host queue."""
+            host = urlparse(url).netloc
+
+            if host not in self.host_queues:
+                self.host_queues[host] = []
+                # New host is immediately ready
+                heapq.heappush(self.hosts_ready, (0, host))
+
+            entry = URLEntry(
+                url=url,
+                priority=priority,
+                depth=depth,
+                discovered_at=time.time()
+            )
+            heapq.heappush(self.host_queues[host], entry)
+
+        def get_next_url(self) -> Optional[str]:
+            """Get next URL respecting politeness."""
+            now = time.time()
+
+            while self.hosts_ready:
+                next_time, host = heapq.heappop(self.hosts_ready)
+
+                if next_time > now:
+                    # No host is ready yet
+                    heapq.heappush(self.hosts_ready, (next_time, host))
+                    return None
+
+                if host in self.host_queues and self.host_queues[host]:
+                    entry = heapq.heappop(self.host_queues[host])
+
+                    # Schedule next access for this host
+                    next_access = now + self.politeness_delay
+                    heapq.heappush(self.hosts_ready, (next_access, host))
+
+                    self.host_last_access[host] = now
+                    return entry.url
+
+            return None
+    ```
+
+=== "Java"
+
+    ```java
+    import java.net.URI;
+    import java.net.http.HttpClient;
+    import java.net.http.HttpRequest;
+    import java.net.http.HttpResponse;
+    import java.time.Duration;
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Set;
+    import java.util.concurrent.ConcurrentHashMap;
+    import java.util.concurrent.PriorityBlockingQueue;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
+
+    /**
+     * URL Frontier backed by a priority queue with politeness enforcement.
+     * In production, replace with Kafka-backed distributed frontier.
+     */
+    public class URLFrontier {
+        private final PriorityBlockingQueue<CrawlTask> queue;
+        private final ConcurrentHashMap<String, Long> domainLastAccess;
+        private final long politeDelayMs;
+
+        public record CrawlTask(String url, int priority, int depth)
+                implements Comparable<CrawlTask> {
+            @Override
+            public int compareTo(CrawlTask other) {
+                return Integer.compare(this.priority, other.priority);
+            }
+        }
+
+        public URLFrontier(long politeDelayMs) {
+            this.queue = new PriorityBlockingQueue<>();
+            this.domainLastAccess = new ConcurrentHashMap<>();
+            this.politeDelayMs = politeDelayMs;
+        }
+
+        public void add(String url, int priority, int depth) {
+            queue.offer(new CrawlTask(url, priority, depth));
+        }
+
+        public CrawlTask next() throws InterruptedException {
+            while (true) {
+                CrawlTask task = queue.take();
+                String domain = URI.create(task.url()).getHost();
+                long lastAccess = domainLastAccess.getOrDefault(domain, 0L);
+                long elapsed = System.currentTimeMillis() - lastAccess;
+
+                if (elapsed < politeDelayMs) {
+                    Thread.sleep(politeDelayMs - elapsed);
+                }
+                domainLastAccess.put(domain, System.currentTimeMillis());
+                return task;
+            }
+        }
+
+        public int size() { return queue.size(); }
+    }
+
+    /**
+     * Crawler worker that fetches pages, extracts links, and publishes results.
+     */
+    public class CrawlerWorker implements Runnable {
+        private static final Pattern LINK_PATTERN =
+            Pattern.compile("href=[\"'](https?://[^\"'\\s>]+)[\"']", Pattern.CASE_INSENSITIVE);
+
+        private final URLFrontier frontier;
+        private final HttpClient httpClient;
+        private final Set<String> visited;
+        private final int maxDepth;
+        private volatile boolean running = true;
+
+        public CrawlerWorker(URLFrontier frontier, Set<String> visited, int maxDepth) {
+            this.frontier = frontier;
+            this.visited = visited;
+            this.maxDepth = maxDepth;
+            this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+        }
+
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    URLFrontier.CrawlTask task = frontier.next();
+                    if (task.depth() > maxDepth) continue;
+                    if (!visited.add(task.url())) continue;
+
+                    HttpResponse<String> response = httpClient.send(
+                        HttpRequest.newBuilder()
+                            .uri(URI.create(task.url()))
+                            .timeout(Duration.ofSeconds(15))
+                            .header("User-Agent", "SystemDesignBot/1.0")
+                            .GET()
+                            .build(),
+                        HttpResponse.BodyHandlers.ofString()
+                    );
+
+                    if (response.statusCode() == 200) {
+                        String body = response.body();
+                        processPage(task.url(), body);
+                        extractLinks(body, task.depth()).forEach(link ->
+                            frontier.add(link, task.priority() + 1, task.depth() + 1));
+                    }
+                } catch (Exception e) {
+                    // log and continue — one page failure shouldn't stop the crawler
+                }
+            }
+        }
+
+        private List<String> extractLinks(String html, int currentDepth) {
+            List<String> links = new ArrayList<>();
+            Matcher matcher = LINK_PATTERN.matcher(html);
+            while (matcher.find()) {
+                links.add(matcher.group(1));
+            }
+            return links;
+        }
+
+        private void processPage(String url, String content) {
+            // store content, update index, emit to pipeline
+        }
+
+        public void shutdown() { running = false; }
+    }
+    ```
+
+=== "Go"
+
+    ```go
+    package crawler
+
+    import (
+    	"context"
+    	"fmt"
+    	"io"
+    	"net/http"
+    	"net/url"
+    	"regexp"
+    	"sync"
+    	"time"
+    )
+
+    var linkPattern = regexp.MustCompile(`href=["'](https?://[^"'\s>]+)["']`)
+
+    type CrawlResult struct {
+    	URL        string
+    	StatusCode int
+    	Body       string
+    	Links      []string
+    	Duration   time.Duration
+    	Error      error
+    }
+
+    type Crawler struct {
+    	client         *http.Client
+    	visited        sync.Map
+    	frontier       chan string
+    	results        chan CrawlResult
+    	politeDelay    time.Duration
+    	domainLastHit  sync.Map
+    	maxDepth       int
+    	workerCount    int
+    }
+
+    func NewCrawler(workerCount int, politeDelay time.Duration, maxDepth int) *Crawler {
+    	return &Crawler{
+    		client: &http.Client{
+    			Timeout: 15 * time.Second,
+    			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+    				if len(via) >= 5 {
+    					return fmt.Errorf("too many redirects")
+    				}
+    				return nil
+    			},
+    		},
+    		frontier:    make(chan string, 100000),
+    		results:     make(chan CrawlResult, 10000),
+    		politeDelay: politeDelay,
+    		maxDepth:    maxDepth,
+    		workerCount: workerCount,
+    	}
+    }
+
+    func (c *Crawler) Start(ctx context.Context, seedURLs []string) <-chan CrawlResult {
+    	for _, u := range seedURLs {
+    		c.frontier <- u
+    	}
+
+    	var wg sync.WaitGroup
+    	for i := 0; i < c.workerCount; i++ {
+    		wg.Add(1)
+    		go func() {
+    			defer wg.Done()
+    			c.worker(ctx)
+    		}()
+    	}
+
+    	go func() {
+    		wg.Wait()
+    		close(c.results)
+    	}()
+
+    	return c.results
+    }
+
+    func (c *Crawler) worker(ctx context.Context) {
+    	for {
+    		select {
+    		case <-ctx.Done():
+    			return
+    		case rawURL, ok := <-c.frontier:
+    			if !ok {
+    				return
+    			}
+    			if _, loaded := c.visited.LoadOrStore(rawURL, true); loaded {
+    				continue
+    			}
+    			c.enforcePoliteness(rawURL)
+    			result := c.fetch(rawURL)
+    			c.results <- result
+
+    			if result.Error == nil {
+    				for _, link := range result.Links {
+    					if _, seen := c.visited.Load(link); !seen {
+    						select {
+    						case c.frontier <- link:
+    						default: // frontier full, drop URL
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+
+    func (c *Crawler) fetch(rawURL string) CrawlResult {
+    	start := time.Now()
+
+    	req, err := http.NewRequest("GET", rawURL, nil)
+    	if err != nil {
+    		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
+    	}
+    	req.Header.Set("User-Agent", "SystemDesignBot/1.0")
+
+    	resp, err := c.client.Do(req)
+    	if err != nil {
+    		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
+    	}
+    	defer resp.Body.Close()
+
+    	body, _ := io.ReadAll(io.LimitReader(resp.Body, 5*1024*1024)) // 5MB max
+    	links := extractLinks(string(body), rawURL)
+
+    	return CrawlResult{
+    		URL:        rawURL,
+    		StatusCode: resp.StatusCode,
+    		Body:       string(body),
+    		Links:      links,
+    		Duration:   time.Since(start),
+    	}
+    }
+
+    func (c *Crawler) enforcePoliteness(rawURL string) {
+    	parsed, err := url.Parse(rawURL)
+    	if err != nil {
+    		return
+    	}
+    	domain := parsed.Host
+
+    	if lastHit, ok := c.domainLastHit.Load(domain); ok {
+    		elapsed := time.Since(lastHit.(time.Time))
+    		if elapsed < c.politeDelay {
+    			time.Sleep(c.politeDelay - elapsed)
+    		}
+    	}
+    	c.domainLastHit.Store(domain, time.Now())
+    }
+
+    func extractLinks(html, baseURL string) []string {
+    	matches := linkPattern.FindAllStringSubmatch(html, -1)
+    	var links []string
+    	for _, match := range matches {
+    		if len(match) > 1 {
+    			links = append(links, match[1])
+    		}
+    	}
+    	return links
+    }
+    ```
 
 ### 4.2 Politeness and robots.txt
 
@@ -1458,293 +1755,7 @@ class URLMetadataStore:
 
 ## Step 9: Multi-Language Implementations
 
-### Java: URL Frontier and Crawler Worker
-
-```java
-import java.net.URI;
-import java.net.http.*;
-import java.time.Duration;
-import java.util.concurrent.*;
-import java.util.regex.*;
-
-/**
- * URL Frontier backed by a priority queue with politeness enforcement.
- * In production, replace with Kafka-backed distributed frontier.
- */
-public class URLFrontier {
-    private final PriorityBlockingQueue<CrawlTask> queue;
-    private final ConcurrentHashMap<String, Long> domainLastAccess;
-    private final long politeDelayMs;
-
-    public record CrawlTask(String url, int priority, int depth) 
-            implements Comparable<CrawlTask> {
-        @Override
-        public int compareTo(CrawlTask other) {
-            return Integer.compare(this.priority, other.priority);
-        }
-    }
-
-    public URLFrontier(long politeDelayMs) {
-        this.queue = new PriorityBlockingQueue<>();
-        this.domainLastAccess = new ConcurrentHashMap<>();
-        this.politeDelayMs = politeDelayMs;
-    }
-
-    public void add(String url, int priority, int depth) {
-        queue.offer(new CrawlTask(url, priority, depth));
-    }
-
-    public CrawlTask next() throws InterruptedException {
-        while (true) {
-            CrawlTask task = queue.take();
-            String domain = URI.create(task.url()).getHost();
-            long lastAccess = domainLastAccess.getOrDefault(domain, 0L);
-            long elapsed = System.currentTimeMillis() - lastAccess;
-            
-            if (elapsed < politeDelayMs) {
-                Thread.sleep(politeDelayMs - elapsed);
-            }
-            domainLastAccess.put(domain, System.currentTimeMillis());
-            return task;
-        }
-    }
-
-    public int size() { return queue.size(); }
-}
-
-/**
- * Crawler worker that fetches pages, extracts links, and publishes results.
- */
-public class CrawlerWorker implements Runnable {
-    private static final Pattern LINK_PATTERN = 
-        Pattern.compile("href=[\"'](https?://[^\"'\\s>]+)[\"']", Pattern.CASE_INSENSITIVE);
-    
-    private final URLFrontier frontier;
-    private final HttpClient httpClient;
-    private final Set<String> visited;
-    private final int maxDepth;
-    private volatile boolean running = true;
-
-    public CrawlerWorker(URLFrontier frontier, Set<String> visited, int maxDepth) {
-        this.frontier = frontier;
-        this.visited = visited;
-        this.maxDepth = maxDepth;
-        this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
-    }
-
-    @Override
-    public void run() {
-        while (running) {
-            try {
-                URLFrontier.CrawlTask task = frontier.next();
-                if (task.depth() > maxDepth) continue;
-                if (!visited.add(task.url())) continue;
-
-                HttpResponse<String> response = httpClient.send(
-                    HttpRequest.newBuilder()
-                        .uri(URI.create(task.url()))
-                        .timeout(Duration.ofSeconds(15))
-                        .header("User-Agent", "SystemDesignBot/1.0")
-                        .GET()
-                        .build(),
-                    HttpResponse.BodyHandlers.ofString()
-                );
-
-                if (response.statusCode() == 200) {
-                    String body = response.body();
-                    processPage(task.url(), body);
-                    extractLinks(body, task.depth()).forEach(link ->
-                        frontier.add(link, task.priority() + 1, task.depth() + 1));
-                }
-            } catch (Exception e) {
-                // log and continue — one page failure shouldn't stop the crawler
-            }
-        }
-    }
-
-    private List<String> extractLinks(String html, int currentDepth) {
-        List<String> links = new ArrayList<>();
-        Matcher matcher = LINK_PATTERN.matcher(html);
-        while (matcher.find()) {
-            links.add(matcher.group(1));
-        }
-        return links;
-    }
-
-    private void processPage(String url, String content) {
-        // store content, update index, emit to pipeline
-    }
-
-    public void shutdown() { running = false; }
-}
-```
-
-### Go: Concurrent Web Crawler
-
-```go
-package crawler
-
-import (
-	"context"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"regexp"
-	"sync"
-	"time"
-)
-
-var linkPattern = regexp.MustCompile(`href=["'](https?://[^"'\s>]+)["']`)
-
-type CrawlResult struct {
-	URL        string
-	StatusCode int
-	Body       string
-	Links      []string
-	Duration   time.Duration
-	Error      error
-}
-
-type Crawler struct {
-	client         *http.Client
-	visited        sync.Map
-	frontier       chan string
-	results        chan CrawlResult
-	politeDelay    time.Duration
-	domainLastHit  sync.Map
-	maxDepth       int
-	workerCount    int
-}
-
-func NewCrawler(workerCount int, politeDelay time.Duration, maxDepth int) *Crawler {
-	return &Crawler{
-		client: &http.Client{
-			Timeout: 15 * time.Second,
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				if len(via) >= 5 {
-					return fmt.Errorf("too many redirects")
-				}
-				return nil
-			},
-		},
-		frontier:    make(chan string, 100000),
-		results:     make(chan CrawlResult, 10000),
-		politeDelay: politeDelay,
-		maxDepth:    maxDepth,
-		workerCount: workerCount,
-	}
-}
-
-func (c *Crawler) Start(ctx context.Context, seedURLs []string) <-chan CrawlResult {
-	for _, u := range seedURLs {
-		c.frontier <- u
-	}
-
-	var wg sync.WaitGroup
-	for i := 0; i < c.workerCount; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			c.worker(ctx)
-		}()
-	}
-
-	go func() {
-		wg.Wait()
-		close(c.results)
-	}()
-
-	return c.results
-}
-
-func (c *Crawler) worker(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case rawURL, ok := <-c.frontier:
-			if !ok {
-				return
-			}
-			if _, loaded := c.visited.LoadOrStore(rawURL, true); loaded {
-				continue
-			}
-			c.enforcePoliteness(rawURL)
-			result := c.fetch(rawURL)
-			c.results <- result
-
-			if result.Error == nil {
-				for _, link := range result.Links {
-					if _, seen := c.visited.Load(link); !seen {
-						select {
-						case c.frontier <- link:
-						default: // frontier full, drop URL
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-func (c *Crawler) fetch(rawURL string) CrawlResult {
-	start := time.Now()
-
-	req, err := http.NewRequest("GET", rawURL, nil)
-	if err != nil {
-		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
-	}
-	req.Header.Set("User-Agent", "SystemDesignBot/1.0")
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 5*1024*1024)) // 5MB max
-	links := extractLinks(string(body), rawURL)
-
-	return CrawlResult{
-		URL:        rawURL,
-		StatusCode: resp.StatusCode,
-		Body:       string(body),
-		Links:      links,
-		Duration:   time.Since(start),
-	}
-}
-
-func (c *Crawler) enforcePoliteness(rawURL string) {
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		return
-	}
-	domain := parsed.Host
-
-	if lastHit, ok := c.domainLastHit.Load(domain); ok {
-		elapsed := time.Since(lastHit.(time.Time))
-		if elapsed < c.politeDelay {
-			time.Sleep(c.politeDelay - elapsed)
-		}
-	}
-	c.domainLastHit.Store(domain, time.Now())
-}
-
-func extractLinks(html, baseURL string) []string {
-	matches := linkPattern.FindAllStringSubmatch(html, -1)
-	var links []string
-	for _, match := range matches {
-		if len(match) > 1 {
-			links = append(links, match[1])
-		}
-	}
-	return links
-}
-```
+Python, Java, and Go reference implementations for the URL frontier and crawler worker (including a concurrent Go crawler) live under [§4.1 URL Frontier](#41-url-frontier) in **Implementation**.
 
 ---
 

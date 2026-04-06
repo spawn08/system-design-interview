@@ -365,274 +365,272 @@ For autocomplete, nodes often store:
 - Precomputed top-K per node, or
 - Hybrid: bounded DFS + heap merge.
 
-#### Java: Trie with top-K at each node
+=== "Python"
 
-The following illustrates a **mutable trie** with per-node frequency and a **min-heap** of size K for top completions at terminal / summary points. Production code would add memory pooling, serialization, and careful Unicode handling.
+    ```python
+    # Trie with heap for top-K; heapq min-heap tracks largest K via tuples
+    from __future__ import annotations
+    
+    import heapq
+    from dataclasses import dataclass
+    from typing import Dict, List, Tuple
+    
+    
+    @dataclass(frozen=True)
+    class Suggestion:
+        text: str
+        score: float
+    
+    
+    class TrieNode:
+        __slots__ = ("children", "freq", "heap", "k")
+    
+        def __init__(self, k: int) -> None:
+            self.children: Dict[str, TrieNode] = {}
+            self.freq: float = 0.0
+            self.k = k
+            # min-heap of (score, text) — pop smallest when full
+            self.heap: List[Tuple[float, str]] = []
+    
+        def offer(self, text: str, score: float) -> None:
+            if self.k <= 0:
+                return
+            item = (score, text)
+            if len(self.heap) < self.k:
+                heapq.heappush(self.heap, item)
+                return
+            if score > self.heap[0][0]:
+                heapq.heapreplace(self.heap, item)
+    
+    
+    class TopKTrie:
+        def __init__(self, k: int = 10) -> None:
+            self.k = k
+            self.root = TrieNode(k)
+    
+        def insert(self, query: str, score: float) -> None:
+            if not query:
+                return
+            cur = self.root
+            for ch in query:
+                cur.freq += score
+                cur = cur.children.setdefault(ch, TrieNode(self.k))
+            cur.freq += score
+    
+            cur = self.root
+            for ch in query:
+                cur = cur.children[ch]
+                cur.offer(query, score)
+    
+        def top_k(self, prefix: str) -> List[Suggestion]:
+            cur = self.root
+            for ch in prefix:
+                nxt = cur.children.get(ch)
+                if nxt is None:
+                    return []
+                cur = nxt
+            # extract max-K from min-heap
+            ranked = sorted(((s, t) for s, t in cur.heap), reverse=True)
+            return [Suggestion(text=t, score=s) for s, t in ranked]
+    ```
 
-```java
-import java.util.*;
+=== "Java"
 
-/**
- * Illustrative prefix trie for interview discussion.
- * Not production-hardened: Unicode, concurrency, and memory are simplified.
- */
-public class SuggestionTrie {
-    static final class Node {
-        final Map<Character, Node> children = new HashMap<>();
-        long frequency; // aggregated weight for this path
-        final PriorityQueue<Candidate> topK;
-        final int k;
-
-        Node(int k) {
-            this.k = k;
-            this.topK = new PriorityQueue<>(Comparator.comparingLong(c -> c.score));
-        }
-
-        void offerCompletion(String text, long score) {
-            if (topK.size() < k) {
-                topK.add(new Candidate(text, score));
-            } else if (score > topK.peek().score) {
-                topK.poll();
-                topK.add(new Candidate(text, score));
+    ```java
+    // Mutable trie with per-node frequency and min-heap (K) for top completions
+    import java.util.*;
+    
+    /**
+     * Illustrative prefix trie for interview discussion.
+     * Not production-hardened: Unicode, concurrency, and memory are simplified.
+     */
+    public class SuggestionTrie {
+        static final class Node {
+            final Map<Character, Node> children = new HashMap<>();
+            long frequency; // aggregated weight for this path
+            final PriorityQueue<Candidate> topK;
+            final int k;
+    
+            Node(int k) {
+                this.k = k;
+                this.topK = new PriorityQueue<>(Comparator.comparingLong(c -> c.score));
+            }
+    
+            void offerCompletion(String text, long score) {
+                if (topK.size() < k) {
+                    topK.add(new Candidate(text, score));
+                } else if (score > topK.peek().score) {
+                    topK.poll();
+                    topK.add(new Candidate(text, score));
+                }
+            }
+    
+            List<Candidate> snapshotTop() {
+                ArrayList<Candidate> list = new ArrayList<>(topK);
+                list.sort((a, b) -> Long.compare(b.score, a.score));
+                return list;
             }
         }
-
-        List<Candidate> snapshotTop() {
-            ArrayList<Candidate> list = new ArrayList<>(topK);
-            list.sort((a, b) -> Long.compare(b.score, a.score));
-            return list;
+    
+        public static final class Candidate {
+            public final String text;
+            public final long score;
+    
+            public Candidate(String text, long score) {
+                this.text = text;
+                this.score = score;
+            }
+        }
+    
+        private final Node root;
+        private final int k;
+    
+        public SuggestionTrie(int k) {
+            this.k = k;
+            this.root = new Node(k);
+        }
+    
+        public void insert(String query, long score) {
+            if (query == null || query.isEmpty()) return;
+            Node cur = root;
+            for (int i = 0; i < query.length(); i++) {
+                char ch = query.charAt(i);
+                cur = cur.children.computeIfAbsent(ch, c -> new Node(k));
+                cur.frequency += score; // simple propagation example
+            }
+            // Register full string at the terminal walk (here: repeat traversal)
+            Node n = root;
+            for (int i = 0; i < query.length(); i++) {
+                char ch = query.charAt(i);
+                n = n.children.get(ch);
+                n.offerCompletion(query, score);
+            }
+        }
+    
+        public List<Candidate> topKForPrefix(String prefix) {
+            Node n = root;
+            for (int i = 0; i < prefix.length(); i++) {
+                char ch = prefix.charAt(i);
+                n = n.children.get(ch);
+                if (n == null) return Collections.emptyList();
+            }
+            return n.snapshotTop();
         }
     }
+    ```
 
-    public static final class Candidate {
-        public final String text;
-        public final long score;
+=== "Go"
 
-        public Candidate(String text, long score) {
-            this.text = text;
-            this.score = score;
-        }
+    ```go
+    // Concurrent-safe trie: RWMutex, rune-wise children (Unicode)
+    package trie
+    
+    import (
+    	"container/heap"
+    	"sort"
+    	"sync"
+    )
+    
+    type Candidate struct {
+    	Text  string
+    	Score int64
     }
-
-    private final Node root;
-    private final int k;
-
-    public SuggestionTrie(int k) {
-        this.k = k;
-        this.root = new Node(k);
+    
+    type minHeap []Candidate
+    
+    func (h minHeap) Len() int           { return len(h) }
+    func (h minHeap) Less(i, j int) bool { return h[i].Score < h[j].Score }
+    func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+    
+    func (h *minHeap) Push(x any) { *h = append(*h, x.(Candidate)) }
+    func (h *minHeap) Pop() any {
+    	old := *h
+    	n := len(old)
+    	x := old[n-1]
+    	*h = old[0 : n-1]
+    	return x
     }
-
-    public void insert(String query, long score) {
-        if (query == null || query.isEmpty()) return;
-        Node cur = root;
-        for (int i = 0; i < query.length(); i++) {
-            char ch = query.charAt(i);
-            cur = cur.children.computeIfAbsent(ch, c -> new Node(k));
-            cur.frequency += score; // simple propagation example
-        }
-        // Register full string at the terminal walk (here: repeat traversal)
-        Node n = root;
-        for (int i = 0; i < query.length(); i++) {
-            char ch = query.charAt(i);
-            n = n.children.get(ch);
-            n.offerCompletion(query, score);
-        }
+    
+    type node struct {
+    	mu        sync.Mutex
+    	children  map[rune]*node
+    	freq      int64
+    	topK      int
+    	heap      minHeap
     }
-
-    public List<Candidate> topKForPrefix(String prefix) {
-        Node n = root;
-        for (int i = 0; i < prefix.length(); i++) {
-            char ch = prefix.charAt(i);
-            n = n.children.get(ch);
-            if (n == null) return Collections.emptyList();
-        }
-        return n.snapshotTop();
+    
+    func newNode(k int) *node {
+    	return &node{children: make(map[rune]*node), topK: k}
     }
-}
-```
-
-#### Go: Concurrent-safe trie (RWMutex + rune-wise children)
-
-Go prefers **`rune`**-wise children for Unicode. This example uses a **striped read/write lock** pattern: one `sync.RWMutex` on the trie for clarity (sharded locks would scale further).
-
-```go
-package trie
-
-import (
-	"container/heap"
-	"sort"
-	"sync"
-)
-
-type Candidate struct {
-	Text  string
-	Score int64
-}
-
-type minHeap []Candidate
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i].Score < h[j].Score }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *minHeap) Push(x any) { *h = append(*h, x.(Candidate)) }
-func (h *minHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
-
-type node struct {
-	mu        sync.Mutex
-	children  map[rune]*node
-	freq      int64
-	topK      int
-	heap      minHeap
-}
-
-func newNode(k int) *node {
-	return &node{children: make(map[rune]*node), topK: k}
-}
-
-func (n *node) offer(c Candidate) {
-	if n.topK == 0 {
-		return
-	}
-	if len(n.heap) < n.topK {
-		heap.Push(&n.heap, c)
-		return
-	}
-	if c.Score > n.heap[0].Score {
-		heap.Pop(&n.heap)
-		heap.Push(&n.heap, c)
-	}
-}
-
-// ConcurrentTrie is safe for concurrent reads; inserts should be managed by a builder thread in production.
-type ConcurrentTrie struct {
-	mu   sync.RWMutex
-	root *node
-	k    int
-}
-
-func NewConcurrentTrie(k int) *ConcurrentTrie {
-	return &ConcurrentTrie{root: newNode(k), k: k}
-}
-
-func (t *ConcurrentTrie) Insert(s string, score int64) {
-	runes := []rune(s)
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	cur := t.root
-	for _, r := range runes {
-		if cur.children[r] == nil {
-			cur.children[r] = newNode(t.k)
-		}
-		cur = cur.children[r]
-		cur.freq += score
-	}
-	// register completions along the path (simplified pattern)
-	cur = t.root
-	for _, r := range runes {
-		cur = cur.children[r]
-		cur.offer(Candidate{Text: s, Score: score})
-	}
-}
-
-func (t *ConcurrentTrie) TopK(prefix string) []Candidate {
-	runes := []rune(prefix)
-	t.mu.RLock()
-	defer t.mu.RUnlock()
-
-	cur := t.root
-	for _, r := range runes {
-		cur = cur.children[r]
-		if cur == nil {
-			return nil
-		}
-	}
-	out := make([]Candidate, len(cur.heap))
-	copy(out, cur.heap)
-	sort.Slice(out, func(i, j int) bool { return out[i].Score > out[j].Score })
-	return out
-}
-```
+    
+    func (n *node) offer(c Candidate) {
+    	if n.topK == 0 {
+    		return
+    	}
+    	if len(n.heap) < n.topK {
+    		heap.Push(&n.heap, c)
+    		return
+    	}
+    	if c.Score > n.heap[0].Score {
+    		heap.Pop(&n.heap)
+    		heap.Push(&n.heap, c)
+    	}
+    }
+    
+    // ConcurrentTrie is safe for concurrent reads; inserts should be managed by a builder thread in production.
+    type ConcurrentTrie struct {
+    	mu   sync.RWMutex
+    	root *node
+    	k    int
+    }
+    
+    func NewConcurrentTrie(k int) *ConcurrentTrie {
+    	return &ConcurrentTrie{root: newNode(k), k: k}
+    }
+    
+    func (t *ConcurrentTrie) Insert(s string, score int64) {
+    	runes := []rune(s)
+    	t.mu.Lock()
+    	defer t.mu.Unlock()
+    
+    	cur := t.root
+    	for _, r := range runes {
+    		if cur.children[r] == nil {
+    			cur.children[r] = newNode(t.k)
+    		}
+    		cur = cur.children[r]
+    		cur.freq += score
+    	}
+    	// register completions along the path (simplified pattern)
+    	cur = t.root
+    	for _, r := range runes {
+    		cur = cur.children[r]
+    		cur.offer(Candidate{Text: s, Score: score})
+    	}
+    }
+    
+    func (t *ConcurrentTrie) TopK(prefix string) []Candidate {
+    	runes := []rune(prefix)
+    	t.mu.RLock()
+    	defer t.mu.RUnlock()
+    
+    	cur := t.root
+    	for _, r := range runes {
+    		cur = cur.children[r]
+    		if cur == nil {
+    			return nil
+    		}
+    	}
+    	out := make([]Candidate, len(cur.heap))
+    	copy(out, cur.heap)
+    	sort.Slice(out, func(i, j int) bool { return out[i].Score > out[j].Score })
+    	return out
+    }
+    ```
 
 !!! warning
     For hot paths, prefer **pre-sorted immutable snapshots** built offline; sorting on every read adds CPU cost when QPS is high.
 
-#### Python: Trie with heap for top-K
-
-Python’s `heapq` provides a **min-heap** useful for tracking **largest K** via score inversion or by storing tuples.
-
-```python
-from __future__ import annotations
-
-import heapq
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
-
-
-@dataclass(frozen=True)
-class Suggestion:
-    text: str
-    score: float
-
-
-class TrieNode:
-    __slots__ = ("children", "freq", "heap", "k")
-
-    def __init__(self, k: int) -> None:
-        self.children: Dict[str, TrieNode] = {}
-        self.freq: float = 0.0
-        self.k = k
-        # min-heap of (score, text) — pop smallest when full
-        self.heap: List[Tuple[float, str]] = []
-
-    def offer(self, text: str, score: float) -> None:
-        if self.k <= 0:
-            return
-        item = (score, text)
-        if len(self.heap) < self.k:
-            heapq.heappush(self.heap, item)
-            return
-        if score > self.heap[0][0]:
-            heapq.heapreplace(self.heap, item)
-
-
-class TopKTrie:
-    def __init__(self, k: int = 10) -> None:
-        self.k = k
-        self.root = TrieNode(k)
-
-    def insert(self, query: str, score: float) -> None:
-        if not query:
-            return
-        cur = self.root
-        for ch in query:
-            cur.freq += score
-            cur = cur.children.setdefault(ch, TrieNode(self.k))
-        cur.freq += score
-
-        cur = self.root
-        for ch in query:
-            cur = cur.children[ch]
-            cur.offer(query, score)
-
-    def top_k(self, prefix: str) -> List[Suggestion]:
-        cur = self.root
-        for ch in prefix:
-            nxt = cur.children.get(ch)
-            if nxt is None:
-                return []
-            cur = nxt
-        # extract max-K from min-heap
-        ranked = sorted(((s, t) for s, t in cur.heap), reverse=True)
-        return [Suggestion(text=t, score=s) for s, t in ranked]
-```
 
 ---
 
@@ -769,59 +767,62 @@ def decay_merge(
 
 **Incremental updates** help between rebuilds but complicate correctness; many systems use **small overlays** (e.g., Redis ZSET for hot queries) merged at read time.
 
-#### Java: Trie builder service (sketch)
+=== "Java"
 
-```java
-import java.io.*;
-import java.util.*;
-
-public class TrieBuilderService {
-    public static SuggestionTrie buildFromCounts(Map<String, Long> queryToCount, int k) {
-        SuggestionTrie trie = new SuggestionTrie(k);
-        for (Map.Entry<String, Long> e : queryToCount.entrySet()) {
-            trie.insert(e.getKey(), e.getValue());
+    ```java
+    // Trie builder service (sketch)
+    import java.io.*;
+    import java.util.*;
+    
+    public class TrieBuilderService {
+        public static SuggestionTrie buildFromCounts(Map<String, Long> queryToCount, int k) {
+            SuggestionTrie trie = new SuggestionTrie(k);
+            for (Map.Entry<String, Long> e : queryToCount.entrySet()) {
+                trie.insert(e.getKey(), e.getValue());
+            }
+            return trie;
         }
-        return trie;
-    }
-
-    public static void writeSnapshot(SuggestionTrie trie, File out) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(out))) {
-            oos.writeObject(trie); // illustrative only—prefer custom binary format
+    
+        public static void writeSnapshot(SuggestionTrie trie, File out) throws IOException {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(out))) {
+                oos.writeObject(trie); // illustrative only—prefer custom binary format
+            }
         }
     }
-}
-```
+    ```
+
+=== "Go"
+
+    ```go
+    // Atomic trie swap
+    package serving
+    
+    import "sync/atomic"
+    
+    type Snapshot struct {
+    	trie *ConcurrentTrie
+    }
+    
+    type AtomicTrieHolder struct {
+    	ptr atomic.Pointer[Snapshot]
+    }
+    
+    func (h *AtomicTrieHolder) Current() *ConcurrentTrie {
+    	s := h.ptr.Load()
+    	if s == nil {
+    		return nil
+    	}
+    	return s.trie
+    }
+    
+    func (h *AtomicTrieHolder) Publish(t *ConcurrentTrie) {
+    	h.ptr.Store(&Snapshot{trie: t})
+    }
+    ```
 
 !!! warning
     Java serialization is shown for **interview simplicity**. Production systems use **versioned binary formats**, **checksums**, and **mmap**-friendly layouts.
 
-#### Go: Atomic trie swap
-
-```go
-package serving
-
-import "sync/atomic"
-
-type Snapshot struct {
-	trie *ConcurrentTrie
-}
-
-type AtomicTrieHolder struct {
-	ptr atomic.Pointer[Snapshot]
-}
-
-func (h *AtomicTrieHolder) Current() *ConcurrentTrie {
-	s := h.ptr.Load()
-	if s == nil {
-		return nil
-	}
-	return s.trie
-}
-
-func (h *AtomicTrieHolder) Publish(t *ConcurrentTrie) {
-	h.ptr.Store(&Snapshot{trie: t})
-}
-```
 
 ---
 
@@ -1093,129 +1094,132 @@ def sanitize_suggestions(items: list[str], blocklist: set[str]) -> list[str]:
 
 ---
 
-### Extended Java: Immutable snapshot reader
+=== "Python"
 
-```java
-import java.util.*;
+    ```python
+    # FastAPI-style service sketch
+    from __future__ import annotations
+    
+    import time
+    from dataclasses import dataclass
+    from functools import lru_cache
+    from typing import List, Optional
+    
+    from pydantic import BaseModel, Field
+    
+    
+    @dataclass
+    class Settings:
+        max_prefix_len: int = 50
+        default_limit: int = 10
+    
+    
+    class SuggestionItem(BaseModel):
+        text: str
+        score: float = Field(ge=0.0)
+    
+    
+    class SuggestResponse(BaseModel):
+        prefix: str
+        suggestions: List[SuggestionItem]
+        took_ms: int
+        cache: str
+    
+    
+    class AutocompleteApp:
+        def __init__(self, settings: Settings) -> None:
+            self.settings = settings
+    
+        def normalize(self, prefix: str) -> str:
+            return prefix.strip().lower()[: self.settings.max_prefix_len]
+    
+        def get_suggestions(
+            self, prefix: str, limit: Optional[int] = None
+        ) -> SuggestResponse:
+            start = time.perf_counter()
+            lim = limit or self.settings.default_limit
+            norm = self.normalize(prefix)
+            items = [SuggestionItem(text=norm + " example", score=1.0)]
+            took = int((time.perf_counter() - start) * 1000)
+            return SuggestResponse(
+                prefix=norm,
+                suggestions=items[:lim],
+                took_ms=took,
+                cache="MISS",
+            )
+    
+    
+    @lru_cache(maxsize=1)
+    def get_app() -> AutocompleteApp:
+        return AutocompleteApp(Settings())
+    ```
 
-public final class ImmutableTrieSnapshot {
-    public static final class SnapNode {
-        public final Map<Character, SnapNode> children;
-        public final List<SuggestionTrie.Candidate> top;
+=== "Java"
 
-        public SnapNode(Map<Character, SnapNode> children, List<SuggestionTrie.Candidate> top) {
-            this.children = children;
-            this.top = top;
+    ```java
+    // Immutable snapshot reader
+    import java.util.*;
+    
+    public final class ImmutableTrieSnapshot {
+        public static final class SnapNode {
+            public final Map<Character, SnapNode> children;
+            public final List<SuggestionTrie.Candidate> top;
+    
+            public SnapNode(Map<Character, SnapNode> children, List<SuggestionTrie.Candidate> top) {
+                this.children = children;
+                this.top = top;
+            }
+        }
+    
+        private final SnapNode root;
+    
+        public ImmutableTrieSnapshot(SnapNode root) {
+            this.root = root;
+        }
+    
+        public List<SuggestionTrie.Candidate> lookup(String prefix) {
+            SnapNode n = root;
+            for (int i = 0; i < prefix.length(); i++) {
+                n = n.children.get(prefix.charAt(i));
+                if (n == null) return List.of();
+            }
+            return n.top;
         }
     }
+    ```
 
-    private final SnapNode root;
+=== "Go"
 
-    public ImmutableTrieSnapshot(SnapNode root) {
-        this.root = root;
+    ```go
+    // HTTP handler with timeouts
+    package httpapi
+    
+    import (
+    	"context"
+    	"encoding/json"
+    	"net/http"
+    	"time"
+    )
+    
+    type SuggestResponse struct {
+    	Prefix        string   `json:"prefix"`
+    	Suggestions   []string `json:"suggestions"`
+    	TookMs        int64    `json:"took_ms"`
+    	CacheStatus   string   `json:"cache"`
     }
-
-    public List<SuggestionTrie.Candidate> lookup(String prefix) {
-        SnapNode n = root;
-        for (int i = 0; i < prefix.length(); i++) {
-            n = n.children.get(prefix.charAt(i));
-            if (n == null) return List.of();
-        }
-        return n.top;
+    
+    func AutocompleteHandler(w http.ResponseWriter, r *http.Request) {
+    	ctx, cancel := context.WithTimeout(r.Context(), 75*time.Millisecond)
+    	defer cancel()
+    
+    	prefix := r.URL.Query().Get("prefix")
+    	_ = ctx // in real code, pass ctx into dependencies
+    
+    	resp := SuggestResponse{Prefix: prefix, Suggestions: []string{}, TookMs: 0, CacheStatus: "MISS"}
+    	w.Header().Set("Content-Type", "application/json")
+    	_ = json.NewEncoder(w).Encode(resp)
     }
-}
-```
-
-### Extended Go: HTTP handler with timeouts
-
-```go
-package httpapi
-
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"time"
-)
-
-type SuggestResponse struct {
-	Prefix        string   `json:"prefix"`
-	Suggestions   []string `json:"suggestions"`
-	TookMs        int64    `json:"took_ms"`
-	CacheStatus   string   `json:"cache"`
-}
-
-func AutocompleteHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 75*time.Millisecond)
-	defer cancel()
-
-	prefix := r.URL.Query().Get("prefix")
-	_ = ctx // in real code, pass ctx into dependencies
-
-	resp := SuggestResponse{Prefix: prefix, Suggestions: []string{}, TookMs: 0, CacheStatus: "MISS"}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(resp)
-}
-```
-
-### Extended Python: FastAPI-style service sketch
-
-```python
-from __future__ import annotations
-
-import time
-from dataclasses import dataclass
-from functools import lru_cache
-from typing import List, Optional
-
-from pydantic import BaseModel, Field
-
-
-@dataclass
-class Settings:
-    max_prefix_len: int = 50
-    default_limit: int = 10
-
-
-class SuggestionItem(BaseModel):
-    text: str
-    score: float = Field(ge=0.0)
-
-
-class SuggestResponse(BaseModel):
-    prefix: str
-    suggestions: List[SuggestionItem]
-    took_ms: int
-    cache: str
-
-
-class AutocompleteApp:
-    def __init__(self, settings: Settings) -> None:
-        self.settings = settings
-
-    def normalize(self, prefix: str) -> str:
-        return prefix.strip().lower()[: self.settings.max_prefix_len]
-
-    def get_suggestions(
-        self, prefix: str, limit: Optional[int] = None
-    ) -> SuggestResponse:
-        start = time.perf_counter()
-        lim = limit or self.settings.default_limit
-        norm = self.normalize(prefix)
-        items = [SuggestionItem(text=norm + " example", score=1.0)]
-        took = int((time.perf_counter() - start) * 1000)
-        return SuggestResponse(
-            prefix=norm,
-            suggestions=items[:lim],
-            took_ms=took,
-            cache="MISS",
-        )
-
-
-@lru_cache(maxsize=1)
-def get_app() -> AutocompleteApp:
-    return AutocompleteApp(Settings())
-```
+    ```
 
 ---
 
@@ -1236,74 +1240,77 @@ flowchart LR
 | Hot shard | Autoscale; traffic shift; prefix hot-cache |
 | Bad deploy | Canary + rollback; feature flags for ranking |
 
-### Java: Redis cache facade (sketch)
+=== "Python"
 
-```java
-import java.time.Duration;
-import java.util.Optional;
+    ```python
+    # Client debounce
+    import threading
+    from typing import Callable, Optional
+    
+    
+    class Debouncer:
+        def __init__(self, delay_s: float, fn: Callable[[str], None]) -> None:
+            self.delay_s = delay_s
+            self.fn = fn
+            self._timer: Optional[threading.Timer] = None
+            self._lock = threading.Lock()
+    
+        def push(self, text: str) -> None:
+            with self._lock:
+                if self._timer is not None:
+                    self._timer.cancel()
+                self._timer = threading.Timer(self.delay_s, lambda: self.fn(text))
+                self._timer.daemon = True
+                self._timer.start()
+    ```
 
-public class RedisSuggestionCache {
-    public Optional<String> get(String key) {
-        return Optional.empty();
+=== "Java"
+
+    ```java
+    // Redis cache facade (sketch)
+    import java.time.Duration;
+    import java.util.Optional;
+    
+    public class RedisSuggestionCache {
+        public Optional<String> get(String key) {
+            return Optional.empty();
+        }
+    
+        public void setex(String key, Duration ttl, String json) {
+            // jedis.setex(key, ttl.getSeconds(), json);
+        }
     }
+    ```
 
-    public void setex(String key, Duration ttl, String json) {
-        // jedis.setex(key, ttl.getSeconds(), json);
+=== "Go"
+
+    ```go
+    // Circuit breaker (conceptual)
+    package resilience
+    
+    import "time"
+    
+    type Breaker struct {
+    	failures  int
+    	threshold int
+    	openUntil time.Time
     }
-}
-```
-
-### Go: Circuit breaker (conceptual)
-
-```go
-package resilience
-
-import "time"
-
-type Breaker struct {
-	failures  int
-	threshold int
-	openUntil time.Time
-}
-
-func (b *Breaker) Allow(now time.Time) bool {
-	return !now.Before(b.openUntil)
-}
-
-func (b *Breaker) OnFailure(now time.Time) {
-	b.failures++
-	if b.failures >= b.threshold {
-		b.openUntil = now.Add(5 * time.Second)
-	}
-}
-
-func (b *Breaker) OnSuccess() {
-	b.failures = 0
-}
-```
-
-### Python: Client debounce
-
-```python
-import threading
-from typing import Callable, Optional
-
-
-class Debouncer:
-    def __init__(self, delay_s: float, fn: Callable[[str], None]) -> None:
-        self.delay_s = delay_s
-        self.fn = fn
-        self._timer: Optional[threading.Timer] = None
-        self._lock = threading.Lock()
-
-    def push(self, text: str) -> None:
-        with self._lock:
-            if self._timer is not None:
-                self._timer.cancel()
-            self._timer = threading.Timer(self.delay_s, lambda: self.fn(text))
-            self._timer.daemon = True
-            self._timer.start()
-```
+    
+    func (b *Breaker) Allow(now time.Time) bool {
+    	return !now.Before(b.openUntil)
+    }
+    
+    func (b *Breaker) OnFailure(now time.Time) {
+    	b.failures++
+    	if b.failures >= b.threshold {
+    		b.openUntil = now.Add(5 * time.Second)
+    	}
+    }
+    
+    func (b *Breaker) OnSuccess() {
+    	b.failures = 0
+    }
+    ```
 
 ---
 
@@ -1318,103 +1325,106 @@ class Debouncer:
 !!! warning
     Autocomplete logs are sensitive—**data minimization** is a strong senior-level talking point.
 
-### Java: Blocklist filter
+=== "Python"
 
-```java
-import java.util.*;
+    ```python
+    # Sliding-window trending counter
+    from __future__ import annotations
+    
+    from collections import deque
+    from dataclasses import dataclass
+    from time import time
+    from typing import Deque, Dict
+    
+    
+    @dataclass
+    class TimedEvent:
+        ts: float
+        weight: float
+    
+    
+    class SlidingWindowCounter:
+        def __init__(self, window_s: float) -> None:
+            self.window_s = window_s
+            self.events: Dict[str, Deque[TimedEvent]] = {}
+    
+        def add(self, key: str, weight: float, now: float | None = None) -> None:
+            t = time() if now is None else now
+            q = self.events.setdefault(key, deque())
+            q.append(TimedEvent(ts=t, weight=weight))
+            self._prune(key, t)
+    
+        def _prune(self, key: str, now: float) -> None:
+            q = self.events.get(key)
+            if not q:
+                return
+            cutoff = now - self.window_s
+            while q and q[0].ts < cutoff:
+                q.popleft()
+    
+        def sum(self, key: str, now: float | None = None) -> float:
+            t = time() if now is None else now
+            self._prune(key, t)
+            q = self.events.get(key)
+            if not q:
+                return 0.0
+            return sum(e.weight for e in q)
+    ```
 
-public class BlocklistFilter {
-    private final Set<String> exact = new HashSet<>();
-    private final List<String> contains = new ArrayList<>();
+=== "Java"
 
-    public BlocklistFilter(Collection<String> exact, Collection<String> contains) {
-        this.exact.addAll(exact);
-        this.contains.addAll(contains);
-    }
-
-    public boolean isBlocked(String suggestion) {
-        String s = suggestion.toLowerCase(Locale.ROOT);
-        if (exact.contains(s)) return true;
-        for (String frag : contains) {
-            if (s.contains(frag)) return true;
+    ```java
+    // Blocklist filter
+    import java.util.*;
+    
+    public class BlocklistFilter {
+        private final Set<String> exact = new HashSet<>();
+        private final List<String> contains = new ArrayList<>();
+    
+        public BlocklistFilter(Collection<String> exact, Collection<String> contains) {
+            this.exact.addAll(exact);
+            this.contains.addAll(contains);
         }
-        return false;
+    
+        public boolean isBlocked(String suggestion) {
+            String s = suggestion.toLowerCase(Locale.ROOT);
+            if (exact.contains(s)) return true;
+            for (String frag : contains) {
+                if (s.contains(frag)) return true;
+            }
+            return false;
+        }
     }
-}
-```
+    ```
 
-### Go: Hash-based shard router
+=== "Go"
 
-```go
-package shard
-
-import (
-	"crypto/sha256"
-	"encoding/binary"
-)
-
-type HashRouter struct {
-	shards int
-}
-
-func NewHashRouter(shards int) *HashRouter {
-	return &HashRouter{shards: shards}
-}
-
-func (h *HashRouter) ShardForPrefix(prefix string) int {
-	sum := sha256.Sum256([]byte(prefix))
-	x := binary.BigEndian.Uint64(sum[:8])
-	if h.shards <= 0 {
-		return 0
-	}
-	return int(x % uint64(h.shards))
-}
-```
-
-### Python: Sliding-window trending counter
-
-```python
-from __future__ import annotations
-
-from collections import deque
-from dataclasses import dataclass
-from time import time
-from typing import Deque, Dict
-
-
-@dataclass
-class TimedEvent:
-    ts: float
-    weight: float
-
-
-class SlidingWindowCounter:
-    def __init__(self, window_s: float) -> None:
-        self.window_s = window_s
-        self.events: Dict[str, Deque[TimedEvent]] = {}
-
-    def add(self, key: str, weight: float, now: float | None = None) -> None:
-        t = time() if now is None else now
-        q = self.events.setdefault(key, deque())
-        q.append(TimedEvent(ts=t, weight=weight))
-        self._prune(key, t)
-
-    def _prune(self, key: str, now: float) -> None:
-        q = self.events.get(key)
-        if not q:
-            return
-        cutoff = now - self.window_s
-        while q and q[0].ts < cutoff:
-            q.popleft()
-
-    def sum(self, key: str, now: float | None = None) -> float:
-        t = time() if now is None else now
-        self._prune(key, t)
-        q = self.events.get(key)
-        if not q:
-            return 0.0
-        return sum(e.weight for e in q)
-```
+    ```go
+    // Hash-based shard router
+    package shard
+    
+    import (
+    	"crypto/sha256"
+    	"encoding/binary"
+    )
+    
+    type HashRouter struct {
+    	shards int
+    }
+    
+    func NewHashRouter(shards int) *HashRouter {
+    	return &HashRouter{shards: shards}
+    }
+    
+    func (h *HashRouter) ShardForPrefix(prefix string) int {
+    	sum := sha256.Sum256([]byte(prefix))
+    	x := binary.BigEndian.Uint64(sum[:8])
+    	if h.shards <= 0 {
+    		return 0
+    	}
+    	return int(x % uint64(h.shards))
+    }
+    ```
 
 ---
 
@@ -1427,63 +1437,66 @@ class SlidingWindowCounter:
 
 **Little’s Law (intuition):** \(L = \lambda W\). Enough concurrency must exist so that short spikes in \(\lambda\) do not create unbounded queue delay.
 
-### Java: Blue-green trie holder
+=== "Python"
 
-```java
-import java.util.concurrent.atomic.AtomicReference;
+    ```python
+    # Merge top-K from shard lists
+    from __future__ import annotations
+    
+    import heapq
+    from dataclasses import dataclass
+    from typing import Iterable, List, Tuple
+    
+    
+    @dataclass(order=True)
+    class Scored:
+        score: float
+        text: str
+    
+    
+    def merge_top_k(parts: Iterable[List[Tuple[str, float]]], k: int) -> List[Scored]:
+        heap: List[Scored] = []
+        for group in parts:
+            for text, score in group:
+                item = Scored(score=score, text=text)
+                if len(heap) < k:
+                    heapq.heappush(heap, item)
+                elif item.score > heap[0].score:
+                    heapq.heapreplace(heap, item)
+        return sorted(heap, key=lambda x: x.score, reverse=True)
+    ```
 
-public class BlueGreenTrie {
-    private final AtomicReference<SuggestionTrie> active = new AtomicReference<>();
+=== "Java"
 
-    public SuggestionTrie active() {
-        return active.get();
+    ```java
+    // Blue-green trie holder
+    import java.util.concurrent.atomic.AtomicReference;
+    
+    public class BlueGreenTrie {
+        private final AtomicReference<SuggestionTrie> active = new AtomicReference<>();
+    
+        public SuggestionTrie active() {
+            return active.get();
+        }
+    
+        public void publish(SuggestionTrie next) {
+            active.set(next);
+        }
     }
+    ```
 
-    public void publish(SuggestionTrie next) {
-        active.set(next);
+=== "Go"
+
+    ```go
+    // Versioned cache key
+    package cachekey
+    
+    import "fmt"
+    
+    func Key(gen int64, locale, prefix string) string {
+    	return fmt.Sprintf("ac:v%d:%s:%s", gen, locale, prefix)
     }
-}
-```
-
-### Go: Versioned cache key
-
-```go
-package cachekey
-
-import "fmt"
-
-func Key(gen int64, locale, prefix string) string {
-	return fmt.Sprintf("ac:v%d:%s:%s", gen, locale, prefix)
-}
-```
-
-### Python: Merge top-K from shard lists
-
-```python
-from __future__ import annotations
-
-import heapq
-from dataclasses import dataclass
-from typing import Iterable, List, Tuple
-
-
-@dataclass(order=True)
-class Scored:
-    score: float
-    text: str
-
-
-def merge_top_k(parts: Iterable[List[Tuple[str, float]]], k: int) -> List[Scored]:
-    heap: List[Scored] = []
-    for group in parts:
-        for text, score in group:
-            item = Scored(score=score, text=text)
-            if len(heap) < k:
-                heapq.heappush(heap, item)
-            elif item.score > heap[0].score:
-                heapq.heapreplace(heap, item)
-    return sorted(heap, key=lambda x: x.score, reverse=True)
-```
+    ```
 
 ---
 
@@ -1495,163 +1508,169 @@ def merge_top_k(parts: Iterable[List[Tuple[str, float]]], k: int) -> List[Scored
 | Daily + overlay | Balance | Merge bugs |
 | Streaming | Freshest | Complexity |
 
-### Java: Hybrid suggest (trie + head map)
+=== "Python"
 
-```java
-import java.util.*;
-
-public class HybridSuggest {
-    private final SuggestionTrie trie;
-    private final Map<String, Long> head;
-
-    public HybridSuggest(SuggestionTrie trie, Map<String, Long> head) {
-        this.trie = trie;
-        this.head = head;
-    }
-
-    public List<SuggestionTrie.Candidate> suggest(String prefix) {
-        List<SuggestionTrie.Candidate> out = new ArrayList<>(trie.topKForPrefix(prefix));
-        Long bump = head.get(prefix);
-        if (bump != null) {
-            out.add(new SuggestionTrie.Candidate(prefix, bump));
+    ```python
+    # Cohort-based ranking weights
+    from __future__ import annotations
+    
+    from dataclasses import dataclass
+    from typing import Dict
+    
+    
+    @dataclass(frozen=True)
+    class RankingWeights:
+        w_global: float = 1.0
+        w_trend: float = 0.5
+        w_user: float = 0.3
+    
+    
+    def weights_for_cohort(cohort: str) -> RankingWeights:
+        presets: Dict[str, RankingWeights] = {
+            "control": RankingWeights(),
+            "trend_heavy": RankingWeights(w_global=0.8, w_trend=0.9, w_user=0.3),
         }
-        out.sort((a, b) -> Long.compare(b.score, a.score));
-        return out;
-    }
-}
-```
+        return presets.get(cohort, presets["control"])
+    ```
 
-### Go: Parallel shard fan-out
+=== "Java"
 
-```go
-package fanout
-
-import (
-	"context"
-	"sync"
-)
-
-type ShardClient interface {
-	Suggest(ctx context.Context, prefix string) ([]string, error)
-}
-
-func ParallelSuggest(ctx context.Context, clients []ShardClient, prefix string) ([]string, error) {
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var combined []string
-	var firstErr error
-	for _, c := range clients {
-		wg.Add(1)
-		go func(cc ShardClient) {
-			defer wg.Done()
-			part, err := cc.Suggest(ctx, prefix)
-			if err != nil {
-				mu.Lock()
-				if firstErr == nil {
-					firstErr = err
-				}
-				mu.Unlock()
-				return
-			}
-			mu.Lock()
-			combined = append(combined, part...)
-			mu.Unlock()
-		}(c)
-	}
-	wg.Wait()
-	return combined, firstErr
-}
-```
-
-### Python: Cohort-based ranking weights
-
-```python
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Dict
-
-
-@dataclass(frozen=True)
-class RankingWeights:
-    w_global: float = 1.0
-    w_trend: float = 0.5
-    w_user: float = 0.3
-
-
-def weights_for_cohort(cohort: str) -> RankingWeights:
-    presets: Dict[str, RankingWeights] = {
-        "control": RankingWeights(),
-        "trend_heavy": RankingWeights(w_global=0.8, w_trend=0.9, w_user=0.3),
-    }
-    return presets.get(cohort, presets["control"])
-```
-
-### Java: Prefix walk with budget
-
-```java
-import java.util.*;
-
-public class PrefixWalk {
-    public static List<SuggestionTrie.Candidate> collect(
-            SuggestionTrie trie, String prefix, int budget) {
-        List<SuggestionTrie.Candidate> base = trie.topKForPrefix(prefix);
-        if (base.size() >= budget) {
-            return base.subList(0, Math.min(budget, base.size()));
+    ```java
+    // Hybrid suggest (trie + head map)
+    import java.util.*;
+    
+    public class HybridSuggest {
+        private final SuggestionTrie trie;
+        private final Map<String, Long> head;
+    
+        public HybridSuggest(SuggestionTrie trie, Map<String, Long> head) {
+            this.trie = trie;
+            this.head = head;
         }
-        return base;
+    
+        public List<SuggestionTrie.Candidate> suggest(String prefix) {
+            List<SuggestionTrie.Candidate> out = new ArrayList<>(trie.topKForPrefix(prefix));
+            Long bump = head.get(prefix);
+            if (bump != null) {
+                out.add(new SuggestionTrie.Candidate(prefix, bump));
+            }
+            out.sort((a, b) -> Long.compare(b.score, a.score));
+            return out;
+        }
     }
-}
-```
+    ```
 
-### Go: Read-through cache
+=== "Go"
 
-```go
-package cache
+    ```go
+    // Parallel shard fan-out
+    package fanout
+    
+    import (
+    	"context"
+    	"sync"
+    )
+    
+    type ShardClient interface {
+    	Suggest(ctx context.Context, prefix string) ([]string, error)
+    }
+    
+    func ParallelSuggest(ctx context.Context, clients []ShardClient, prefix string) ([]string, error) {
+    	var wg sync.WaitGroup
+    	var mu sync.Mutex
+    	var combined []string
+    	var firstErr error
+    	for _, c := range clients {
+    		wg.Add(1)
+    		go func(cc ShardClient) {
+    			defer wg.Done()
+    			part, err := cc.Suggest(ctx, prefix)
+    			if err != nil {
+    				mu.Lock()
+    				if firstErr == nil {
+    					firstErr = err
+    				}
+    				mu.Unlock()
+    				return
+    			}
+    			mu.Lock()
+    			combined = append(combined, part...)
+    			mu.Unlock()
+    		}(c)
+    	}
+    	wg.Wait()
+    	return combined, firstErr
+    }
+    ```
 
-import "context"
+=== "Python"
 
-type Provider interface {
-	Load(ctx context.Context, key string) (string, error)
-}
+    ```python
+    # Metrics stub
+    from __future__ import annotations
+    
+    from dataclasses import dataclass
+    
+    
+    @dataclass
+    class Metrics:
+        suggest_latency_ms: float = 0.0
+        cache_hits: int = 0
+        cache_misses: int = 0
+    
+        def hit_ratio(self) -> float:
+            total = self.cache_hits + self.cache_misses
+            if total == 0:
+                return 0.0
+            return self.cache_hits / total
+    ```
 
-type ReadThrough struct {
-	p Provider
-}
+=== "Java"
 
-func (r *ReadThrough) Get(ctx context.Context, key string, local map[string]string) (string, error) {
-	if v, ok := local[key]; ok {
-		return v, nil
-	}
-	v, err := r.p.Load(ctx, key)
-	if err != nil {
-		return "", err
-	}
-	local[key] = v
-	return v, nil
-}
-```
+    ```java
+    // Prefix walk with budget
+    import java.util.*;
+    
+    public class PrefixWalk {
+        public static List<SuggestionTrie.Candidate> collect(
+                SuggestionTrie trie, String prefix, int budget) {
+            List<SuggestionTrie.Candidate> base = trie.topKForPrefix(prefix);
+            if (base.size() >= budget) {
+                return base.subList(0, Math.min(budget, base.size()));
+            }
+            return base;
+        }
+    }
+    ```
 
-### Python: Metrics stub
+=== "Go"
 
-```python
-from __future__ import annotations
-
-from dataclasses import dataclass
-
-
-@dataclass
-class Metrics:
-    suggest_latency_ms: float = 0.0
-    cache_hits: int = 0
-    cache_misses: int = 0
-
-    def hit_ratio(self) -> float:
-        total = self.cache_hits + self.cache_misses
-        if total == 0:
-            return 0.0
-        return self.cache_hits / total
-```
+    ```go
+    // Read-through cache
+    package cache
+    
+    import "context"
+    
+    type Provider interface {
+    	Load(ctx context.Context, key string) (string, error)
+    }
+    
+    type ReadThrough struct {
+    	p Provider
+    }
+    
+    func (r *ReadThrough) Get(ctx context.Context, key string, local map[string]string) (string, error) {
+    	if v, ok := local[key]; ok {
+    		return v, nil
+    	}
+    	v, err := r.p.Load(ctx, key)
+    	if err != nil {
+    		return "", err
+    	}
+    	local[key] = v
+    	return v, nil
+    }
+    ```
 
 ---
 

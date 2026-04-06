@@ -667,66 +667,68 @@ Ride sharing combines **high-write location streams**, **geospatial indexing** (
 
 ## Appendix: Reference Code Snippets
 
-### Geohash (Python) — illustrative encode nibble
+### Geohash — encode and neighbor ring
 
-```python
-BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+=== "Python"
 
-def encode_geohash(lat: float, lon: float, precision: int = 9) -> str:
-    """Simple geohash encoder (interleaved bit string), for interview illustration."""
-    lat_interval = (-90.0, 90.0)
-    lon_interval = (-180.0, 180.0)
-    bits = []
-    even = True
-    while len(bits) < precision * 5:
-        if even:
-            mid = sum(lon_interval) / 2
-            if lon >= mid:
-                bits.append(1)
-                lon_interval = (mid, lon_interval[1])
+    ```python
+    BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+
+    def encode_geohash(lat: float, lon: float, precision: int = 9) -> str:
+        """Simple geohash encoder (interleaved bit string), for interview illustration."""
+        lat_interval = (-90.0, 90.0)
+        lon_interval = (-180.0, 180.0)
+        bits = []
+        even = True
+        while len(bits) < precision * 5:
+            if even:
+                mid = sum(lon_interval) / 2
+                if lon >= mid:
+                    bits.append(1)
+                    lon_interval = (mid, lon_interval[1])
+                else:
+                    bits.append(0)
+                    lon_interval = (lon_interval[0], mid)
             else:
-                bits.append(0)
-                lon_interval = (lon_interval[0], mid)
-        else:
-            mid = sum(lat_interval) / 2
-            if lat >= mid:
-                bits.append(1)
-                lat_interval = (mid, lat_interval[1])
-            else:
-                bits.append(0)
-                lat_interval = (lat_interval[0], mid)
-        even = not even
-    out = []
-    for i in range(0, len(bits), 5):
-        val = 0
-        for b in bits[i : i + 5]:
-            val = (val << 1) | b
-        out.append(BASE32[val])
-    return "".join(out[:precision])
-```
+                mid = sum(lat_interval) / 2
+                if lat >= mid:
+                    bits.append(1)
+                    lat_interval = (mid, lat_interval[1])
+                else:
+                    bits.append(0)
+                    lat_interval = (lat_interval[0], mid)
+            even = not even
+        out = []
+        for i in range(0, len(bits), 5):
+            val = 0
+            for b in bits[i : i + 5]:
+                val = (val << 1) | b
+            out.append(BASE32[val])
+        return "".join(out[:precision])
+    ```
 
-### Geohash neighbors (Java) — expand search ring
+=== "Java"
 
-```java
-import java.util.LinkedHashSet;
-import java.util.Set;
+    ```java
+    import java.util.LinkedHashSet;
+    import java.util.Set;
 
-/** Interview-style stub: use a library in production (e.g., ch.hsr geohash). */
-public final class GeoSearchRing {
-    private GeoSearchRing() {}
+    /** Interview-style stub: use a library in production (e.g., ch.hsr geohash). */
+    public final class GeoSearchRing {
+        private GeoSearchRing() {}
 
-    public static Set<String> ring(String centerGeohash, int neighborDepth) {
-        Set<String> cells = new LinkedHashSet<>();
-        cells.add(centerGeohash);
-        // Pseudocode: for each prefix level, add 8 neighbors from library
-        // Real impl: geohash.getAdjacent() for N, S, E, W, NE, NW, SE, SW
-        for (int i = 0; i < neighborDepth; i++) {
-            // expand set with neighbors of all current cells
+        public static Set<String> ring(String centerGeohash, int neighborDepth) {
+            Set<String> cells = new LinkedHashSet<>();
+            cells.add(centerGeohash);
+            // Pseudocode: for each prefix level, add 8 neighbors from library
+            // Real impl: geohash.getAdjacent() for N, S, E, W, NE, NW, SE, SW
+            for (int i = 0; i < neighborDepth; i++) {
+                // expand set with neighbors of all current cells
+            }
+            return cells;
         }
-        return cells;
     }
-}
-```
+    ```
 
 ### Location update handler (Go)
 

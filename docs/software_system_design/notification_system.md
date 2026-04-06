@@ -1619,269 +1619,271 @@ class BatchNotificationSender:
 
 ### 5.2 Multi-Language Implementations
 
-### Java: Notification Service Core
+### Core notification service and priority dispatch
 
-```java
-import java.util.concurrent.*;
+=== "Java"
 
-public class NotificationService {
+    ```java
+    import java.util.concurrent.*;
 
-    public enum Channel { PUSH, EMAIL, SMS, IN_APP }
-    public enum Priority { CRITICAL, HIGH, NORMAL, LOW }
+    public class NotificationService {
 
-    public record NotificationRequest(
-        String userId,
-        String templateId,
-        Map<String, String> params,
-        Channel channel,
-        Priority priority,
-        String idempotencyKey
-    ) {}
+        public enum Channel { PUSH, EMAIL, SMS, IN_APP }
+        public enum Priority { CRITICAL, HIGH, NORMAL, LOW }
 
-    public record NotificationResult(
-        String notificationId,
-        boolean accepted,
-        String message
-    ) {}
+        public record NotificationRequest(
+            String userId,
+            String templateId,
+            Map<String, String> params,
+            Channel channel,
+            Priority priority,
+            String idempotencyKey
+        ) {}
 
-    private final Map<Channel, NotificationSender> senders;
-    private final TemplateEngine templateEngine;
-    private final UserPreferencesService preferences;
-    private final IdempotencyStore idempotencyStore;
-    private final Map<Priority, BlockingQueue<NotificationRequest>> priorityQueues;
+        public record NotificationResult(
+            String notificationId,
+            boolean accepted,
+            String message
+        ) {}
 
-    public NotificationService(Map<Channel, NotificationSender> senders,
-                                TemplateEngine templateEngine,
-                                UserPreferencesService preferences,
-                                IdempotencyStore idempotencyStore) {
-        this.senders = senders;
-        this.templateEngine = templateEngine;
-        this.preferences = preferences;
-        this.idempotencyStore = idempotencyStore;
+        private final Map<Channel, NotificationSender> senders;
+        private final TemplateEngine templateEngine;
+        private final UserPreferencesService preferences;
+        private final IdempotencyStore idempotencyStore;
+        private final Map<Priority, BlockingQueue<NotificationRequest>> priorityQueues;
 
-        this.priorityQueues = new ConcurrentHashMap<>();
-        for (Priority p : Priority.values()) {
-            priorityQueues.put(p, new LinkedBlockingQueue<>(10_000));
-        }
-    }
+        public NotificationService(Map<Channel, NotificationSender> senders,
+                                    TemplateEngine templateEngine,
+                                    UserPreferencesService preferences,
+                                    IdempotencyStore idempotencyStore) {
+            this.senders = senders;
+            this.templateEngine = templateEngine;
+            this.preferences = preferences;
+            this.idempotencyStore = idempotencyStore;
 
-    public NotificationResult send(NotificationRequest request) {
-        String notifId = generateId();
-
-        // idempotency check
-        if (idempotencyStore.exists(request.idempotencyKey())) {
-            return new NotificationResult(notifId, false, "Duplicate request");
-        }
-        idempotencyStore.store(request.idempotencyKey(), notifId);
-
-        // check user preferences
-        if (!preferences.isChannelEnabled(request.userId(), request.channel())) {
-            return new NotificationResult(notifId, false, "Channel disabled by user");
-        }
-
-        // enqueue by priority
-        boolean enqueued = priorityQueues.get(request.priority()).offer(request);
-        if (!enqueued) {
-            return new NotificationResult(notifId, false, "Queue full, try again");
-        }
-
-        return new NotificationResult(notifId, true, "Queued for delivery");
-    }
-
-    public void startWorkers(int numWorkers) {
-        ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
-        for (int i = 0; i < numWorkers; i++) {
-            executor.submit(this::processLoop);
-        }
-    }
-
-    private void processLoop() {
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                // drain CRITICAL first, then HIGH, NORMAL, LOW
-                NotificationRequest req = null;
-                for (Priority p : Priority.values()) {
-                    req = priorityQueues.get(p).poll(50, TimeUnit.MILLISECONDS);
-                    if (req != null) break;
-                }
-                if (req == null) continue;
-
-                String content = templateEngine.render(req.templateId(), req.params());
-                NotificationSender sender = senders.get(req.channel());
-                sender.send(req.userId(), content);
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                // log error, send to DLQ for retry
+            this.priorityQueues = new ConcurrentHashMap<>();
+            for (Priority p : Priority.values()) {
+                priorityQueues.put(p, new LinkedBlockingQueue<>(10_000));
             }
         }
+
+        public NotificationResult send(NotificationRequest request) {
+            String notifId = generateId();
+
+            // idempotency check
+            if (idempotencyStore.exists(request.idempotencyKey())) {
+                return new NotificationResult(notifId, false, "Duplicate request");
+            }
+            idempotencyStore.store(request.idempotencyKey(), notifId);
+
+            // check user preferences
+            if (!preferences.isChannelEnabled(request.userId(), request.channel())) {
+                return new NotificationResult(notifId, false, "Channel disabled by user");
+            }
+
+            // enqueue by priority
+            boolean enqueued = priorityQueues.get(request.priority()).offer(request);
+            if (!enqueued) {
+                return new NotificationResult(notifId, false, "Queue full, try again");
+            }
+
+            return new NotificationResult(notifId, true, "Queued for delivery");
+        }
+
+        public void startWorkers(int numWorkers) {
+            ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
+            for (int i = 0; i < numWorkers; i++) {
+                executor.submit(this::processLoop);
+            }
+        }
+
+        private void processLoop() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    // drain CRITICAL first, then HIGH, NORMAL, LOW
+                    NotificationRequest req = null;
+                    for (Priority p : Priority.values()) {
+                        req = priorityQueues.get(p).poll(50, TimeUnit.MILLISECONDS);
+                        if (req != null) break;
+                    }
+                    if (req == null) continue;
+
+                    String content = templateEngine.render(req.templateId(), req.params());
+                    NotificationSender sender = senders.get(req.channel());
+                    sender.send(req.userId(), content);
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                    // log error, send to DLQ for retry
+                }
+            }
+        }
+
+        private String generateId() {
+            return java.util.UUID.randomUUID().toString();
+        }
     }
 
-    private String generateId() {
-        return java.util.UUID.randomUUID().toString();
+    public interface NotificationSender {
+        void send(String userId, String content) throws Exception;
     }
-}
+    ```
 
-public interface NotificationSender {
-    void send(String userId, String content) throws Exception;
-}
-```
+=== "Go"
 
-### Go: Notification Dispatcher with Priority Channels
+    ```go
+    package notification
 
-```go
-package notification
+    import (
+    	"context"
+    	"fmt"
+    	"log"
+    	"sync"
+    	"time"
 
-import (
-	"context"
-	"fmt"
-	"log"
-	"sync"
-	"time"
+    	"github.com/google/uuid"
+    )
 
-	"github.com/google/uuid"
-)
+    type Channel string
 
-type Channel string
+    const (
+    	ChannelPush  Channel = "push"
+    	ChannelEmail Channel = "email"
+    	ChannelSMS   Channel = "sms"
+    	ChannelInApp Channel = "in_app"
+    )
 
-const (
-	ChannelPush  Channel = "push"
-	ChannelEmail Channel = "email"
-	ChannelSMS   Channel = "sms"
-	ChannelInApp Channel = "in_app"
-)
+    type Priority int
 
-type Priority int
+    const (
+    	PriorityCritical Priority = iota
+    	PriorityHigh
+    	PriorityNormal
+    	PriorityLow
+    )
 
-const (
-	PriorityCritical Priority = iota
-	PriorityHigh
-	PriorityNormal
-	PriorityLow
-)
+    type Request struct {
+    	ID             string
+    	UserID         string
+    	TemplateID     string
+    	Params         map[string]string
+    	Channel        Channel
+    	Priority       Priority
+    	IdempotencyKey string
+    }
 
-type Request struct {
-	ID             string
-	UserID         string
-	TemplateID     string
-	Params         map[string]string
-	Channel        Channel
-	Priority       Priority
-	IdempotencyKey string
-}
+    type Result struct {
+    	NotificationID string
+    	Accepted       bool
+    	Message        string
+    }
 
-type Result struct {
-	NotificationID string
-	Accepted       bool
-	Message        string
-}
+    type Sender interface {
+    	Send(ctx context.Context, userID, content string) error
+    }
 
-type Sender interface {
-	Send(ctx context.Context, userID, content string) error
-}
+    type Dispatcher struct {
+    	senders       map[Channel]Sender
+    	templates     TemplateEngine
+    	preferences   PreferencesService
+    	idempotency   IdempotencyStore
+    	queues        map[Priority]chan *Request
+    	workerCount   int
+    }
 
-type Dispatcher struct {
-	senders       map[Channel]Sender
-	templates     TemplateEngine
-	preferences   PreferencesService
-	idempotency   IdempotencyStore
-	queues        map[Priority]chan *Request
-	workerCount   int
-}
+    func NewDispatcher(senders map[Channel]Sender, templates TemplateEngine,
+    	prefs PreferencesService, idemp IdempotencyStore, workerCount int) *Dispatcher {
+    	d := &Dispatcher{
+    		senders:     senders,
+    		templates:   templates,
+    		preferences: prefs,
+    		idempotency: idemp,
+    		workerCount: workerCount,
+    		queues:      make(map[Priority]chan *Request),
+    	}
+    	for _, p := range []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow} {
+    		d.queues[p] = make(chan *Request, 10000)
+    	}
+    	return d
+    }
 
-func NewDispatcher(senders map[Channel]Sender, templates TemplateEngine,
-	prefs PreferencesService, idemp IdempotencyStore, workerCount int) *Dispatcher {
-	d := &Dispatcher{
-		senders:     senders,
-		templates:   templates,
-		preferences: prefs,
-		idempotency: idemp,
-		workerCount: workerCount,
-		queues:      make(map[Priority]chan *Request),
-	}
-	for _, p := range []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow} {
-		d.queues[p] = make(chan *Request, 10000)
-	}
-	return d
-}
+    func (d *Dispatcher) Submit(req *Request) Result {
+    	req.ID = uuid.New().String()
 
-func (d *Dispatcher) Submit(req *Request) Result {
-	req.ID = uuid.New().String()
+    	if d.idempotency.Exists(req.IdempotencyKey) {
+    		return Result{req.ID, false, "duplicate request"}
+    	}
+    	d.idempotency.Store(req.IdempotencyKey, req.ID)
 
-	if d.idempotency.Exists(req.IdempotencyKey) {
-		return Result{req.ID, false, "duplicate request"}
-	}
-	d.idempotency.Store(req.IdempotencyKey, req.ID)
+    	if !d.preferences.IsEnabled(req.UserID, req.Channel) {
+    		return Result{req.ID, false, "channel disabled by user"}
+    	}
 
-	if !d.preferences.IsEnabled(req.UserID, req.Channel) {
-		return Result{req.ID, false, "channel disabled by user"}
-	}
+    	select {
+    	case d.queues[req.Priority] <- req:
+    		return Result{req.ID, true, "queued for delivery"}
+    	default:
+    		return Result{req.ID, false, "queue full"}
+    	}
+    }
 
-	select {
-	case d.queues[req.Priority] <- req:
-		return Result{req.ID, true, "queued for delivery"}
-	default:
-		return Result{req.ID, false, "queue full"}
-	}
-}
+    func (d *Dispatcher) Start(ctx context.Context) {
+    	var wg sync.WaitGroup
+    	for i := 0; i < d.workerCount; i++ {
+    		wg.Add(1)
+    		go func() {
+    			defer wg.Done()
+    			d.worker(ctx)
+    		}()
+    	}
+    	wg.Wait()
+    }
 
-func (d *Dispatcher) Start(ctx context.Context) {
-	var wg sync.WaitGroup
-	for i := 0; i < d.workerCount; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			d.worker(ctx)
-		}()
-	}
-	wg.Wait()
-}
+    func (d *Dispatcher) worker(ctx context.Context) {
+    	priorities := []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow}
 
-func (d *Dispatcher) worker(ctx context.Context) {
-	priorities := []Priority{PriorityCritical, PriorityHigh, PriorityNormal, PriorityLow}
+    	for {
+    		select {
+    		case <-ctx.Done():
+    			return
+    		default:
+    		}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
+    		var req *Request
+    		for _, p := range priorities {
+    			select {
+    			case req = <-d.queues[p]:
+    			default:
+    				continue
+    			}
+    			break
+    		}
 
-		var req *Request
-		for _, p := range priorities {
-			select {
-			case req = <-d.queues[p]:
-			default:
-				continue
-			}
-			break
-		}
+    		if req == nil {
+    			time.Sleep(50 * time.Millisecond)
+    			continue
+    		}
 
-		if req == nil {
-			time.Sleep(50 * time.Millisecond)
-			continue
-		}
+    		content, err := d.templates.Render(req.TemplateID, req.Params)
+    		if err != nil {
+    			log.Printf("Template render error for %s: %v", req.ID, err)
+    			continue
+    		}
 
-		content, err := d.templates.Render(req.TemplateID, req.Params)
-		if err != nil {
-			log.Printf("Template render error for %s: %v", req.ID, err)
-			continue
-		}
+    		sender, ok := d.senders[req.Channel]
+    		if !ok {
+    			log.Printf("No sender for channel %s", req.Channel)
+    			continue
+    		}
 
-		sender, ok := d.senders[req.Channel]
-		if !ok {
-			log.Printf("No sender for channel %s", req.Channel)
-			continue
-		}
-
-		if err := sender.Send(ctx, req.UserID, content); err != nil {
-			log.Printf("Send failed for %s via %s: %v", req.ID, req.Channel, err)
-			// send to DLQ for retry
-		}
-	}
-}
-```
+    		if err := sender.Send(ctx, req.UserID, content); err != nil {
+    			log.Printf("Send failed for %s via %s: %v", req.ID, req.Channel, err)
+    			// send to DLQ for retry
+    		}
+    	}
+    }
+    ```
 
 ---
 
