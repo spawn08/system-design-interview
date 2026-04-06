@@ -1,19 +1,4 @@
----
-layout: default
-title: Microservices Architecture
-parent: Advanced Topics
-nav_order: 4
----
-
 # Microservices Architecture
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -52,8 +37,8 @@ flowchart TD
 | **Domain complexity** | Simple, few bounded contexts | Complex, clear domain boundaries |
 | **Operational maturity** | Limited DevOps | Strong CI/CD, monitoring, observability |
 
-{: .warning }
-> Microservices are not inherently better than monoliths. They trade development simplicity for operational complexity. Most startups should start with a modular monolith and extract services only when the pain of the monolith exceeds the cost of distribution.
+!!! warning
+    Microservices are not inherently better than monoliths. They trade development simplicity for operational complexity. Most startups should start with a modular monolith and extract services only when the pain of the monolith exceeds the cost of distribution.
 
 ---
 
@@ -423,7 +408,6 @@ from concurrent import futures
 import order_pb2
 import order_pb2_grpc
 
-
 class OrderServicer(order_pb2_grpc.OrderServiceServicer):
     """gRPC server implementation for the Order service."""
 
@@ -467,7 +451,6 @@ class OrderServicer(order_pb2_grpc.OrderServiceServicer):
             status=order.status,
             total_amount=order.total_amount,
         )
-
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -758,8 +741,8 @@ flowchart TD
     GW -->|Feature-rich| KONG[Kong / Envoy]
 ```
 
-{: .important }
-> In interviews, demonstrate that you understand the **trade-offs** of microservices, not just the benefits. Mention: increased operational complexity, distributed transactions, network latency, data consistency challenges, and the need for robust monitoring. Show that you know when a monolith is the right choice.
+!!! important
+    In interviews, demonstrate that you understand the **trade-offs** of microservices, not just the benefits. Mention: increased operational complexity, distributed transactions, network latency, data consistency challenges, and the need for robust monitoring. Show that you know when a monolith is the right choice.
 
 ---
 

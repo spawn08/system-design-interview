@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed Cache
-parent: System Design Examples
-nav_order: 9
----
-
 # Design a Distributed Cache (Redis / Memcached–style)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -30,8 +15,8 @@ A **distributed in-memory cache** provides sub-millisecond reads and millions of
 
 **Real-world:** Redis commonly achieves **1M+ ops/sec per node** on modern hardware (workload-dependent). It is used at scale by **Twitter** (timelines/counters), **GitHub** (resque/sessions), **Snapchat** (story ranking, presence), and thousands of other services for caching, rate limiting, pub/sub, and lightweight data structures.
 
-{: .note }
-> In interviews, clarify whether the interviewer wants a **single-node** in-process cache, a **clustered** cache with sharding, or **full Redis feature parity**. This guide assumes a **clustered, production-style** design unless scoped down.
+!!! note
+    In interviews, clarify whether the interviewer wants a **single-node** in-process cache, a **clustered** cache with sharding, or **full Redis feature parity**. This guide assumes a **clustered, production-style** design unless scoped down.
 
 ---
 
@@ -88,8 +73,8 @@ Illustrative commands aligned with Redis-style semantics:
 | **Optional** | `SET key value NX` | Set only if not exists |
 | **Optional** | `GETSET key value` | Atomic read–write |
 
-{: .tip }
-> Mention **idempotency** for DEL and for SET with same value; **not idempotent** in the strict sense for INCR-style ops unless designed carefully.
+!!! tip
+    Mention **idempotency** for DEL and for SET with same value; **not idempotent** in the strict sense for INCR-style ops unless designed carefully.
 
 ### Technology Selection & Tradeoffs
 
@@ -104,8 +89,8 @@ Caches are not interchangeable: pick the **engine**, **eviction**, **persistence
 | **Hazelcast** | JVM-native embedded/server, CP data structures option, WAN replication in enterprise | JVM heap/GC tuning, heavier footprint than C daemons | Java-centric stacks needing embedded cache + distributed data structures in one product |
 | **Apache Ignite** | Memory-centric **compute + SQL + persistence** (not “just a cache”), distributed transactions (configurable) | Heavier cluster; overlaps with databases — easy to blur “cache vs system of record” | Analytics/near-cache with compute colocated with data; less common as a pure Memcached replacement |
 
-{: .note }
-> In interviews, **name the workload**: plain KV at huge QPS → Memcached is credible; **invalidation, structures, TTL semantics, cluster** → Redis is the usual answer.
+!!! note
+    In interviews, **name the workload**: plain KV at huge QPS → Memcached is credible; **invalidation, structures, TTL semantics, cluster** → Redis is the usual answer.
 
 #### Eviction policy (when memory is full)
 
@@ -117,8 +102,8 @@ Caches are not interchangeable: pick the **engine**, **eviction**, **persistence
 | **ARC** | Adapts between LRU-like and frequency-like behavior; resilient to scanning | More complex; higher metadata cost | Mixed workloads with both scans and hot working sets (file cache lineage) |
 | **Random** | O(1), minimal metadata | Worst hit-rate predictability | Stress tests, or when eviction is almost never hit |
 
-{: .tip }
-> Tie eviction to **access pattern**: “burst then idle” → LRU; “steady popularity” → LFU or **W-TinyLFU** (Redis 4+ optional eviction families).
+!!! tip
+    Tie eviction to **access pattern**: “burst then idle” → LRU; “steady popularity” → LFU or **W-TinyLFU** (Redis 4+ optional eviction families).
 
 #### Persistence
 
@@ -137,8 +122,8 @@ Caches are not interchangeable: pick the **engine**, **eviction**, **persistence
 | **Redis Cluster** (slot map, server-assisted) | First-class **MOVED/ASK**, resharding story; widely understood | Clients must be **cluster-aware**; ops complexity | Default answer for Redis-native horizontal scale |
 | **Proxy (Twemproxy, Envoy Redis, etc.)** | Simpler app config; central routing; optional multi-tenancy | Extra hop + failure domain; proxy capacity becomes bottleneck | Many languages/clients; need consistent connection pooling at proxy |
 
-{: .warning }
-> **Twemproxy** is historically popular but **static** shard maps are painful during migrations — contrast with **cluster-aware** clients or proxies that track slot maps dynamically.
+!!! warning
+    **Twemproxy** is historically popular but **static** shard maps are painful during migrations — contrast with **cluster-aware** clients or proxies that track slot maps dynamically.
 
 #### Serialization
 
@@ -170,8 +155,8 @@ Per-operation behavior (what to say in the interview):
 | **Invalidation** | Pub/sub or RPC to cache nodes fails | **Strict**: block until invalidation succeeds (hurts availability) | **Best-effort**: accept **stale** until TTL or eventual repair |
 | **Cluster membership / routing** | Gossip partitions | **Split views**; some clients route wrong | **Eventual** convergence; **MOVED/ASK** or rediscovery; risk of **stale routes** briefly |
 
-{: .note }
-> **“CP vs AP” for caches** is often **per request class**: user-facing reads may be **AP** (stale OK for 30s), while **financial balances** might bypass cache or use **version checks** — say **explicitly** if the interviewer allows tiered consistency.
+!!! note
+    **“CP vs AP” for caches** is often **per request class**: user-facing reads may be **AP** (stale OK for 30s), while **financial balances** might bypass cache or use **version checks** — say **explicitly** if the interviewer allows tiered consistency.
 
 ```mermaid
 flowchart TB
@@ -231,8 +216,8 @@ Caches are **schema-light** but **not schema-free**: bad key design causes **hot
 | **Version suffix** | `config:v3:feature_x` | Blue/green config rollouts |
 | **Negative cache** | `user:404:999` with short TTL | Avoid **repeated DB misses** (document carefully to avoid poisoning) |
 
-{: .tip }
-> State **maximum key and value sizes** you would enforce (e.g. **KBs for keys**, **MB cap** per value with review) to prevent **big key** incidents.
+!!! tip
+    State **maximum key and value sizes** you would enforce (e.g. **KBs for keys**, **MB cap** per value with review) to prevent **big key** incidents.
 
 **Cluster state (what lives in “control plane” memory):** slot → node map, replica pointers, **config epoch**, migration state — clients cache this and refresh on **MOVED** / periodic **CLUSTER SLOTS**-style discovery.
 
@@ -288,8 +273,8 @@ Per node (20 nodes): ~535 MB/s — requires 10 Gbps NICs and careful placement
 
 Add **protocol overhead** (~10–30%), **replication traffic**, and **gossip**: plan **25–40% headroom**.
 
-{: .warning }
-> **Hot keys** can saturate a single node’s NIC or CPU long before the cluster average looks unhealthy. Always mention hot-key mitigation in estimation follow-up.
+!!! warning
+    **Hot keys** can saturate a single node’s NIC or CPU long before the cluster average looks unhealthy. Always mention hot-key mitigation in estimation follow-up.
 
 ---
 
@@ -340,8 +325,8 @@ flowchart LR
 
 Deep dive with code appears in [§4.5](#45-cache-patterns).
 
-{: .note }
-> Redis/Memcached are typically **cache-aside** or **read-through** from the application’s perspective; **write-through/write-behind** are application patterns *using* the cache, not properties of the server alone.
+!!! note
+    Redis/Memcached are typically **cache-aside** or **read-through** from the application’s perspective; **write-through/write-behind** are application patterns *using* the cache, not properties of the server alone.
 
 ---
 
@@ -525,8 +510,8 @@ class LRUCache:
                 self._data.popitem(last=False)
 ```
 
-{: .tip }
-> For **Java**, `ConcurrentHashMap` reduces lock contention; for **Go**, **shard count** (e.g. 256–4096) is a common tuning knob. **Python** GIL makes CPU-bound eviction less parallel — for CPython, extension modules or multiprocessing may be needed at extreme scale.
+!!! tip
+    For **Java**, `ConcurrentHashMap` reduces lock contention; for **Go**, **shard count** (e.g. 256–4096) is a common tuning knob. **Python** GIL makes CPU-bound eviction less parallel — for CPython, extension modules or multiprocessing may be needed at extreme scale.
 
 ---
 
@@ -724,8 +709,8 @@ class TTLIndex:
         return removed
 ```
 
-{: .note }
-> Production LFU often uses **W-TinyLFU** (Redis 4+ optional eviction) to handle **frequency burst** vs **LRU recency** — mention by name for bonus points.
+!!! note
+    Production LFU often uses **W-TinyLFU** (Redis 4+ optional eviction) to handle **frequency burst** vs **LRU recency** — mention by name for bonus points.
 
 ---
 
@@ -847,8 +832,8 @@ public final class SlotRouter {
 }
 ```
 
-{: .warning }
-> **Rebalancing:** Moving slots or ring ranges causes **migration windows**; clients must handle **MOVED/ASK** redirects (Redis) or **dual-read** strategies during transitions.
+!!! warning
+    **Rebalancing:** Moving slots or ring ranges causes **migration windows**; clients must handle **MOVED/ASK** redirects (Redis) or **dual-read** strategies during transitions.
 
 ---
 
@@ -917,8 +902,8 @@ public class ReplicationManager {
 }
 ```
 
-{: .tip }
-> Mention **partial resync** (PSYNC in Redis) vs **full sync** after long downtime — interviewers like operational realism.
+!!! tip
+    Mention **partial resync** (PSYNC in Redis) vs **full sync** after long downtime — interviewers like operational realism.
 
 ---
 
@@ -1103,8 +1088,8 @@ class VersionedStore:
 
 **Recovery:** Start from latest **RDB**, then replay **AOF** after RDB timestamp if hybrid; or replay AOF from empty.
 
-{: .note }
-> Redis supports **RDB**, **AOF**, and **disabling persistence** entirely for pure cache tiers.
+!!! note
+    Redis supports **RDB**, **AOF**, and **disabling persistence** entirely for pure cache tiers.
 
 ---
 
@@ -1158,8 +1143,8 @@ public class SimplePool implements AutoCloseable {
 }
 ```
 
-{: .warning }
-> For Redis, use **Lettuce**/**Jedis** pool or **redis-py** connection pools — the above shows **pooling pattern**, not Redis protocol.
+!!! warning
+    For Redis, use **Lettuce**/**Jedis** pool or **redis-py** connection pools — the above shows **pooling pattern**, not Redis protocol.
 
 #### Python: pipeline-style batching (conceptual)
 
@@ -1337,8 +1322,8 @@ func (g *Guard) Do(key string, fn func() (interface{}, error)) (interface{}, err
 }
 ```
 
-{: .note }
-> Prefer `golang.org/x/sync/singleflight` in production; the snippet encodes **one origin load per key** at a time.
+!!! note
+    Prefer `golang.org/x/sync/singleflight` in production; the snippet encodes **one origin load per key** at a time.
 
 #### Python: asyncio lock-per-key (illustrative)
 
@@ -1399,8 +1384,8 @@ sequenceDiagram
   N2-->>C: value
 ```
 
-{: .warning }
-> Clients that ignore `MOVED` look flaky under cluster operations — mention **cluster-aware clients** for Redis Cluster.
+!!! warning
+    Clients that ignore `MOVED` look flaky under cluster operations — mention **cluster-aware clients** for Redis Cluster.
 
 ---
 
@@ -1439,8 +1424,8 @@ sequenceDiagram
 | Availability | 99.99% | Multi-AZ plus failover |
 | Durability | RPO &lt; 5 min | Snapshot interval plus AOF |
 
-{: .note }
-> **RPO/RTO** depend on persistence mode: pure in-memory cache may imply **large RPO** unless replicated with sync cross-region semantics (expensive).
+!!! note
+    **RPO/RTO** depend on persistence mode: pure in-memory cache may imply **large RPO** unless replicated with sync cross-region semantics (expensive).
 
 ### Failure Handling
 
@@ -1473,8 +1458,8 @@ sequenceDiagram
 | **CPU / NIC saturation** | Hot key or big key symptoms |
 | **Commands/sec by command** | Detect `KEYS *`, `FLUSHALL`, accidental scans |
 
-{: .tip }
-> Dashboard **hit ratio** without **latency** is misleading — optimize for tail latency under load.
+!!! tip
+    Dashboard **hit ratio** without **latency** is misleading — optimize for tail latency under load.
 
 ### Production Checklist (Mermaid)
 
@@ -1512,8 +1497,8 @@ flowchart TD
 | Is Pub/Sub durability required? | Redis Pub/Sub is fire-and-forget; use Kafka for durable streams |
 | What is the acceptable stale read window? | Cache-aside TTL vs read-through with versioning |
 
-{: .note }
-> Tie answers to **observability** (metrics above) and **failure modes** (split-brain, replication lag). That signals production maturity beyond textbook APIs.
+!!! note
+    Tie answers to **observability** (metrics above) and **failure modes** (split-brain, replication lag). That signals production maturity beyond textbook APIs.
 
 ---
 

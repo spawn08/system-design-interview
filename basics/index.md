@@ -1,16 +1,6 @@
----
-layout: default
-title: Fundamentals
-nav_order: 2
-has_children: true
-permalink: /basics/
----
-
-# System Design Fundamentals
-{: .fs-9 }
+# Fundamentals
 
 Master the building blocks that appear in every system design interview.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -36,17 +26,17 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 
 | Topic | Description | Difficulty |
 |-------|-------------|------------|
-| [Interview Framework]({{ site.baseurl }}/basics/interview_framework) | How to approach any system design question | ⭐ Beginner |
-| [Estimation & Planning]({{ site.baseurl }}/basics/estimation) | Back-of-the-envelope calculations | ⭐⭐ Intermediate |
-| [Networking]({{ site.baseurl }}/basics/networking) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
-| [Databases]({{ site.baseurl }}/basics/databases) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
-| [Caching]({{ site.baseurl }}/basics/caching) | Store data for faster access | ⭐ Beginner |
-| [Load Balancing]({{ site.baseurl }}/basics/load_balancer) | Distribute requests across multiple servers | ⭐ Beginner |
-| [API Design]({{ site.baseurl }}/basics/api_design) | REST, GraphQL, versioning, rate limiting | ⭐⭐ Intermediate |
-| [Concurrency]({{ site.baseurl }}/basics/concurrency) | Threads, locks, async patterns | ⭐⭐ Intermediate |
-| [Security]({{ site.baseurl }}/basics/security) | Encryption, hashing, TLS, vulnerabilities | ⭐⭐ Intermediate |
-| [Scalability & Reliability]({{ site.baseurl }}/basics/scalability) | Scaling, availability, disaster recovery | ⭐⭐⭐ Advanced |
-| [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems) | CAP, consensus, DHTs, message queues | ⭐⭐⭐ Advanced |
+| [Interview Framework](interview_framework.md) | How to approach any system design question | ⭐ Beginner |
+| [Estimation & Planning](estimation.md) | Back-of-the-envelope calculations | ⭐⭐ Intermediate |
+| [Networking](networking.md) | TCP/UDP, HTTP, DNS, WebSockets | ⭐⭐ Intermediate |
+| [Databases](databases.md) | SQL vs NoSQL, ACID, CAP, scaling | ⭐⭐ Intermediate |
+| [Caching](caching.md) | Store data for faster access | ⭐ Beginner |
+| [Load Balancing](load_balancer.md) | Distribute requests across multiple servers | ⭐ Beginner |
+| [API Design](api_design.md) | REST, GraphQL, versioning, rate limiting | ⭐⭐ Intermediate |
+| [Concurrency](concurrency.md) | Threads, locks, async patterns | ⭐⭐ Intermediate |
+| [Security](security.md) | Encryption, hashing, TLS, vulnerabilities | ⭐⭐ Intermediate |
+| [Scalability & Reliability](scalability.md) | Scaling, availability, disaster recovery | ⭐⭐⭐ Advanced |
+| [Distributed Systems](distributed_systems.md) | CAP, consensus, DHTs, message queues | ⭐⭐⭐ Advanced |
 
 ---
 
@@ -56,8 +46,8 @@ Before designing complex systems like Twitter or Uber, you need to understand th
 2. **Know the trade-offs** - Every choice has pros and cons
 3. **Be ready to apply them** - Interviewers will ask "which would you use here?"
 
-{: .tip }
-> When studying, ask yourself: "When would I use this? When would I NOT use this?"
+!!! tip
+    When studying, ask yourself: "When would I use this? When would I NOT use this?"
 
 ---
 
@@ -152,7 +142,7 @@ ESTIMATION
 
 After mastering these fundamentals:
 
-1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts (13 topics)
-2. **Apply them** in [System Design Examples]({{ site.baseurl }}/software_system_design/) — 24 walkthroughs organized by learning path
-3. **Learn ML/GenAI** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) (7 topics) → [ML System Design]({{ site.baseurl }}/ml_system_design/) (10 designs) → [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) (10 designs with interview transcripts)
+1. **Go deeper** with [Advanced Topics](../advanced/index.md) for Senior/Staff-level concepts (13 topics)
+2. **Apply them** in [System Design Examples](../software_system_design/index.md) — 24 walkthroughs organized by learning path
+3. **Learn ML/GenAI** in [GenAI/ML Fundamentals](../genai_ml_basics/index.md) (7 topics) → [ML System Design](../ml_system_design/index.md) (10 designs) → [GenAI System Design](../genai_ml_system_design/index.md) (10 designs with interview transcripts)
 4. **Practice** drawing architectures using these building blocks

@@ -1,19 +1,4 @@
----
-layout: default
-title: Image Search System
-parent: ML System Design
-nav_order: 4
----
-
 # Design an Image Search System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -1264,4 +1249,3 @@ Want me to dive into any component?"
 | **Re-ranking** | Custom model | Combine similarity + business |
 
 Image search combines deep learning with efficient data structures. The key insight is that neural networks transform the visual similarity problem into a vector distance problem, which we can solve at scale with approximate nearest neighbor algorithms.
-

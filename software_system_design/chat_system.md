@@ -1,19 +1,4 @@
----
-layout: default
-title: Chat System
-parent: System Design Examples
-nav_order: 6
----
-
 # Design a Chat System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -49,8 +34,8 @@ A **real-time messaging platform** that supports one-to-one (1:1) conversations,
 | **Discord** | Huge concurrent voice + text in communities | Hot channels + regional edge matter |
 | **Microsoft Teams** | Enterprise messaging + meetings | Compliance, retention, search |
 
-{: .note }
-> Interview tip: cite ranges as **orders of magnitude**, not precise audited figures, unless you have a source. The point is **write throughput**, **connection count**, and **fan-out**, not decimal precision.
+!!! note
+    Interview tip: cite ranges as **orders of magnitude**, not precise audited figures, unless you have a source. The point is **write throughput**, **connection count**, and **fan-out**, not decimal precision.
 
 ### Comparison to Adjacent Systems
 
@@ -103,8 +88,8 @@ A **real-time messaging platform** that supports one-to-one (1:1) conversations,
 | **Durability** | No acknowledged message lost | Ack after durable commit or replicated log |
 | **Scalability** | Horizontal for gateways and workers | Connection and write sharding |
 
-{: .warning }
-> Do not promise **exactly-once delivery** to end users without qualifiers. In practice you implement **at-least-once** + **deduplication** + **idempotent handlers**; the UX can still feel exactly-once.
+!!! warning
+    Do not promise **exactly-once delivery** to end users without qualifiers. In practice you implement **at-least-once** + **deduplication** + **idempotent handlers**; the UX can still feel exactly-once.
 
 ### API Design
 
@@ -135,8 +120,8 @@ A **real-time messaging platform** that supports one-to-one (1:1) conversations,
 }
 ```
 
-{: .tip }
-> Always separate **client-generated idempotency** (`client_msg_id`) from **server message id**. Retries must not create duplicate logical messages.
+!!! tip
+    Always separate **client-generated idempotency** (`client_msg_id`) from **server message id**. Retries must not create duplicate logical messages.
 
 ### Technology Selection & Tradeoffs
 
@@ -261,8 +246,8 @@ SLAs are **contracts** (often with customers); **SLOs** are internal targets; **
 | **Presence accuracy** | **95%** of presence transitions reflected within **10 s** for watched peers | 30-day rolling | Intentionally softer than messaging |
 | **Group message fan-out latency** | **p99 fan-out enqueue** &lt; **500 ms** for groups up to product max size (e.g., 10k members) | 30-day rolling | Large channels may use async pipeline only |
 
-{: .note }
-> **p99** hides worst users; also watch **p999** and **max** for hot conversations. Publish SLOs **per region** if you operate globally.
+!!! note
+    **p99** hides worst users; also watch **p999** and **max** for hot conversations. Publish SLOs **per region** if you operate globally.
 
 #### Error budget policy
 
@@ -297,8 +282,8 @@ Average RPS    = 20B / 86,400 ≈ 231,000 msg/sec
 Peak RPS       ≈ 231,000 × 3 ≈ 693,000 msg/sec (order of 700k/s at peak)
 ```
 
-{: .note }
-> Real products cluster heavily by geography and hour. Peak **per-region** numbers matter for provisioning.
+!!! note
+    Real products cluster heavily by geography and hour. Peak **per-region** numbers matter for provisioning.
 
 ### Storage (Messages Only)
 
@@ -415,8 +400,8 @@ flowchart TB
 | **Kafka consumers** | **Stateful processing** with partition offsets |
 | **Cassandra** | **Stateful** storage; tunable consistency per query |
 
-{: .note }
-> Gateways are stateful but **replaceable**: losing a gateway drops its sockets; clients reconnect to another node using backoff and resume cursors.
+!!! note
+    Gateways are stateful but **replaceable**: losing a gateway drops its sockets; clients reconnect to another node using backoff and resume cursors.
 
 ---
 
@@ -729,8 +714,8 @@ async def connection_handler(
             t.cancel()
 ```
 
-{: .tip }
-> In production, run **message handling** on a bounded thread/executor pool if your stack blocks (e.g., some DB drivers). Never stall the socket loop on slow I/O without backpressure.
+!!! tip
+    In production, run **message handling** on a bounded thread/executor pool if your stack blocks (e.g., some DB drivers). Never stall the socket loop on slow I/O without backpressure.
 
 ---
 
@@ -1090,8 +1075,8 @@ CREATE TABLE client_idempotency (
 | **Kafka log** | Great as source of truth stream | Query model needs compaction + materialization |
 | **PostgreSQL** | Strong constraints | Harder at WhatsApp-like write rates without sharding |
 
-{: .note }
-> At extreme scale, **hot channels** (millions of members) may require **separate ingestion pipelines** and **edge caches**—not a single row partition.
+!!! note
+    At extreme scale, **hot channels** (millions of members) may require **separate ingestion pipelines** and **edge caches**—not a single row partition.
 
 ---
 
@@ -1208,8 +1193,8 @@ class PresenceService:
         )
 ```
 
-{: .warning }
-> Presence is **best-effort**. Do not build financial-grade correctness on it; show **last seen** privacy controls in product requirements.
+!!! warning
+    Presence is **best-effort**. Do not build financial-grade correctness on it; show **last seen** privacy controls in product requirements.
 
 ---
 
@@ -1668,8 +1653,8 @@ class CollapsingBatcher:
         await self._sender.send(payload)
 ```
 
-{: .tip }
-> Add a **per-user push budget** (token bucket) in front of `CollapsingBatcher` so viral channels do not drain mobile batteries.
+!!! tip
+    Add a **per-user push budget** (token bucket) in front of `CollapsingBatcher` so viral channels do not drain mobile batteries.
 
 ---
 
@@ -1679,8 +1664,8 @@ class CollapsingBatcher:
 - **Double Ratchet** provides forward secrecy after key compromise (bounded window).
 - **X3DH** for asynchronous initial key agreement.
 
-{: .note }
-> E2EE changes the system: server **cannot** search plaintext; attachments must be encrypted client-side; **key backup** is a product problem (passphrase, secure enclave).
+!!! note
+    E2EE changes the system: server **cannot** search plaintext; attachments must be encrypted client-side; **key backup** is a product problem (passphrase, secure enclave).
 
 #### Key exchange flow
 

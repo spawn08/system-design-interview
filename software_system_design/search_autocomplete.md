@@ -1,19 +1,4 @@
----
-layout: default
-title: Search Autocomplete
-parent: System Design Examples
-nav_order: 8
----
-
 # Design a Search Autocomplete / Typeahead System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -27,8 +12,8 @@ We are designing a **search autocomplete** (also called **typeahead** or **query
 - **Latency target:** return **top-K** suggestions in **under ~100 ms** at the tail (P99), often tighter at P50.
 - **Scale intuition:** Google processes on the order of **billions of queries per day**; each keystroke can trigger a suggestion request (often **debounced** on the client). Industry talks and public data often cite **~8.5B+ searches/day** globally for Google-scale search—your interview numbers will vary; always **align constants with the interviewer**.
 
-{: .note }
-> In interviews, explicitly mention **debouncing**, **caching**, and **prefix-only** APIs—interviewers reward awareness that “every keystroke” is a product behavior, not necessarily one network call per key.
+!!! note
+    In interviews, explicitly mention **debouncing**, **caching**, and **prefix-only** APIs—interviewers reward awareness that “every keystroke” is a product behavior, not necessarily one network call per key.
 
 ---
 
@@ -91,8 +76,8 @@ GET /suggestions?prefix=machine%20l&limit=10&locale=en-US&session_id=<opaque>
 }
 ```
 
-{: .tip }
-> Use **GET** with a stable query string so **CDNs** and **browser caches** can reuse responses for popular prefixes. Avoid putting PII in URLs; `session_id` should be opaque and optional.
+!!! tip
+    Use **GET** with a stable query string so **CDNs** and **browser caches** can reuse responses for popular prefixes. Avoid putting PII in URLs; `session_id` should be opaque and optional.
 
 ### Technology Selection & Tradeoffs
 
@@ -203,8 +188,8 @@ SLAs are **contracts** (often external); SLOs are **internal targets** that shou
 - **Availability burn:** if **availability** drops below SLO, **disable** optional paths first (personalization overlay, experimental rerankers), **shed** load via stricter rate limits, and **fail open** to trie-only responses.
 - **Relevance burn:** if **CTR@K** regresses beyond agreed threshold, **rollback** ranking weights via feature flag; do **not** compensate by increasing latency (avoid “fix relevance by searching harder” without a budget).
 
-{: .note }
-> In interviews, pair each SLO with **how you measure it**: distributed tracing for latency, synthetic probes for availability, and **impression/click logs** for relevance—otherwise SLOs are wishful thinking.
+!!! note
+    In interviews, pair each SLO with **how you measure it**: distributed tracing for latency, synthetic probes for availability, and **impression/click logs** for relevance—otherwise SLOs are wishful thinking.
 
 ---
 
@@ -290,8 +275,8 @@ Peak-to-average ratios of **3×–10×** are common for global search (news, ret
 
 `≈ 200,000 QPS` peak (order-of-magnitude sanity check against “100K+ QPS”).
 
-{: .warning }
-> These numbers are **scenario knobs**. In an interview, state assumptions clearly and round to one significant figure unless asked for precision.
+!!! warning
+    These numbers are **scenario knobs**. In an interview, state assumptions clearly and round to one significant figure unless asked for precision.
 
 ### Trie storage (order of magnitude)
 
@@ -343,8 +328,8 @@ flowchart LR
 1. **Online serving (fast path):** resolve prefix → candidates → rank → filter → respond. Dominated by **in-memory structures** and **caches**.
 2. **Offline trie building:** aggregate billions of events into **counts / scores**, build a new snapshot, **atomically swap** into serving.
 
-{: .note }
-> Many production systems also maintain a **small “delta” layer** (recent trending) merged at read time, even if the bulk trie is rebuilt periodically.
+!!! note
+    Many production systems also maintain a **small “delta” layer** (recent trending) merged at read time, even if the bulk trie is rebuilt periodically.
 
 ---
 
@@ -576,8 +561,8 @@ func (t *ConcurrentTrie) TopK(prefix string) []Candidate {
 }
 ```
 
-{: .warning }
-> For hot paths, prefer **pre-sorted immutable snapshots** built offline; sorting on every read adds CPU cost when QPS is high.
+!!! warning
+    For hot paths, prefer **pre-sorted immutable snapshots** built offline; sorting on every read adds CPU cost when QPS is high.
 
 #### Python: Trie with heap for top-K
 
@@ -677,8 +662,8 @@ Cap **max prefix length** (e.g., **50** Unicode scalars) to bound worst-case tra
 | Scores / metadata | 8–32 bytes |
 | Top-K heap | O(K) entries at hot nodes |
 
-{: .tip }
-> Prefer **immutable snapshots** built offline with **dense arrays** + **FSA**-like layouts for production serving—maps of children are easy to explain in interviews but not always the most RAM-efficient representation.
+!!! tip
+    Prefer **immutable snapshots** built offline with **dense arrays** + **FSA**-like layouts for production serving—maps of children are easy to explain in interviews but not always the most RAM-efficient representation.
 
 #### Comparison table
 
@@ -769,8 +754,8 @@ def decay_merge(
     return out
 ```
 
-{: .note }
-> Real pipelines add **bot filtering**, **deduplication**, and **privacy** constraints (e.g., differential privacy or minimum thresholds before storing rare queries).
+!!! note
+    Real pipelines add **bot filtering**, **deduplication**, and **privacy** constraints (e.g., differential privacy or minimum thresholds before storing rare queries).
 
 ---
 
@@ -807,8 +792,8 @@ public class TrieBuilderService {
 }
 ```
 
-{: .warning }
-> Java serialization is shown for **interview simplicity**. Production systems use **versioned binary formats**, **checksums**, and **mmap**-friendly layouts.
+!!! warning
+    Java serialization is shown for **interview simplicity**. Production systems use **versioned binary formats**, **checksums**, and **mmap**-friendly layouts.
 
 #### Go: Atomic trie swap
 
@@ -954,8 +939,8 @@ func (r *Router) PickShard(prefix string) int {
 }
 ```
 
-{: .note }
-> Latin-only sharding is an **interview shortcut**. Real systems normalize Unicode, handle digits/emoji, and avoid skew with **hash-based** shard keys.
+!!! note
+    Latin-only sharding is an **interview shortcut**. Real systems normalize Unicode, handle digits/emoji, and avoid skew with **hash-based** shard keys.
 
 ---
 
@@ -1015,8 +1000,8 @@ flowchart TB
 | **Cancel in-flight** requests | Avoids stale UI updates |
 | **Client result cache** | Reuse prior suggestions on backspace |
 
-{: .tip }
-> Mention **keyboard latency budgets**: rendering suggestions must be **smooth**—profile end-to-end, not only server time.
+!!! tip
+    Mention **keyboard latency budgets**: rendering suggestions must be **smooth**—profile end-to-end, not only server time.
 
 ### Monitoring
 
@@ -1103,8 +1088,8 @@ def sanitize_suggestions(items: list[str], blocklist: set[str]) -> list[str]:
 - Large-scale search stacks combine **inverted indexes** for full-text retrieval with **separate suggestion systems** optimized for prefixes.
 - **Typeahead** products often rely on **aggregated query logs** and **strict filtering** pipelines—public engineering blogs from major search providers discuss streaming aggregation and caching, though exact internals vary.
 
-{: .note }
-> Use “**real-world references**” in interviews cautiously: cite **patterns** (Kafka, Flink, Redis, CDNs) rather than unverifiable internal numbers.
+!!! note
+    Use “**real-world references**” in interviews cautiously: cite **patterns** (Kafka, Flink, Redis, CDNs) rather than unverifiable internal numbers.
 
 ---
 
@@ -1330,8 +1315,8 @@ class Debouncer:
 | Right to be forgotten | Purge + blocklist; generation bump caches |
 | Skewed sharding | Hash-based routing + monitor shard load |
 
-{: .warning }
-> Autocomplete logs are sensitive—**data minimization** is a strong senior-level talking point.
+!!! warning
+    Autocomplete logs are sensitive—**data minimization** is a strong senior-level talking point.
 
 ### Java: Blocklist filter
 
@@ -1691,8 +1676,8 @@ flowchart TB
   R -->|miss| T
 ```
 
-{: .note }
-> **Surrogate keys** at the CDN allow invalidating all keys tied to trie generation `vN` without enumerating prefixes.
+!!! note
+    **Surrogate keys** at the CDN allow invalidating all keys tied to trie generation `vN` without enumerating prefixes.
 
 ---
 

@@ -1,19 +1,4 @@
----
-layout: default
-title: Load Balancing
-parent: Fundamentals
-nav_order: 6
----
-
 # Load Balancing
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 

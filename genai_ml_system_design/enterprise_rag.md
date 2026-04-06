@@ -1,19 +1,4 @@
----
-layout: default
-title: Enterprise RAG System
-parent: GenAI System Design
-nav_order: 2
----
-
 # Design an Enterprise RAG System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -31,8 +16,8 @@ A **Retrieval-Augmented Generation (RAG)** system for enterprise knowledge bases
 | **RAG** | Up-to-date knowledge, citations, ACL-aware | Retrieval latency, chunking complexity |
 | **RAG + Fine-tuning** | Best quality + grounding | Most complex, highest cost |
 
-{: .warning }
-> "Just fine-tune" is the wrong answer for enterprise. Documents change daily, access controls matter, and auditability (citations) is mandatory. RAG is the right foundation.
+!!! warning
+    "Just fine-tune" is the wrong answer for enterprise. Documents change daily, access controls matter, and auditability (citations) is mandatory. RAG is the right foundation.
 
 ### Real-World Scale
 
@@ -470,8 +455,8 @@ class ACLAwareRetriever:
 | **Per-user index** | Perfect precision | Enormous storage; impractical at scale |
 | **Group-partitioned index** | Good balance | Cold start for new groups |
 
-{: .tip }
-> At Google scale, the recommended approach is **post-filter with over-fetch**: retrieve 5-10x more candidates than needed, filter by ACL, then re-rank the survivors. This works when < 50% of docs are restricted for any given user.
+!!! tip
+    At Google scale, the recommended approach is **post-filter with over-fetch**: retrieve 5-10x more candidates than needed, filter by ACL, then re-rank the survivors. This works when < 50% of docs are restricted for any given user.
 
 ### 4.3 Query Understanding
 
@@ -746,20 +731,20 @@ flowchart LR
 
 ## Interview Tips
 
-{: .tip }
-> **What Google interviewers look for in RAG design:**
-> 1. "How do you handle access control?" — This separates enterprise RAG from toy RAG
-> 2. "How do you know the answer is correct?" — Evaluation methodology, faithfulness checking
-> 3. "What happens when a document is updated?" — Incremental indexing pipeline
-> 4. "Why not just fine-tune?" — Understanding of when RAG vs fine-tuning is appropriate
-> 5. "How do you handle multi-turn conversations?" — Query rewriting, context management
+!!! tip
+    **What Google interviewers look for in RAG design:**
+    1. "How do you handle access control?" — This separates enterprise RAG from toy RAG
+    2. "How do you know the answer is correct?" — Evaluation methodology, faithfulness checking
+    3. "What happens when a document is updated?" — Incremental indexing pipeline
+    4. "Why not just fine-tune?" — Understanding of when RAG vs fine-tuning is appropriate
+    5. "How do you handle multi-turn conversations?" — Query rewriting, context management
 
 ---
 
 ## Hypothetical Interview Transcript
 
-{: .note }
-> This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Cloud AI team.
+!!! note
+    This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Cloud AI team.
 
 ---
 

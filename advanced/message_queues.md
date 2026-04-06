@@ -1,19 +1,4 @@
----
-layout: default
-title: Message Queues & Streaming
-parent: Advanced Topics
-nav_order: 1
----
-
 # Message Queues and Stream Processing
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -239,7 +224,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class OrderEventProducer:
     def __init__(self, bootstrap_servers: str, topic: str):
         self.topic = topic
@@ -266,7 +250,6 @@ class OrderEventProducer:
             logger.error(f"Delivery failed: {err}")
         else:
             logger.info(f"Delivered to {msg.topic()}[{msg.partition()}] @ offset {msg.offset()}")
-
 
 class OrderEventConsumer:
     def __init__(self, bootstrap_servers: str, group_id: str, topic: str):
@@ -472,8 +455,8 @@ flowchart LR
 | **Best for** | Event streaming, log aggregation, data pipelines | Task queues, RPC, complex routing |
 | **Complexity** | Higher (partitions, offsets, consumer groups) | Lower (familiar queue semantics) |
 
-{: .tip }
-> **Interview heuristic:** Use Kafka when you need event replay, high throughput, or stream processing. Use RabbitMQ when you need flexible routing, per-message acknowledgment, or RPC-style communication.
+!!! tip
+    **Interview heuristic:** Use Kafka when you need event replay, high throughput, or stream processing. Use RabbitMQ when you need flexible routing, per-message acknowledgment, or RPC-style communication.
 
 ---
 
@@ -775,8 +758,8 @@ flowchart TD
     PROC -->|Micro-batch OK| SPARK[Spark Streaming]
 ```
 
-{: .important }
-> In interviews, always state your delivery guarantee requirement (at-most-once, at-least-once, exactly-once) and explain why. Most systems use **at-least-once with idempotent consumers** — it gives reliability without the complexity of exactly-once.
+!!! important
+    In interviews, always state your delivery guarantee requirement (at-most-once, at-least-once, exactly-once) and explain why. Most systems use **at-least-once with idempotent consumers** — it gives reliability without the complexity of exactly-once.
 
 ---
 

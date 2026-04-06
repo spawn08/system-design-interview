@@ -1,16 +1,6 @@
----
-layout: default
-title: Large Language Models
-parent: GenAI/ML Fundamentals
-nav_order: 4
-permalink: /genai_ml_basics/llm_systems
----
-
 # Large Language Model Systems
-{: .fs-9 }
 
 Design production systems powered by LLMs — from prompt engineering and fine-tuning to RAG architectures, vector databases, and serving at scale.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -1450,13 +1440,13 @@ class LLMCapacityPlanner:
 
 ### Common Pitfalls
 
-{: .warning }
-> 1. **No retrieval** — using raw LLM without grounding leads to hallucination
-> 2. **Wrong chunk size** — too small loses context; too large dilutes relevance
-> 3. **No guardrails** — prompt injection and PII leakage are real production risks
-> 4. **Ignoring latency** — users expect streaming; time-to-first-token matters more than total latency
-> 5. **Over-engineering** — start with API-based models before self-hosting
-> 6. **No evaluation** — shipping without quality measurement is flying blind
+!!! warning
+    1. **No retrieval** — using raw LLM without grounding leads to hallucination
+    2. **Wrong chunk size** — too small loses context; too large dilutes relevance
+    3. **No guardrails** — prompt injection and PII leakage are real production risks
+    4. **Ignoring latency** — users expect streaming; time-to-first-token matters more than total latency
+    5. **Over-engineering** — start with API-based models before self-hosting
+    6. **No evaluation** — shipping without quality measurement is flying blind
 
 ### Sample Interview Dialogue
 

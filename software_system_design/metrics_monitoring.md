@@ -1,19 +1,4 @@
----
-layout: default
-title: Metrics & Monitoring System
-parent: System Design Examples
-nav_order: 22
----
-
 # Design a Metrics and Monitoring System (Datadog / Prometheus–style)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -55,8 +40,8 @@ We are designing a **metrics collection, storage, querying, and alerting** platf
 - **Capacity planning** uses historical trends; without retention and rollups, forecasting is guesswork.
 - **Debugging** pairs metrics with traces and logs—but metrics are the cheapest signal at high volume.
 
-{: .note }
-> In interviews, **scope cardinality, retention, and multi-tenancy early**. Many designs fail on “we’ll just index everything” or “one global Prometheus.”
+!!! note
+    In interviews, **scope cardinality, retention, and multi-tenancy early**. Many designs fail on “we’ll just index everything” or “one global Prometheus.”
 
 ---
 
@@ -74,8 +59,8 @@ This section grounds the later steps in **time-series semantics**, **compression
 | **Ordering** | Application-defined | **Time is first-class**; many algorithms assume **per-series monotonic** `t` |
 | **Consistency** | Transactions | **Eventually merged** replicas; **idempotent** samples |
 
-{: .tip }
-> In interviews, say: **“Each series is a narrow table of (t, v) ordered by t; the database problem is billions of these narrow tables, not one wide fact table.”**
+!!! tip
+    In interviews, say: **“Each series is a narrow table of (t, v) ordered by t; the database problem is billions of these narrow tables, not one wide fact table.”**
 
 ### Gorilla compression — step-by-step (with bit-level intuition)
 
@@ -139,8 +124,8 @@ sequenceDiagram
   C->>I: route(shard), ack after WAL
 ```
 
-{: .note }
-> Production stacks often use **both**: OTel **push** into a collector that **also** scrapes legacy exporters.
+!!! note
+    Production stacks often use **both**: OTel **push** into a collector that **also** scrapes legacy exporters.
 
 ### Golden signals (with concrete examples)
 
@@ -165,8 +150,8 @@ Google’s **four golden signals**—**latency**, **traffic**, **errors**, and *
 - **RED:** `rate(requests_total)`, `rate(errors_total)`, histogram **`duration_seconds`**.
 - **USE:** CPU **utilization %**, **run queue** or **scheduler wait** (saturation), **disk I/O errors** (errors).
 
-{: .tip }
-> In interviews: **RED = service-centric**, **USE = resource-centric**; both complement **golden signals** (naming differs, intent overlaps).
+!!! tip
+    In interviews: **RED = service-centric**, **USE = resource-centric**; both complement **golden signals** (naming differs, intent overlaps).
 
 ### Cardinality — definition, failure mode, and concrete math
 
@@ -236,8 +221,8 @@ If you add **`trace_id`** (high cardinality) on a metric scraped every **15 s**:
 | **Availability** | **99.99%** for ingestion + query API (excluding client misconfig) | SLO-driven; meta-monitoring separate |
 | **Durability** | No silent data loss; WAL + replication | Trust in alerts and capacity graphs |
 
-{: .warning }
-> **99.99% for the entire stack** including third-party notification delivery is unrealistic—split SLAs: ingestion, query, **notification delivery** (best-effort with retries).
+!!! warning
+    **99.99% for the entire stack** including third-party notification delivery is unrealistic—split SLAs: ingestion, query, **notification delivery** (best-effort with retries).
 
 ### Whiteboard checklist (expand each if asked)
 
@@ -356,8 +341,8 @@ flowchart TB
   end
 ```
 
-{: .note }
-> In interviews, **do not say "we pick AP"** without specifying which data path. Monitoring systems are **mixed-mode**: AP for samples, CP for configuration. This nuance is what separates senior answers.
+!!! note
+    In interviews, **do not say "we pick AP"** without specifying which data path. Monitoring systems are **mixed-mode**: AP for samples, CP for configuration. This nuance is what separates senior answers.
 
 ---
 
@@ -394,8 +379,8 @@ A monitoring system is **infrastructure for other systems' SLOs** — its own re
 | **< 25% remaining** | Feature freeze; focus on reliability work |
 | **Exhausted** | Incident review required; no non-critical changes |
 
-{: .tip }
-> In interviews, mention **error budgets** and **burn rate alerts** (e.g., "if we burn 10% of monthly budget in 1 hour, page immediately"). This shows you understand SLO-driven operations, not just uptime numbers.
+!!! tip
+    In interviews, mention **error budgets** and **burn rate alerts** (e.g., "if we burn 10% of monthly budget in 1 hour, page immediately"). This shows you understand SLO-driven operations, not just uptime numbers.
 
 ---
 
@@ -519,8 +504,8 @@ CREATE INDEX idx_silences_active ON silences(tenant_id, ends_at) WHERE ends_at >
 | `notification_channels` | ~300 B | 50K | ~15 MB | Negligible |
 | `silences` | ~300 B | 10K active | ~3 MB | Self-pruning (TTL) |
 
-{: .note }
-> The **metadata store is tiny** compared to time-series data. PostgreSQL handles this comfortably on a single primary + replica. The real storage challenge is the TSDB blocks in object storage.
+!!! note
+    The **metadata store is tiny** compared to time-series data. PostgreSQL handles this comfortably on a single primary + replica. The real storage challenge is the TSDB blocks in object storage.
 
 ---
 
@@ -606,8 +591,8 @@ CREATE INDEX idx_silences_active ON silences(tenant_id, ends_at) WHERE ends_at >
 }
 ```
 
-{: .tip }
-> In interviews, mention that the **push API uses protobuf + snappy compression** for efficiency (not JSON). The JSON examples above are for readability. Prometheus remote write protocol is the de facto standard.
+!!! tip
+    In interviews, mention that the **push API uses protobuf + snappy compression** for efficiency (not JSON). The JSON examples above are for readability. Prometheus remote write protocol is the de facto standard.
 
 ---
 
@@ -663,8 +648,8 @@ Rough **on-disk** after 10× compression on values: **~14 GB/day** per logical c
 | **Aggregations** | `sum by (service)` shuffles series by label hash |
 | **Cardinality queries** | `count by (pod)`—dangerous if `pod` explodes |
 
-{: .tip }
-> State clearly: **hot data in SSD**, **cold in object storage** (S3/GCS) with **downsampled** blocks for cheap long-range scans.
+!!! tip
+    State clearly: **hot data in SSD**, **cold in object storage** (S3/GCS) with **downsampled** blocks for cheap long-range scans.
 
 ### Query load assumptions (for read-path sizing)
 
@@ -734,8 +719,8 @@ flowchart LR
 4. **Alerting engine** periodically evaluates rules (often same query engine), drives **state machine**, sends to **PagerDuty/Slack** via **notification router** (dedupe, silences).
 5. **Dashboard** UI calls the query API (often **Grafana** in front).
 
-{: .note }
-> **Read path** and **write path** are often **separated** (different services) so spikes in queries do not starve ingestion.
+!!! note
+    **Read path** and **write path** are often **separated** (different services) so spikes in queries do not starve ingestion.
 
 ### Sequence: scrape / push → durable block
 
@@ -854,8 +839,8 @@ def leading_zero_bytes(x: int) -> int:
     return max(0, 8 - (b + 7) // 8)
 ```
 
-{: .tip }
-> Mention the **Gorilla** (Facebook) paper explicitly—it is interview currency. Note **ZSTD** on **frozen blocks** for cold tiers.
+!!! tip
+    Mention the **Gorilla** (Facebook) paper explicitly—it is interview currency. Note **ZSTD** on **frozen blocks** for cold tiers.
 
 ---
 
@@ -927,8 +912,8 @@ class Batcher:
         return len(self.buf) >= self.max_points or elapsed_ms >= self.max_wait_ms
 ```
 
-{: .warning }
-> **High-cardinality** labels (e.g., `user_id`) will **OOM** the ingester and index—enforce **limits**, **drop rules**, or **aggregations** at the edge.
+!!! warning
+    **High-cardinality** labels (e.g., `user_id`) will **OOM** the ingester and index—enforce **limits**, **drop rules**, or **aggregations** at the edge.
 
 ---
 
@@ -1161,8 +1146,8 @@ def rate_per_second(
     return increase_range(timestamps, values) / dt
 ```
 
-{: .note }
-> Production `rate()` also handles **stale markers**, **extrapolation** at window edges, and alignment to **evaluation steps**—the sketch above shows **reset accounting** only.
+!!! note
+    Production `rate()` also handles **stale markers**, **extrapolation** at window edges, and alignment to **evaluation steps**—the sketch above shows **reset accounting** only.
 
 #### `histogram_quantile()` — linear interpolation across buckets
 
@@ -1209,8 +1194,8 @@ def histogram_quantile(phi: float, buckets: List[Tuple[float, float]]) -> float:
 
 **Shard pruning:** if matchers include `region="us-east"`, only **touch** ingesters owning that **tenant/region** slice—critical for latency.
 
-{: .note }
-> **Parallelism** is keyed by **time range** and **shard**; protect with **query concurrency** limits per tenant.
+!!! note
+    **Parallelism** is keyed by **time range** and **shard**; protect with **query concurrency** limits per tenant.
 
 ---
 
@@ -1430,8 +1415,8 @@ flowchart LR
 
 **Narrative:** **query frontend** may **split** range queries and **cache**; **querier** executes PromQL, **pushes down** matchers, contacts **ingesters** for recent samples and **store-gateways** for historical blocks; **gateways** fetch **chunk** data from **object storage** with aggressive caching.
 
-{: .tip }
-> Name-check **Thanos / Cortex / Mimir** for **long-term Prometheus**; **Monarch** for **hierarchical global** monitoring at Google scale.
+!!! tip
+    Name-check **Thanos / Cortex / Mimir** for **long-term Prometheus**; **Monarch** for **hierarchical global** monitoring at Google scale.
 
 ---
 
@@ -1498,8 +1483,8 @@ class TDigestLite:
         return self.centroids[-1].mean
 ```
 
-{: .warning }
-> Real **t-digest** uses **strict** scaling functions and **merge** rules—use a **battle-tested** library in production.
+!!! warning
+    Real **t-digest** uses **strict** scaling functions and **merge** rules—use a **battle-tested** library in production.
 
 #### Native histograms vs classic histograms
 
@@ -1526,8 +1511,8 @@ class TDigestLite:
 - **t-digest:** error ε typically **~1/compression** relative to **CDF**—tunable vs **memory**.
 - **Distributed merge:** merging **approximate** structures **accumulates** error—document **SLO** on **query accuracy** separately from **ingestion** SLO.
 
-{: .note }
-> For interviews, tie this back to **SLO dashboards**: **global** p99 is a **product** question, not just a **math** question—**traffic-weighted** merging matters.
+!!! note
+    For interviews, tie this back to **SLO dashboards**: **global** p99 is a **product** question, not just a **math** question—**traffic-weighted** merging matters.
 
 ---
 
@@ -1568,8 +1553,8 @@ Monitor the monitors: **ingestion lag**, **WAL age**, **compaction backlog**, **
 | **High cardinality** | Powerful drill-down | Memory and index explosion |
 | **Pull-only** | Idempotent scrape | Operational complexity in k8s |
 
-{: .warning }
-> **Cardinality** and **query cost** are the #1 production failure modes—interviewers reward **guardrails** (limits, recording rules, aggressive downsampling).
+!!! warning
+    **Cardinality** and **query cost** are the #1 production failure modes—interviewers reward **guardrails** (limits, recording rules, aggressive downsampling).
 
 ---
 
@@ -1594,8 +1579,8 @@ Monitor the monitors: **ingestion lag**, **WAL age**, **compaction backlog**, **
 | “**Billing** in SaaS?” | **Ingested samples**, **query cost units**, **cardinality** peaks—meter at **gateway** |
 | “**ML anomaly**?” | **Offline** train on rollups; **online** scorer on **stream**—keep **separate** from **hot path** |
 
-{: .note }
-> Close with **what you’d build first**: ingestion + **WAL** + **query on recent blocks**, then **long-term store**, then **alerting**—mirrors **MVP → scale** path.
+!!! note
+    Close with **what you’d build first**: ingestion + **WAL** + **query on recent blocks**, then **long-term store**, then **alerting**—mirrors **MVP → scale** path.
 
 ### MVP vs scale (explicit)
 

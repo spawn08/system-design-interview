@@ -1,19 +1,4 @@
----
-layout: default
-title: Staff Engineer Interview Guide
-parent: System Design Examples
-nav_order: 1
----
-
 # Staff Engineer (L6) System Design Interview Guide
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 1
 
 This guide outlines the fundamental differences between Senior (L5) and Staff (L6) system design expectations at top tech companies, particularly Google. Use it to calibrate your preparation and ensure your answers demonstrate Staff-level thinking.
 
-{: .warning }
-> **The #1 reason candidates are down-leveled from L6 to L5:** they deliver a technically correct design but fail to demonstrate organizational influence, deep trade-off reasoning, or multi-year system evolution thinking.
+!!! warning
+    **The #1 reason candidates are down-leveled from L6 to L5:** they deliver a technically correct design but fail to demonstrate organizational influence, deep trade-off reasoning, or multi-year system evolution thinking.
 
 ---
 
@@ -70,8 +55,8 @@ Every Staff-level design must address deployment topology:
 | **Active-Active** | Global users, low latency everywhere | Conflict resolution; data sovereignty |
 | **Follow-the-Sun** | Regional data locality | Complex routing; compliance |
 
-{: .tip }
-> Staff engineers don't just say "we'll replicate." They say *"We'll use active-active with CRDTs for the session store but active-passive with async replication for the ledger because financial data requires strict ordering."*
+!!! tip
+    Staff engineers don't just say "we'll replicate." They say *"We'll use active-active with CRDTs for the session store but active-passive with async replication for the ledger because financial data requires strict ordering."*
 
 ### Pillar 3: Operational Excellence (SRE Thinking)
 
@@ -95,8 +80,8 @@ Staff engineers think in multi-year arcs:
 | **Year 2** | Schema migrations, API versioning, backward compatibility |
 | **Year 3+** | Platform extraction; multi-tenant isolation; cost optimization |
 
-{: .note }
-> Mention **zero-downtime migrations** (dual-write, shadow traffic, feature flags) to signal Staff-level operational awareness.
+!!! note
+    Mention **zero-downtime migrations** (dual-write, shadow traffic, feature flags) to signal Staff-level operational awareness.
 
 ### Pillar 5: Driving Consensus (The Leadership Signal)
 
@@ -120,8 +105,8 @@ In the behavioral round, you'll be asked how you drive alignment. In the design 
 | **Operational Concerns** | 5 min | SLOs, monitoring, capacity, evolution |
 | **Wrap-up** | 4 min | Trade-offs summary; what you'd do with more time |
 
-{: .warning }
-> **Common L5 trap:** Spending 20 minutes on the high-level diagram and running out of time before the deep dive. Staff candidates spend less time drawing boxes and more time on the hard problems.
+!!! warning
+    **Common L5 trap:** Spending 20 minutes on the high-level diagram and running out of time before the deep dive. Staff candidates spend less time drawing boxes and more time on the hard problems.
 
 ---
 
@@ -150,11 +135,11 @@ Master these **5 design problems** and you'll cover 80% of distributed systems c
 
 | Design Problem | Core Concepts Covered |
 |----------------|-----------------------|
-| [**Distributed Key-Value Store**]({{ site.baseurl }}/software_system_design/key_value_store) | CAP theorem, consistent hashing, quorum, vector clocks, gossip, LSM trees, Merkle trees |
-| [**Rate Limiter**]({{ site.baseurl }}/software_system_design/rate_limiter) | Distributed caching, race conditions, Redis clustering, global synchronization |
-| [**Collaborative Editor**]({{ site.baseurl }}/software_system_design/collaborative_editor) | OT vs CRDTs, WebSocket management, conflict resolution, real-time systems |
-| [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) | Distributed locking, fencing tokens, timing wheels, at-least-once semantics |
-| [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) | Exactly-once delivery, idempotency, fan-out, load shedding, multi-channel |
+| [**Distributed Key-Value Store**](key_value_store.md) | CAP theorem, consistent hashing, quorum, vector clocks, gossip, LSM trees, Merkle trees |
+| [**Rate Limiter**](rate_limiter.md) | Distributed caching, race conditions, Redis clustering, global synchronization |
+| [**Collaborative Editor**](collaborative_editor.md) | OT vs CRDTs, WebSocket management, conflict resolution, real-time systems |
+| [**Task Scheduler**](task_scheduler.md) | Distributed locking, fencing tokens, timing wheels, at-least-once semantics |
+| [**Notification System**](notification_system.md) | Exactly-once delivery, idempotency, fan-out, load shedding, multi-channel |
 
 ---
 
@@ -170,8 +155,8 @@ The leadership round is a **dealbreaker** at L6. Prepare 5 stories using the STA
 | **Mentoring a struggling engineer** | Multiplier effect; patience; empathy |
 | **Killing your own project** | Intellectual honesty; prioritization; ego management |
 
-{: .tip }
-> For each story, quantify the impact: "This reduced p99 latency from 800ms to 120ms" or "This unblocked 3 teams and saved 2 engineer-years of duplicate work."
+!!! tip
+    For each story, quantify the impact: "This reduced p99 latency from 800ms to 120ms" or "This unblocked 3 teams and saved 2 engineer-years of duplicate work."
 
 ---
 

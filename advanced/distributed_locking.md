@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed Locking
-parent: Advanced Topics
-nav_order: 7
----
-
 # Distributed Locking
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -27,8 +12,8 @@ Typical scenarios include:
 - **Cross-node coordination** — Ensuring only one worker processes a partition, or only one instance runs a scheduled job.
 - **When you need mutual exclusion across processes or nodes** — Any time correctness depends on "at most one actor does X now," and those actors are not in the same OS process.
 
-{: .note }
-> Distributed locks are **not** the same as consensus. A lock service can help you serialize access, but you must still reason about failures, clock skew, storage delays, and what happens when a lock holder crashes or runs slowly.
+!!! note
+    Distributed locks are **not** the same as consensus. A lock service can help you serialize access, but you must still reason about failures, clock skew, storage delays, and what happens when a lock holder crashes or runs slowly.
 
 ```mermaid
 flowchart LR
@@ -69,8 +54,8 @@ A **mutex** (mutual exclusion) guarantees that only one thread or process enters
 
 Holding a lock for a long time increases contention and delays other workers. **Time-to-live (TTL)** or **lease** bounds how long a lock survives if the holder crashes without releasing it. If TTL is too short, a slow but healthy holder may lose the lock while still working (**false expiration**). If TTL is too long, failures block others for too long.
 
-{: .tip }
-> Prefer short leases with **renewal** (heartbeat) for long work, and design the protected operation to be **idempotent** or **safe to abort** when the lease is lost.
+!!! tip
+    Prefer short leases with **renewal** (heartbeat) for long work, and design the protected operation to be **idempotent** or **safe to abort** when the lease is lost.
 
 ---
 
@@ -180,8 +165,8 @@ The practical response in many designs is not to abandon locks entirely but to c
 
 Any design that compares **elapsed real time** across machines (Redlock's validity window) is sensitive to **clock skew** and **NTP adjustments**. Redis single-instance locks with TTL are also sensitive: expiry is based on the server's clock and key lifetime semantics, but clients still use local time for renewal intervals. Use **monotonic clocks** (`CLOCK_MONOTONIC`) for intervals on the client, not wall-clock time for correctness proofs.
 
-{: .warning }
-> Do not assume synchronized wall clocks across nodes for correctness. Use leases, version numbers, or consensus-backed ordering for safety arguments.
+!!! warning
+    Do not assume synchronized wall clocks across nodes for correctness. Use leases, version numbers, or consensus-backed ordering for safety arguments.
 
 ---
 
@@ -221,8 +206,8 @@ sequenceDiagram
 
 The same pattern elects a **leader**: the process owning the smallest ephemeral sequential child is the leader. When the leader's session dies, its ephemeral node vanishes and the next sequence becomes the new leader.
 
-{: .note }
-> ZooKeeper gives you **ordering visibility** through sequence numbers and session semantics; correctness still depends on clients implementing the recipe correctly and the resource handling failures (fencing) if needed.
+!!! note
+    ZooKeeper gives you **ordering visibility** through sequence numbers and session semantics; correctness still depends on clients implementing the recipe correctly and the resource handling failures (fencing) if needed.
 
 ---
 
@@ -298,8 +283,8 @@ SET balance = balance - $1, version = version + 1
 WHERE id = $2 AND version = $3;
 ```
 
-{: .tip }
-> Combine **short transactions** with `SELECT FOR UPDATE` for hot rows, or **partition** work so different shards contend on different DB rows.
+!!! tip
+    Combine **short transactions** with `SELECT FOR UPDATE` for hot rows, or **partition** work so different shards contend on different DB rows.
 
 ---
 
@@ -335,8 +320,8 @@ Client libraries (e.g. `etcd/client/v3` in Go) expose **session** or **mutex** h
 // defer mutex.Unlock(ctx)
 ```
 
-{: .note }
-> etcd's linearizable writes and watch API make it a solid choice when you already run Kubernetes or need **strong consistency** from the coordination store itself.
+!!! note
+    etcd's linearizable writes and watch API make it a solid choice when you already run Kubernetes or need **strong consistency** from the coordination store itself.
 
 ---
 

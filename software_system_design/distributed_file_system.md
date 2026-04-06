@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed File System
-parent: System Design Examples
-nav_order: 24
----
-
 # Distributed File System (GFS / HDFS)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -36,8 +21,8 @@ We are designing a **distributed file system** in the spirit of **Google File Sy
 | **Facebook / Yahoo Hadoop clusters (historical)** | **100+ PB** HDFS deployments; tens of thousands of nodes | Validates **HDFS NameNode + DataNodes** for web-scale batch analytics |
 | **Public cloud data lakes** | **EB-scale** object + file abstractions (often layered) | DFS ideas appear in **disaggregated storage** and **tiered** cold archives |
 
-{: .note }
-> Interview framing: you are not building **Dropbox for users** (sync, fine-grained ACL UX) but **infrastructure storage** for **sequential reads/writes**, **batch jobs**, and **append-heavy logs**—unless the interviewer explicitly expands scope.
+!!! note
+    Interview framing: you are not building **Dropbox for users** (sync, fine-grained ACL UX) but **infrastructure storage** for **sequential reads/writes**, **batch jobs**, and **append-heavy logs**—unless the interviewer explicitly expands scope.
 
 ### Why Distributed File Systems Matter for Big Data
 
@@ -46,8 +31,8 @@ We are designing a **distributed file system** in the spirit of **Google File Sy
 3. **A shared namespace simplifies pipelines:** Producers write **partitioned files**; consumers run SQL/Spark/Beam jobs against stable paths and generation markers.
 4. **Replication + checksums → durability:** Three copies plus **scrubbing** yields **practical** 11-nines-class stories for well-operated fleets (always tie claims to **replication, repair, and verification**).
 
-{: .tip }
-> If asked “**Why not just use object storage (S3)?**” — answer with **latency**, **mutation patterns** (append, hflush semantics), **directory listing**, **lease-based writes**, and **HDFS ecosystem integration**—not a false dichotomy; many systems **compose both**.
+!!! tip
+    If asked “**Why not just use object storage (S3)?**” — answer with **latency**, **mutation patterns** (append, hflush semantics), **directory listing**, **lease-based writes**, and **HDFS ecosystem integration**—not a false dichotomy; many systems **compose both**.
 
 ---
 
@@ -62,8 +47,8 @@ We are designing a **distributed file system** in the spirit of **Google File Sy
 | **Master** | Directories, permissions (product-dependent), **which chunk IDs** compose a file, **where replicas live** | Keeps hot metadata in **memory**; avoids per-IO disk seeks on the control plane |
 | **Chunkservers** | Store chunk bytes, serve reads/writes, **verify checksums** | Data plane scales **linearly** with machines and disks |
 
-{: .warning }
-> A **single active master** is a **design trade-off**, not a law of physics. **GFS assumed** careful client caching + batch workloads; **HDFS NameNode HA** uses **JournalNodes + ZKFC**; **Colossus** shards metadata. Name the evolution in depth interviews.
+!!! warning
+    A **single active master** is a **design trade-off**, not a law of physics. **GFS assumed** careful client caching + batch workloads; **HDFS NameNode HA** uses **JournalNodes + ZKFC**; **Colossus** shards metadata. Name the evolution in depth interviews.
 
 **Why separate metadata from data?**
 
@@ -108,8 +93,8 @@ GFS-style systems often assume **sequential writes**, **appends**, and **large r
 | **Bandwidth** | Prefer **local** or **same-rack** reads |
 | **Write pipeline** | Chain **forwarding** across racks without saturating uplinks |
 
-{: .note }
-> HDFS exposes **rack awareness** via **topology scripts**; interviews expect you to articulate **splitting replicas across failure domains**.
+!!! note
+    HDFS exposes **rack awareness** via **topology scripts**; interviews expect you to articulate **splitting replicas across failure domains**.
 
 ### Consistency Model: Relaxed but Intentional
 
@@ -169,8 +154,8 @@ flowchart TB
   Clients -->|read/write| DP
 ```
 
-{: .note }
-> **Colossus** is not “GFS with bigger disks”—interviewers reward acknowledging **metadata sharding**, **erasure coding**, and **multi-tenant** isolation as **second-generation** lessons.
+!!! note
+    **Colossus** is not “GFS with bigger disks”—interviewers reward acknowledging **metadata sharding**, **erasure coding**, and **multi-tenant** isolation as **second-generation** lessons.
 
 ### Small-File Tax (Interview Landmine)
 
@@ -182,8 +167,8 @@ If **average file size** is **KB** scale while chunks are **128 MB**, **most chu
 | **Block reports** grow | Many block entries | **Compaction** policies; **object store** offload for tiny blobs |
 | **List / scan** slow | Directory fan-out | **Partitioning** by key prefix; **catalog** services (Hive metastore, Glue) |
 
-{: .warning }
-> Always ask the interviewer about **file size distribution**—DFS math **changes completely** when the tail is **small files**.
+!!! warning
+    Always ask the interviewer about **file size distribution**—DFS math **changes completely** when the tail is **small files**.
 
 ---
 
@@ -211,8 +196,8 @@ If **average file size** is **KB** scale while chunks are **128 MB**, **most chu
 | **Fault tolerance** | Tolerate **disk**, **node**, **rack** failures | **Domain-aware** replica placement |
 | **Commodity hardware** | No reliance on **specialized SAN** | Expect **failures daily** |
 
-{: .warning }
-> Be explicit: **POSIX** guarantees are **not** full; **fsync**, **atomic rename**, **O_EXCL** semantics may differ—tie answers to **HDFS/GFS** realities.
+!!! warning
+    Be explicit: **POSIX** guarantees are **not** full; **fsync**, **atomic rename**, **O_EXCL** semantics may differ—tie answers to **HDFS/GFS** realities.
 
 ### API Sketch (Conceptual)
 
@@ -271,8 +256,8 @@ Metadata, data layout, consistency, and namespace shape are **not independent**�
 | **Flat + application prefixes** | Some object-style layouts | Simple sharding by **hash** | Weak **directory** UX unless **layered** index |
 | **Object-style (bucket/key)** | S3 mental model | Easy to **partition** by key | Not a drop-in for **Hadoop** path semantics |
 
-{: .note }
-> **Federation** (multiple roots) is often a **namespace** scaling tactic: split **tenants** or **datasets** across **independent** masters with a **router** (e.g., ViewFS-style).
+!!! note
+    **Federation** (multiple roots) is often a **namespace** scaling tactic: split **tenants** or **datasets** across **independent** masters with a **router** (e.g., ViewFS-style).
 
 #### Our choice
 
@@ -323,8 +308,8 @@ flowchart LR
   Meta -->|leases + version| Data
 ```
 
-{: .tip }
-> **Interview sound bite:** “We’re **CP** on **metadata** so we never fork the namespace; we’re **AP-oriented on bulk data** because **replicas + primary ordering** give us **durability** without **global transactions**.”
+!!! tip
+    **Interview sound bite:** “We’re **CP** on **metadata** so we never fork the namespace; we’re **AP-oriented on bulk data** because **replicas + primary ordering** give us **durability** without **global transactions**.”
 
 ---
 
@@ -353,8 +338,8 @@ SLAs are **external promises** (often **contractual**); **SLOs** are **internal*
 | **Availability (metadata writes)** | **99.95%+** with HA | **Monthly** | **Failover** seconds; **degraded** mode may be **read-only** |
 | **Cluster aggregate throughput** | **≥ X GB/s** sustained **read** under **normal** load | **Weekly peak** | Capacity **planning** SLO, not a **single-RPC** metric |
 
-{: .warning }
-> **11 nines** for **bytes** is a **design story** (replication, **anti-correlation**, **scrubbing**, **repair**), not a **single formula**. Tie **durability** SLO to **measurable** inputs: **replica count**, **MTTR**, **bitrot** detection.
+!!! warning
+    **11 nines** for **bytes** is a **design story** (replication, **anti-correlation**, **scrubbing**, **repair**), not a **single formula**. Tie **durability** SLO to **measurable** inputs: **replica count**, **MTTR**, **bitrot** detection.
 
 #### Error budget policy
 
@@ -366,8 +351,8 @@ SLAs are **external promises** (often **contractual**); **SLOs** are **internal*
 | **Degraded modes** | **Read-only metadata** may **preserve** **C** at **cost of A**—document as **acceptable** for **batch** |
 | **Customer comms** | **SLA** credits only if **external** monitoring agrees; **internal** SLOs stricter |
 
-{: .note }
-> Separate **latency** SLOs for **interactive** SQL-on-HDFS vs **batch** MapReduce—same cluster, **different** expectations.
+!!! note
+    Separate **latency** SLOs for **interactive** SQL-on-HDFS vs **batch** MapReduce—same cluster, **different** expectations.
 
 ---
 
@@ -492,8 +477,8 @@ Chunk {
 }
 ```
 
-{: .tip }
-> Mention **checkpoint** + **edit log**: the **authoritative** order is **log append**; **tables** are **derived** state replayed for **fast startup**—same schema, **two** **persistence** paths.
+!!! tip
+    Mention **checkpoint** + **edit log**: the **authoritative** order is **log append**; **tables** are **derived** state replayed for **fast startup**—same schema, **two** **persistence** paths.
 
 ---
 
@@ -522,8 +507,8 @@ With replication factor 3, physical chunk replicas ≈ 3 × logical chunks
 (plus orphans before GC and transient over-replication during repair)
 ```
 
-{: .note }
-> **Trillions of chunks** push **single-master** designs; real systems use **sharded metadata** (Colossus) or **Federation** (multiple HDFS namespaces + **ViewFS**). Show you know **when** the model bends.
+!!! note
+    **Trillions of chunks** push **single-master** designs; real systems use **sharded metadata** (Colossus) or **Federation** (multiple HDFS namespaces + **ViewFS**). Show you know **when** the model bends.
 
 ### Metadata Size on Master (Order of Magnitude)
 
@@ -550,8 +535,8 @@ Repair traffic after node loss:
   reading ~2/3 of lost replicas from peers and writing to new thirds — rack-aware throttling matters
 ```
 
-{: .tip }
-> Tie bandwidth math to **backpressure**, **rebalance throttles**, and **QoS**: repair must not starve **foreground** jobs.
+!!! tip
+    Tie bandwidth math to **backpressure**, **rebalance throttles**, and **QoS**: repair must not starve **foreground** jobs.
 
 ### Master RPC Rate (Illustrative)
 
@@ -575,8 +560,8 @@ Lease renewals: amortized per chunk per lease window (e.g., seconds–minutes)
 | **Heartbeat** | Per chunkserver | **O(chunkservers)**, not **O(chunks)** |
 | **Block report** | Periodic bulk | **Full** vs **incremental** reports |
 
-{: .note }
-> The **master is not a read-through cache for data**—prove you understand **which** events are **rare** vs **continuous**.
+!!! note
+    The **master is not a read-through cache for data**—prove you understand **which** events are **rare** vs **continuous**.
 
 ### Estimation Sanity Checks
 
@@ -657,8 +642,8 @@ sequenceDiagram
   P-->>Client: Ack defined offsets / append results
 ```
 
-{: .note }
-> **Data flow** is **pipeline**; **control** (ordering) is **primary-centered**. Separating **control** and **data** keeps the master off the hot path for bytes.
+!!! note
+    **Data flow** is **pipeline**; **control** (ordering) is **primary-centered**. Separating **control** and **data** keeps the master off the hot path for bytes.
 
 ### Rack Topology and Replica Placement (Mermaid)
 
@@ -808,8 +793,8 @@ class MasterState:
         return inode
 ```
 
-{: .tip }
-> Interviews reward naming **checkpoint truncation**: after checkpoint, replay **only tail** log entries to rebuild state.
+!!! tip
+    Interviews reward naming **checkpoint truncation**: after checkpoint, replay **only tail** log entries to rebuild state.
 
 ### 4.2 Chunk Management
 
@@ -929,8 +914,8 @@ def client_record_append(primary: PrimaryChunk, size: int) -> int:
     return serial
 ```
 
-{: .warning }
-> **Record append** can **duplicate** entire records on retries; **idempotent** processing is **application-level**.
+!!! warning
+    **Record append** can **duplicate** entire records on retries; **idempotent** processing is **application-level**.
 
 ### 4.4 Read Path
 
@@ -1074,8 +1059,8 @@ flowchart TB
 | **Concurrent writers same region** | **Undefined** interleaving |
 | **Record append from many clients** | Records **atomically** appended **per successful ack**, but **duplicates** on retry |
 
-{: .note }
-> Draw the distinction between **client-visible consistency** and **cross-service transactions** — DFS does **not** hide all races for arbitrary byte ranges.
+!!! note
+    Draw the distinction between **client-visible consistency** and **cross-service transactions** — DFS does **not** hide all races for arbitrary byte ranges.
 
 ### 4.7 Garbage Collection and Snapshots
 
@@ -1185,8 +1170,8 @@ def client_must_refresh_lease(exc: Exception) -> bool:
     return "stale-primary" in str(exc) or "version" in str(exc).lower()
 ```
 
-{: .tip }
-> In **HDFS HA**, add **JournalNodes** / **QJM** details; in **GFS**, cite **shadow masters**—both aim for **durability of metadata** and **deterministic** recovery stories.
+!!! tip
+    In **HDFS HA**, add **JournalNodes** / **QJM** details; in **GFS**, cite **shadow masters**—both aim for **durability of metadata** and **deterministic** recovery stories.
 
 ---
 
@@ -1216,8 +1201,8 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 | **Repair bandwidth budget** | How fast **MTTR** after **rack** loss |
 | **Growth curve** | When to **shard** metadata or **add** namespaces |
 
-{: .note }
-> **Effective replication** for **cold** data may be **EC (1.4×–1.6×)** while **hot** paths stay **3×**—interviewers like **tiered** thinking.
+!!! note
+    **Effective replication** for **cold** data may be **EC (1.4×–1.6×)** while **hot** paths stay **3×**—interviewers like **tiered** thinking.
 
 ### Security and Multi-Tenancy (Brief)
 
@@ -1228,8 +1213,8 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 | **Encryption** | **TLS** on wire; **at-rest** via **OS/disk** layers |
 | **Isolation** | **Namespaces**, **queues**, **fair scheduler** for compute |
 
-{: .warning }
-> DFS **rarely** provides **row-level** privacy by itself—that belongs to **warehouse** engines and **governance** layers.
+!!! warning
+    DFS **rarely** provides **row-level** privacy by itself—that belongs to **warehouse** engines and **governance** layers.
 
 ### Monitoring / SRE Signals
 
@@ -1250,8 +1235,8 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 | **Relaxed consistency** | Speed + simplicity | Apps must **tolerate** duplicates/undefined regions |
 | **3x replication** | Durability + read bandwidth | **Storage overhead** vs **erasure coding** |
 
-{: .warning }
-> **Hot spots** are **real**: **celebrity files** and **imbalanced** writers need **application-level sharding**, **HDFS hedged reads**, **caching**, or **object-store offloads**.
+!!! warning
+    **Hot spots** are **real**: **celebrity files** and **imbalanced** writers need **application-level sharding**, **HDFS hedged reads**, **caching**, or **object-store offloads**.
 
 ---
 
@@ -1281,8 +1266,8 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 - **Replication:** fast recovery, simple reads; **3×** cost.
 - **Erasure coding:** lower **storage** overhead; **CPU** and **network** for **rebuild**; great for **cold** tiers.
 
-{: .tip }
-> Close with **operational** maturity: **checksum scrubbing**, **capacity planning**, **rack diversity**, **backups** for **metadata**, and **disaster** drills — senior interviewers listen for **SRE** instincts.
+!!! tip
+    Close with **operational** maturity: **checksum scrubbing**, **capacity planning**, **rack diversity**, **backups** for **metadata**, and **disaster** drills — senior interviewers listen for **SRE** instincts.
 
 ### Google-Style Follow-Up Questions (Hard Mode)
 
@@ -1330,5 +1315,5 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 - Shvachko et al.: **The Hadoop Distributed File System** (2010).
 - Apache Hadoop docs: **HDFS Architecture** (for HA/QJM/ec).
 
-{: .note }
-> Treat numbers as **teaching aids**; real clusters vary by **workload**, **codec**, **EC policies**, and **cloud vs on-prem**.
+!!! note
+    Treat numbers as **teaching aids**; real clusters vary by **workload**, **codec**, **EC policies**, and **cloud vs on-prem**.

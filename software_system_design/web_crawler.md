@@ -1,19 +1,4 @@
----
-layout: default
-title: Web Crawler
-parent: System Design Examples
-nav_order: 4
----
-
 # Design a Web Crawler
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -425,8 +410,8 @@ URL frontier size       = 10B URLs × 200 bytes = 2 TB
 | URL frontier | 2 TB | Distributed queue (Kafka or Redis cluster) |
 | DNS cache | 100M domains × 100 bytes = 10 GB | In-memory DNS resolver cache |
 
-{: .note }
-> These estimates show why web crawling requires distributed architecture — no single machine can handle the bandwidth, storage, or compute requirements.
+!!! note
+    These estimates show why web crawling requires distributed architecture — no single machine can handle the bandwidth, storage, or compute requirements.
 
 ---
 
@@ -1863,4 +1848,3 @@ Want me to dive deeper into any component?"
 | **Coordination** | ZooKeeper | Leader election, config |
 
 A web crawler at scale is a fascinating distributed systems problem. The key challenges are politeness, deduplication, and freshness—and each requires careful design to handle billions of pages efficiently.
-

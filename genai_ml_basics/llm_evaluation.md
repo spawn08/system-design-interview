@@ -1,20 +1,4 @@
----
-layout: default
-title: LLM Evaluation
-parent: GenAI/ML Fundamentals
-nav_order: 6
-permalink: /genai_ml_basics/llm_evaluation
----
-
 # LLM Evaluation & Benchmarking
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -52,8 +36,8 @@ Production systems trade these off explicitly — a “smarter” model that vio
 
 For **classification**, accuracy answers: “Did we pick the right bucket?” For **generation**, there is usually a **space of acceptable outputs**. Even with one reference, optimizing BLEU encourages **verbatim copying** rather than paraphrases that humans would prefer.
 
-{: .note }
-> **Key insight:** Offline metrics (BLEU, ROUGE, even BERTScore) are **proxies**. They correlate imperfectly with human judgment. Production success is ultimately tied to **task completion**, **safety**, **latency/cost**, and **trust** — not a single scalar on a dev set.
+!!! note
+    **Key insight:** Offline metrics (BLEU, ROUGE, even BERTScore) are **proxies**. They correlate imperfectly with human judgment. Production success is ultimately tied to **task completion**, **safety**, **latency/cost**, and **trust** — not a single scalar on a dev set.
 
 ```mermaid
 flowchart TB
@@ -117,8 +101,8 @@ flowchart LR
     Dev --> Staging --> Prod
 ```
 
-{: .tip }
-> Pair **offline** gates (block bad deploys) with **online** validation (detect drift and UX regressions). Neither alone is sufficient for GenAI.
+!!! tip
+    Pair **offline** gates (block bad deploys) with **online** validation (detect drift and UX regressions). Neither alone is sufficient for GenAI.
 
 ---
 
@@ -148,8 +132,8 @@ flowchart LR
 - **Best for:** Comparing LMs on **held-out text**; tracking training progress.
 - **Limitations:** Not a direct quality measure for **downstream tasks**; low perplexity can coexist with toxicity or hallucination; not comparable across different tokenizers/vocabularies without care.
 
-{: .warning }
-> **Do not** use perplexity alone to claim “better assistant behavior.” It measures **fluency under the LM**, not helpfulness, safety, or factual correctness on user tasks.
+!!! warning
+    **Do not** use perplexity alone to claim “better assistant behavior.” It measures **fluency under the LM**, not helpfulness, safety, or factual correctness on user tasks.
 
 #### Python: BLEU, ROUGE, BERTScore, and Perplexity-style scoring
 
@@ -351,8 +335,8 @@ def judge_with_position_debias(
     return JudgeResult(s1, s2, agg)
 ```
 
-{: .note }
-> In **pairwise** Arena-style judging, always **randomize** whether model A appears first; aggregate across many votes to estimate Elo (see LMSYS section).
+!!! note
+    In **pairwise** Arena-style judging, always **randomize** whether model A appears first; aggregate across many votes to estimate Elo (see LMSYS section).
 
 ---
 
@@ -397,8 +381,8 @@ Many production tasks are **reference-free**; combine with **spot checks** again
 | **General** | MMLU, HellaSwag, broad chat Elo | Capability breadth; weak signal for niche domains |
 | **Task-specific** | MedQA, SWE-bench, internal enterprise QA | Directly aligned with product; smaller curated sets |
 
-{: .tip }
-> For system design interviews, always mention **both**: a **broad** benchmark for regression + a **domain** eval set that mirrors customer data (with privacy safeguards).
+!!! tip
+    For system design interviews, always mention **both**: a **broad** benchmark for regression + a **domain** eval set that mirrors customer data (with privacy safeguards).
 
 ---
 
@@ -450,8 +434,8 @@ R_A' = R_A + K \cdot (S_A - E_A)
 
 \(K\) controls volatility (larger in small-sample regimes or for provisional ratings). Bradley–Terry and other **pairwise preference** models are alternatives when you want probabilistic interpretation of win rates.
 
-{: .note }
-> Arena rankings are **not** a substitute for **safety** certification or **domain** compliance — they aggregate **preference**, which can overweight verbosity or style.
+!!! note
+    Arena rankings are **not** a substitute for **safety** certification or **domain** compliance — they aggregate **preference**, which can overweight verbosity or style.
 
 ### Safety & Fairness Benchmarks
 
@@ -518,8 +502,8 @@ where *c* is the number of passing samples among *n* draws (unbiased estimator u
 | **pass@10** | Whether the model **can** solve the task with sampling diversity |
 | **Larger n** | Reduces variance in pass@k estimates |
 
-{: .tip }
-> In interviews, stating that **SWE-bench** exercises **repository-level** reasoning (files, tests, context) while **HumanEval** is **function-level** shows you understand the **gap** between toy coding and real software engineering.
+!!! tip
+    In interviews, stating that **SWE-bench** exercises **repository-level** reasoning (files, tests, context) while **HumanEval** is **function-level** shows you understand the **gap** between toy coding and real software engineering.
 
 ---
 
@@ -550,8 +534,8 @@ LLM A/B metrics (thumbs-up, session success) have **higher variance** than click
 | **Weekday vs weekend** | Run for **full weeks** to capture periodicity in usage |
 | **Novelty effects** | New models can look better briefly; extend duration or use cohort holdouts |
 
-{: .note }
-> A **non-significant** lift is not proof of “no harm.” For safety-critical products, use **guardrail** metrics with **one-sided** monitoring: any increase in severe violations can trigger rollback even when headline satisfaction is flat.
+!!! note
+    A **non-significant** lift is not proof of “no harm.” For safety-critical products, use **guardrail** metrics with **one-sided** monitoring: any increase in severe violations can trigger rollback even when headline satisfaction is flat.
 
 ### Online Metrics
 
@@ -591,8 +575,8 @@ Report **precision/recall** on a **labeled adversarial set** that evolves (red-t
 | **Negative tests** | Prompts that **must** trigger refusal, citation-only answers, or tool calls |
 | **Versioned snapshots** | Immutable dataset hash in CI; changes require review |
 
-{: .tip }
-> Treat golden sets like **test suites**: small enough to run nightly, broad enough that a passing run genuinely increases confidence.
+!!! tip
+    Treat golden sets like **test suites**: small enough to run nightly, broad enough that a passing run genuinely increases confidence.
 
 ### Python: End-to-End Evaluation Pipeline Sketch
 
@@ -701,8 +685,8 @@ def evaluate_dataset(
 # assert not report.failures
 ```
 
-{: .warning }
-> Treat **thresholds** as products of risk analysis — not universal constants. A coding assistant might weight correctness over brevity; a therapy-adjacent bot might invert that priority entirely.
+!!! warning
+    Treat **thresholds** as products of risk analysis — not universal constants. A coding assistant might weight correctness over brevity; a therapy-adjacent bot might invert that priority entirely.
 
 ---
 
@@ -752,8 +736,8 @@ These checks are often implemented with **LLM judges** constrained to quote span
 | **Context precision** | Retrieved context is focused (low noise) |
 | **Context recall** | Context covers what’s needed for the answer |
 
-{: .tip }
-> In interviews, naming **faithfulness vs relevance** separation often earns credit — it shows you know **where** hallucinations enter the pipeline.
+!!! tip
+    In interviews, naming **faithfulness vs relevance** separation often earns credit — it shows you know **where** hallucinations enter the pipeline.
 
 ```mermaid
 flowchart TB
@@ -852,8 +836,8 @@ def ragas_aggregate(sample: RAGSample) -> dict[str, float]:
 | **Static eval on dynamic models** | Prompt/model updates invalidate baselines | Versioned golden sets; **continuous** eval |
 | **Position bias in LLM judges** | Wrong comparative conclusions | Swap positions, multiple judges, calibrate vs humans |
 
-{: .warning }
-> **Leaderboard chasing** without domain validation is a common failure mode in GenAI product teams — especially enterprise RAG where retrieval dominates perceived quality.
+!!! warning
+    **Leaderboard chasing** without domain validation is a common failure mode in GenAI product teams — especially enterprise RAG where retrieval dominates perceived quality.
 
 ---
 
@@ -918,8 +902,8 @@ Interviewers expect **structured**, **multi-layer** answers — not a single met
 - Confusing **retrieval** quality with **generation** quality in RAG.
 - Ignoring **latency** and **cost** as part of the evaluation story for scaled systems.
 
-{: .note }
-> Strong candidates also mention **what they would not do** — e.g., “We won’t rely on BLEU alone for chat quality” — showing judgment beats naming ten acronyms.
+!!! note
+    Strong candidates also mention **what they would not do** — e.g., “We won’t rely on BLEU alone for chat quality” — showing judgment beats naming ten acronyms.
 
 ---
 
@@ -942,4 +926,4 @@ Interviewers expect **structured**, **multi-layer** answers — not a single met
 - RAGAS documentation for **retrieval-augmented** evaluation primitives.
 - TruthfulQA for **honesty** evaluation design.
 
-This page is a **fundamentals** layer — pair it with [Enterprise RAG]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) and [LLM Chatbot]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) system design notes for end-to-end stories.
+This page is a **fundamentals** layer — pair it with [Enterprise RAG](../genai_ml_system_design/enterprise_rag.md) and [LLM Chatbot](../genai_ml_system_design/llm_chatbot.md) system design notes for end-to-end stories.

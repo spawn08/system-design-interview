@@ -1,16 +1,6 @@
----
-layout: default
-title: GenAI System Design
-nav_order: 7
-has_children: true
-permalink: /genai_ml_system_design/
----
-
 # GenAI System Design
-{: .fs-9 }
 
 Production system design for Generative AI — 10 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -27,49 +17,47 @@ Traditional ML system design focuses on **classification, ranking, and retrieval
 | Train once, serve forever | Continuous alignment, RLHF, safety tuning |
 | Deterministic evaluation | Subjective, multi-dimensional evaluation |
 
-{: .warning }
-> Google, Meta, and Anthropic interviews increasingly ask GenAI-specific designs. Saying "just call the OpenAI API" will not pass. You need to demonstrate understanding of **inference optimization, safety, grounding, cost control, and evaluation at scale**.
+!!! warning
+    Google, Meta, and Anthropic interviews increasingly ask GenAI-specific designs. Saying "just call the OpenAI API" will not pass. You need to demonstrate understanding of **inference optimization, safety, grounding, cost control, and evaluation at scale**.
 
 ---
 
 ## Recommended Study Order
 
-{: .tip }
-> Follow this progression. Each design builds on concepts from earlier ones. All designs include a full hypothetical interview transcript.
+!!! tip
+    Follow this progression. Each design builds on concepts from earlier ones. All designs include a full hypothetical interview transcript.
 
 ### Phase 1: Core GenAI Patterns
 
 | Order | Design | New Concepts Introduced | Why First |
 |-------|--------|------------------------|-----------|
-| 1 | [LLM-Powered Chatbot]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) | KV-cache, PagedAttention, streaming, safety | Foundation for all LLM serving |
-| 2 | [Enterprise RAG System]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) | Chunking, hybrid retrieval, citations, ACLs | #1 production LLM pattern |
-| 3 | [LLM Gateway]({{ site.baseurl }}/genai_ml_system_design/llm_gateway) | Multi-model routing, semantic caching, cost control | Infra layer used by all LLM apps |
+| 1 | [LLM-Powered Chatbot](llm_chatbot.md) | KV-cache, PagedAttention, streaming, safety | Foundation for all LLM serving |
+| 2 | [Enterprise RAG System](enterprise_rag.md) | Chunking, hybrid retrieval, citations, ACLs | #1 production LLM pattern |
+| 3 | [LLM Gateway](llm_gateway.md) | Multi-model routing, semantic caching, cost control | Infra layer used by all LLM apps |
 
 ### Phase 2: Specialized Applications
 
 | Order | Design | New Concepts Introduced | Builds On |
 |-------|--------|------------------------|-----------|
-| 4 | [AI Code Assistant]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant) | FIM, repo context, speculative decoding | Chatbot (serving) + RAG (retrieval) |
-| 5 | [AI Agent System]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system) | ReAct, tool use, planning, memory, multi-agent | Chatbot + RAG + Gateway |
-| 6 | [LLM Content Moderation]({{ site.baseurl }}/genai_ml_system_design/content_moderation) | Cascade, adversarial robustness, human-in-the-loop | Chatbot (safety pipeline) |
+| 4 | [AI Code Assistant](ai_code_assistant.md) | FIM, repo context, speculative decoding | Chatbot (serving) + RAG (retrieval) |
+| 5 | [AI Agent System](ai_agent_system.md) | ReAct, tool use, planning, memory, multi-agent | Chatbot + RAG + Gateway |
+| 6 | [LLM Content Moderation](content_moderation.md) | Cascade, adversarial robustness, human-in-the-loop | Chatbot (safety pipeline) |
 
 ### Phase 3: Advanced GenAI
 
 | Order | Design | New Concepts Introduced | Builds On |
 |-------|--------|------------------------|-----------|
-| 7 | [Text-to-Image Generation]({{ site.baseurl }}/genai_ml_system_design/text_to_image) | Diffusion models, CFG, latent space, safety | Chatbot (GPU serving) + Moderation |
-| 8 | [Multi-Modal Search]({{ site.baseurl }}/genai_ml_system_design/multimodal_search) | CLIP/SigLIP, cross-modal retrieval, video | RAG (retrieval) + Image generation |
-| 9 | [ML Training Platform]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform) | Gang scheduling, checkpointing, GPU clusters | All (training infrastructure for all models) |
+| 7 | [Text-to-Image Generation](text_to_image.md) | Diffusion models, CFG, latent space, safety | Chatbot (GPU serving) + Moderation |
+| 8 | [Multi-Modal Search](multimodal_search.md) | CLIP/SigLIP, cross-modal retrieval, video | RAG (retrieval) + Image generation |
+| 9 | [ML Training Platform](ml_training_platform.md) | Gang scheduling, checkpointing, GPU clusters | All (training infrastructure for all models) |
 
 ---
 
 ## Available Designs
 
-### [LLM-Powered Chatbot]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot)
-{: .d-inline-block }
+### [LLM-Powered Chatbot](llm_chatbot.md)
 
 Conversational AI
-{: .label .label-purple }
 
 Design a production chatbot like Gemini/ChatGPT — multi-turn conversation, streaming, safety, and serving at Google scale.
 
@@ -79,11 +67,9 @@ Design a production chatbot like Gemini/ChatGPT — multi-turn conversation, str
 
 ---
 
-### [Enterprise RAG System]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag)
-{: .d-inline-block }
+### [Enterprise RAG System](enterprise_rag.md)
 
 Knowledge Grounding
-{: .label .label-green }
 
 Design a retrieval-augmented generation system for enterprise knowledge bases with citations, access control, and hallucination mitigation.
 
@@ -93,14 +79,11 @@ Design a retrieval-augmented generation system for enterprise knowledge bases wi
 
 ---
 
-### [LLM Gateway]({{ site.baseurl }}/genai_ml_system_design/llm_gateway)
-{: .d-inline-block }
+### [LLM Gateway](llm_gateway.md)
 
 AI Infrastructure
-{: .label .label-yellow }
 
 NEW
-{: .label .label-blue }
 
 Design an LLM gateway/proxy that handles routing, fallback, semantic caching, rate limiting, cost tracking, and observability across multiple LLM providers.
 
@@ -110,11 +93,9 @@ Design an LLM gateway/proxy that handles routing, fallback, semantic caching, ra
 
 ---
 
-### [AI Code Assistant]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant)
-{: .d-inline-block }
+### [AI Code Assistant](ai_code_assistant.md)
 
 Developer Tools
-{: .label .label-yellow }
 
 Design an AI code completion and chat system like Gemini Code Assist / GitHub Copilot — IDE integration, repository-aware context, and low-latency suggestions.
 
@@ -124,14 +105,11 @@ Design an AI code completion and chat system like Gemini Code Assist / GitHub Co
 
 ---
 
-### [AI Agent System]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system)
-{: .d-inline-block }
+### [AI Agent System](ai_agent_system.md)
 
 Autonomous AI
-{: .label .label-purple }
 
 NEW
-{: .label .label-blue }
 
 Design an autonomous AI agent system that can plan, use tools, maintain memory, and execute multi-step tasks — like Google's AI agents or Anthropic's computer use.
 
@@ -141,11 +119,9 @@ Design an autonomous AI agent system that can plan, use tools, maintain memory, 
 
 ---
 
-### [LLM Content Moderation]({{ site.baseurl }}/genai_ml_system_design/content_moderation)
-{: .d-inline-block }
+### [LLM Content Moderation](content_moderation.md)
 
 Trust & Safety
-{: .label .label-red }
 
 Design a content moderation system using LLMs for text, image, and video — policy enforcement, appeals, and human-in-the-loop at scale.
 
@@ -155,14 +131,11 @@ Design a content moderation system using LLMs for text, image, and video — pol
 
 ---
 
-### [Text-to-Image Generation]({{ site.baseurl }}/genai_ml_system_design/text_to_image)
-{: .d-inline-block }
+### [Text-to-Image Generation](text_to_image.md)
 
 Generative Media
-{: .label .label-purple }
 
 NEW
-{: .label .label-blue }
 
 Design a text-to-image generation system like Imagen / DALL-E 3 / Midjourney — from text prompts to high-quality images with safety and copyright controls.
 
@@ -172,11 +145,9 @@ Design a text-to-image generation system like Imagen / DALL-E 3 / Midjourney —
 
 ---
 
-### [Multi-Modal Search]({{ site.baseurl }}/genai_ml_system_design/multimodal_search)
-{: .d-inline-block }
+### [Multi-Modal Search](multimodal_search.md)
 
 Multi-Modal AI
-{: .label .label-blue }
 
 Design a multi-modal search system like Google Lens — search across text, images, video, and audio with a unified embedding space.
 
@@ -186,11 +157,9 @@ Design a multi-modal search system like Google Lens — search across text, imag
 
 ---
 
-### [ML Training Platform]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform)
-{: .d-inline-block }
+### [ML Training Platform](ml_training_platform.md)
 
 ML Infrastructure
-{: .label .label-red }
 
 Design an ML training platform like Vertex AI / SageMaker — job scheduling, distributed training, experiment tracking, and GPU cluster management.
 
@@ -200,14 +169,11 @@ Design an ML training platform like Vertex AI / SageMaker — job scheduling, di
 
 ---
 
-### [Vector Database]({{ site.baseurl }}/genai_ml_system_design/vector_database)
-{: .d-inline-block }
+### [Vector Database](vector_database.md)
 
 AI Infrastructure
-{: .label .label-yellow }
 
 NEW
-{: .label .label-blue }
 
 Design a vector database purpose-built for AI applications — HNSW, IVF-PQ indexing, hybrid search with metadata filtering, and billion-scale ANN at sub-10ms latency.
 
@@ -277,10 +243,10 @@ Use this adapted framework in your interviews:
 
 ## Interview Tips for GenAI Design
 
-{: .tip }
-> **What differentiates a pass from a strong-hire at Google:**
-> - **Pass:** Correct high-level architecture with RAG or fine-tuning
-> - **Strong hire:** Deep discussion of inference optimization (PagedAttention, continuous batching), safety layering, evaluation methodology, and cost modeling
+!!! tip
+    **What differentiates a pass from a strong-hire at Google:**
+    - **Pass:** Correct high-level architecture with RAG or fine-tuning
+    - **Strong hire:** Deep discussion of inference optimization (PagedAttention, continuous batching), safety layering, evaluation methodology, and cost modeling
 
 **Common mistakes to avoid:**
 1. Treating LLM inference like traditional web service scaling (it's GPU-bound, not CPU-bound)
@@ -313,5 +279,5 @@ Fraud Detection        ──────►     Content Moderation (cascade)
 Ads Ranking            ──────►     LLM Gateway (cost optimization)
 ```
 
-{: .note }
-> Master the [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) building blocks first, then apply them here in full end-to-end system designs.
+!!! note
+    Master the [GenAI/ML Fundamentals](../genai_ml_basics/index.md) building blocks first, then apply them here in full end-to-end system designs.

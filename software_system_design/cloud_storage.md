@@ -1,19 +1,4 @@
----
-layout: default
-title: Cloud Storage (Google Drive)
-parent: System Design Examples
-nav_order: 15
----
-
 # Cloud Storage (Google Drive)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -41,8 +26,8 @@ A **multi-tenant cloud file system** that lets users upload, sync, share, and ve
 | **Conflicts** | Offline edits and concurrent writers require explicit policies |
 | **Latency sensitivity** | Users perceive sluggish sync as product failure |
 
-{: .note }
-> In interviews, separate **user-visible paths** (metadata graph) from **bytes on disk** (content-addressed blocks). That split is the backbone of the design.
+!!! note
+    In interviews, separate **user-visible paths** (metadata graph) from **bytes on disk** (content-addressed blocks). That split is the backbone of the design.
 
 ### Comparison to Adjacent Systems
 
@@ -78,8 +63,8 @@ A **multi-tenant cloud file system** that lets users upload, sync, share, and ve
 | **Consistency** | Per-user **linearizable** metadata ops (idealized) or **per-resource** serializability | Trade cost vs UX |
 | **Security** | TLS in transit; encryption at rest; ACL checks on every metadata path | Audit logs for sharing changes |
 
-{: .warning }
-> Do not claim **POSIX semantics** for the whole namespace unless asked. Many products offer **close-to-POSIX** behavior on a mounted drive with documented exceptions (e.g., eventual consistency on metadata in some edge cases).
+!!! warning
+    Do not claim **POSIX semantics** for the whole namespace unless asked. Many products offer **close-to-POSIX** behavior on a mounted drive with documented exceptions (e.g., eventual consistency on metadata in some edge cases).
 
 ### API Design
 
@@ -113,8 +98,8 @@ Representative **REST-style** surface (names illustrative). Many products also u
 }
 ```
 
-{: .tip }
-> Treat **block uploads** as idempotent by **hash**. Treat **file commits** as idempotent with a **client mutation id** to avoid duplicate revisions on retries.
+!!! tip
+    Treat **block uploads** as idempotent by **hash**. Treat **file commits** as idempotent with a **client mutation id** to avoid duplicate revisions on retries.
 
 ### Technology Selection & Tradeoffs
 
@@ -205,8 +190,8 @@ flowchart TB
   B -->|still serve\nknown hashes| Y[Available reads]
 ```
 
-{: .note }
-> **PACELC** extension: even **without** a partition, you trade **latency (L)** vs **consistency (C)**—e.g., reading ACL from a cache is faster but may be briefly stale. Mentioning PACELC signals seniority.
+!!! note
+    **PACELC** extension: even **without** a partition, you trade **latency (L)** vs **consistency (C)**—e.g., reading ACL from a cache is faster but may be briefly stale. Mentioning PACELC signals seniority.
 
 ### SLA and SLO Definitions
 
@@ -230,8 +215,8 @@ flowchart TB
 | **Trade-offs** | If sync latency SLO slips, **throttle** non-critical features (preview gen) before dropping **durability** paths |
 | **Freeze** | If budget exhausted, **freeze launches** until reliability work ships |
 
-{: .warning }
-> **Never** conflate **durability** (bits not lost) with **availability** (API up). You can be **available** and **wrong** if you serve stale metadata—separate SLIs.
+!!! warning
+    **Never** conflate **durability** (bits not lost) with **availability** (API up). You can be **available** and **wrong** if you serve stale metadata—separate SLIs.
 
 ### Database Schema
 
@@ -281,8 +266,8 @@ Logical schema (illustrative SQL-oriented). Adjust types (`UUID`, `BIGINT`), ind
 | `local_version` | BIGINT | Last **known applied** server revision on device |
 | `synced_at` | TIMESTAMPTZ | Last successful reconcile |
 
-{: .tip }
-> At scale, **`sync_state`** is often **sharded** with the user or stored **client-side** (SQLite) with server **cursors**—the table above is the **server-side** model when you track enterprise devices centrally.
+!!! tip
+    At scale, **`sync_state`** is often **sharded** with the user or stored **client-side** (SQLite) with server **cursors**—the table above is the **server-side** model when you track enterprise devices centrally.
 
 ---
 
@@ -309,8 +294,8 @@ After dedup (1.6×): ~75 EB effective (still illustrative; real systems use tier
 Per-object metadata overhead (names, ACLs, indices): order of KBs per file; dominates only for tiny files
 ```
 
-{: .note }
-> Interview math should stay **order-of-magnitude**. The goal is to show you understand **dedup**, **small-file overhead**, and **metadata cost**, not to predict revenue.
+!!! note
+    Interview math should stay **order-of-magnitude**. The goal is to show you understand **dedup**, **small-file overhead**, and **metadata cost**, not to predict revenue.
 
 ### Traffic
 
@@ -387,8 +372,8 @@ flowchart LR
 
 **Read path:** client lists folder via metadata, resolves file to block list, fetches blocks (often via signed URLs), verifies hashes.
 
-{: .important }
-> **Content-addressed storage** means identical chunks map to one physical object. Metadata records **which hashes belong to which file revision**.
+!!! important
+    **Content-addressed storage** means identical chunks map to one physical object. Metadata records **which hashes belong to which file revision**.
 
 ---
 
@@ -456,8 +441,8 @@ public final class RabinFingerprint {
 }
 ```
 
-{: .note }
-> Production CDC adds **minimum/maximum chunk size** guards to avoid tiny or huge chunks. Libraries like **restic** or **rsync rolling** are good offline reading.
+!!! note
+    Production CDC adds **minimum/maximum chunk size** guards to avoid tiny or huge chunks. Libraries like **restic** or **rsync rolling** are good offline reading.
 
 ### 4.2 Sync Protocol (Client-Server)
 
@@ -552,8 +537,8 @@ func (c *Client) Poll(ctx context.Context) error {
 }
 ```
 
-{: .tip }
-> Always combine **push** with **pull** as a backstop. Mobile OS may kill sockets; **cursor-based** change feeds make recovery simple.
+!!! tip
+    Always combine **push** with **pull** as a backstop. Mobile OS may kill sockets; **cursor-based** change feeds make recovery simple.
 
 ### 4.3 Metadata Database Design
 
@@ -568,8 +553,8 @@ Model **nodes** (files/folders) with stable `node_id`. Store **parent_id**, **na
 
 **Sharding key:** `owner_id` or `namespace_id` keeps co-located data for a tenant. **Cross-shard moves** (shared drives) require two-phase workflows or a centralized coordinator.
 
-{: .warning }
-> Uniqueness of `(parent_id, name)` should be enforced transactionally to prevent duplicate siblings—classic tree constraint.
+!!! warning
+    Uniqueness of `(parent_id, name)` should be enforced transactionally to prevent duplicate siblings—classic tree constraint.
 
 ### 4.4 Block Storage Architecture
 
@@ -701,8 +686,8 @@ Desktop clients run a **lightweight DB** (SQLite) tracking local inode state, se
 | Cover **WebSocket + cursor fallback** | Assuming pure push always works on mobile |
 | Call out **small-file overhead** | Ignoring listing performance and metadata cost |
 
-{: .tip }
-> If time permits, relate to **backup products** (restic, Borg)—interviewers like knowing you understand production chunking trade-offs.
+!!! tip
+    If time permits, relate to **backup products** (restic, Borg)—interviewers like knowing you understand production chunking trade-offs.
 
 ---
 
@@ -759,5 +744,5 @@ Desktop clients run a **lightweight DB** (SQLite) tracking local inode state, se
 | Operational transformation | Real-time doc collaboration |
 | Rsync algorithm | Classic rolling-hash inspiration |
 
-{: .note }
-> Use this page as a **structured outline**, not a claim about any vendor’s internal architecture. Trade names are for **orientation** only.
+!!! note
+    Use this page as a **structured outline**, not a claim about any vendor’s internal architecture. Trade names are for **orientation** only.

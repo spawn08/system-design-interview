@@ -1,19 +1,4 @@
----
-layout: default
-title: Ad Click Aggregator
-parent: System Design Examples
-nav_order: 25
----
-
 # Design an Ad Click Event Aggregator (Real-Time Reporting & Billing)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -47,8 +32,8 @@ We are designing a **real-time ad click and impression event aggregation system*
 | **Dataflow / Spark Streaming** | Unified batch + streaming; **reconciliation** jobs |
 | **Lambda / Kappa** | **Speed** vs **batch** layers; stream-only architectures |
 
-{: .note }
-> In interviews, **scope fraud + reconciliation early**. Many candidates optimize throughput but forget **money** and **trust**.
+!!! note
+    In interviews, **scope fraud + reconciliation early**. Many candidates optimize throughput but forget **money** and **trust**.
 
 ---
 
@@ -80,8 +65,8 @@ gantt
   e3 (t=9)  arrives t=16 :a3, 16, 17
 ```
 
-{: .tip }
-> Say: **“Event time defines correctness; processing time defines latency.”** Then explain **watermarks** + **allowed lateness**.
+!!! tip
+    Say: **“Event time defines correctness; processing time defines latency.”** Then explain **watermarks** + **allowed lateness**.
 
 ### Lambda vs Kappa architecture
 
@@ -105,8 +90,8 @@ gantt
 | **Transactional sinks** | Kafka **transactions** + **two-phase commit**-style sinks | Operational complexity |
 | **Deterministic reduce** | Replay yields same aggregate if input set is same | Still needs dedup **before** aggregation for user-visible counts |
 
-{: .important }
-> Interviewers often accept: **end-to-end exactly-once is expensive**; many ad systems ship **at-least-once ingest + idempotent keys + reconciliation** as the pragmatic combo.
+!!! important
+    Interviewers often accept: **end-to-end exactly-once is expensive**; many ad systems ship **at-least-once ingest + idempotent keys + reconciliation** as the pragmatic combo.
 
 ### Windowed aggregations — tumbling, sliding, session (with timing diagrams)
 
@@ -255,8 +240,8 @@ Interviewers expect you to **name alternatives** and justify **one path** with c
 | **Redis** | Rich data types (**sorted sets**, hashes); **TTL**; replication; Lua | Memory cost; hot-key mitigation still needed | **Dashboard** hot keys, **rate limits**, **session** fraud state |
 | **Memcached** | Simple; predictable; very fast **GET/SET** | No built-in **structures** / streams; **no** persistence story like Redis modules | **Pure cache** for **opaque blobs** where simplicity wins |
 
-{: .tip }
-> Say: **“We pick the log for durability + replay, Flink for windows + state, OLAP for slice-and-dice, Redis for hot dashboards—not one database for everything.”**
+!!! tip
+    Say: **“We pick the log for durability + replay, Flink for windows + state, OLAP for slice-and-dice, Redis for hot dashboards—not one database for everything.”**
 
 #### Our choice (example rationale)
 
@@ -311,8 +296,8 @@ flowchart TB
   end
 ```
 
-{: .note }
-> If pressed: **“We don’t ‘solve CAP once’—we align each subsystem with the business guarantee: money paths CP, dashboards AP with SLOs.”**
+!!! note
+    If pressed: **“We don’t ‘solve CAP once’—we align each subsystem with the business guarantee: money paths CP, dashboards AP with SLOs.”**
 
 ---
 
@@ -339,8 +324,8 @@ flowchart TB
 | **Query 99.9%** | ~43 minutes | Shed **non-essential** traffic; extend cache TTL; **disable** expensive dimensions |
 | **Freshness p99 120s** | (time-based composite) | **Alert** on watermark lag; **tune** parallelism before **relaxing** SLO |
 
-{: .tip }
-> Mention **“error budget”** as the bridge between **reliability** and **velocity**: **no launches** during budget burn without **explicit** risk acceptance.
+!!! tip
+    Mention **“error budget”** as the bridge between **reliability** and **velocity**: **no launches** during budget burn without **explicit** risk acceptance.
 
 ---
 
@@ -387,8 +372,8 @@ flowchart TB
 }
 ```
 
-{: .note }
-> **429** with `Retry-After` on overload; **400** on schema violations; duplicates with same `event_id` return **200** with `status: DUPLICATE` (idempotent).
+!!! note
+    **429** with `Retry-After` on overload; **400** on schema violations; duplicates with same `event_id` return **200** with `status: DUPLICATE` (idempotent).
 
 ---
 
@@ -451,8 +436,8 @@ flowchart TB
 }
 ```
 
-{: .tip }
-> Use **optimistic concurrency** (`expected_version`) so pacing updates don’t **clobber** each other under concurrent UI + API.
+!!! tip
+    Use **optimistic concurrency** (`expected_version`) so pacing updates don’t **clobber** each other under concurrent UI + API.
 
 ---
 
@@ -493,8 +478,8 @@ flowchart TB
 | **Target ingest** | **1,000,000 events/sec** |
 | **Events per day** | \(1e6 × 86,400 ≈ 8.64 × 10^{10}\) ⇒ **~86.4 billion/day** |
 
-{: .note }
-> 1M events/sec is a **round interview anchor**; real systems may be higher in aggregate globally but **partition** by region and tenant.
+!!! note
+    1M events/sec is a **round interview anchor**; real systems may be higher in aggregate globally but **partition** by region and tenant.
 
 ### Payload
 
@@ -584,8 +569,8 @@ flowchart LR
 | **Stream** | Low-latency aggregates + triggers (pacing, anomaly) |
 | **Batch** | Cheaper full re-aggregation; **correction**; **audit** |
 
-{: .tip }
-> Mention **Kafka transactions** or **idempotent producer** + **exactly-once sink** if the interviewer wants depth.
+!!! tip
+    Mention **Kafka transactions** or **idempotent producer** + **exactly-once sink** if the interviewer wants depth.
 
 ---
 
@@ -1184,8 +1169,8 @@ def build_report(
 3. **Lake** + **Spark** daily; **reconcile**; alert if **> ε**.
 4. **Fraud** as **parallel** stream tagging **IVT** before billing rollups.
 
-{: .tip }
-> Close with **honesty**: global **exactly-once** is nuanced; show you know **where** your guarantees apply (per partition, per sink, **effectively-once**).
+!!! tip
+    Close with **honesty**: global **exactly-once** is nuanced; show you know **where** your guarantees apply (per partition, per sink, **effectively-once**).
 
 ---
 

@@ -1,16 +1,6 @@
----
-layout: default
-title: Distributed Training
-parent: GenAI/ML Fundamentals
-nav_order: 5
-permalink: /genai_ml_basics/distributed_training
----
-
 # Distributed Training
-{: .fs-9 }
 
 Design training infrastructure that scales deep learning across hundreds of GPUs — from data parallelism to model parallelism and parameter servers.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -1244,12 +1234,12 @@ class TrainingProfiler:
 
 ### Common Pitfalls
 
-{: .warning }
-> 1. **Not doing the memory math** — know exactly how much memory model, optimizer, gradients, and activations consume
-> 2. **Ignoring communication overhead** — inter-node bandwidth is 10-100× lower than NVLink; it dominates at scale
-> 3. **Wrong parallelism strategy** — tensor parallelism across nodes is terrible; use it only within a node
-> 4. **No activation checkpointing** — a free 3-4× activation memory reduction at 33% compute cost
-> 5. **Forgetting about data loading** — GPU-starved pipelines waste expensive compute
+!!! warning
+    1. **Not doing the memory math** — know exactly how much memory model, optimizer, gradients, and activations consume
+    2. **Ignoring communication overhead** — inter-node bandwidth is 10-100× lower than NVLink; it dominates at scale
+    3. **Wrong parallelism strategy** — tensor parallelism across nodes is terrible; use it only within a node
+    4. **No activation checkpointing** — a free 3-4× activation memory reduction at 33% compute cost
+    5. **Forgetting about data loading** — GPU-starved pipelines waste expensive compute
 
 ### Sample Interview Dialogue
 

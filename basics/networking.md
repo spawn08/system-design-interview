@@ -1,19 +1,4 @@
----
-layout: default
-title: Networking
-parent: Fundamentals
-nav_order: 3
----
-
 # Networking
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -940,5 +925,5 @@ Server responds with what's allowed. If allowed, browser sends actual request.
 - [RFC 6455: The WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
 - [Cloudflare Learning Center](https://www.cloudflare.com/learning/) — DNS, CDN, TLS explained clearly
 
-{: .note }
-> For deeper coverage of REST API design, versioning, and authentication, see also [API Design]({{ site.baseurl }}/basics/api_design). For TLS and encryption details, see [Security]({{ site.baseurl }}/basics/security).
+!!! note
+    For deeper coverage of REST API design, versioning, and authentication, see also [API Design](api_design.md). For TLS and encryption details, see [Security](security.md).

@@ -1,16 +1,6 @@
----
-layout: default
-title: Feature Stores
-parent: GenAI/ML Fundamentals
-nav_order: 2
-permalink: /genai_ml_basics/feature_stores
----
-
 # Feature Store Design
-{: .fs-9 }
 
 Design a centralized feature management platform that ensures consistency between training and serving while enabling feature reuse across teams.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -971,12 +961,12 @@ class FeatureStoreHealthChecker:
 
 ### Common Pitfalls
 
-{: .warning }
-> 1. **Ignoring train-serve skew** — this is the #1 reason feature stores exist; don't skip it
-> 2. **No point-in-time correctness** — leads to inflated offline metrics that don't reproduce in production
-> 3. **Over-engineering** — not every team needs a full feature store; start with a shared feature table
-> 4. **Ignoring feature freshness** — a 1-hour-old "cart_value" is useless for real-time personalization
-> 5. **No monitoring** — stale features silently degrade model performance
+!!! warning
+    1. **Ignoring train-serve skew** — this is the #1 reason feature stores exist; don't skip it
+    2. **No point-in-time correctness** — leads to inflated offline metrics that don't reproduce in production
+    3. **Over-engineering** — not every team needs a full feature store; start with a shared feature table
+    4. **Ignoring feature freshness** — a 1-hour-old "cart_value" is useless for real-time personalization
+    5. **No monitoring** — stale features silently degrade model performance
 
 ### Sample Interview Dialogue
 

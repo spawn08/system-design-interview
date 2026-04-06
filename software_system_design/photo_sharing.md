@@ -1,19 +1,4 @@
----
-layout: default
-title: Photo Sharing (Instagram)
-parent: System Design Examples
-nav_order: 12
----
-
 # Photo Sharing (Instagram)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -34,8 +19,8 @@ A **photo-sharing platform** lets users upload images (and often short video), f
 | **Hot accounts** | Celebrities have millions of followers; naive fan-out explodes cost |
 | **Consistent social graph** | Follow/unfollow must be correct; feeds can be eventually consistent |
 
-{: .note }
-> In interviews, **scope explicitly**: stories vs posts only, video depth, DMs, comments, ads, and moderation are often out of scope unless the interviewer asks.
+!!! note
+    In interviews, **scope explicitly**: stories vs posts only, video depth, DMs, comments, ads, and moderation are often out of scope unless the interviewer asks.
 
 ---
 
@@ -110,8 +95,8 @@ A **photo-sharing platform** lets users upload images (and often short video), f
 }
 ```
 
-{: .tip }
-> Keep **API responses small**: return CDN URLs and dimensions, not image bytes. Use **cursor-based pagination** for feeds.
+!!! tip
+    Keep **API responses small**: return CDN URLs and dimensions, not image bytes. Use **cursor-based pagination** for feeds.
 
 ### Technology Selection & Tradeoffs
 
@@ -227,8 +212,8 @@ flowchart TB
   end
 ```
 
-{: .note }
-> In interviews, say: **“We don’t choose one letter globally; we isolate consistency requirements to the write path and tolerate eventual freshness on reads.”**
+!!! note
+    In interviews, say: **“We don’t choose one letter globally; we isolate consistency requirements to the write path and tolerate eventual freshness on reads.”**
 
 ---
 
@@ -256,8 +241,8 @@ flowchart TB
 | **Feature flags** | Dark-launch ranking changes; roll back if error budget burns during rollout |
 | **User-facing honesty** | If processing SLO slips, UI shows **“Processing”**—don’t fake “posted” with broken images |
 
-{: .tip }
-> Tie **SLOs to architecture**: feed latency SLO justifies **materialized feeds + CDN**; durability SLO justifies **object storage**, not “database BLOBs.”
+!!! tip
+    Tie **SLOs to architecture**: feed latency SLO justifies **materialized feeds + CDN**; durability SLO justifies **object storage**, not “database BLOBs.”
 
 ---
 
@@ -338,8 +323,8 @@ Indexes: `(post_id_or_photo_id, created_at)` for chronological listing.
 
 Indexes: `(followee_id, follower_id)` for “who follows this user” (follower lists); `(follower_id)` for “who I follow.”
 
-{: .note }
-> **Interview tip:** State whether **likes** attach to `post_id` or `photo_id`; either is valid if the model stays consistent across API and fan-out.
+!!! note
+    **Interview tip:** State whether **likes** attach to `post_id` or `photo_id`; either is valid if the model stays consistent across API and fan-out.
 
 ---
 
@@ -405,8 +390,8 @@ Fan-out writes per post = 1.5B posts × 500 = 750B fan-out deliveries/day (if pu
   → ~8.7M/s average — infeasible at naive scale; motivates hybrid fan-out (see Deep Dive).
 ```
 
-{: .warning }
-> **Skew** dominates: one celebrity post must not perform O(followers) synchronous work. Call out **Pareto distribution** explicitly.
+!!! warning
+    **Skew** dominates: one celebrity post must not perform O(followers) synchronous work. Call out **Pareto distribution** explicitly.
 
 ---
 
@@ -491,8 +476,8 @@ flowchart TB
 | **Duplicate uploads** | Content-hash dedup optional; same user may re-upload intentionally |
 | **Privacy** | Private accounts: CDN with short-lived signed URLs or origin pull auth |
 
-{: .note }
-> Store **immutable** rendition URLs with versioned paths so CDN caching stays simple (`Cache-Control: max-age=31536000, immutable`).
+!!! note
+    Store **immutable** rendition URLs with versioned paths so CDN caching stays simple (`Cache-Control: max-age=31536000, immutable`).
 
 ### 4.2 Image Processing Pipeline
 
@@ -678,8 +663,8 @@ For interview clarity: **shard by `user_id`** for user-centric tables (posts, pr
 | **Feed ranking** | Filter → rank → hydrate; ML optional second phase |
 | **Sharding** | `user_id` for user-owned data; design for hot spots and cross-shard search via index |
 
-{: .tip }
-> End with **trade-offs**: consistency vs latency, storage cost vs compute, push vs pull fan-out—interviewers reward explicit tension, not a single “perfect” architecture.
+!!! tip
+    End with **trade-offs**: consistency vs latency, storage cost vs compute, push vs pull fan-out—interviewers reward explicit tension, not a single “perfect” architecture.
 
 ---
 

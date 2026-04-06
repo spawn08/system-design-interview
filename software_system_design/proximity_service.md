@@ -1,19 +1,4 @@
----
-layout: default
-title: Proximity Service
-parent: System Design Examples
-nav_order: 19
----
-
 # Proximity Service (Nearby Places)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -29,8 +14,8 @@ Typical products include **Google Maps nearby**, **Yelp** local search, **Uber E
 - **Latency:** interactive maps expect **tens to low hundreds of milliseconds** for the first page of results (often **< 200 ms** P99 to the app, excluding client rendering).
 - **Correctness vs approximation:** exact distance ranking may use precise Haversine on a **candidate set** after index pruning; the index itself may be approximate (grid cells, geohash prefixes).
 
-{: .note }
-> In interviews, separate **indexing** (which cells to inspect) from **ranking** (distance, stars, sponsored slots). Mentioning **bounding-box prefilter + Haversine refine** shows production awareness.
+!!! note
+    In interviews, separate **indexing** (which cells to inspect) from **ranking** (distance, stars, sponsored slots). Mentioning **bounding-box prefilter + Haversine refine** shows production awareness.
 
 ---
 
@@ -100,8 +85,8 @@ POST /v1/internal/places/bulk
 Content-Type: application/json
 ```
 
-{: .tip }
-> Use **cursor-based** pagination for stable results under concurrent catalog updates; avoid large `offset` on deep pages at scale.
+!!! tip
+    Use **cursor-based** pagination for stable results under concurrent catalog updates; avoid large `offset` on deep pages at scale.
 
 ### CAP Theorem Analysis
 
@@ -171,8 +156,8 @@ flowchart TB
 - **If budget burns fast:** freeze **non-critical** releases, **roll back** bad deploys, widen **degradation** (serve cache-only in hot regions), and **throttle** expensive queries (max radius, stricter rate limits).
 - **Separate budgets** for **latency** vs **availability** so one does not mask the other.
 
-{: .note }
-> In interviews, tie **freshness** SLO to the **async** path (queue + index builder) and **latency** SLO to **sync** read path—shows you understand **different failure surfaces**.
+!!! note
+    In interviews, tie **freshness** SLO to the **async** path (queue + index builder) and **latency** SLO to **sync** read path—shows you understand **different failure surfaces**.
 
 ### Database Schema
 
@@ -258,8 +243,8 @@ CREATE TABLE reviews (
 CREATE INDEX idx_reviews_business ON reviews (business_id, created_at DESC);
 ```
 
-{: .tip }
-> **Generated** `loc` avoids drift between raw lat/lng and geometry; in interviews, mention **migration** path if `geohash` is **application-computed** vs DB trigger.
+!!! tip
+    **Generated** `loc` avoids drift between raw lat/lng and geometry; in interviews, mention **migration** path if `geohash` is **application-computed** vs DB trigger.
 
 ---
 
@@ -285,8 +270,8 @@ Peak-to-average **10×** (evening, urban cores): **~30K QPS** globally for the s
 
 - Response **~2 KB** average × **30K QPS** → **~60 MB/s** egress from API layer (excluding internal replication).
 
-{: .warning }
-> Treat every constant as **negotiable** in the interview. The goal is **sound magnitudes** and showing how **sharding** (by region/geohash) caps per-node work.
+!!! warning
+    Treat every constant as **negotiable** in the interview. The goal is **sound magnitudes** and showing how **sharding** (by region/geohash) caps per-node work.
 
 ---
 
@@ -339,8 +324,8 @@ flowchart TB
 5. **Rank:** `score = w1 * distance_score + w2 * rating + w3 * sponsored` (example).
 6. **Paginate** and return.
 
-{: .note }
-> **Write path** (new POI): persist to **OLTP** (Postgres + PostGIS), then **asynchronously** update shards / Redis / embedded search indexes to avoid blocking user writes on global index rebuilds.
+!!! note
+    **Write path** (new POI): persist to **OLTP** (Postgres + PostGIS), then **asynchronously** update shards / Redis / embedded search indexes to avoid blocking user writes on global index rebuilds.
 
 ---
 
@@ -380,8 +365,8 @@ A **geohash** maps a 2D point to a **base-32 string** by interleaving bits of lo
 | 7 | ~76 m |
 | 8 | ~19 m |
 
-{: .warning }
-> Geohash cells are **rectangles** in lat/lon space, not equal-area on the sphere; distortion grows toward poles. Production systems often pair geohash with **Haversine** filtering or use **S2/H3** when uniformity matters.
+!!! warning
+    Geohash cells are **rectangles** in lat/lon space, not equal-area on the sphere; distortion grows toward poles. Production systems often pair geohash with **Haversine** filtering or use **S2/H3** when uniformity matters.
 
 **Neighbor cells:** A point near a cell edge may need **neighboring** geohashes in queries. Libraries expose **neighbor** APIs (8 neighbors in 2D) to avoid missing POIs just across a boundary.
 
@@ -446,8 +431,8 @@ flowchart TD
 - **Uniform-ish** cells reduce worst-case query stretch vs latitude-longitude rectangles.
 - Used in large-scale systems needing **spatial joins**, **covering** regions with cells, and **consistent** sharding.
 
-{: .tip }
-> In interviews, saying **“S2 for spherical cells + covering queries”** is often enough; deep diving into **S2RegionCover** is bonus points.
+!!! tip
+    In interviews, saying **“S2 for spherical cells + covering queries”** is often enough; deep diving into **S2RegionCover** is bonus points.
 
 ---
 
@@ -536,8 +521,8 @@ Not every proximity product tracks **moving** users against static POIs. If requ
 - **Consumers** maintain **in-memory** spatial structures per city or **Redis GEO** with short TTL.
 - **Query:** “nearby drivers” uses the **same** geospatial primitives but **much faster** eviction and coarser precision.
 
-{: .note }
-> Static POI search vs **live fleet** search often split into **two services** to isolate SLA and cost.
+!!! note
+    Static POI search vs **live fleet** search often split into **two services** to isolate SLA and cost.
 
 ---
 
@@ -779,8 +764,8 @@ func (n *Node) Search(cx, cy, rad float64, out *[]Point) {
 }
 ```
 
-{: .warning }
-> The Go **circle test** uses **degree-space** for illustration; **production** code should run **Haversine** on candidates after the quadtree returns them, or use projected meters.
+!!! warning
+    The Go **circle test** uses **degree-space** for illustration; **production** code should run **Haversine** on candidates after the quadtree returns them, or use projected meters.
 
 ---
 

@@ -1,19 +1,4 @@
----
-layout: default
-title: AI Code Assistant
-parent: GenAI System Design
-nav_order: 3
----
-
 # Design an AI Code Assistant
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -700,20 +685,20 @@ sequenceDiagram
 
 ## Interview Tips
 
-{: .tip }
-> **What differentiates a strong answer:**
-> 1. Discussing FIM (fill-in-the-middle) rather than just left-to-right generation
-> 2. Explaining why speculative decoding matters for latency
-> 3. Cross-file context assembly — not just current file
-> 4. Telemetry-driven evaluation (acceptance rate, persistence, keystroke savings)
-> 5. License scanning and code attribution
+!!! tip
+    **What differentiates a strong answer:**
+    1. Discussing FIM (fill-in-the-middle) rather than just left-to-right generation
+    2. Explaining why speculative decoding matters for latency
+    3. Cross-file context assembly — not just current file
+    4. Telemetry-driven evaluation (acceptance rate, persistence, keystroke savings)
+    5. License scanning and code attribution
 
 ---
 
 ## Hypothetical Interview Transcript
 
-{: .note }
-> This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Gemini Code Assist team.
+!!! note
+    This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Gemini Code Assist team.
 
 ---
 

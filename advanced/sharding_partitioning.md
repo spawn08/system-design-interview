@@ -1,19 +1,4 @@
----
-layout: default
-title: Sharding & Partitioning
-parent: Advanced Topics
-nav_order: 12
----
-
 # Database Sharding & Partitioning Strategies
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 12
 
 Sharding is the most common technique for horizontal scaling of databases. At L6, interviewers expect you to **choose the right partition key, anticipate hot spots, and plan for resharding**—not just say "we'll shard the data."
 
-{: .note }
-> Every system design question eventually leads to "how do you scale the data layer?" Your sharding answer determines whether your design works at 10x the initial traffic.
+!!! note
+    Every system design question eventually leads to "how do you scale the data layer?" Your sharding answer determines whether your design works at 10x the initial traffic.
 
 ---
 
@@ -101,8 +86,8 @@ The partition key determines data distribution, query patterns, and hotspot risk
 | **Time-series metrics** | `hash(metric_name)` | Avoids sequential write hotspots; range queries use time index within shard |
 | **Multi-tenant SaaS** | `tenant_id` | Data isolation; compliance; per-tenant backup/restore |
 
-{: .warning }
-> **Anti-pattern:** Sharding by auto-increment ID puts all recent writes on the last shard. Use a hash of the ID or a compound key.
+!!! warning
+    **Anti-pattern:** Sharding by auto-increment ID puts all recent writes on the last shard. Use a hash of the ID or a compound key.
 
 ---
 
@@ -127,8 +112,8 @@ The partition key determines data distribution, query patterns, and hotspot risk
 | **Cross-shard transactions** | No single-DB ACID guarantee | 2PC (if same DB engine); Saga pattern; or design to avoid cross-shard transactions |
 | **Global secondary indexes** | Index entries span multiple shards | Local indexes (per-shard, scatter on query) or global index (updated async, eventually consistent) |
 
-{: .tip }
-> **Staff-level answer:** *"I'd design the schema so that 95% of queries hit a single shard. For the rare cross-shard query (e.g., admin dashboard), I'd build a read-optimized materialized view in a separate analytical store, updated via CDC from the sharded OLTP database."*
+!!! tip
+    **Staff-level answer:** *"I'd design the schema so that 95% of queries hit a single shard. For the rare cross-shard query (e.g., admin dashboard), I'd build a read-optimized materialized view in a separate analytical store, updated via CDC from the sharded OLTP database."*
 
 ---
 
@@ -143,8 +128,8 @@ As data grows, the initial shard count becomes insufficient. Resharding is one o
 | **Shadow traffic** | Route a copy of traffic to the new shard layout; compare results; switch when consistent | Zero |
 | **Stop-the-world** | Take the system offline; redistribute data; bring back up | Minutes to hours |
 
-{: .warning }
-> **Staff-level insight:** Always over-provision logical shards at design time. Starting with 1024 logical shards on 8 physical nodes is far easier to scale (just move logical shards) than starting with 8 logical shards and needing to re-hash everything.
+!!! warning
+    **Staff-level insight:** Always over-provision logical shards at design time. Starting with 1024 logical shards on 8 physical nodes is far easier to scale (just move logical shards) than starting with 8 logical shards and needing to re-hash everything.
 
 ---
 

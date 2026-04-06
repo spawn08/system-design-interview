@@ -1,19 +1,4 @@
----
-layout: default
-title: Rate Limiter
-parent: System Design Examples
-nav_order: 3
----
-
 # Design a Rate Limiter
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -101,8 +86,8 @@ Production rate limiters are built from **state store + algorithm + deployment s
 | **In-process memory** | Zero network hop, simplest | Not shared across instances → **per-server** limits unless sticky sessions; lost on restart | Edge-only or canary; local burst protection layered on top of Redis |
 | **DynamoDB** | Durable, regional, pay-per-use; conditional writes for counters | Higher p99 than Redis; need idempotent design; cost at extreme QPS | Control plane, audit, rule config; or when you already standardize on Dynamo for hot path |
 
-{: .tip }
-> **Interview angle:** Redis wins the **default** because you need **shared mutable state** with **atomic updates** across many app servers. Memcached is acceptable only when your algorithm maps cleanly to simple counters. In-process is never enough alone for a horizontally scaled API unless you explicitly partition traffic (sticky) or accept approximate per-host limits.
+!!! tip
+    **Interview angle:** Redis wins the **default** because you need **shared mutable state** with **atomic updates** across many app servers. Memcached is acceptable only when your algorithm maps cleanly to simple counters. In-process is never enough alone for a horizontally scaled API unless you explicitly partition traffic (sticky) or accept approximate per-host limits.
 
 #### Algorithm — production choice and tradeoffs
 
@@ -166,8 +151,8 @@ flowchart TB
   end
 ```
 
-{: .tip }
-> **Sound bite:** *“We’re not choosing CAP for the whole company—we’re choosing it for the rate limit path: **strong consistency per key on the primary** for correctness, **partition tolerance** via Redis clustering, and **availability of the edge** via fail-open when the store is unreachable, trading strict enforcement for site uptime.”*
+!!! tip
+    **Sound bite:** *“We’re not choosing CAP for the whole company—we’re choosing it for the rate limit path: **strong consistency per key on the primary** for correctness, **partition tolerance** via Redis clustering, and **availability of the edge** via fail-open when the store is unreachable, trading strict enforcement for site uptime.”*
 
 ---
 
@@ -289,8 +274,8 @@ X-RateLimit-Remaining: 41
 X-RateLimit-Reset: 1743877260
 ```
 
-{: .tip }
-> **Why headers matter:** they let clients **back off** without guessing, reduce **retry storms**, and support **SDK** throttling—say this explicitly in interviews.
+!!! tip
+    **Why headers matter:** they let clients **back off** without guessing, reduce **retry storms**, and support **SDK** throttling—say this explicitly in interviews.
 
 #### Configuration API (operators / tenants)
 
@@ -400,8 +385,8 @@ Active clients: 2M × 100 × 20 bytes = 4 GB → requires Redis cluster
 | Latency target | < 1ms | Redis in-memory is well within target |
 | Availability | 99.99% | Redis Sentinel or Cluster for failover |
 
-{: .tip }
-> Token bucket is clearly more memory-efficient. This estimation helps justify the algorithm choice — not just on correctness but on infrastructure cost.
+!!! tip
+    Token bucket is clearly more memory-efficient. This estimation helps justify the algorithm choice — not just on correctness but on infrastructure cost.
 
 ---
 
@@ -1659,7 +1644,7 @@ Rate limiting is deceptively simple in concept but requires careful handling of 
 
 ## Staff Engineer (L6) Deep Dive
 
-The sections above cover the fundamentals. The sections below cover the **Staff-level depth** that distinguishes an L6 answer from an L5 one. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for what L6 interviewers look for.
+The sections above cover the fundamentals. The sections below cover the **Staff-level depth** that distinguishes an L6 answer from an L5 one. See the [Staff Engineer Interview Guide](staff_engineer_expectations.md) for what L6 interviewers look for.
 
 ### Global Rate Limiting Across Regions
 
@@ -1672,8 +1657,8 @@ At L5, candidates design a rate limiter backed by a single Redis cluster. At L6,
 | **Partitioned global limit** | Divide the global limit (e.g., 1000/min) across N regions proportionally (e.g., 200/min each) | Simple but wastes capacity in quiet regions; requires dynamic rebalancing |
 | **Token bucket with central refill** | Local bucket per region; a central service periodically refills tokens | Good balance; central service is a dependency but not on hot path |
 
-{: .tip }
-> **Staff-level answer:** *"I'd start with partitioned limits per region with a central rebalancing loop that runs every 30 seconds. This avoids cross-region latency on the hot path and handles the 95% case. For the top-tier enterprise clients who need a strict global limit, I'd route them to a single authoritative region with a slightly higher latency budget."*
+!!! tip
+    **Staff-level answer:** *"I'd start with partitioned limits per region with a central rebalancing loop that runs every 30 seconds. This avoids cross-region latency on the hot path and handles the 95% case. For the top-tier enterprise clients who need a strict global limit, I'd route them to a single authoritative region with a slightly higher latency budget."*
 
 ### Race Conditions and Atomicity Deep Dive
 
@@ -1734,4 +1719,3 @@ flowchart TD
 | **Year 1** | Multi-region with per-region Redis | Add async sync; build admin UI for limit management |
 | **Year 2** | Self-service rate limit policies via API | Tenants configure their own sub-limits; metering for billing |
 | **Year 3** | ML-driven adaptive limits | Anomaly detection adjusts limits based on traffic patterns; auto-scale Redis fleet |
-

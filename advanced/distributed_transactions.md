@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed Transactions
-parent: Advanced Topics
-nav_order: 11
----
-
 # Distributed Transactions (2PC, Saga, Outbox)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 11
 
 In a microservices or sharded database world, a single business operation often spans multiple services or data stores. At L6, you must articulate **which transaction pattern to use and why**, considering the trade-offs between consistency, availability, latency, and operational complexity.
 
-{: .note }
-> The interview question is never "implement 2PC." It's "Order placement writes to the Orders DB, deducts inventory, and charges the payment. How do you keep these consistent?" Your answer must include a transaction pattern with clear trade-off reasoning.
+!!! note
+    The interview question is never "implement 2PC." It's "Order placement writes to the Orders DB, deducts inventory, and charges the payment. How do you keep these consistent?" Your answer must include a transaction pattern with clear trade-off reasoning.
 
 ---
 
@@ -211,8 +196,8 @@ flowchart LR
 | **CDC (Debezium)** | Near real-time (ms) | Higher (requires CDC infrastructure) | Very high (reads DB WAL) |
 | **Polling** | Seconds (poll interval) | Lower | Good; missed polls are caught up |
 
-{: .tip }
-> **Staff-level answer:** *"I'd use the transactional outbox pattern with Debezium CDC for near-real-time event publishing. The outbox guarantees atomicity with the business write, and Debezium gives me low-latency event delivery without polling overhead. For teams without CDC infrastructure, a simple poller with a 1-second interval is a good starting point."*
+!!! tip
+    **Staff-level answer:** *"I'd use the transactional outbox pattern with Debezium CDC for near-real-time event publishing. The outbox guarantees atomicity with the business write, and Debezium gives me low-latency event delivery without polling overhead. For teams without CDC infrastructure, a simple poller with a 1-second interval is a good starting point."*
 
 ---
 
@@ -239,8 +224,8 @@ Google Spanner combines Paxos groups (per shard) with 2PC (across shards) and **
 | **2PC across splits** | When a transaction spans multiple shards, a coordinator runs 2PC across the Paxos leaders |
 | **TrueTime** | GPS + atomic clocks provide bounded clock uncertainty; enables commit-wait for serializable snapshot isolation |
 
-{: .note }
-> Spanner's approach works because all participants are within Google's controlled infrastructure. For cross-organization or cross-cloud transactions, Sagas remain the practical choice.
+!!! note
+    Spanner's approach works because all participants are within Google's controlled infrastructure. For cross-organization or cross-cloud transactions, Sagas remain the practical choice.
 
 ---
 

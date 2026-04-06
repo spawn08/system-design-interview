@@ -1,19 +1,4 @@
----
-layout: default
-title: RLHF & Alignment
-parent: GenAI/ML Fundamentals
-nav_order: 7
----
-
 # RLHF & Alignment: From Preference Data to Production-Safe Models
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -35,8 +20,8 @@ Large language models (LLMs) are trained primarily to **predict the next token**
 | **Honesty** | May confabulate confidently | Often better calibrated *if* trained with feedback—but not guaranteed |
 | **Deployment readiness** | Low for consumer chat | Higher, but still needs guardrails + monitoring |
 
-{: .note }
-> Interview framing: **base models are raw capability**; **alignment shapes policy**—what the model *chooses* to say given equal fluency.
+!!! note
+    Interview framing: **base models are raw capability**; **alignment shapes policy**—what the model *chooses* to say given equal fluency.
 
 ### Real-world failures when alignment is missing
 
@@ -58,8 +43,8 @@ Large language models (LLMs) are trained primarily to **predict the next token**
 | **Failure mode** | “Sounds fluent” | “Matches rubric” — can conflict with truthfulness if rubric wrong |
 | **Typical scale** | Trillions of tokens | Thousands to millions of preference pairs |
 
-{: .warning }
-> Alignment reduces some risks but **does not** replace **content moderation**, **access control**, **grounding (RAG)**, or **human oversight** for high-stakes domains (medical, legal, financial).
+!!! warning
+    Alignment reduces some risks but **does not** replace **content moderation**, **access control**, **grounding (RAG)**, or **human oversight** for high-stakes domains (medical, legal, financial).
 
 ---
 
@@ -134,8 +119,8 @@ example_rows = [
 write_sft_jsonl(example_rows, Path("data/sft/train.jsonl"))
 ```
 
-{: .tip }
-> Pair SFT with **explicit refusal exemplars** early. Retrofitting refusal after a sycophantic SFT stage is possible but costly.
+!!! tip
+    Pair SFT with **explicit refusal exemplars** early. Retrofitting refusal after a sycophantic SFT stage is possible but costly.
 
 ---
 
@@ -211,8 +196,8 @@ class PairwiseRewardModel(nn.Module):
         return self.score(hidden).squeeze(-1)
 ```
 
-{: .note }
-> Reward models can **overfit** to annotation quirks, **reward hack** under RL, and **misgeneralize** off-distribution. That is a key motivation for **DPO**, which bypasses an explicit RM.
+!!! note
+    Reward models can **overfit** to annotation quirks, **reward hack** under RL, and **misgeneralize** off-distribution. That is a key motivation for **DPO**, which bypasses an explicit RM.
 
 ---
 
@@ -351,8 +336,8 @@ def rlhf_ppo_step(
     return loss, {"ppo": l_clip.item(), "kl": l_kl.item()}
 ```
 
-{: .warning }
-> Production RLHF is **not** “drop in PPO.” You need **rollout collection**, **KL budgets**, **entropy bonuses**, **reward normalization**, and **monitoring** for hacking.
+!!! warning
+    Production RLHF is **not** “drop in PPO.” You need **rollout collection**, **KL budgets**, **entropy bonuses**, **reward normalization**, and **monitoring** for hacking.
 
 ---
 
@@ -437,8 +422,8 @@ For a dataset of preferences:
 \right]
 \\]
 
-{: .note }
-> In code, compute **sum of log-probs over completion tokens** (with prompt masked out) for each of \\( y_w, y_l \\) under both policies.
+!!! note
+    In code, compute **sum of log-probs over completion tokens** (with prompt masked out) for each of \\( y_w, y_l \\) under both policies.
 
 ### Python: DPO loss (token-level log-prob sums)
 
@@ -499,8 +484,8 @@ def dpo_loss(
 | **ORPO** (Odds Ratio Preference Optimization) | Combines **SFT + preference** update without a reference ratio form in the same way as classical DPO | Simplifies pipelines for some setups |
 | **SimPO** (Simple Preference Optimization) | Removes reference model term with careful normalization / length handling | Reduces memory/compute; mitigates length biases |
 
-{: .tip }
-> In interviews, naming **DPO** and **one variant** with its motivation (e.g., **KTO** for unpaired feedback) signals depth.
+!!! tip
+    In interviews, naming **DPO** and **one variant** with its motivation (e.g., **KTO** for unpaired feedback) signals depth.
 
 ---
 
@@ -730,8 +715,8 @@ def eval_refusal_policy(
     }
 ```
 
-{: .warning }
-> **Never** rely on keyword checks alone for safety metrics—they’re easily gamed. Use them only as **smoke tests**.
+!!! warning
+    **Never** rely on keyword checks alone for safety metrics—they’re easily gamed. Use them only as **smoke tests**.
 
 ---
 
@@ -817,8 +802,8 @@ flowchart LR
   RM -. evaluation / routing .-> GW
 ```
 
-{: .note }
-> Alignment is **not** a single offline step—it’s a **lifecycle** tied to evaluation, data governance, and release discipline.
+!!! note
+    Alignment is **not** a single offline step—it’s a **lifecycle** tied to evaluation, data governance, and release discipline.
 
 ---
 
@@ -879,8 +864,8 @@ What strong candidates demonstrate:
 | **DPO** (Rafailov et al.) | Direct preference optimization |
 | **Anthropic / OpenAI system cards** | Production disclosures and limitations |
 
-{: .tip }
-> In system design interviews, connect each alignment choice to **evaluation**, **rollback**, and **monitoring**—not just training loss curves.
+!!! tip
+    In system design interviews, connect each alignment choice to **evaluation**, **rollback**, and **monitoring**—not just training loss curves.
 
 ---
 

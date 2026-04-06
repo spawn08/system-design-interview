@@ -1,16 +1,6 @@
----
-layout: default
-title: GenAI/ML Fundamentals
-nav_order: 5
-has_children: true
-permalink: /genai_ml_basics/
----
-
 # GenAI/ML Fundamentals
-{: .fs-9 }
 
 Core infrastructure topics for Generative AI and Machine Learning — the building blocks that appear in every ML system design interview.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -27,8 +17,8 @@ Just as **load balancing, caching, and databases** are fundamentals for software
 | Networking | LLM APIs / RAG |
 | Distributed systems | Distributed training |
 
-{: .note }
-> These topics are particularly important for interviews at companies building AI-native products (OpenAI, Anthropic, Google DeepMind, Meta AI) and for ML Platform / MLOps roles at any company.
+!!! note
+    These topics are particularly important for interviews at companies building AI-native products (OpenAI, Anthropic, Google DeepMind, Meta AI) and for ML Platform / MLOps roles at any company.
 
 ---
 
@@ -36,23 +26,21 @@ Just as **load balancing, caching, and databases** are fundamentals for software
 
 | Order | Topic | Time | Why This Order |
 |-------|-------|------|---------------|
-| 1 | [Data Pipelines for ML]({{ site.baseurl }}/genai_ml_basics/data_pipelines) | 2-3 hours | Data comes first — can't train without it |
-| 2 | [Feature Stores]({{ site.baseurl }}/genai_ml_basics/feature_stores) | 2-3 hours | Organize features for training and serving |
-| 3 | [Model Serving]({{ site.baseurl }}/genai_ml_basics/model_serving) | 3-4 hours | Get models into production |
-| 4 | [Distributed Training]({{ site.baseurl }}/genai_ml_basics/distributed_training) | 3-4 hours | Scale training to large models |
-| 5 | [Large Language Models]({{ site.baseurl }}/genai_ml_basics/llm_systems) | 4-5 hours | The most complex — builds on everything above |
-| 6 | [LLM Evaluation]({{ site.baseurl }}/genai_ml_basics/llm_evaluation) | 2-3 hours | Benchmarks, LLM-as-judge, RAG eval, production metrics — needed for every GenAI design |
-| 7 | [RLHF & Alignment]({{ site.baseurl }}/genai_ml_basics/rlhf_alignment) | 3-4 hours | PPO, DPO, Constitutional AI, safety alignment — the most important GenAI topic after LLMs |
+| 1 | [Data Pipelines for ML](data_pipelines.md) | 2-3 hours | Data comes first — can't train without it |
+| 2 | [Feature Stores](feature_stores.md) | 2-3 hours | Organize features for training and serving |
+| 3 | [Model Serving](model_serving.md) | 3-4 hours | Get models into production |
+| 4 | [Distributed Training](distributed_training.md) | 3-4 hours | Scale training to large models |
+| 5 | [Large Language Models](llm_systems.md) | 4-5 hours | The most complex — builds on everything above |
+| 6 | [LLM Evaluation](llm_evaluation.md) | 2-3 hours | Benchmarks, LLM-as-judge, RAG eval, production metrics — needed for every GenAI design |
+| 7 | [RLHF & Alignment](rlhf_alignment.md) | 3-4 hours | PPO, DPO, Constitutional AI, safety alignment — the most important GenAI topic after LLMs |
 
 ---
 
 ## What's Covered
 
-### [Model Serving]({{ site.baseurl }}/genai_ml_basics/model_serving)
-{: .d-inline-block }
+### [Model Serving](model_serving.md)
 
 Infrastructure
-{: .label .label-red }
 
 Design production model serving — REST/batch inference, versioning, A/B testing, drift detection, and GPU auto-scaling.
 
@@ -62,11 +50,9 @@ Design production model serving — REST/batch inference, versioning, A/B testin
 
 ---
 
-### [Feature Stores]({{ site.baseurl }}/genai_ml_basics/feature_stores)
-{: .d-inline-block }
+### [Feature Stores](feature_stores.md)
 
 Data Platform
-{: .label .label-green }
 
 Design a centralized feature management platform for training and serving consistency.
 
@@ -76,11 +62,9 @@ Design a centralized feature management platform for training and serving consis
 
 ---
 
-### [Data Pipelines for ML]({{ site.baseurl }}/genai_ml_basics/data_pipelines)
-{: .d-inline-block }
+### [Data Pipelines for ML](data_pipelines.md)
 
 Data Engineering
-{: .label .label-yellow }
 
 Design end-to-end data pipelines for ML training — ingestion, transformation, validation, and orchestration.
 
@@ -90,11 +74,9 @@ Design end-to-end data pipelines for ML training — ingestion, transformation, 
 
 ---
 
-### [Large Language Models]({{ site.baseurl }}/genai_ml_basics/llm_systems)
-{: .d-inline-block }
+### [Large Language Models](llm_systems.md)
 
 GenAI
-{: .label .label-purple }
 
 Design production LLM systems — RAG, prompt engineering, fine-tuning, vector databases, and serving at scale.
 
@@ -104,11 +86,9 @@ Design production LLM systems — RAG, prompt engineering, fine-tuning, vector d
 
 ---
 
-### [Distributed Training]({{ site.baseurl }}/genai_ml_basics/distributed_training)
-{: .d-inline-block }
+### [Distributed Training](distributed_training.md)
 
 Training Infrastructure
-{: .label .label-red }
 
 Design training infrastructure that scales deep learning across hundreds of GPUs.
 
@@ -118,11 +98,9 @@ Design training infrastructure that scales deep learning across hundreds of GPUs
 
 ---
 
-### [LLM Evaluation]({{ site.baseurl }}/genai_ml_basics/llm_evaluation)
-{: .d-inline-block }
+### [LLM Evaluation](llm_evaluation.md)
 
 Evaluation & Quality
-{: .label .label-green }
 
 Offline and online evaluation for LLMs — automatic metrics, LLM-as-judge, benchmarks (MMLU, Arena, HumanEval), RAGAS-style RAG metrics, production A/B and guardrails.
 
@@ -132,14 +110,11 @@ Offline and online evaluation for LLMs — automatic metrics, LLM-as-judge, benc
 
 ---
 
-### [RLHF & Alignment]({{ site.baseurl }}/genai_ml_basics/rlhf_alignment)
-{: .d-inline-block }
+### [RLHF & Alignment](rlhf_alignment.md)
 
 Alignment & Safety
-{: .label .label-red }
 
 NEW
-{: .label .label-yellow }
 
 The complete alignment pipeline — from SFT through reward modeling to PPO/DPO. Constitutional AI, safety alignment, preference data collection, and production alignment loops.
 
@@ -183,5 +158,5 @@ Feature Stores         ──────►     Content Moderation, Ads Ranking
 Data Pipelines         ──────►     All GenAI Systems
 ```
 
-{: .tip }
-> Master the fundamentals first, then apply them in the [ML System Design]({{ site.baseurl }}/ml_system_design/) (10 designs) and [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) (10 designs with interview transcripts) sections.
+!!! tip
+    Master the fundamentals first, then apply them in the [ML System Design](../ml_system_design/index.md) (10 designs) and [GenAI System Design](../genai_ml_system_design/index.md) (10 designs with interview transcripts) sections.

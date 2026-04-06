@@ -1,19 +1,4 @@
----
-layout: default
-title: LLM Gateway
-parent: GenAI System Design
-nav_order: 8
----
-
 # Design an LLM Gateway / AI Proxy
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -51,8 +36,8 @@ Design an **LLM gateway** (also called an **AI proxy**): a control plane that si
 | **[Portkey](https://portkey.ai/)** | Gateway with observability, guardrails, and multi-provider routing |
 | **Internal proxies (Google, Meta, large banks)** | Central governance: keys, policy, spend caps, logging — often *mandatory* for production |
 
-{: .note }
-> In interviews, treat the gateway as **policy + economics + reliability** for LLM traffic. The HTTP path is the easy part; **tokens, embeddings, streaming, and compliance** are the differentiators.
+!!! note
+    In interviews, treat the gateway as **policy + economics + reliability** for LLM traffic. The HTTP path is the easy part; **tokens, embeddings, streaming, and compliance** are the differentiators.
 
 ---
 
@@ -139,8 +124,8 @@ def tpm_bucket_key(tenant_id: str, window_start_epoch: int) -> str:
     return f"rl:tpm:{tenant_id}:{window_start_epoch}"
 ```
 
-{: .note }
-> **Interview nuance:** Say you use **estimated** tokens for *reject/admit* and **actual** tokens from the provider response for **billing** — mismatches happen when the provider’s tokenizer differs slightly from yours.
+!!! note
+    **Interview nuance:** Say you use **estimated** tokens for *reject/admit* and **actual** tokens from the provider response for **billing** — mismatches happen when the provider’s tokenizer differs slightly from yours.
 
 ### Streaming Proxy Challenges
 
@@ -167,8 +152,8 @@ Capabilities diverge by **model id** and **API version**. The gateway should tre
 | **Long context (>128K)** | Model-specific | Split RAG or route to long-context SKU |
 | **Streaming + tools** | Most modern APIs | Merge parallel tool call deltas in adapter |
 
-{: .tip }
-> In interviews, mention a **capability registry** versioned with your **unified API** — when a team requests `json_mode=true`, the router **filters** to models where `json_mode=true` is **verified** for that provider’s API revision.
+!!! tip
+    In interviews, mention a **capability registry** versioned with your **unified API** — when a team requests `json_mode=true`, the router **filters** to models where `json_mode=true` is **verified** for that provider’s API revision.
 
 ---
 
@@ -194,8 +179,8 @@ Capabilities diverge by **model id** and **API version**. The gateway should tre
 | **Availability** | **99.99%** for the gateway control plane | Degraded mode: passthrough or cached responses where safe |
 | **Throughput** | **10K req/s** aggregate | Horizontal scale; stateless request path where possible |
 
-{: .warning }
-> **Clarify in the interview:** “10K req/s” is **gateway requests**, not 10K concurrent GPU streams. Upstream provider limits still cap *effective* throughput; the gateway’s job is to **shape, route, and fail gracefully**.
+!!! warning
+    **Clarify in the interview:** “10K req/s” is **gateway requests**, not 10K concurrent GPU streams. Upstream provider limits still cap *effective* throughput; the gateway’s job is to **shape, route, and fail gracefully**.
 
 ---
 
@@ -447,8 +432,8 @@ def merge_tool_streams(
     return events
 ```
 
-{: .tip }
-> Mention **idempotency keys** for mutating side-effects (rare in pure completion) and **request fingerprinting** for deduplication — interviewers like operational maturity.
+!!! tip
+    Mention **idempotency keys** for mutating side-effects (rare in pure completion) and **request fingerprinting** for deduplication — interviewers like operational maturity.
 
 ---
 
@@ -1223,5 +1208,5 @@ class AuditRecord:
 
 ---
 
-{: .tip }
-> In your own mock interviews, practice drawing **one** end-to-end diagram in under two minutes, then spend time on **routing + economics + failure** — that is where Staff-level signal shows up.
+!!! tip
+    In your own mock interviews, practice drawing **one** end-to-end diagram in under two minutes, then spend time on **routing + economics + failure** — that is where Staff-level signal shows up.

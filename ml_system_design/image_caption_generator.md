@@ -1,19 +1,4 @@
----
-layout: default
-title: Image Caption Generator
-parent: ML System Design
-nav_order: 1
----
-
 # Design an Image Caption Generator
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 

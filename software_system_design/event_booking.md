@@ -1,19 +1,4 @@
----
-layout: default
-title: Event Booking (Ticketmaster)
-parent: System Design Examples
-nav_order: 16
----
-
 # Event Booking (Ticketmaster)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -48,8 +33,8 @@ An **event ticketing platform** where organizers list concerts, sports, and thea
 | **Ride sharing** | Peak load, payments | No continuous GPS; **inventory is discrete** and **lockable** |
 | **Airline booking** | Holds, fare classes, GDS complexity | Venues use **static seat maps**; fewer routing rules, more **UI-heavy selection** |
 
-{: .note }
-> In interviews, separate **search/browse** (read-heavy, cacheable) from **purchase** (write-heavy, consistency-sensitive). The deep dive usually lands on **inventory**, **locking**, **queues**, and **payments**.
+!!! note
+    In interviews, separate **search/browse** (read-heavy, cacheable) from **purchase** (write-heavy, consistency-sensitive). The deep dive usually lands on **inventory**, **locking**, **queues**, and **payments**.
 
 ---
 
@@ -90,8 +75,8 @@ An **event ticketing platform** where organizers list concerts, sports, and thea
 | **Throughput** | Survive **10–100×** traffic spikes during popular on-sales | Queue + scale-out |
 | **Durability** | Orders and payments **auditable** for years | Chargebacks, taxes |
 
-{: .warning }
-> At scale, **exactly-once** processing is a narrative convenience. Implement **idempotency keys**, **at-least-once** delivery with deduplication, and **reconciliation** jobs. Claim **strong** consistency only where your storage and transaction boundaries actually provide it.
+!!! warning
+    At scale, **exactly-once** processing is a narrative convenience. Implement **idempotency keys**, **at-least-once** delivery with deduplication, and **reconciliation** jobs. Claim **strong** consistency only where your storage and transaction boundaries actually provide it.
 
 ### API Design
 
@@ -136,8 +121,8 @@ An **event ticketing platform** where organizers list concerts, sports, and thea
 
 `version` supports optimistic concurrency on the hold or seat aggregate.
 
-{: .tip }
-> Return **`expires_at`** and a **`server_time`** so clients can show countdowns without drift arguments. Always enforce expiry **server-side**.
+!!! tip
+    Return **`expires_at`** and a **`server_time`** so clients can show countdowns without drift arguments. Always enforce expiry **server-side**.
 
 ### Technology Selection & Tradeoffs
 
@@ -199,8 +184,8 @@ Redis also backs **rate limits**, **waiting-room tokens**, and **short-lived hol
 | **`SELECT … FOR UPDATE`** | **Low** contention per row; must keep txn **milliseconds** | Lock wait storms; **deadlocks** if ordering wrong |
 | **Redis `SET` with NX + expiry** | **Coarse** locks, **rate limiting**, **waiting room** | Not your **authoritative** inventory unless you build **2PC**-level discipline; **clock/lease** bugs |
 
-{: .warning }
-> For **authoritative seat sale**, prefer **database-enforced** state transitions (constraints + versioning) on the OLTP store. Redis locks are great for **admission** and **coordination**, not as the **only** line of defense against oversell.
+!!! warning
+    For **authoritative seat sale**, prefer **database-enforced** state transitions (constraints + versioning) on the OLTP store. Redis locks are great for **admission** and **coordination**, not as the **only** line of defense against oversell.
 
 **Our choice (example stack):**
 
@@ -225,8 +210,8 @@ CAP is a **coarse lens**: in practice you choose **per operation** and **per dat
 | **Payment processing** | **CP** with **external PSP** | Money movement must be **reconciled**; duplicates are handled by **idempotency** and **ledger** semantics, not by “eventual maybe” |
 | **Waitlist / queue position** | **AP**-friendly | **Fair ordering** can be approximate; showing position is **best-effort**; **admission tokens** matter more than millisecond-accurate ranks |
 
-{: .note }
-> “CP vs AP” is shorthand. Interviewers often reward naming **linearizability** for a single seat record, **serializable** transactions for multi-seat holds, and **bounded staleness** for read replicas and caches.
+!!! note
+    “CP vs AP” is shorthand. Interviewers often reward naming **linearizability** for a single seat record, **serializable** transactions for multi-seat holds, and **bounded staleness** for read replicas and caches.
 
 ```mermaid
 flowchart TB
@@ -277,8 +262,8 @@ SLAs are **contracts** (often with money); **SLOs** are internal targets; **SLIs
 | **Dependency burn** | If PSP SLI drops, **page** payments on-call; **scale** webhook workers; **do not** “fix” by caching payments |
 | **On-sale events** | **Stricter** monitoring; **pre-allocated** capacity; **feature flags** to shed non-critical work (recommendations, heavy analytics) |
 
-{: .tip }
-> Tie **SLOs** to product language: “held” means **server guarantee**; “green seat” on map is **indicative**. That alignment reduces false expectations and support load.
+!!! tip
+    Tie **SLOs** to product language: “held” means **server guarantee**; “green seat” on map is **indicative**. That alignment reduces false expectations and support load.
 
 ---
 
@@ -367,8 +352,8 @@ Child table **`order_items`** (or `booking_lines`): `order_id`, `show_id`, `seat
 | `raw_event_id` | `TEXT` NULL | Last processed webhook id for dedup |
 | `created_at`, `updated_at` | `TIMESTAMPTZ` | |
 
-{: .note }
-> **Normalize** “one row per seat” vs “JSON array of seats” based on reporting needs; **query patterns** and **locking** are easier with **`hold_seats`** and **`order_items`** as first-class rows.
+!!! note
+    **Normalize** “one row per seat” vs “JSON array of seats” based on reporting needs; **query patterns** and **locking** are easier with **`hold_seats`** and **`order_items`** as first-class rows.
 
 ---
 
@@ -401,8 +386,8 @@ If each user retries holds 3 times over 5 minutes: extra writes.
 Peak hold attempts might reach 2,000–10,000 TPS depending on product rules and queue depth.
 ```
 
-{: .note }
-> Order-of-magnitude numbers justify **sharding** by `show_id`, **queue-based admission**, and **avoiding a single global row** for inventory.
+!!! note
+    Order-of-magnitude numbers justify **sharding** by `show_id`, **queue-based admission**, and **avoiding a single global row** for inventory.
 
 ### Storage (orders of magnitude)
 
@@ -477,8 +462,8 @@ flowchart TB
 | **Order + Payment** | Idempotent order creation; PSP integration; compensating releases |
 | **Kafka** | Outbox pattern for email, analytics, search index updates |
 
-{: .note }
-> Sharding key is often **`show_id`** (or `event_id` + `show_time_id`). Cross-show transactions are rare in the hot path.
+!!! note
+    Sharding key is often **`show_id`** (or `event_id` + `show_time_id`). Cross-show transactions are rare in the hot path.
 
 ---
 
@@ -506,8 +491,8 @@ flowchart TB
 - `UPDATE seats SET status='held', version=version+1 WHERE id=? AND version=? AND status='available'`
 - If count of updated rows `< requested`, abort or retry with backoff.
 
-{: .warning }
-> Mixing **long** user think time with **pessimistic** locks is a classic anti-pattern. Use **short** DB transactions to flip state; use **application-level hold records** with TTL for the user-facing timer.
+!!! warning
+    Mixing **long** user think time with **pessimistic** locks is a classic anti-pattern. Use **short** DB transactions to flip state; use **application-level hold records** with TTL for the user-facing timer.
 
 ### 4.2 Handling High-Concurrency Ticket Sales
 
@@ -561,8 +546,8 @@ flowchart LR
 - If payment fails: same release path; user sees actionable error.
 - If webhook delayed: reconciliation job queries PSP by `idempotency_key`.
 
-{: .tip }
-> Store **payment state** and **inventory state** transitions in **one OLTP** transaction only when your PSP supports synchronous steps or you use **saga** with compensations. Many designs **confirm order** only after async capture; compensate with **release** if capture never succeeds.
+!!! tip
+    Store **payment state** and **inventory state** transitions in **one OLTP** transaction only when your PSP supports synchronous steps or you use **saga** with compensations. Many designs **confirm order** only after async capture; compensate with **release** if capture never succeeds.
 
 ### 4.5 Preventing Double Booking
 
@@ -786,8 +771,8 @@ def promote_and_admit(show_id: str, batch_size: int, ttl_sec: int) -> list[str]:
     return list(ids)
 ```
 
-{: .note }
-> Production systems add **signed tokens**, **fairness** (slow bots), **reaping** expired sessions, and **multi-region** concerns. This snippet shows **ordering** and **batch promotion** only.
+!!! note
+    Production systems add **signed tokens**, **fairness** (slow bots), **reaping** expired sessions, and **multi-region** concerns. This snippet shows **ordering** and **batch promotion** only.
 
 ### Go: booking handler with idempotency and hold expiry
 
@@ -858,8 +843,8 @@ func newOrderID() string {
 }
 ```
 
-{: .warning }
-> The Go example is illustrative: **production** code needs structured errors, context deadlines, metrics, and PSP integration. The **idempotent** path must be enforced with a **unique** constraint on `idempotency_key` in `orders`.
+!!! warning
+    The Go example is illustrative: **production** code needs structured errors, context deadlines, metrics, and PSP integration. The **idempotent** path must be enforced with a **unique** constraint on `idempotency_key` in `orders`.
 
 ---
 

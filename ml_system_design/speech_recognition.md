@@ -1,19 +1,4 @@
----
-layout: default
-title: Speech Recognition
-parent: ML System Design
-nav_order: 10
----
-
 # Design a Speech Recognition System (ASR)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -37,8 +22,8 @@ We are designing an **automatic speech recognition (ASR)** platform comparable i
 | **Whisper training data (OpenAI)** | **680k hours** of weakly supervised web data | Demonstrates **scale of pretraining** + **multitask** learning for robustness |
 | **Enterprise transcription** | **Petabytes/year** of call audio in large contact centers | Drives **batch pipelines**, **cost per hour**, **compliance** (retention, encryption) |
 
-{: .note }
-> Interview framing: separate **research accuracy** (WER on benchmarks) from **product metrics** (task success rate, user edits per minute, caption lag). Production ASR is a **systems + ML** problem.
+!!! note
+    Interview framing: separate **research accuracy** (WER on benchmarks) from **product metrics** (task success rate, user edits per minute, caption lag). Production ASR is a **systems + ML** problem.
 
 ### Why Speech Recognition Is Hard
 
@@ -67,8 +52,8 @@ This section goes deeper than a typical “ML 101” because ASR interviews ofte
 
 **Mel scaling** approximates human hearing sensitivity—more resolution at low frequencies. **Log compression** reduces loudness variation.
 
-{: .tip }
-> In interviews, say: “We use **25–80 ms windows**, **10 ms hop**, **40–128 mel bins**, and **per-utterance CMVN** or **global stats** depending on deployment.”
+!!! tip
+    In interviews, say: “We use **25–80 ms windows**, **10 ms hop**, **40–128 mel bins**, and **per-utterance CMVN** or **global stats** depending on deployment.”
 
 ### Traditional ASR Pipeline: Acoustic Model → Language Model → Decoder
 
@@ -103,8 +88,8 @@ Modern ASR often uses a **single neural network** with a differentiable alignmen
 | **Attention encoder-decoder** | Cross-attention aligns frames to tokens | Great accuracy on long-form | **Non-streaming** unless heavily modified |
 | **RNN-T (transducer)** | Predict next label given audio prefix + label history | Natural streaming; **label-loop** | Training complexity; latency tuning |
 
-{: .warning }
-> **Attention** models can “cheat” with future frames—great for Whisper-style offline ASR, problematic for **true** low-latency streaming unless you constrain attention or switch architectures.
+!!! warning
+    **Attention** models can “cheat” with future frames—great for Whisper-style offline ASR, problematic for **true** low-latency streaming unless you constrain attention or switch architectures.
 
 ### Whisper Architecture (Representative)
 
@@ -196,8 +181,8 @@ Combining ASR + diarization: run **VAD/segmentation**, **diarization** to assign
 | **N4** | **Availability** | **99.99%** API availability (regional redundancy) |
 | **N5** | **Privacy** | Encryption in transit/at rest; data retention controls; on-device option |
 
-{: .tip }
-> Translate “300 ms” into **audio buffer + feature + inference + beam + post** with a rough pie chart in interviews—numbers matter more than buzzwords.
+!!! tip
+    Translate “300 ms” into **audio buffer + feature + inference + beam + post** with a rough pie chart in interviews—numbers matter more than buzzwords.
 
 ---
 
@@ -274,8 +259,8 @@ flowchart LR
 - **Endpointer** decides utterance boundaries.
 - **Partial results** may be **revised**—clients should handle **substitutions** gracefully.
 
-{: .note }
-> Many products run **two models**: a **tiny streaming** model for UX + a **larger batch** rescoring pass on pauses—hybrid latency/accuracy trade-off.
+!!! note
+    Many products run **two models**: a **tiny streaming** model for UX + a **larger batch** rescoring pass on pauses—hybrid latency/accuracy trade-off.
 
 ---
 
@@ -810,8 +795,8 @@ class AsrStreamServicer:
 | **Language confusion rate** | Misrouting under multilingual traffic |
 | **GPU utilization** | Autoscaling quality |
 
-{: .warning }
-> Watch **label drift**: transcripts from human reviewers are biased by **guidelines**; mixing reviewer sets can shift WER without a “true” change in user-perceived quality.
+!!! warning
+    Watch **label drift**: transcripts from human reviewers are biased by **guidelines**; mixing reviewer sets can shift WER without a “true” change in user-perceived quality.
 
 ### Trade-offs (Interview Gold)
 
@@ -832,8 +817,8 @@ class AsrStreamServicer:
 | **Geo-fencing** | Route EU customer traffic to EU regions only (policy-driven) |
 | **Training consent** | Opt-in for using customer audio to improve models; default **off** in enterprise contracts |
 
-{: .note }
-> Regulated customers (healthcare, finance) often require **on-device** or **VPC-isolated** deployment even if cloud accuracy is higher—design for **both**.
+!!! note
+    Regulated customers (healthcare, finance) often require **on-device** or **VPC-isolated** deployment even if cloud accuracy is higher—design for **both**.
 
 ### Training and Release Pipeline
 
@@ -917,8 +902,8 @@ lp -= lp.max(axis=1, keepdims=True)
 print(beam_search_decoder(lp, beam_size=4, lm_fn=None))
 ```
 
-{: .tip }
-> In interviews, say beam search is **approximate**; production systems add **length normalization**, **blank handling** for CTC, and **diverse decoding** for N-best rescoring.
+!!! tip
+    In interviews, say beam search is **approximate**; production systems add **length normalization**, **blank handling** for CTC, and **diverse decoding** for N-best rescoring.
 
 ### Incident Response and Rollback
 
@@ -980,8 +965,8 @@ print(beam_search_decoder(lp, beam_size=4, lm_fn=None))
 | **WER** | \(\frac{S+D+I}{N}\) substitutions/deletions/insertions vs reference words |
 | **MER / CER** | Token/character variants for morphologically rich languages |
 
-{: .tip }
-> Pair WER with **semantic** task metrics for voice assistants (intent capture), not just string edit distance.
+!!! tip
+    Pair WER with **semantic** task metrics for voice assistants (intent capture), not just string edit distance.
 
 ---
 

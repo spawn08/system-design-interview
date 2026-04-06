@@ -1,19 +1,4 @@
----
-layout: default
-title: Email Delivery System
-parent: System Design Examples
-nav_order: 23
----
-
 # Design an Email Delivery System (SendGrid / SES–like)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -36,8 +21,8 @@ An **email delivery platform** accepts API requests from applications, renders t
 | **Amazon SES** | Regional, bursty senders; integrates with AWS identity and suppression stores |
 | **Gmail / Yahoo / Outlook** | Billions of mailboxes; **each** applies independent filtering and rate limits |
 
-{: .note }
-> In interviews, **never** conflate “our SMTP accepted the message” with “the user saw it.” Final delivery is decided by **recipient MX + spam filters + mailbox policies**.
+!!! note
+    In interviews, **never** conflate “our SMTP accepted the message” with “the user saw it.” Final delivery is decided by **recipient MX + spam filters + mailbox policies**.
 
 ### Why email delivery is surprisingly hard
 
@@ -65,8 +50,8 @@ Email interviews reward **protocol + DNS + reputation** depth. The sections belo
 | **Headers** | Metadata lines in the message (`From:`, `To:`, `Subject:`, `DKIM-Signature:`) — shown (mostly) to users and used by filters | `From: "Acme" <noreply@acme.com>` |
 | **Body** | The MIME payload (plain text, HTML, attachments) | `Content-Type: multipart/alternative` |
 
-{: .important }
-> **Envelope sender** (Return-Path / bounce address) can differ from **From:** header. This mismatch is **normal** (mailing lists, ESPs) but must be **authorized** via SPF/DKIM/DMARC or mail may be rejected.
+!!! important
+    **Envelope sender** (Return-Path / bounce address) can differ from **From:** header. This mismatch is **normal** (mailing lists, ESPs) but must be **authorized** via SPF/DKIM/DMARC or mail may be rejected.
 
 **Classic SMTP submission flow (simplified):**
 
@@ -141,8 +126,8 @@ _dmarc.example.com. IN TXT "v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@ex
 | `pct=` | Percentage of messages subject to policy |
 | `adkim` / `aspf` | Strict (`s`) vs relaxed (`r`) alignment |
 
-{: .tip }
-> Interview answer: **SPF** validates **envelope IP path**, **DKIM** validates **cryptographic signing domain**, **DMARC** ties them to **From:** domain policy and enables **reporting**.
+!!! tip
+    Interview answer: **SPF** validates **envelope IP path**, **DKIM** validates **cryptographic signing domain**, **DMARC** ties them to **From:** domain policy and enables **reporting**.
 
 ### IP reputation and warming
 
@@ -195,8 +180,8 @@ To deliver to `user@gmail.com`, the sending MTA:
 4. Opens SMTP to **port 25** (or MSA paths for submission, which is different).
 5. May fall back to **A** if no MX (legacy behavior).
 
-{: .note }
-> **Submission** (port **587**, STARTTLS, often authenticated) is how **your app** hands mail to **your** provider. **Delivery** to arbitrary domains is typically **25** from your **outbound MTAs**.
+!!! note
+    **Submission** (port **587**, STARTTLS, often authenticated) is how **your app** hands mail to **your** provider. **Delivery** to arbitrary domains is typically **25** from your **outbound MTAs**.
 
 ### Greylisting and transient deferrals
 
@@ -208,8 +193,8 @@ To deliver to `user@gmail.com`, the sending MTA:
 | **421** | Service unavailable | Back off; may indicate overload |
 | **Greylist first connect** | Defer | Second attempt after **5–15+ minutes** often succeeds |
 
-{: .tip }
-> Interview trap: saying “we retry every second” — ISPs will **block** you. Industry practice: **minutes-scale** spacing for deferrals, **caps** on attempts per message.
+!!! tip
+    Interview trap: saying “we retry every second” — ISPs will **block** you. Industry practice: **minutes-scale** spacing for deferrals, **caps** on attempts per message.
 
 ### ARF (Abuse Reporting Format) at a glance
 
@@ -253,8 +238,8 @@ flowchart LR
 | N5 | **Durability** | **Zero loss** of accepted sends (replicated queue / WAL) |
 | N6 | **Audit** | Per-message trace + signed webhooks |
 
-{: .warning }
-> Promise **inbox placement %** carefully: you control **auth, hygiene, throttling** — not Google’s classifier.
+!!! warning
+    Promise **inbox placement %** carefully: you control **auth, hygiene, throttling** — not Google’s classifier.
 
 ---
 
@@ -314,8 +299,8 @@ A full **ESP / transactional platform** spans **outbound delivery** (this doc’
 | **Search** (if webmail in scope) | **Elasticsearch** at scale; **Postgres FTS** for MVP | Match **query complexity** and **team ops** to pick |
 | **Delivery** | **Hybrid** for most products: **managed relay** early; **dedicated IPs + own MTA tier** when volume and deliverability **justify** ops | Optimizes **speed to market** without blocking a later **direct** path |
 
-{: .tip }
-> In interviews, **state the tradeoff explicitly**: “We pick Kafka over SQS here because we need **ordered per-partition processing** and **infinite replay** for reprocessing bounces — SQS is fine if the problem scope is **smaller**.”
+!!! tip
+    In interviews, **state the tradeoff explicitly**: “We pick Kafka over SQS here because we need **ordered per-partition processing** and **infinite replay** for reprocessing bounces — SQS is fine if the problem scope is **smaller**.”
 
 ---
 
@@ -350,8 +335,8 @@ flowchart TB
     M --> F
 ```
 
-{: .note }
-> **Message delivery** to **recipient MX** is **best-effort** in the real world — your SLO is about **your** attempts and **observable** outcomes, not **guaranteed** placement in the user’s inbox.
+!!! note
+    **Message delivery** to **recipient MX** is **best-effort** in the real world — your SLO is about **your** attempts and **observable** outcomes, not **guaranteed** placement in the user’s inbox.
 
 ---
 
@@ -376,8 +361,8 @@ flowchart TB
 | **Product tradeoffs** | When **search** burns budget, **disable** fancy features (highlighting) before **dropping** core **send** path |
 | **Customer comms** | **SLA** may promise **credits** only when **SLA breach** is provable via **your** SLI definitions |
 
-{: .warning }
-> Never promise **inbox placement** as an **SLO** — you don’t control **recipient** systems. Promise **attempts**, **webhooks**, and **suppression** behavior you **own**.
+!!! warning
+    Never promise **inbox placement** as an **SLO** — you don’t control **recipient** systems. Promise **attempts**, **webhooks**, and **suppression** behavior you **own**.
 
 ---
 
@@ -507,8 +492,8 @@ REST-shaped **JSON** over **HTTPS**. All paths **tenant-scoped** via **API key**
 
 **Webhook (delivery events)** — not REST CRUD but expected in API design answers: `POST` to customer URL with **signed** payload for **delivered**, **deferred**, **bounced**, **complained**.
 
-{: .tip }
-> **Why presigned URLs for attachments?** Keeps **heavy** bytes off **app servers** and matches **object store** as source of truth — interviewers like **separation of control plane and data plane**.
+!!! tip
+    **Why presigned URLs for attachments?** Keeps **heavy** bytes off **app servers** and matches **object store** as source of truth — interviewers like **separation of control plane and data plane**.
 
 ---
 
@@ -775,8 +760,8 @@ def build_raw_message(msg: EmailMessage) -> bytes:
     return msg.as_bytes(policy=email_policy.SMTP.clone(linesep="\r\n"))
 ```
 
-{: .note }
-> Use **`smtplib`** for illustration; at scale, **custom async SMTP** (e.g., **aiosmtplib** patterns) or **MTAs** like **Postfix** / **Haraka** with queue integration are common.
+!!! note
+    Use **`smtplib`** for illustration; at scale, **custom async SMTP** (e.g., **aiosmtplib** patterns) or **MTAs** like **Postfix** / **Haraka** with queue integration are common.
 
 ### 4.3 Email authentication implementation
 
@@ -1053,8 +1038,8 @@ def rewrite_links_for_tracking(html: str, tenant_id: str, click_base: str, secre
     return re.sub(r'href="(https?://[^"]+)"', sub, html)
 ```
 
-{: .warning }
-> Apple **Mail Privacy Protection** and other clients prefetch pixels — **open rates** are biased. Treat opens as **directional**, not ground truth.
+!!! warning
+    Apple **Mail Privacy Protection** and other clients prefetch pixels — **open rates** are biased. Treat opens as **directional**, not ground truth.
 
 ### 4.7 Template engine and personalization
 
@@ -1194,8 +1179,8 @@ flowchart TB
 | **GDPR** | **Data minimization** on events, **DPA**, **right to erasure** on PII in logs |
 | **CAN-SPAM / CASL** | **Physical address**, **honest From**, **one-click unsubscribe** for commercial email in scope |
 
-{: .tip }
-> Ask the interviewer **which mail types** (transactional vs marketing) and **which ISPs** matter most — it changes **queues, IPs, and policies**.
+!!! tip
+    Ask the interviewer **which mail types** (transactional vs marketing) and **which ISPs** matter most — it changes **queues, IPs, and policies**.
 
 **Google-style deep questions:**
 

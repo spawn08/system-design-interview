@@ -1,19 +1,4 @@
----
-layout: default
-title: Search Ranking
-parent: ML System Design
-nav_order: 5
----
-
 # Design an ML-Powered Search Ranking System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -29,8 +14,8 @@ We are designing an **ML-powered search ranking system** in the spirit of web se
 | **E-commerce search** | Industry analysts often cite that a large fraction of e-commerce journeys **start with on-site search**; Amazon has reported that a majority of product views originate from search |
 | **Documents indexed** | Billions of web pages; product catalogs in the hundreds of millions per large retailer |
 
-{: .note }
-> In interviews, cite ranges as **back-of-envelope** anchors, not precise audited figures. The point is **orders of magnitude** and **which bottlenecks** dominate (latency, index size, training data).
+!!! note
+    In interviews, cite ranges as **back-of-envelope** anchors, not precise audited figures. The point is **orders of magnitude** and **which bottlenecks** dominate (latency, index size, training data).
 
 ### Learning-to-Rank (LTR) Pipeline
 
@@ -41,8 +26,8 @@ Production search is rarely “one model scores everything.” It is typically a
 3. **Ranking** — score candidates with LTR or neural models under a latency budget.
 4. **Re-ranking** — diversity, freshness, business rules, compliance.
 
-{: .tip }
-> Saying “we use BERT end-to-end on billions of documents per query” fails the interview. Saying **retrieval → rank → re-rank** with explicit **latency budgets** passes.
+!!! tip
+    Saying “we use BERT end-to-end on billions of documents per query” fails the interview. Saying **retrieval → rank → re-rank** with explicit **latency budgets** passes.
 
 ---
 
@@ -106,8 +91,8 @@ flowchart LR
     RR --> Out[Results]
 ```
 
-{: .warning }
-> **Retrieval** must be sub-linear in corpus size (inverted index, ANN). **Full cross-attention over billions** of docs per query is not feasible — narrow the set first.
+!!! warning
+    **Retrieval** must be sub-linear in corpus size (inverted index, ANN). **Full cross-attention over billions** of docs per query is not feasible — narrow the set first.
 
 ---
 
@@ -135,8 +120,8 @@ Clarify **domain**: web search vs e-commerce vs enterprise documents — metrics
 | **Corpus** | **Billions** of documents | Sharded index, replication |
 | **Availability** | 99.9%+ | Degrade to lexical-only if ML path fails |
 
-{: .note }
-> Always ask: **SLO per stage** (e.g. retrieval 50ms, ranker 80ms, re-rank 40ms) so you can trade accuracy vs latency explicitly.
+!!! note
+    Always ask: **SLO per stage** (e.g. retrieval 50ms, ranker 80ms, re-rank 40ms) so you can trade accuracy vs latency explicitly.
 
 ### Metrics
 
@@ -156,8 +141,8 @@ Clarify **domain**: web search vs e-commerce vs enterprise documents — metrics
 | **MAP** | Binary relevance + all ranks |
 | **MRR** | First relevant result rank |
 
-{: .tip }
-> Align offline labels with online goals: clicks are **biased by position** — handle with IPS / propensity models (see §4.5).
+!!! tip
+    Align offline labels with online goals: clicks are **biased by position** — handle with IPS / propensity models (see §4.5).
 
 ---
 
@@ -261,8 +246,8 @@ flowchart LR
     TR --> REG --> CAN --> ONNX
 ```
 
-{: .note }
-> **Training-serving skew** is a classic failure mode: log features and serving features must come from the same definitions (feature store, versioned transforms).
+!!! note
+    **Training-serving skew** is a classic failure mode: log features and serving features must come from the same definitions (feature store, versioned transforms).
 
 ---
 
@@ -281,8 +266,8 @@ flowchart LR
 | **Spell correction** | Edit distance, noisy channel, or seq2seq / small LM |
 | **Query expansion** | Synonyms, embedding neighbors, related queries |
 
-{: .tip }
-> For **navigational** queries, MRR matters; for **informational**, NDCG@10; for **transactional** (shopping), conversion and filters matter.
+!!! tip
+    For **navigational** queries, MRR matters; for **informational**, NDCG@10; for **transactional** (shopping), conversion and filters matter.
 
 **Python: minimal query processor sketch**
 
@@ -405,8 +390,8 @@ flowchart LR
     FUS --> OUT[Top-K Candidates]
 ```
 
-{: .warning }
-> **Embedding staleness**: if the encoder updates, **re-embed** documents on a schedule; version embeddings in the index.
+!!! warning
+    **Embedding staleness**: if the encoder updates, **re-embed** documents on a schedule; version embeddings in the index.
 
 **Python: hybrid retrieval service (illustrative)**
 
@@ -864,8 +849,8 @@ class ServingPipeline:
 | **Segment-based** (cohort features) | Cheaper, more stable | Weaker than 1:1 |
 | **On-device ranking hints** | Privacy-friendly | Limited signals |
 
-{: .warning }
-> Personalization can **filter bubble** or **amplify** sensitive attributes. Interviewers like hearing about **opt-in**, **aggregation**, and **evaluation for fairness** (e.g., slice metrics by region or new vs returning users).
+!!! warning
+    Personalization can **filter bubble** or **amplify** sensitive attributes. Interviewers like hearing about **opt-in**, **aggregation**, and **evaluation for fairness** (e.g., slice metrics by region or new vs returning users).
 
 **Python: lightweight user profile + session features**
 
@@ -937,8 +922,8 @@ class UserProfileBuilder:
 
 **Maximum Marginal Relevance (MMR)** iteratively builds a result set: at each step pick the candidate that maximizes a combination of relevance to the query and **diversity** from already selected docs.
 
-{: .note }
-> E-commerce often **forces diversity of brands**; news search **boosts recency**. State the **product policy** explicitly in interviews.
+!!! note
+    E-commerce often **forces diversity of brands**; news search **boosts recency**. State the **product policy** explicitly in interviews.
 
 **Python: MMR + freshness + dedup helpers**
 
@@ -1112,8 +1097,8 @@ def assign_experiment(user_id: str, exp_ranges: Dict[str, Tuple[int, int]]) -> O
     return None
 ```
 
-{: .tip }
-> Store **trace_id** with every request; join to **click logs** later for offline replay and counterfactual analysis (with care for privacy).
+!!! tip
+    Store **trace_id** with every request; join to **click logs** later for offline replay and counterfactual analysis (with care for privacy).
 
 ---
 
@@ -1144,8 +1129,8 @@ flowchart TB
     S0 & S1 & SB --> M
 ```
 
-{: .note }
-> **Real systems** often combine **shard-local** candidate generation with a **central** re-ranker, or use **two-phase** query processing (e.g., Block-Max indexes) to reduce work — name the idea even if you skip details.
+!!! note
+    **Real systems** often combine **shard-local** candidate generation with a **central** re-ranker, or use **two-phase** query processing (e.g., Block-Max indexes) to reduce work — name the idea even if you skip details.
 
 ### Model serving cluster
 
@@ -1190,8 +1175,8 @@ class ResilientSearch:
         return self.rank(query, merged)
 ```
 
-{: .warning }
-> Production code uses **timeouts**, **circuit breakers**, and **async** RPCs — not bare `except`. This pattern illustrates **fallback ordering** only.
+!!! warning
+    Production code uses **timeouts**, **circuit breakers**, and **async** RPCs — not bare `except`. This pattern illustrates **fallback ordering** only.
 
 ---
 
@@ -1347,8 +1332,8 @@ def pairwise_preferences(blocks: List[QueryImpressionBlock]) -> List[Tuple[str, 
 | Position bias | Joachims et al., **Unbiased learning-to-rank** (propensity / IPS) |
 | Production patterns | Google **WDM**-style stack is proprietary — discuss **generic** two-stage + re-rank |
 
-{: .note }
-> Interview answers should emphasize **architecture and measurement**, not proprietary names you cannot explain.
+!!! note
+    Interview answers should emphasize **architecture and measurement**, not proprietary names you cannot explain.
 
 ---
 
@@ -1362,11 +1347,11 @@ def pairwise_preferences(blocks: List[QueryImpressionBlock]) -> List[Tuple[str, 
 6. **Name failure modes:** index lag, embedding version skew, feature nulls.
 7. **Close with iteration:** how you ship models (canary, shadow traffic).
 
-{: .tip }
-> Practice one **numerical estimate** (QPS, index size, candidates per stage) and one **failure mode** (degraded lexical search) in every mock.
+!!! tip
+    Practice one **numerical estimate** (QPS, index size, candidates per stage) and one **failure mode** (degraded lexical search) in every mock.
 
-{: .warning }
-> Avoid claiming you “solved search” with a single transformer — interviewers probe **latency**, **bias**, and **data**.
+!!! warning
+    Avoid claiming you “solved search” with a single transformer — interviewers probe **latency**, **bias**, and **data**.
 
 ---
 

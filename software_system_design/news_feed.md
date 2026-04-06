@@ -1,19 +1,4 @@
----
-layout: default
-title: News Feed / Timeline
-parent: System Design Examples
-nav_order: 7
----
-
 # Design a News Feed / Timeline System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -45,8 +30,8 @@ A **news feed** (or **timeline**) is the continuously updated stream of posts us
 | **Twitter / X** | Order of **hundreds of millions** of tweets per day (public figures vary by year) | Fan-out and timeline read paths are classic interview topics |
 | **Instagram** | Billions of accounts; feed is media-centric | CDN + transcoding critical |
 
-{: .note }
-> Interview numbers are **approximate**. Cite ranges and explain *how* you’d validate (metrics, load tests) rather than memorizing exact press stats.
+!!! note
+    Interview numbers are **approximate**. Cite ranges and explain *how* you’d validate (metrics, load tests) rather than memorizing exact press stats.
 
 ### Feed Generation and Ranking Pipeline (Conceptual)
 
@@ -117,8 +102,8 @@ flowchart LR
 | `POST` | `/v1/media/upload-url` | Pre-signed URL for direct client → object storage |
 | `GET` | `/v1/ws` or SSE | Optional real-time updates |
 
-{: .tip }
-> Use **cursor-based pagination** for feeds (opaque token), not offset, for stable pages under concurrent writes.
+!!! tip
+    Use **cursor-based pagination** for feeds (opaque token), not offset, for stable pages under concurrent writes.
 
 ### Technology Selection & Tradeoffs
 
@@ -191,8 +176,8 @@ flowchart TB
   end
 ```
 
-{: .warning }
-> A common interview mistake: saying "the whole system is AP." A news feed is **mixed-mode** — the source-of-truth stores (posts, graph) need consistency; the derived stores (feed cache, engagement counts) prioritize availability. Articulate this per-store.
+!!! warning
+    A common interview mistake: saying "the whole system is AP." A news feed is **mixed-mode** — the source-of-truth stores (posts, graph) need consistency; the derived stores (feed cache, engagement counts) prioritize availability. Articulate this per-store.
 
 ---
 
@@ -217,8 +202,8 @@ flowchart TB
 | **< 25%** | Freeze non-critical changes; focus on reliability |
 | **Exhausted** | Incident review; no deploys until budget replenishes |
 
-{: .tip }
-> In interviews, tie SLOs to **user-visible impact**: "Our feed read SLO is 99.99% because feed is the primary screen — every second of downtime affects millions of sessions." This shows product-aware engineering.
+!!! tip
+    In interviews, tie SLOs to **user-visible impact**: "Our feed read SLO is 99.99% because feed is the primary screen — every second of downtime affects millions of sessions." This shows product-aware engineering.
 
 ---
 
@@ -320,8 +305,8 @@ CREATE INDEX idx_engagement_post ON engagement(post_id, type);
 | **feed cache** (Redis) | ~100 B per entry | 100M DAU × 2K cap = 200B entries | ~20 TB RAM (worst case) | — | Only cache active users; cold users fall back to Cassandra |
 | **media** (S3) | ~2 MB avg | 456B media objects (50% of posts) | ~912 PB | Erasure coded by S3 | Lifecycle to Glacier after 1 year |
 
-{: .warning }
-> These numbers are **order-of-magnitude** for interview purposes. In practice, not all 500M users are active, media is highly skewed (most users post rarely), and compression helps significantly. Always state assumptions when presenting estimates.
+!!! warning
+    These numbers are **order-of-magnitude** for interview purposes. In practice, not all 500M users are active, media is highly skewed (most users post rarely), and compression helps significantly. Always state assumptions when presenting estimates.
 
 **Example request/response sketches:**
 
@@ -374,8 +359,8 @@ Reads (feed requests):
   Peak ≈ 170,000 feed QPS
 ```
 
-{: .warning }
-> Peak factors depend on time zones and events; in interviews, state assumptions explicitly (e.g., 2–5× average).
+!!! warning
+    Peak factors depend on time zones and events; in interviews, state assumptions explicitly (e.g., 2–5× average).
 
 ### Storage (Posts + Metadata)
 
@@ -462,8 +447,8 @@ flowchart LR
 - **Regular users** (followers &lt; threshold): **push** fan-out into Redis sorted sets (cap list length).
 - **Celebrities** (followers &gt; threshold): **skip** full push or push only to a “recent subset”; at read time **merge** in-memory from celebrity shards / recent posts cache.
 
-{: .note }
-> Twitter and similar systems have described hybrid models publicly at a high level; exact thresholds are tunable and dynamic.
+!!! note
+    Twitter and similar systems have described hybrid models publicly at a high level; exact thresholds are tunable and dynamic.
 
 ---
 
@@ -507,8 +492,8 @@ sequenceDiagram
 2. Client **PUT**s bytes directly to **S3-compatible** storage.
 3. Optional **async pipeline**: virus scan, image resize, video transcoding → updates `post_media` status.
 
-{: .tip }
-> Never stream large uploads through your stateless API tier; use **direct-to-storage** uploads with short-lived credentials.
+!!! tip
+    Never stream large uploads through your stateless API tier; use **direct-to-storage** uploads with short-lived credentials.
 
 #### Code Examples: Post Service
 
@@ -921,8 +906,8 @@ func (w *Worker) OnPostCreated(e PostCreatedEvent, followerCount int64) error {
 }
 ```
 
-{: .note }
-> In production, **fan-out is batched**, **idempotent**, and **back-pressure aware**; Kafka partitions might be keyed by `author_id` to preserve ordering per author while scaling consumers.
+!!! note
+    In production, **fan-out is batched**, **idempotent**, and **back-pressure aware**; Kafka partitions might be keyed by `author_id` to preserve ordering per author while scaling consumers.
 
 ---
 
@@ -1194,8 +1179,8 @@ flowchart LR
     Vid --> V
 ```
 
-{: .tip }
-> **Cache keys** at CDN should include **content hash** or version in the path so updates propagate predictably (`/media/{id}/v2/thumb.jpg`).
+!!! tip
+    **Cache keys** at CDN should include **content hash** or version in the path so updates propagate predictably (`/media/{id}/v2/thumb.jpg`).
 
 ---
 
@@ -1446,8 +1431,8 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
 }
 ```
 
-{: .note }
-> The Go snippet’s `followerCount` is illustrative — production reads **denormalized** `follower_count` from the profile store to avoid scanning followers.
+!!! note
+    The Go snippet’s `followerCount` is illustrative — production reads **denormalized** `follower_count` from the profile store to avoid scanning followers.
 
 ---
 
@@ -1575,8 +1560,8 @@ func (p *Presigner) CreateUploadURL(ctx context.Context, userID, contentType str
 var _ = v4.Signer{}
 ```
 
-{: .warning }
-> Tune **CORS** on the bucket for browser direct uploads; validate **MIME** server-side before attaching media to a post.
+!!! warning
+    Tune **CORS** on the bucket for browser direct uploads; validate **MIME** server-side before attaching media to a post.
 
 ---
 
@@ -1729,8 +1714,8 @@ func MergeByScore(a, b []ScoredID, limit int) []string {
 | **Ranking timeout** | Fall back to reverse-chronological candidates |
 | **Partial fan-out lag** | Serve stale feed + background catch-up |
 
-{: .warning }
-> Always define **SLIs**: p99 feed latency, fan-out lag, cache hit ratio — and **error budgets** for releases.
+!!! warning
+    Always define **SLIs**: p99 feed latency, fan-out lag, cache hit ratio — and **error budgets** for releases.
 
 ### Monitoring
 
@@ -1755,8 +1740,8 @@ func MergeByScore(a, b []ScoredID, limit int) []string {
 | **Storage** | Hot keys, partitioning, MySQL vs Cassandra |
 | **Media** | CDN cache keys, signed URLs, abuse |
 
-{: .tip }
-> End with **trade-offs**: e.g., “We chose Redis sorted sets for O(log N) inserts with caps; alternative is Cassandra wide rows with TTL — higher ops complexity.”
+!!! tip
+    End with **trade-offs**: e.g., “We chose Redis sorted sets for O(log N) inserts with caps; alternative is Cassandra wide rows with TTL — higher ops complexity.”
 
 ---
 

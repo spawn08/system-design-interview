@@ -1,19 +1,4 @@
----
-layout: default
-title: Ride Sharing (Uber/Lyft)
-parent: System Design Examples
-nav_order: 14
----
-
 # Ride Sharing (Uber/Lyft)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -48,8 +33,8 @@ A **ride-hailing marketplace** that connects passengers who need trips with driv
 | **Chat / realtime** | WebSockets, presence | Ride sharing adds **geo indexes** and **trip state machines** |
 | **Notification system** | Async fan-out | Here, **location streams** dominate hot paths |
 
-{: .note }
-> In interviews, anchor numbers as **orders of magnitude**. Precise public metrics change by year and market; the goal is to show you understand **QPS**, **index cardinality**, and **operational trade-offs**.
+!!! note
+    In interviews, anchor numbers as **orders of magnitude**. Precise public metrics change by year and market; the goal is to show you understand **QPS**, **index cardinality**, and **operational trade-offs**.
 
 ---
 
@@ -91,8 +76,8 @@ A **ride-hailing marketplace** that connects passengers who need trips with driv
 | **Scalability** | Horizontal for stateless APIs; shard geo indexes | Hot cities create hot cells |
 | **Durability** | Trip and payment events auditable for years | Disputes and regulation |
 
-{: .warning }
-> Never claim **exactly-once side effects** at planetary scale without qualifiers. Use **idempotency keys** for payments and trip transitions; make reconciliation jobs first-class.
+!!! warning
+    Never claim **exactly-once side effects** at planetary scale without qualifiers. Use **idempotency keys** for payments and trip transitions; make reconciliation jobs first-class.
 
 ### API Design
 
@@ -125,8 +110,8 @@ A **ride-hailing marketplace** that connects passengers who need trips with driv
 }
 ```
 
-{: .tip }
-> Sequence numbers or monotonic timestamps help clients **discard stale updates** after reconnects.
+!!! tip
+    Sequence numbers or monotonic timestamps help clients **discard stale updates** after reconnects.
 
 ### Technology Selection & Tradeoffs
 
@@ -221,8 +206,8 @@ flowchart TB
   T --> P
 ```
 
-{: .note }
-> Mention **idempotency keys** and **single-writer** patterns for the CP side; mention **timestamps + sequence numbers** on the AP side so clients reject garbage after reconnect.
+!!! note
+    Mention **idempotency keys** and **single-writer** patterns for the CP side; mention **timestamps + sequence numbers** on the AP side so clients reject garbage after reconnect.
 
 ### SLA and SLO Definitions
 
@@ -247,8 +232,8 @@ SLAs are **contracts** (often external); **SLOs** are internal targets composed 
 | **Feature flags** | Disable **non-critical** experiments (e.g., new ranker) when matching SLO burns |
 | **Tiered response** | **Green**: normal deploys. **Yellow**: freeze features; scale matching. **Red**: degrade **AP** paths (coarser map) before **CP** paths (never “best effort” payments) |
 
-{: .warning }
-> Never promise **100%** for distributed systems except where **business definition** allows (e.g., “100% of trips eventually reach terminal state **or** explicit reconciliation case”).
+!!! warning
+    Never promise **100%** for distributed systems except where **business definition** allows (e.g., “100% of trips eventually reach terminal state **or** explicit reconciliation case”).
 
 ### Database Schema
 
@@ -318,8 +303,8 @@ At scale, **Redis GEO** holds the same fields with TTL; **OLTP** may store only 
 | `idempotency_key` | `TEXT` UNIQUE | **Mandatory** for captures |
 | `created_at`, `settled_at` | `TIMESTAMPTZ` | Reconciliation |
 
-{: .tip }
-> In a deep dive, add **`trip_events`** (append-only) for audit and **`outbox`** rows for reliable downstream notifications—interviewers reward **event + transaction** pairing.
+!!! tip
+    In a deep dive, add **`trip_events`** (append-only) for audit and **`outbox`** rows for reliable downstream notifications—interviewers reward **event + transaction** pairing.
 
 ---
 
@@ -349,8 +334,8 @@ Suppose 80,000 concurrent active trips city-wide at peak (illustrative).
 Updates per second ≈ 80,000 / 3 ≈ 27,000 loc/s (plus idle driver heartbeats).
 ```
 
-{: .note }
-> **Writes** to location pipelines often exceed **trip creation** QPS by an order of magnitude. Design the hot path for ingestion and aggregation, not just CRUD.
+!!! note
+    **Writes** to location pipelines often exceed **trip creation** QPS by an order of magnitude. Design the hot path for ingestion and aggregation, not just CRUD.
 
 ### Storage (orders of magnitude)
 
@@ -431,8 +416,8 @@ flowchart TB
 - **Pricing**: base fare, distance/time, surge multipliers with caps
 - **Payments**: PSP integration; idempotent captures; payout scheduler
 
-{: .tip }
-> Keep **trip state transitions** in a small number of services with clear ownership. Avoid “matching updates trip directly” and “trip calls matching in a circle” without a defined orchestration pattern (saga, outbox).
+!!! tip
+    Keep **trip state transitions** in a small number of services with clear ownership. Avoid “matching updates trip directly” and “trip calls matching in a circle” without a defined orchestration pattern (saga, outbox).
 
 ### Geospatial Grid (conceptual)
 
@@ -473,8 +458,8 @@ Cells may be **geohash prefixes**, **S2 cells**, or **quadtree** buckets backed 
 - **WebSocket** (or HTTP/2 streams) is standard for streaming updates to the rider during dispatch and trip
 - Polling is simpler but wastes battery and increases tail latency
 
-{: .note }
-> Treat **high-frequency location** as a **stream processing** problem: backpressure, poison messages, and consumer lag dashboards are production requirements.
+!!! note
+    Treat **high-frequency location** as a **stream processing** problem: backpressure, poison messages, and consumer lag dashboards are production requirements.
 
 ### 4.2 Geospatial Indexing (Geohash / S2 / QuadTree)
 
@@ -529,8 +514,8 @@ sequenceDiagram
   M->>T: assign(driver_id)
 ```
 
-{: .warning }
-> **Nearest in straight-line distance** is a common trap. Interviewers reward mentioning **road-network ETA** and **one-way systems**.
+!!! warning
+    **Nearest in straight-line distance** is a common trap. Interviewers reward mentioning **road-network ETA** and **one-way systems**.
 
 ### 4.4 ETA Computation
 
@@ -815,5 +800,5 @@ flowchart TD
   H --> I[Complete trip + capture payment]
 ```
 
-{: .note }
-> Production systems add **experiments**, **shadow traffic**, and **safety checks** between every step; the diagram is a conceptual backbone for discussion.
+!!! note
+    Production systems add **experiments**, **shadow traffic**, and **safety checks** between every step; the diagram is a conceptual backbone for discussion.

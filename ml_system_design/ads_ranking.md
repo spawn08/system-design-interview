@@ -1,19 +1,4 @@
----
-layout: default
-title: Ads Ranking System
-parent: ML System Design
-nav_order: 7
----
-
 # Design an Ads Ranking System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -30,8 +15,8 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 | **Latency budget** | End-to-end **tens of milliseconds** for the auction + ranking path at peak |
 | **Candidates per request** | **Hundreds to thousands** retrieved; **dozens** deeply scored |
 
-{: .note }
-> Interview numbers should be **back-of-envelope**. The goal is to show you understand **orders of magnitude**, **bottlenecks** (retrieval, feature fetch, model inference, auction math), and **trade-offs** (revenue vs latency vs advertiser satisfaction).
+!!! note
+    Interview numbers should be **back-of-envelope**. The goal is to show you understand **orders of magnitude**, **bottlenecks** (retrieval, feature fetch, model inference, auction math), and **trade-offs** (revenue vs latency vs advertiser satisfaction).
 
 ### Why ads ranking is among the most impactful ML systems
 
@@ -42,8 +27,8 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 | **Multi-objective** | Platform revenue, **advertiser ROI**, **user experience**, and **policy compliance** must coexist |
 | **Cold start forever** | New campaigns, creatives, and landing pages constantly enter the system |
 
-{: .tip }
-> In interviews, connect **pCTR × bid** (expected revenue per impression) to **business metrics**, and separate **retrieval** (cheap, broad) from **ranking** (accurate, narrow).
+!!! tip
+    In interviews, connect **pCTR × bid** (expected revenue per impression) to **business metrics**, and separate **retrieval** (cheap, broad) from **ranking** (accurate, narrow).
 
 ---
 
@@ -82,8 +67,8 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 | **Generalized Second-Price (GSP)** | Price derived from next competitor’s bid (common in sponsored search) | Not fully truthful; advertisers shade bids |
 | **First-price** | Own bid | Incentivizes bid shading; prevalent in many display contexts |
 
-{: .warning }
-> Production systems differ by **ad format**, **market**, and **year**. Say **“we’d validate auction type with PM / economics team”** rather than asserting one global rule.
+!!! warning
+    Production systems differ by **ad format**, **market**, and **year**. Say **“we’d validate auction type with PM / economics team”** rather than asserting one global rule.
 
 ### Feature engineering for ads
 
@@ -197,8 +182,8 @@ flowchart TB
 | **Log loss** | Proper scoring rule; pairs with calibration |
 | **Calibration (ECE, reliability diagrams)** | Align pCTR with reality for auction math |
 
-{: .note }
-> Tie offline metrics to **business**: a 0.001 AUC lift at billion-scale impressions is enormous — but only if **calibration** and **bias correction** hold.
+!!! note
+    Tie offline metrics to **business**: a 0.001 AUC lift at billion-scale impressions is enormous — but only if **calibration** and **bias correction** hold.
 
 ---
 
@@ -232,8 +217,8 @@ If **P99 = 50ms** total and fixed overhead (RPC, serialization) = **15ms**, **35
 | Calibration + ensemble | 1–3ms |
 | Auction compute | &lt; 1ms per candidate set at scale (optimized) |
 
-{: .tip }
-> Show you’d **measure** with distributed tracing; numbers are **hypotheses** to structure discussion.
+!!! tip
+    Show you’d **measure** with distributed tracing; numbers are **hypotheses** to structure discussion.
 
 ---
 
@@ -282,8 +267,8 @@ flowchart LR
     ASM --> M --> E --> SEL --> SRV
 ```
 
-{: .warning }
-> At scale, **retrieval** and **feature fetch** often dominate — not the neural net alone. Call out **parallelism** and **candidate reduction** explicitly.
+!!! warning
+    At scale, **retrieval** and **feature fetch** often dominate — not the neural net alone. Call out **parallelism** and **candidate reduction** explicitly.
 
 ### Offline training and logging (companion path)
 
@@ -317,8 +302,8 @@ flowchart LR
     JOIN --> FEAT --> TUNE --> REL
 ```
 
-{: .note }
-> **Point-in-time correctness**: features in training must match what was **knowable** at impression time — no **future** clicks in the feature vector.
+!!! note
+    **Point-in-time correctness**: features in training must match what was **knowable** at impression time — no **future** clicks in the feature vector.
 
 ---
 
@@ -385,8 +370,8 @@ def under_freq_cap(impressions_for_ad_user: int, max_impressions: int) -> bool:
     return impressions_for_ad_user < max_impressions
 ```
 
-{: .note }
-> Real retrieval also uses **approximate** methods, **sharding**, and **negative targeting** — the interview win is **data structures + latency**, not perfect pseudocode.
+!!! note
+    Real retrieval also uses **approximate** methods, **sharding**, and **negative targeting** — the interview win is **data structures + latency**, not perfect pseudocode.
 
 ---
 
@@ -436,8 +421,8 @@ def build_sparse_example(
     return example
 ```
 
-{: .tip }
-> Mention **embedding tables** for high-cardinality IDs (advertiser, campaign) and **shared embeddings** between similar entities when privacy allows.
+!!! tip
+    Mention **embedding tables** for high-cardinality IDs (advertiser, campaign) and **shared embeddings** between similar entities when privacy allows.
 
 ---
 
@@ -549,8 +534,8 @@ class PairwiseDotProduct(nn.Module):
 - **Negative sampling:** Impressions without clicks dominate — **downsample negatives** or **reweight** to stabilize training.
 - **Freshness:** Hourly or faster **retraining** or **online learning** for high-churn ads.
 
-{: .warning }
-> **Inference** at scale often uses **distillation** from a large teacher to a small student, or **quantization** — mention for production credibility.
+!!! warning
+    **Inference** at scale often uses **distillation** from a large teacher to a small student, or **quantization** — mention for production credibility.
 
 ---
 
@@ -599,8 +584,8 @@ def assign_slots(ads: list[dict]) -> list[dict]:
 | **Reserve price** | Floor for publisher revenue |
 | **Quality score** | Penalize irrelevant ads — improves UX and long-term revenue |
 
-{: .note }
-> Tie **quality score** to **predicted engagement** and **landing page signals** — interviewers like **multi-sided** reasoning.
+!!! note
+    Tie **quality score** to **predicted engagement** and **landing page signals** — interviewers like **multi-sided** reasoning.
 
 #### Multi-slot GSP walkthrough (worked example)
 
@@ -640,8 +625,8 @@ Using the full ordering **A1, A2, A3, A4, A5**:
 
 **Interpretation:** A3 pays the highest **CPC** among winners here because its **quality × pCTR** is weak — to *stay* in slot 2, it must compensate with a high per-click price. **Platform revenue** on the page (ignoring reserves) is \(\sum_i \text{CPC}_i \cdot p_i\) in **expected cost per impression** terms for CPC billing (exact cashflow depends on auction instance and accounting).
 
-{: .tip }
-> In interviews, state clearly: **rank score** uses **predictions** (\(p_i\)); **GSP** maps the **next** score into a **CPC** using the winner’s **\(q_i p_i\)** — this couples **ML** and **mechanism**.
+!!! tip
+    In interviews, state clearly: **rank score** uses **predictions** (\(p_i\)); **GSP** maps the **next** score into a **CPC** using the winner’s **\(q_i p_i\)** — this couples **ML** and **mechanism**.
 
 #### VCG: marginal contribution pricing
 
@@ -674,8 +659,8 @@ VCG price for bidder 1: \(p_1 = 7 - 0 = 7\) (classic second-price). Bidder 2, if
 
 **Equilibrium intuition:** In FP, if everyone bids truthfully, you overpay — so bids adjust downward until **best-response** stability. In SP, truth-telling is stable in simple single-item models — but **GSP** is **not** SP when multiple slots exist, so **auction design + auto-bids** jointly determine empirical outcomes.
 
-{: .warning }
-> Production **hybrid** rules (reserves, floors, first-price layers in open auctions, quality thresholds) mean **“the”** auction is rarely pure textbook GSP or pure FP — say you’d **verify** with **ads economics** / **product** docs.
+!!! warning
+    Production **hybrid** rules (reserves, floors, first-price layers in open auctions, quality thresholds) mean **“the”** auction is rarely pure textbook GSP or pure FP — say you’d **verify** with **ads economics** / **product** docs.
 
 #### Reserve price: mechanism and revenue
 
@@ -755,8 +740,8 @@ if __name__ == "__main__":
         print(f"slot {slot}: {ad.ad_id} CPC={cpc:.4f} E[cost/imp]={ecpm:.5f}")
 ```
 
-{: .note }
-> This matches the **worked table** above when `score_reserve=0`: next score is the next row’s \(\text{score}\). Setting **`score_reserve`** models a **publisher floor** on **externality** from the competitor below the last visible slot.
+!!! note
+    This matches the **worked table** above when `score_reserve=0`: next score is the next row’s \(\text{score}\). Setting **`score_reserve`** models a **publisher floor** on **externality** from the competitor below the last visible slot.
 
 ---
 
@@ -786,8 +771,8 @@ def pacing_eligible(
 
 **Spend optimization:** For **tCPA** / **tROAS**, automated bidding adjusts bids — **separate** from the ranker but **constrained** by pacing.
 
-{: .tip }
-> Mention **shadow traffic** and **budget safety** — never blow past **daily caps** due to race conditions without reconciliation.
+!!! tip
+    Mention **shadow traffic** and **budget safety** — never blow past **daily caps** due to race conditions without reconciliation.
 
 ---
 
@@ -827,8 +812,8 @@ def sample_batch(impressions: list[dict], neg_ratio: int = 10) -> list[dict]:
     return positives + negatives
 ```
 
-{: .warning }
-> **Delayed labels** mean **training-serving skew** — monitor **age of data** in features vs labels.
+!!! warning
+    **Delayed labels** mean **training-serving skew** — monitor **age of data** in features vs labels.
 
 ---
 
@@ -935,8 +920,8 @@ def update_beta(prior: tuple[float, float], clicked: bool) -> tuple[float, float
     return a, b + 1
 ```
 
-{: .tip }
-> Connect exploration to **guardrails**: **brand safety**, **policy**, and **max spend** per explore slot.
+!!! tip
+    Connect exploration to **guardrails**: **brand safety**, **policy**, and **max spend** per explore slot.
 
 ---
 
@@ -956,8 +941,8 @@ def update_beta(prior: tuple[float, float], clicked: bool) -> tuple[float, float
 
 **Control intuition:** If **observed CPA** over the last window is **above** target (too expensive), **lower** effective bids; if **below**, **raise** bids to capture volume — subject to **budget** and **inventory** constraints.
 
-{: .warning }
-> **Non-stationarity:** competitors, seasonality, and **creative fatigue** change the **bid → CPA** mapping — controllers need **guards** (max step size, min/max bid floors).
+!!! warning
+    **Non-stationarity:** competitors, seasonality, and **creative fatigue** change the **bid → CPA** mapping — controllers need **guards** (max step size, min/max bid floors).
 
 #### Target ROAS (return on ad spend)
 
@@ -1077,8 +1062,8 @@ def tcpa_sgd_step(log_mult: float, lr: float, observed_cpa: float, target: float
     return log_mult - lr * grad
 ```
 
-{: .note }
-> Production systems add **constraints** (min ROAS, max CPC), **per-segment** landscapes, and **exploration** — the interview win is **closed-loop** structure, not PID tuning constants.
+!!! note
+    Production systems add **constraints** (min ROAS, max CPC), **per-segment** landscapes, and **exploration** — the interview win is **closed-loop** structure, not PID tuning constants.
 
 ---
 
@@ -1102,8 +1087,8 @@ Modern **ads interviews** increasingly expect fluency in **identity deprecation*
 | **Protected Audience API (FLEDGE)** | **On-device** auction among **interest groups** previously joined — supports **remarketing-style** use cases with **restricted** cross-site data flow |
 | **Attribution Reporting API (ARA)** | **Conversion measurement** with **noise**, **delays**, and **limits** — **no** raw cross-site identifiers in reports |
 
-{: .warning }
-> Names and details **evolve** — cite **“Privacy Sandbox documentation”** and **principles** in interviews rather than pinning a single deprecated acronym.
+!!! warning
+    Names and details **evolve** — cite **“Privacy Sandbox documentation”** and **principles** in interviews rather than pinning a single deprecated acronym.
 
 #### Differential privacy for aggregate measurement
 
@@ -1135,8 +1120,8 @@ Modern **ads interviews** increasingly expect fluency in **identity deprecation*
 | **Personalization** | Needs **signals** — move to **contextual**, **first-party**, **on-device**, **cohort** |
 | **Revenue** | **Publisher** and **advertiser** both need **measurable** outcomes — **aggregate noisy** metrics + **modeled** lift |
 
-{: .tip }
-> Strong L5/L6 answer: **“We separate **targeting eligibility** (what’s allowed to run) from **auction value** (pCTR × bid) and invest in **calibrated** models on **available** signals plus **incrementality** studies for **true** ROI.”**
+!!! tip
+    Strong L5/L6 answer: **“We separate **targeting eligibility** (what’s allowed to run) from **auction value** (pCTR × bid) and invest in **calibrated** models on **available** signals plus **incrementality** studies for **true** ROI.”**
 
 ---
 
@@ -1223,8 +1208,8 @@ flowchart TB
 - “**Cold start** is handled with **exploration budgets** and **hierarchical** priors at advertiser level.”
 - “**Failure mode**: feature timeout → **degrade** to cached features or simpler model, never **empty** the ad slot without policy intent.”
 
-{: .note }
-> Practice **one** whiteboard path: **1M QPS** → **regional** → **shard by user** → **parallel retrieval** → **batch inference** → **auction on top-K**.
+!!! note
+    Practice **one** whiteboard path: **1M QPS** → **regional** → **shard by user** → **parallel retrieval** → **batch inference** → **auction on top-K**.
 
 ### Common follow-up questions
 
@@ -1437,5 +1422,5 @@ This walkthrough is intentionally dense: use it as a **checklist** in mock inter
 
 **Interviewer:** There’s usually a **budget** and **safety** layers — details vary by **format**. Thanks for the structured walkthrough.
 
-{: .note }
-> Use this transcript as a **timing** template: **architecture** first, then **economics**, **bias**, **privacy**, and **sharp** follow-ups — typical for **staff** loops.
+!!! note
+    Use this transcript as a **timing** template: **architecture** first, then **economics**, **bias**, **privacy**, and **sharp** follow-ups — typical for **staff** loops.

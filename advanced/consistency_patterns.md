@@ -1,19 +1,4 @@
----
-layout: default
-title: Consistency Patterns
-parent: Advanced Topics
-nav_order: 5
----
-
 # Consistency Patterns
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -134,8 +119,8 @@ sequenceDiagram
 | **Availability** | Any participant failure blocks the entire transaction |
 | **Single point of failure** | Coordinator crash is catastrophic |
 
-{: .warning }
-> 2PC is widely used within a single data center but is problematic across wide-area networks. For cross-service transactions in microservices, prefer the **saga pattern** instead.
+!!! warning
+    2PC is widely used within a single data center but is problematic across wide-area networks. For cross-service transactions in microservices, prefer the **saga pattern** instead.
 
 ### Java Example: Quorum-Based Read/Write
 
@@ -554,7 +539,6 @@ from dataclasses import dataclass, field
 from typing import Any
 import uuid
 
-
 @dataclass
 class ORSet:
     """
@@ -602,7 +586,6 @@ class ORSet:
             if elem not in self._removes:
                 self._removes[elem] = set()
             self._removes[elem].update(tags)
-
 
 # Usage: distributed shopping cart
 cart_node1 = ORSet()
@@ -915,8 +898,8 @@ flowchart TD
 | Leader election | Strong (Raft/Paxos) | Exactly one leader at any time is critical |
 | User session data | Read-your-writes | User must see their own changes immediately |
 
-{: .important }
-> In interviews, never say "we need strong consistency" without explaining the cost. Always frame it as: "For this specific data, strong consistency is worth the latency penalty because [reason]. For other data in the system, we can use eventual consistency to improve performance."
+!!! important
+    In interviews, never say "we need strong consistency" without explaining the cost. Always frame it as: "For this specific data, strong consistency is worth the latency penalty because [reason]. For other data in the system, we can use eventual consistency to improve performance."
 
 ---
 

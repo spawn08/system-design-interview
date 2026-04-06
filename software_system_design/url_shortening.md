@@ -1,19 +1,4 @@
----
-layout: default
-title: URL Shortener (TinyURL)
-parent: System Design Examples
-nav_order: 1
----
-
 # Design a URL Shortener (TinyURL/Bitly)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 

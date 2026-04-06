@@ -1,19 +1,4 @@
----
-layout: default
-title: LLM-Powered Chatbot
-parent: GenAI System Design
-nav_order: 1
----
-
 # Design an LLM-Powered Chatbot
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -83,8 +68,8 @@ Memory cost:
   At 4096 context: ~10 GB KV-cache per request
 ```
 
-{: .warning }
-> KV-cache memory is the primary bottleneck for LLM serving, not compute. This is why techniques like PagedAttention, KV-cache compression, and shorter contexts matter enormously.
+!!! warning
+    KV-cache memory is the primary bottleneck for LLM serving, not compute. This is why techniques like PagedAttention, KV-cache compression, and shorter contexts matter enormously.
 
 ### PagedAttention (vLLM)
 
@@ -797,13 +782,13 @@ flowchart TB
 
 ## Interview Tips
 
-{: .tip }
-> **Google interviewers will probe these areas:**
-> 1. "How do you handle a 100-turn conversation that exceeds context length?" — Summarization, retrieval from history
-> 2. "What happens when GPU utilization hits 100%?" — Preemption, load shedding, queue management
-> 3. "How do you evaluate if a response is good?" — Multi-dimensional eval, LLM-as-judge, human eval
-> 4. "Walk me through the lifecycle of a single request" — Full path from client to GPU and back
-> 5. "How do you keep cost under $0.01 per query?" — Quantization, speculative decoding, caching
+!!! tip
+    **Google interviewers will probe these areas:**
+    1. "How do you handle a 100-turn conversation that exceeds context length?" — Summarization, retrieval from history
+    2. "What happens when GPU utilization hits 100%?" — Preemption, load shedding, queue management
+    3. "How do you evaluate if a response is good?" — Multi-dimensional eval, LLM-as-judge, human eval
+    4. "Walk me through the lifecycle of a single request" — Full path from client to GPU and back
+    5. "How do you keep cost under $0.01 per query?" — Quantization, speculative decoding, caching
 
 **Common follow-up questions:**
 - How would you add tool/function calling?
@@ -816,8 +801,8 @@ flowchart TB
 
 ## Hypothetical Interview Transcript
 
-{: .note }
-> This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Gemini serving team.
+!!! note
+    This transcript simulates a 45-minute Google L5/L6 system design round. The interviewer is a Staff Engineer on the Gemini serving team.
 
 ---
 

@@ -1,19 +1,4 @@
----
-layout: default
-title: Data Warehousing & Lakes
-parent: Advanced Topics
-nav_order: 3
----
-
 # Data Warehousing and Data Lakes
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -67,8 +52,8 @@ flowchart LR
 | **ETL** | Outside warehouse (dedicated pipeline) | Limited warehouse compute, sensitive data | Informatica, Talend, custom scripts |
 | **ELT** | Inside warehouse (SQL transforms) | Modern cloud warehouses with cheap compute | dbt, BigQuery, Snowflake |
 
-{: .tip }
-> Modern architectures favor **ELT** because cloud warehouses (BigQuery, Snowflake, Redshift) have massive compute capacity. Load raw data first, then transform with SQL — this is simpler and more flexible.
+!!! tip
+    Modern architectures favor **ELT** because cloud warehouses (BigQuery, Snowflake, Redshift) have massive compute capacity. Load raw data first, then transform with SQL — this is simpler and more flexible.
 
 ### Dimensional Modeling
 
@@ -166,8 +151,8 @@ Snowflake: FACT → DIM_PRODUCT → DIM_CATEGORY → DIM_BRAND
 | **Star** | Fewer | More (denormalized) | Faster | Simpler |
 | **Snowflake** | More | Less (normalized) | Slower | More complex |
 
-{: .note }
-> In interviews, default to **star schema** — it's simpler and faster for the analytical workloads that warehouses handle. Snowflake schema is mainly used when storage cost is a primary concern.
+!!! note
+    In interviews, default to **star schema** — it's simpler and faster for the analytical workloads that warehouses handle. Snowflake schema is mainly used when storage cost is a primary concern.
 
 ### Java Example: ETL Pipeline Framework
 
@@ -330,8 +315,8 @@ flowchart TD
 | **Data quality** | High (curated) | Variable (raw data mixed with curated) |
 | **Governance** | Strong (schemas enforced) | Weak (data swamp risk) |
 
-{: .warning }
-> A data lake without governance becomes a **data swamp** — a dumping ground of unorganized, undocumented, unusable data. Always implement metadata catalogs, access controls, and data quality checks.
+!!! warning
+    A data lake without governance becomes a **data swamp** — a dumping ground of unorganized, undocumented, unusable data. Always implement metadata catalogs, access controls, and data quality checks.
 
 ---
 
@@ -379,14 +364,12 @@ spark = SparkSession.builder \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .getOrCreate()
 
-
 def bronze_ingest(source_path: str, bronze_path: str) -> int:
     """Raw ingestion — read from source, write as-is to bronze zone."""
     raw_df = spark.read.json(source_path)
     raw_df = raw_df.withColumn("_ingested_at", F.current_timestamp())
     raw_df.write.format("delta").mode("append").save(bronze_path)
     return raw_df.count()
-
 
 def silver_transform(bronze_path: str, silver_path: str) -> int:
     """Clean and validate — deduplicate, cast types, filter bad records."""
@@ -410,7 +393,6 @@ def silver_transform(bronze_path: str, silver_path: str) -> int:
         .partitionBy("store_id") \
         .save(silver_path)
     return silver_df.count()
-
 
 def gold_aggregate(silver_path: str, gold_path: str) -> int:
     """Business-ready aggregations for dashboards and ML features."""
@@ -621,8 +603,8 @@ flowchart TD
     FORMAT -->|Streaming upserts| HUDI[Apache Hudi]
 ```
 
-{: .important }
-> In interviews, always explain **why** you need a separate analytics system from the OLTP database. Key reasons: (1) analytical queries are expensive and would slow down the production DB, (2) you need to join data from multiple sources, (3) you need historical data that the OLTP DB doesn't retain, (4) different access patterns require different storage optimizations.
+!!! important
+    In interviews, always explain **why** you need a separate analytics system from the OLTP database. Key reasons: (1) analytical queries are expensive and would slow down the production DB, (2) you need to join data from multiple sources, (3) you need historical data that the OLTP DB doesn't retain, (4) different access patterns require different storage optimizations.
 
 ---
 

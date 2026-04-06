@@ -1,19 +1,4 @@
----
-layout: default
-title: Machine Translation
-parent: ML System Design
-nav_order: 9
----
-
 # Design a Machine Translation System (like Google Translate)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 9
 
 We are designing a **large-scale neural machine translation (NMT)** platform comparable in spirit to **Google Translate**: support for **100+ languages**, **billions of translations per day**, and **multiple modalities**—plain text, **image/OCR** (translate text in photos), **speech** (ASR → translate → TTS), and **real-time conversation** (streaming, low-latency turn-taking).
 
-{: .tip }
-> In interviews, anchor numbers to public ballparks (orders of magnitude), then show how you derive capacity from QPS, sequence length, and model FLOPs—interviewers care about structured reasoning more than exact figures.
+!!! tip
+    In interviews, anchor numbers to public ballparks (orders of magnitude), then show how you derive capacity from QPS, sequence length, and model FLOPs—interviewers care about structured reasoning more than exact figures.
 
 ### Reference scale (public-order benchmarks)
 
@@ -67,8 +52,8 @@ Conceptually:
 
 where \(h_j\) are encoder states and \(\alpha_{ij}\) are normalized scores (often softmax of a compatibility function).
 
-{: .note }
-> In interviews, say clearly: **dot-product / additive attention** were precursors; **Transformers** generalize this into **multi-head self-attention** and **cross-attention**.
+!!! note
+    In interviews, say clearly: **dot-product / additive attention** were precursors; **Transformers** generalize this into **multi-head self-attention** and **cross-attention**.
 
 ### Transformer architecture for translation
 
@@ -105,8 +90,8 @@ Modern systems often use **learned positional embeddings** or **relative positio
 - **Morphologically rich languages** (Finnish, Turkish, German compounding): one “word” can encode what English expresses as a phrase
 - **Agglutinative languages**: long tokens with many morphemes; character-only models are expressive but inefficient without subwords
 
-{: .warning }
-> For production, you almost always want **shared multilingual subword vocab** + **script-appropriate normalization** (Unicode NFC/NFKC, digit mapping policies), not “split on spaces.”
+!!! warning
+    For production, you almost always want **shared multilingual subword vocab** + **script-appropriate normalization** (Unicode NFC/NFKC, digit mapping policies), not “split on spaces.”
 
 ### Multilingual models: shared vocabulary, language tokens, zero-shot
 
@@ -198,8 +183,8 @@ flowchart LR
 | **Cost** | Minimize $/1M characters | Quantization, batching, routing |
 | **Safety & compliance** | Abuse detection hooks, regional data policies | Especially for user-generated content |
 
-{: .note }
-> Always separate **per-request latency** (interactive) from **document latency** (minutes acceptable). Interviewers reward this distinction.
+!!! note
+    Always separate **per-request latency** (interactive) from **document latency** (minutes acceptable). Interviewers reward this distinction.
 
 ---
 
@@ -1056,8 +1041,8 @@ flowchart TB
 | **Document translation** | Segmentation, context windows, glossary, layout preservation |
 | **Safety** | Abuse, PII handling, regional policy |
 
-{: .tip }
-> Practice one **numeric** capacity estimate (words/day → GPU tokens/s) and one **failure mode** (bad rollout + automatic rollback)—that combination signals senior thinking.
+!!! tip
+    Practice one **numeric** capacity estimate (words/day → GPU tokens/s) and one **failure mode** (bad rollout + automatic rollback)—that combination signals senior thinking.
 
 ---
 

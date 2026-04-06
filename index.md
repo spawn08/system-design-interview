@@ -1,16 +1,6 @@
----
-layout: home
-title: Home
-nav_order: 1
-description: "Master system design interviews with practical examples and clear explanations"
-permalink: /
----
-
 # System Design Interview Guide
-{: .fs-9 }
 
-Your comprehensive resource for mastering system design interviews — 75 topics across software engineering, ML, and GenAI, with step-by-step walkthroughs, architecture diagrams, code examples, and interview transcripts.
-{: .fs-6 .fw-300 }
+Your comprehensive resource for mastering system design interviews — 75+ topics across software engineering, ML, and GenAI, with step-by-step walkthroughs, architecture diagrams, code examples, and interview transcripts.
 
 ---
 
@@ -28,8 +18,8 @@ Your comprehensive resource for mastering system design interviews — 75 topics
 
 ## Recommended Learning Paths
 
-{: .tip }
-> Follow these paths in order. Each builds on the previous. Skip sections you're already confident in.
+!!! tip
+    Follow these paths in order. Each builds on the previous. Skip sections you're already confident in.
 
 ### Path 1: Software System Design (SDE / Senior SDE)
 
@@ -100,126 +90,133 @@ Week 7-8: Leadership + Practice
 
 ## What's Inside
 
-### [Fundamentals]({{ site.baseurl }}/basics/)
+### [Fundamentals](basics/index.md)
 Start here. The building blocks that appear in every system design interview.
 
-- [**Interview Framework**]({{ site.baseurl }}/basics/interview_framework) - How to approach any system design question
-- [**Estimation & Planning**]({{ site.baseurl }}/basics/estimation) - Back-of-the-envelope calculations
-- [**Networking**]({{ site.baseurl }}/basics/networking) - TCP/UDP, HTTP, DNS, WebSockets
-- [**Databases**]({{ site.baseurl }}/basics/databases) - SQL vs NoSQL, ACID, CAP theorem
-- [**Caching**]({{ site.baseurl }}/basics/caching) - Speed up reads with in-memory storage
-- [**Load Balancing**]({{ site.baseurl }}/basics/load_balancer) - Distribute traffic across servers
-- [**API Design**]({{ site.baseurl }}/basics/api_design) - REST, GraphQL, versioning, authentication
-- [**Concurrency**]({{ site.baseurl }}/basics/concurrency) - Threads, locks, async patterns
-- [**Security**]({{ site.baseurl }}/basics/security) - Encryption, hashing, TLS, common vulnerabilities
-- [**Scalability & Reliability**]({{ site.baseurl }}/basics/scalability) - Scaling, availability, disaster recovery
-- [**Distributed Systems**]({{ site.baseurl }}/basics/distributed_systems) - CAP, consensus, message queues, DHTs
+- [**Interview Framework**](basics/interview_framework.md) - How to approach any system design question
+- [**Estimation & Planning**](basics/estimation.md) - Back-of-the-envelope calculations
+- [**Networking**](basics/networking.md) - TCP/UDP, HTTP, DNS, WebSockets
+- [**Databases**](basics/databases.md) - SQL vs NoSQL, ACID, CAP theorem
+- [**Caching**](basics/caching.md) - Speed up reads with in-memory storage
+- [**Load Balancing**](basics/load_balancer.md) - Distribute traffic across servers
+- [**API Design**](basics/api_design.md) - REST, GraphQL, versioning, authentication
+- [**Concurrency**](basics/concurrency.md) - Threads, locks, async patterns
+- [**Security**](basics/security.md) - Encryption, hashing, TLS, common vulnerabilities
+- [**Scalability & Reliability**](basics/scalability.md) - Scaling, availability, disaster recovery
+- [**Distributed Systems**](basics/distributed_systems.md) - CAP, consensus, message queues, DHTs
 
-### [Advanced Topics]({{ site.baseurl }}/advanced/)
+### [Advanced Topics](advanced/index.md)
 Deep dives for Senior and Staff-level interviews.
 
-- [**Message Queues & Streaming**]({{ site.baseurl }}/advanced/message_queues) - Kafka, RabbitMQ, Flink, event-driven patterns
-- [**Search Systems**]({{ site.baseurl }}/advanced/search_systems) - Inverted indexes, Elasticsearch, BM25
-- [**Consistency Patterns**]({{ site.baseurl }}/advanced/consistency_patterns) - CRDTs, sagas, transactional outbox, quorum
-- [**Microservices Architecture**]({{ site.baseurl }}/advanced/microservices) - Service discovery, API gateways, Kubernetes
-- [**Data Warehousing & Lakes**]({{ site.baseurl }}/advanced/data_warehousing) - ETL, star schema, Spark, lakehouse
-- [**Object Storage & CDN**]({{ site.baseurl }}/advanced/object_storage_cdn) - S3, blob storage, edge caching
-- [**Distributed Locking**]({{ site.baseurl }}/advanced/distributed_locking) - Redlock, fencing tokens, ZooKeeper
-- [**Observability**]({{ site.baseurl }}/advanced/observability) - Logging, metrics, tracing, OpenTelemetry
-- [**Event Sourcing & CQRS**]({{ site.baseurl }}/advanced/event_sourcing_cqrs) - Append-only logs, projections
-- [**Consensus Algorithms**]({{ site.baseurl }}/advanced/consensus_algorithms) - Raft, Paxos, leader election
-- [**Distributed Transactions**]({{ site.baseurl }}/advanced/distributed_transactions) - 2PC, Saga, transactional outbox
-- [**Sharding & Partitioning**]({{ site.baseurl }}/advanced/sharding_partitioning) - Partition keys, hot spots, resharding
-- [**Behavioral & Leadership (L6)**]({{ site.baseurl }}/advanced/behavioral_leadership) - STAR for Staff, conflict resolution
+- [**Message Queues & Streaming**](advanced/message_queues.md) - Kafka, RabbitMQ, Flink, event-driven patterns
+- [**Search Systems**](advanced/search_systems.md) - Inverted indexes, Elasticsearch, BM25
+- [**Consistency Patterns**](advanced/consistency_patterns.md) - CRDTs, sagas, transactional outbox, quorum
+- [**Microservices Architecture**](advanced/microservices.md) - Service discovery, API gateways, Kubernetes
+- [**Data Warehousing & Lakes**](advanced/data_warehousing.md) - ETL, star schema, Spark, lakehouse
+- [**Object Storage & CDN**](advanced/object_storage_cdn.md) - S3, blob storage, edge caching
+- [**Distributed Locking**](advanced/distributed_locking.md) - Redlock, fencing tokens, ZooKeeper
+- [**Observability**](advanced/observability.md) - Logging, metrics, tracing, OpenTelemetry
+- [**Event Sourcing & CQRS**](advanced/event_sourcing_cqrs.md) - Append-only logs, projections
+- [**Consensus Algorithms**](advanced/consensus_algorithms.md) - Raft, Paxos, leader election
+- [**Distributed Transactions**](advanced/distributed_transactions.md) - 2PC, Saga, transactional outbox
+- [**Sharding & Partitioning**](advanced/sharding_partitioning.md) - Partition keys, hot spots, resharding
+- [**Behavioral & Leadership (L6)**](advanced/behavioral_leadership.md) - STAR for Staff, conflict resolution
 
 ### Staff Engineer (L6) Interview Track
 
 Targeting Google, Meta, or other top companies at the **Staff / Principal / L6** level?
 
-- [**Staff Engineer Interview Guide**]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) - L5 vs L6 expectations, 5 pillars, anti-patterns
-- **Priority designs:** [Key-Value Store]({{ site.baseurl }}/software_system_design/key_value_store), [Rate Limiter]({{ site.baseurl }}/software_system_design/rate_limiter), [Collaborative Editor]({{ site.baseurl }}/software_system_design/collaborative_editor), [Task Scheduler]({{ site.baseurl }}/software_system_design/task_scheduler), [Notification System]({{ site.baseurl }}/software_system_design/notification_system)
-- **Advanced foundations:** [Consensus]({{ site.baseurl }}/advanced/consensus_algorithms), [Distributed Transactions]({{ site.baseurl }}/advanced/distributed_transactions), [Sharding]({{ site.baseurl }}/advanced/sharding_partitioning)
-- **Leadership round:** [Behavioral & Leadership Guide]({{ site.baseurl }}/advanced/behavioral_leadership)
+- [**Staff Engineer Interview Guide**](software_system_design/staff_engineer_expectations.md) - L5 vs L6 expectations, 5 pillars, anti-patterns
+- **Priority designs:** [Key-Value Store](software_system_design/key_value_store.md), [Rate Limiter](software_system_design/rate_limiter.md), [Collaborative Editor](software_system_design/collaborative_editor.md), [Task Scheduler](software_system_design/task_scheduler.md), [Notification System](software_system_design/notification_system.md)
+- **Advanced foundations:** [Consensus](advanced/consensus_algorithms.md), [Distributed Transactions](advanced/distributed_transactions.md), [Sharding](advanced/sharding_partitioning.md)
+- **Leadership round:** [Behavioral & Leadership Guide](advanced/behavioral_leadership.md)
 
-### [System Design Examples]({{ site.baseurl }}/software_system_design/)
-Step-by-step walkthroughs of classic interview questions — 24 designs.
+### [System Design Examples](software_system_design/index.md)
+Step-by-step walkthroughs of classic interview questions — 28 designs.
 
 **Infrastructure & Data:**
-- [**URL Shortener**]({{ site.baseurl }}/software_system_design/url_shortening) - Hashing, Base62, distributed IDs
-- [**Rate Limiter**]({{ site.baseurl }}/software_system_design/rate_limiter) - Token bucket, sliding window, Redis
-- [**Key-Value Store**]({{ site.baseurl }}/software_system_design/key_value_store) - Consistent hashing, quorum, vector clocks
-- [**Distributed Cache**]({{ site.baseurl }}/software_system_design/distributed_cache) - LRU, hot keys, stampede mitigation
-- [**Distributed Message Queue**]({{ site.baseurl }}/software_system_design/message_queue) - Append-only log, partitions, consumer groups
-- [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) - Priority queues, lease-based execution
-- [**Metrics & Monitoring**]({{ site.baseurl }}/software_system_design/metrics_monitoring) - Time-series storage, alerting, Gorilla compression
+
+- [**URL Shortener**](software_system_design/url_shortening.md) - Hashing, Base62, distributed IDs
+- [**Rate Limiter**](software_system_design/rate_limiter.md) - Token bucket, sliding window, Redis
+- [**Key-Value Store**](software_system_design/key_value_store.md) - Consistent hashing, quorum, vector clocks
+- [**Distributed Cache**](software_system_design/distributed_cache.md) - LRU, hot keys, stampede mitigation
+- [**Distributed Message Queue**](software_system_design/message_queue.md) - Append-only log, partitions, consumer groups
+- [**Task Scheduler**](software_system_design/task_scheduler.md) - Priority queues, lease-based execution
+- [**Metrics & Monitoring**](software_system_design/metrics_monitoring.md) - Time-series storage, alerting, Gorilla compression
 
 **Communication & Social:**
-- [**Chat System**]({{ site.baseurl }}/software_system_design/chat_system) - WebSockets, message ordering, presence
-- [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) - Multi-channel, push vs pull
-- [**News Feed / Timeline**]({{ site.baseurl }}/software_system_design/news_feed) - Fan-out strategies, ranking
-- [**Voting System**]({{ site.baseurl }}/software_system_design/voting-system-design) - Consistency, duplicate prevention
-- [**Email Delivery System**]({{ site.baseurl }}/software_system_design/email_delivery) - SMTP, DKIM/SPF, IP reputation, deliverability
+
+- [**Chat System**](software_system_design/chat_system.md) - WebSockets, message ordering, presence
+- [**Notification System**](software_system_design/notification_system.md) - Multi-channel, push vs pull
+- [**News Feed / Timeline**](software_system_design/news_feed.md) - Fan-out strategies, ranking
+- [**Voting System**](software_system_design/voting-system-design.md) - Consistency, duplicate prevention
+- [**Email Delivery System**](software_system_design/email_delivery.md) - SMTP, DKIM/SPF, IP reputation, deliverability
 
 **Media & Content:**
-- [**Video Streaming (YouTube)**]({{ site.baseurl }}/software_system_design/video_streaming) - CDN, transcoding, adaptive bitrate
-- [**Photo Sharing (Instagram)**]({{ site.baseurl }}/software_system_design/photo_sharing) - Object storage, feed, stories
-- [**Cloud Storage (Google Drive)**]({{ site.baseurl }}/software_system_design/cloud_storage) - File sync, chunking, dedup
+
+- [**Video Streaming (YouTube)**](software_system_design/video_streaming.md) - CDN, transcoding, adaptive bitrate
+- [**Photo Sharing (Instagram)**](software_system_design/photo_sharing.md) - Object storage, feed, stories
+- [**Cloud Storage (Google Drive)**](software_system_design/cloud_storage.md) - File sync, chunking, dedup
 
 **Real-time & Geo:**
-- [**Collaborative Editor (Google Docs)**]({{ site.baseurl }}/software_system_design/collaborative_editor) - OT/CRDTs, conflict resolution
-- [**Ride Sharing (Uber/Lyft)**]({{ site.baseurl }}/software_system_design/ride_sharing) - Geospatial matching, tracking
-- [**Proximity Service**]({{ site.baseurl }}/software_system_design/proximity_service) - Geohash, quadtree
+
+- [**Collaborative Editor (Google Docs)**](software_system_design/collaborative_editor.md) - OT/CRDTs, conflict resolution
+- [**Ride Sharing (Uber/Lyft)**](software_system_design/ride_sharing.md) - Geospatial matching, tracking
+- [**Proximity Service**](software_system_design/proximity_service.md) - Geohash, quadtree
 
 **Commerce:**
-- [**Event Booking (Ticketmaster)**]({{ site.baseurl }}/software_system_design/event_booking) - Inventory locking, flash crowds
-- [**Payment System**]({{ site.baseurl }}/software_system_design/payment_system) - Idempotency, double-entry ledger
+
+- [**Event Booking (Ticketmaster)**](software_system_design/event_booking.md) - Inventory locking, flash crowds
+- [**Payment System**](software_system_design/payment_system.md) - Idempotency, double-entry ledger
 
 **Data Infrastructure:**
-- [**Distributed File System (GFS)**]({{ site.baseurl }}/software_system_design/distributed_file_system) - Master-chunk architecture, replication, leases
-- [**Ad Click Aggregator**]({{ site.baseurl }}/software_system_design/ad_click_aggregator) - Real-time aggregation, exactly-once, Flink/Kafka
+
+- [**Distributed File System (GFS)**](software_system_design/distributed_file_system.md) - Master-chunk architecture, replication, leases
+- [**Ad Click Aggregator**](software_system_design/ad_click_aggregator.md) - Real-time aggregation, exactly-once, Flink/Kafka
 
 **Search:**
-- [**Web Crawler**]({{ site.baseurl }}/software_system_design/web_crawler) - Concurrency, politeness, dedup
-- [**Search Autocomplete**]({{ site.baseurl }}/software_system_design/search_autocomplete) - Trie, ranking, caching
 
-### [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/)
+- [**Web Crawler**](software_system_design/web_crawler.md) - Concurrency, politeness, dedup
+- [**Search Autocomplete**](software_system_design/search_autocomplete.md) - Trie, ranking, caching
+
+### [GenAI/ML Fundamentals](genai_ml_basics/index.md)
 Core building blocks — master these before ML and GenAI design questions. 7 topics.
 
-- [**Model Serving**]({{ site.baseurl }}/genai_ml_basics/model_serving) - Inference APIs, versioning, A/B testing, drift detection
-- [**Feature Stores**]({{ site.baseurl }}/genai_ml_basics/feature_stores) - Train-serve consistency, point-in-time joins, Feast
-- [**Data Pipelines for ML**]({{ site.baseurl }}/genai_ml_basics/data_pipelines) - Ingestion, validation, Airflow orchestration
-- [**Large Language Models**]({{ site.baseurl }}/genai_ml_basics/llm_systems) - RAG, prompt engineering, fine-tuning, vector DBs
-- [**Distributed Training**]({{ site.baseurl }}/genai_ml_basics/distributed_training) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
-- [**LLM Evaluation**]({{ site.baseurl }}/genai_ml_basics/llm_evaluation) - BLEU/ROUGE/BERTScore, LLM-as-judge, benchmarks, RAGAS
-- [**RLHF & Alignment**]({{ site.baseurl }}/genai_ml_basics/rlhf_alignment) - PPO, DPO, Constitutional AI, safety alignment
+- [**Model Serving**](genai_ml_basics/model_serving.md) - Inference APIs, versioning, A/B testing, drift detection
+- [**Feature Stores**](genai_ml_basics/feature_stores.md) - Train-serve consistency, point-in-time joins, Feast
+- [**Data Pipelines for ML**](genai_ml_basics/data_pipelines.md) - Ingestion, validation, Airflow orchestration
+- [**Large Language Models**](genai_ml_basics/llm_systems.md) - RAG, prompt engineering, fine-tuning, vector DBs
+- [**Distributed Training**](genai_ml_basics/distributed_training.md) - Data/model/pipeline parallelism, DeepSpeed, ZeRO
+- [**LLM Evaluation**](genai_ml_basics/llm_evaluation.md) - BLEU/ROUGE/BERTScore, LLM-as-judge, benchmarks, RAGAS
+- [**RLHF & Alignment**](genai_ml_basics/rlhf_alignment.md) - PPO, DPO, Constitutional AI, safety alignment
 
-### [ML System Design]({{ site.baseurl }}/ml_system_design/)
+### [ML System Design](ml_system_design/index.md)
 Production ML systems — 10 designs covering ranking, retrieval, personalization, NLP, and feature infrastructure.
 
-- [**Recommendation System**]({{ site.baseurl }}/ml_system_design/recommendation_system) - Collaborative filtering, Two-Tower, cold start
-- [**Fraud Detection**]({{ site.baseurl }}/ml_system_design/fraud_detection) - Real-time ML, class imbalance, velocity features
-- [**Image Search**]({{ site.baseurl }}/ml_system_design/image_search) - CLIP embeddings, FAISS, ANN indexes
-- [**Image Caption Generator**]({{ site.baseurl }}/ml_system_design/image_caption_generator) - Encoder-decoder, attention, Triton
-- [**Search Ranking**]({{ site.baseurl }}/ml_system_design/search_ranking) - BM25, LambdaMART, NDCG, retrieval + ranking
-- [**Real-time Personalization**]({{ site.baseurl }}/ml_system_design/realtime_personalization) - Session models, contextual bandits
-- [**Ads Ranking System**]({{ site.baseurl }}/ml_system_design/ads_ranking) - CTR prediction, auction mechanics, budget pacing
-- [**Real-time Feature Platform**]({{ site.baseurl }}/ml_system_design/feature_platform) - Streaming features, PIT joins, train-serve consistency
-- [**Machine Translation**]({{ site.baseurl }}/ml_system_design/machine_translation) - Transformer, multilingual NMT, quality estimation, low-resource
-- [**Speech Recognition**]({{ site.baseurl }}/ml_system_design/speech_recognition) - CTC/RNN-T, streaming ASR, speaker diarization, Whisper
+- [**Recommendation System**](ml_system_design/recommendation_system.md) - Collaborative filtering, Two-Tower, cold start
+- [**Fraud Detection**](ml_system_design/fraud_detection.md) - Real-time ML, class imbalance, velocity features
+- [**Image Search**](ml_system_design/image_search.md) - CLIP embeddings, FAISS, ANN indexes
+- [**Image Caption Generator**](ml_system_design/image_caption_generator.md) - Encoder-decoder, attention, Triton
+- [**Search Ranking**](ml_system_design/search_ranking.md) - BM25, LambdaMART, NDCG, retrieval + ranking
+- [**Real-time Personalization**](ml_system_design/realtime_personalization.md) - Session models, contextual bandits
+- [**Ads Ranking System**](ml_system_design/ads_ranking.md) - CTR prediction, auction mechanics, budget pacing
+- [**Real-time Feature Platform**](ml_system_design/feature_platform.md) - Streaming features, PIT joins, train-serve consistency
+- [**Machine Translation**](ml_system_design/machine_translation.md) - Transformer, multilingual NMT, quality estimation, low-resource
+- [**Speech Recognition**](ml_system_design/speech_recognition.md) - CTC/RNN-T, streaming ASR, speaker diarization, Whisper
 
-### [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/)
+### [GenAI System Design](genai_ml_system_design/index.md)
 Production GenAI systems — 10 designs with Google-style interview transcripts.
 
-- [**LLM-Powered Chatbot**]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) - KV-cache, PagedAttention, streaming, safety
-- [**Enterprise RAG System**]({{ site.baseurl }}/genai_ml_system_design/enterprise_rag) - Chunking, hybrid retrieval, ACLs, citations
-- [**AI Code Assistant**]({{ site.baseurl }}/genai_ml_system_design/ai_code_assistant) - FIM, speculative decoding, repo context
-- [**LLM Content Moderation**]({{ site.baseurl }}/genai_ml_system_design/content_moderation) - Cascade architecture, adversarial robustness
-- [**ML Training Platform**]({{ site.baseurl }}/genai_ml_system_design/ml_training_platform) - Gang scheduling, checkpointing, GPU clusters
-- [**Multi-Modal Search**]({{ site.baseurl }}/genai_ml_system_design/multimodal_search) - CLIP embeddings, cross-modal retrieval
-- [**AI Agent System**]({{ site.baseurl }}/genai_ml_system_design/ai_agent_system) - ReAct, tool use, planning, memory, multi-agent
-- [**LLM Gateway**]({{ site.baseurl }}/genai_ml_system_design/llm_gateway) - Multi-model routing, semantic caching, cost control
-- [**Text-to-Image Generation**]({{ site.baseurl }}/genai_ml_system_design/text_to_image) - Diffusion models, latent space, safety, CFG
-- [**Vector Database**]({{ site.baseurl }}/genai_ml_system_design/vector_database) - HNSW, IVF-PQ, hybrid search, billion-scale ANN
+- [**LLM-Powered Chatbot**](genai_ml_system_design/llm_chatbot.md) - KV-cache, PagedAttention, streaming, safety
+- [**Enterprise RAG System**](genai_ml_system_design/enterprise_rag.md) - Chunking, hybrid retrieval, ACLs, citations
+- [**AI Code Assistant**](genai_ml_system_design/ai_code_assistant.md) - FIM, speculative decoding, repo context
+- [**LLM Content Moderation**](genai_ml_system_design/content_moderation.md) - Cascade architecture, adversarial robustness
+- [**ML Training Platform**](genai_ml_system_design/ml_training_platform.md) - Gang scheduling, checkpointing, GPU clusters
+- [**Multi-Modal Search**](genai_ml_system_design/multimodal_search.md) - CLIP embeddings, cross-modal retrieval
+- [**AI Agent System**](genai_ml_system_design/ai_agent_system.md) - ReAct, tool use, planning, memory, multi-agent
+- [**LLM Gateway**](genai_ml_system_design/llm_gateway.md) - Multi-model routing, semantic caching, cost control
+- [**Text-to-Image Generation**](genai_ml_system_design/text_to_image.md) - Diffusion models, latent space, safety, CFG
+- [**Vector Database**](genai_ml_system_design/vector_database.md) - HNSW, IVF-PQ, hybrid search, billion-scale ANN
 
 ---
 
@@ -227,10 +224,10 @@ Production GenAI systems — 10 designs with Google-style interview transcripts.
 
 ### If You Have 1 Week
 
-1. Read [Interview Framework]({{ site.baseurl }}/basics/interview_framework) — know the 4-step approach
-2. Study [URL Shortener]({{ site.baseurl }}/software_system_design/url_shortening) and [Rate Limiter]({{ site.baseurl }}/software_system_design/rate_limiter)
-3. For ML roles: add [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system)
-4. For GenAI roles: add [LLM Chatbot]({{ site.baseurl }}/genai_ml_system_design/llm_chatbot) — read the interview transcript
+1. Read [Interview Framework](basics/interview_framework.md) — know the 4-step approach
+2. Study [URL Shortener](software_system_design/url_shortening.md) and [Rate Limiter](software_system_design/rate_limiter.md)
+3. For ML roles: add [Recommendation System](ml_system_design/recommendation_system.md)
+4. For GenAI roles: add [LLM Chatbot](genai_ml_system_design/llm_chatbot.md) — read the interview transcript
 5. Practice explaining designs out loud
 
 ### If You Have 1 Month
@@ -248,14 +245,14 @@ Follow the [Learning Path](#recommended-learning-paths) for your target role abo
 
 ## Key Tips
 
-{: .note }
-> **Always ask clarifying questions.** The interviewer wants to see how you think, not just what you know.
+!!! note
+    **Always ask clarifying questions.** The interviewer wants to see how you think, not just what you know.
 
-{: .tip }
-> **Draw diagrams.** A picture is worth a thousand words in system design.
+!!! tip
+    **Draw diagrams.** A picture is worth a thousand words in system design.
 
-{: .warning }
-> **Don't jump to solutions.** Understand the problem before proposing architecture.
+!!! warning
+    **Don't jump to solutions.** Understand the problem before proposing architecture.
 
 ---
 
@@ -265,11 +262,11 @@ Follow the [Learning Path](#recommended-learning-paths) for your target role abo
 |---------|--------|------------|
 | **Fundamentals** | 11 essential topics | Beginner-Advanced |
 | **Advanced Topics** | 13 deep-dive topics (incl. L6 track) | Advanced-Expert |
-| **System Design Examples** | 22 classic problems (incl. Staff Guide) | Intermediate-Hard |
-| **GenAI/ML Fundamentals** | 5 ML/GenAI building blocks | Medium-Hard |
-| **ML System Design** | 8 ML systems | Hard |
+| **System Design Examples** | 28 classic problems (incl. Staff Guide) | Intermediate-Hard |
+| **GenAI/ML Fundamentals** | 7 ML/GenAI building blocks | Medium-Hard |
+| **ML System Design** | 10 ML systems | Hard |
 | **GenAI System Design** | 10 GenAI systems (with interview transcripts) | Very Hard |
-| **Total** | **69** | |
+| **Total** | **79** | |
 
 ---
 

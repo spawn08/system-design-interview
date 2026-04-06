@@ -1,16 +1,6 @@
----
-layout: default
-title: Model Serving
-parent: GenAI/ML Fundamentals
-nav_order: 1
-permalink: /genai_ml_basics/model_serving
----
-
 # Model Serving Infrastructure
-{: .fs-9 }
 
 Design production-grade model serving systems that balance latency, throughput, cost, and reliability.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -1357,12 +1347,12 @@ class CanaryDeployment:
 
 ### Common Pitfalls
 
-{: .warning }
-> 1. **Forgetting the latency breakdown** — inference is often < 50% of total latency; pre/post-processing and network matter
-> 2. **Ignoring cold start** — GPU model loading can take 30-60 seconds
-> 3. **No fallback strategy** — what happens when the ML model fails? Use rules-based fallback
-> 4. **Batch size too large** — increases latency per individual request
-> 5. **No shadow testing** — deploying directly to production without validation
+!!! warning
+    1. **Forgetting the latency breakdown** — inference is often < 50% of total latency; pre/post-processing and network matter
+    2. **Ignoring cold start** — GPU model loading can take 30-60 seconds
+    3. **No fallback strategy** — what happens when the ML model fails? Use rules-based fallback
+    4. **Batch size too large** — increases latency per individual request
+    5. **No shadow testing** — deploying directly to production without validation
 
 ### Sample Interview Dialogue
 

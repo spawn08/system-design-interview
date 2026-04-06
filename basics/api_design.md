@@ -1,19 +1,4 @@
----
-layout: default
-title: API Design
-parent: Fundamentals
-nav_order: 7
----
-
 # API Design
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -36,8 +21,8 @@ Interviewers assess your API design skills because:
 
 ## RESTful API Design
 
-{: .note }
-> REST fundamentals and HTTP protocol details are also covered in [Networking]({{ site.baseurl }}/basics/networking). This section focuses on API design patterns and best practices.
+!!! note
+    REST fundamentals and HTTP protocol details are also covered in [Networking](networking.md). This section focuses on API design patterns and best practices.
 
 REST (Representational State Transfer) is the dominant architectural style for web APIs. Defined by Roy Fielding in his 2000 dissertation, REST uses HTTP semantics to create intuitive, resource-oriented interfaces.
 
@@ -392,8 +377,8 @@ query {
 | **Learning curve** | Lower | Higher |
 | **Tooling maturity** | Extensive | Growing |
 
-{: .note }
-> In interviews, stating "I'd use REST for this API because the resources are well-defined and we benefit from HTTP caching" is stronger than defaulting to either without rationale.
+!!! note
+    In interviews, stating "I'd use REST for this API because the resources are well-defined and we benefit from HTTP caching" is stronger than defaulting to either without rationale.
 
 ---
 
@@ -868,8 +853,8 @@ flowchart TD
     AUTH -->|Server-to-server| APIKEY[API keys + mTLS]
 ```
 
-{: .important }
-> In interviews, always justify your API design choices. Don't just say "I'll use REST"—explain why REST fits better than GraphQL or gRPC for the specific use case. Discuss pagination strategy, error handling, and authentication in your design.
+!!! important
+    In interviews, always justify your API design choices. Don't just say "I'll use REST"—explain why REST fits better than GraphQL or gRPC for the specific use case. Discuss pagination strategy, error handling, and authentication in your design.
 
 ---
 

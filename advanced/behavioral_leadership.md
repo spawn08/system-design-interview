@@ -1,19 +1,4 @@
----
-layout: default
-title: Behavioral & Leadership (L6)
-parent: Advanced Topics
-nav_order: 13
----
-
 # Behavioral & Leadership Interview Guide (Staff / L6)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 13
 
 At L6 (Staff), the behavioral / leadership / "Googliness" round carries **equal or greater weight** than coding or system design. You can ace every technical round and still be rejected if the hiring committee sees no evidence of organizational influence, conflict resolution, or technical vision.
 
-{: .warning }
-> A Senior (L5) engineer is evaluated on individual execution. A Staff (L6) engineer is evaluated on **multiplier effect**: how many other engineers are more effective because of your work.
+!!! warning
+    A Senior (L5) engineer is evaluated on individual execution. A Staff (L6) engineer is evaluated on **multiplier effect**: how many other engineers are more effective because of your work.
 
 ---
 
@@ -49,8 +34,8 @@ At L6 (Staff), the behavioral / leadership / "Googliness" round carries **equal 
 | **Action** | "I added a cache" | "I designed a multi-layer caching strategy, wrote a design doc, ran a 2-week shadow traffic experiment, mentored an L4 engineer to implement the read path, and personally handled the migration rollout" |
 | **Result** | "Latency improved" | "p99 latency dropped from 800ms to 120ms, unblocking 3 teams. The caching pattern was adopted as a platform standard, saving an estimated 2 engineer-quarters of duplicate work across the org" |
 
-{: .tip }
-> **Always quantify the result.** "Improved performance" is L5. "Reduced p99 latency from 800ms to 120ms, which unblocked 3 teams and was adopted as an org-wide pattern" is L6.
+!!! tip
+    **Always quantify the result.** "Improved performance" is L5. "Reduced p99 latency from 800ms to 120ms, which unblocked 3 teams and was adopted as an org-wide pattern" is L6.
 
 ---
 
@@ -73,8 +58,8 @@ At L6 (Staff), the behavioral / leadership / "Googliness" round carries **equal 
 | **Outcome** | What was decided? Was it your approach, theirs, or a synthesis? |
 | **Relationship** | How is your relationship with that person now? |
 
-{: .warning }
-> **Red flags:** "I was right and they were wrong." "I escalated to my manager." "We agreed to disagree." All signal L5 or below.
+!!! warning
+    **Red flags:** "I was right and they were wrong." "I escalated to my manager." "We agreed to disagree." All signal L5 or below.
 
 ---
 
@@ -114,8 +99,8 @@ At L6 (Staff), the behavioral / leadership / "Googliness" round carries **equal 
 | **Prevention** | What systemic changes did you drive? (Not just "added a test"—think: circuit breakers, SLO changes, architecture changes) |
 | **Learning** | What did you personally learn? How did it change your design philosophy? |
 
-{: .tip }
-> The best L6 answers include: *"I wrote the blameless post-mortem, presented it to the engineering org, and drove 3 systemic changes: we added a canary deployment pipeline, established error budgets for the service, and created a chaos engineering practice."*
+!!! tip
+    The best L6 answers include: *"I wrote the blameless post-mortem, presented it to the engineering org, and drove 3 systemic changes: we added a canary deployment pipeline, established error budgets for the service, and created a chaos engineering practice."*
 
 ---
 

@@ -1,90 +1,80 @@
----
-layout: default
-title: System Design Examples
-nav_order: 4
-has_children: true
-permalink: /software_system_design/
----
-
 # System Design Examples
-{: .fs-9 }
 
 Step-by-step walkthroughs of 27 system design interview questions — from classic URL shortener to distributed file systems.
-{: .fs-6 .fw-300 }
 
 ---
 
 ## Recommended Study Order
 
-{: .tip }
-> Don't study randomly. Follow this progression — each design builds on concepts from earlier ones.
+!!! tip
+    Don't study randomly. Follow this progression — each design builds on concepts from earlier ones.
 
 ### Tier 1: Foundation (Start Here)
 
 | # | Design | Why First | Prerequisites |
 |---|--------|-----------|---------------|
-| 1 | [URL Shortener]({{ site.baseurl }}/software_system_design/url_shortening) | Simplest end-to-end design | Databases, Caching |
-| 2 | [Rate Limiter]({{ site.baseurl }}/software_system_design/rate_limiter) | Core API protection pattern | Redis, distributed systems |
-| 3 | [Distributed Cache]({{ site.baseurl }}/software_system_design/distributed_cache) | Appears in every other design | Consistent hashing |
-| 4 | [Key-Value Store]({{ site.baseurl }}/software_system_design/key_value_store) | Deepens distributed systems understanding | Replication, consensus |
+| 1 | [URL Shortener](url_shortening.md) | Simplest end-to-end design | Databases, Caching |
+| 2 | [Rate Limiter](rate_limiter.md) | Core API protection pattern | Redis, distributed systems |
+| 3 | [Distributed Cache](distributed_cache.md) | Appears in every other design | Consistent hashing |
+| 4 | [Key-Value Store](key_value_store.md) | Deepens distributed systems understanding | Replication, consensus |
 
 ### Tier 2: Communication & Social
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 5 | [Notification System]({{ site.baseurl }}/software_system_design/notification_system) | Rate Limiter, Cache | Multi-channel routing, delivery guarantees |
-| 6 | [Chat System]({{ site.baseurl }}/software_system_design/chat_system) | Notification System | WebSockets, message ordering |
-| 7 | [News Feed / Timeline]({{ site.baseurl }}/software_system_design/news_feed) | Chat, Cache | Fan-out strategies, ranking |
-| 8 | [Voting System]({{ site.baseurl }}/software_system_design/voting-system-design) | URL Shortener | Idempotency, consistency |
+| 5 | [Notification System](notification_system.md) | Rate Limiter, Cache | Multi-channel routing, delivery guarantees |
+| 6 | [Chat System](chat_system.md) | Notification System | WebSockets, message ordering |
+| 7 | [News Feed / Timeline](news_feed.md) | Chat, Cache | Fan-out strategies, ranking |
+| 8 | [Voting System](voting-system-design.md) | URL Shortener | Idempotency, consistency |
 
 ### Tier 3: Media & Content
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 9 | [Photo Sharing (Instagram)]({{ site.baseurl }}/software_system_design/photo_sharing) | News Feed, Cache | Object storage, CDN |
-| 10 | [Video Streaming (YouTube)]({{ site.baseurl }}/software_system_design/video_streaming) | Photo Sharing | Transcoding, adaptive bitrate |
-| 11 | [Cloud Storage (Google Drive)]({{ site.baseurl }}/software_system_design/cloud_storage) | Key-Value Store | File chunking, sync protocol |
+| 9 | [Photo Sharing (Instagram)](photo_sharing.md) | News Feed, Cache | Object storage, CDN |
+| 10 | [Video Streaming (YouTube)](video_streaming.md) | Photo Sharing | Transcoding, adaptive bitrate |
+| 11 | [Cloud Storage (Google Drive)](cloud_storage.md) | Key-Value Store | File chunking, sync protocol |
 
 ### Tier 4: Real-time & Geospatial
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 12 | [Collaborative Editor]({{ site.baseurl }}/software_system_design/collaborative_editor) | Chat System | OT/CRDTs, conflict resolution |
-| 13 | [Proximity Service]({{ site.baseurl }}/software_system_design/proximity_service) | Cache, Databases | Geohash, quadtree |
-| 14 | [Ride Sharing (Uber/Lyft)]({{ site.baseurl }}/software_system_design/ride_sharing) | Proximity Service | Real-time matching, ETA |
+| 12 | [Collaborative Editor](collaborative_editor.md) | Chat System | OT/CRDTs, conflict resolution |
+| 13 | [Proximity Service](proximity_service.md) | Cache, Databases | Geohash, quadtree |
+| 14 | [Ride Sharing (Uber/Lyft)](ride_sharing.md) | Proximity Service | Real-time matching, ETA |
 
 ### Tier 5: Infrastructure & Commerce
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 15 | [Task Scheduler]({{ site.baseurl }}/software_system_design/task_scheduler) | Distributed Cache, KV Store | Lease-based execution, priority queues |
-| 16 | [Distributed Message Queue]({{ site.baseurl }}/software_system_design/message_queue) | Task Scheduler, KV Store | Append-only log, consumer groups, zero-copy I/O |
-| 17 | [Event Booking (Ticketmaster)]({{ site.baseurl }}/software_system_design/event_booking) | Rate Limiter | Inventory locking, flash sales |
-| 18 | [Payment System]({{ site.baseurl }}/software_system_design/payment_system) | Event Booking | Double-entry ledger, idempotency |
-| 19 | [Metrics & Monitoring]({{ site.baseurl }}/software_system_design/metrics_monitoring) | Message Queue | Time-series storage, alerting, Gorilla compression |
-| 20 | [Email Delivery System]({{ site.baseurl }}/software_system_design/email_delivery) | Notification System | SMTP, DKIM/SPF, IP reputation, deliverability |
+| 15 | [Task Scheduler](task_scheduler.md) | Distributed Cache, KV Store | Lease-based execution, priority queues |
+| 16 | [Distributed Message Queue](message_queue.md) | Task Scheduler, KV Store | Append-only log, consumer groups, zero-copy I/O |
+| 17 | [Event Booking (Ticketmaster)](event_booking.md) | Rate Limiter | Inventory locking, flash sales |
+| 18 | [Payment System](payment_system.md) | Event Booking | Double-entry ledger, idempotency |
+| 19 | [Metrics & Monitoring](metrics_monitoring.md) | Message Queue | Time-series storage, alerting, Gorilla compression |
+| 20 | [Email Delivery System](email_delivery.md) | Notification System | SMTP, DKIM/SPF, IP reputation, deliverability |
 
 ### Tier 6: Data Infrastructure
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 21 | [Distributed File System (GFS)]({{ site.baseurl }}/software_system_design/distributed_file_system) | KV Store, Cache | Master-chunk, leases, replication, append-only writes |
-| 22 | [Ad Click Aggregator]({{ site.baseurl }}/software_system_design/ad_click_aggregator) | Message Queue, Metrics | Real-time aggregation, exactly-once, click fraud, reconciliation |
+| 21 | [Distributed File System (GFS)](distributed_file_system.md) | KV Store, Cache | Master-chunk, leases, replication, append-only writes |
+| 22 | [Ad Click Aggregator](ad_click_aggregator.md) | Message Queue, Metrics | Real-time aggregation, exactly-once, click fraud, reconciliation |
 
 ### Tier 7: Search
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 23 | [Web Crawler]({{ site.baseurl }}/software_system_design/web_crawler) | Message Queue, Cache | URL frontier, politeness, dedup |
-| 24 | [Search Autocomplete]({{ site.baseurl }}/software_system_design/search_autocomplete) | Cache, Web Crawler | Trie, ranking, type-ahead |
+| 23 | [Web Crawler](web_crawler.md) | Message Queue, Cache | URL frontier, politeness, dedup |
+| 24 | [Search Autocomplete](search_autocomplete.md) | Cache, Web Crawler | Trie, ranking, type-ahead |
 
 ### Tier 8: Modern & Trending
 
 | # | Design | Builds On | New Concepts |
 |---|--------|-----------|--------------|
-| 25 | [Gaming Leaderboard]({{ site.baseurl }}/software_system_design/gaming_leaderboard) | Cache, Message Queue | Redis sorted sets, real-time ranking, anti-cheat |
-| 26 | [API Gateway]({{ site.baseurl }}/software_system_design/api_gateway) | Rate Limiter, Load Balancer | Plugin architecture, circuit breaker, hot config reload |
-| 27 | [Content Delivery Network]({{ site.baseurl }}/software_system_design/content_delivery_network) | Distributed Cache, Cloud Storage | Edge caching, PoP hierarchy, Anycast routing |
+| 25 | [Gaming Leaderboard](gaming_leaderboard.md) | Cache, Message Queue | Redis sorted sets, real-time ranking, anti-cheat |
+| 26 | [API Gateway](api_gateway.md) | Rate Limiter, Load Balancer | Plugin architecture, circuit breaker, hot config reload |
+| 27 | [Content Delivery Network](content_delivery_network.md) | Distributed Cache, Cloud Storage | Edge caching, PoP hierarchy, Anycast routing |
 
 ---
 
@@ -92,12 +82,12 @@ Step-by-step walkthroughs of 27 system design interview questions — from class
 
 Preparing for a **Staff / Principal / L6** role? Start here.
 
-{: .important }
-> At L6, the interviewer gives you a vague prompt and expects you to **define the problem, drive the whiteboard, and discuss multi-year evolution**. The designs below include dedicated "Staff Engineer Deep Dive" sections.
+!!! important
+    At L6, the interviewer gives you a vague prompt and expects you to **define the problem, drive the whiteboard, and discuss multi-year evolution**. The designs below include dedicated "Staff Engineer Deep Dive" sections.
 
 ### Must-Read First
 
-- [**Staff Engineer Interview Guide**]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) - L5 vs L6 expectations, the 5 pillars, anti-patterns that get you down-leveled
+- [**Staff Engineer Interview Guide**](staff_engineer_expectations.md) - L5 vs L6 expectations, the 5 pillars, anti-patterns that get you down-leveled
 
 ### Priority Design Problems (80/20 Rule)
 
@@ -105,20 +95,20 @@ These 5 designs cover 80% of distributed systems concepts tested at L6:
 
 | Design | Staff-Level Concepts Covered |
 |--------|-----------------------------|
-| [**Key-Value Store**]({{ site.baseurl }}/software_system_design/key_value_store) | CAP theorem, consistent hashing, quorum, vector clocks, Spanner/TrueTime, multi-region replication |
-| [**Rate Limiter**]({{ site.baseurl }}/software_system_design/rate_limiter) | Global rate limiting, race conditions, cascading failures, load shedding, adaptive limits |
-| [**Collaborative Editor**]({{ site.baseurl }}/software_system_design/collaborative_editor) | OT vs CRDTs decision framework, WebSocket scaling, hot document problem, multi-region |
-| [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) | Fencing tokens, zombie workers, multi-tenant fairness, cron correctness at scale |
-| [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) | Exactly-once delivery chain, transactional outbox, load shedding |
+| [**Key-Value Store**](key_value_store.md) | CAP theorem, consistent hashing, quorum, vector clocks, Spanner/TrueTime, multi-region replication |
+| [**Rate Limiter**](rate_limiter.md) | Global rate limiting, race conditions, cascading failures, load shedding, adaptive limits |
+| [**Collaborative Editor**](collaborative_editor.md) | OT vs CRDTs decision framework, WebSocket scaling, hot document problem, multi-region |
+| [**Task Scheduler**](task_scheduler.md) | Fencing tokens, zombie workers, multi-tenant fairness, cron correctness at scale |
+| [**Notification System**](notification_system.md) | Exactly-once delivery chain, transactional outbox, load shedding |
 
 ### Supporting Advanced Topics
 
 | Topic | Why It Matters for L6 |
 |-------|-----------------------|
-| [**Consensus Algorithms (Raft/Paxos)**]({{ site.baseurl }}/advanced/consensus_algorithms) | Foundation for every strongly consistent system |
-| [**Distributed Transactions (2PC/Saga/Outbox)**]({{ site.baseurl }}/advanced/distributed_transactions) | Cross-service consistency patterns |
-| [**Sharding & Partitioning**]({{ site.baseurl }}/advanced/sharding_partitioning) | Partition key selection, hot spots, resharding |
-| [**Behavioral & Leadership (L6)**]({{ site.baseurl }}/advanced/behavioral_leadership) | The dealbreaker round: STAR stories, conflict resolution, technical vision |
+| [**Consensus Algorithms (Raft/Paxos)**](../advanced/consensus_algorithms.md) | Foundation for every strongly consistent system |
+| [**Distributed Transactions (2PC/Saga/Outbox)**](../advanced/distributed_transactions.md) | Cross-service consistency patterns |
+| [**Sharding & Partitioning**](../advanced/sharding_partitioning.md) | Partition key selection, hot spots, resharding |
+| [**Behavioral & Leadership (L6)**](../advanced/behavioral_leadership.md) | The dealbreaker round: STAR stories, conflict resolution, technical vision |
 
 ---
 
@@ -134,8 +124,8 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | 4. Deep Dive | Key components in detail | 15 minutes |
 | 5. Scaling & Trade-offs | Production considerations | 5 minutes |
 
-{: .tip }
-> Practice drawing these designs on a whiteboard or paper. The physical act of drawing helps with memory and interview confidence.
+!!! tip
+    Practice drawing these designs on a whiteboard or paper. The physical act of drawing helps with memory and interview confidence.
 
 ---
 
@@ -145,63 +135,63 @@ Each example follows a consistent structure that mirrors what interviewers expec
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**URL Shortener**]({{ site.baseurl }}/software_system_design/url_shortening) | ⭐⭐ Medium | Hashing, distributed IDs |
-| [**Rate Limiter**]({{ site.baseurl }}/software_system_design/rate_limiter) | ⭐⭐ Medium | Token bucket, sliding window |
-| [**Key-Value Store**]({{ site.baseurl }}/software_system_design/key_value_store) | ⭐⭐⭐⭐ Hard | Consistent hashing, quorum |
-| [**Distributed Cache**]({{ site.baseurl }}/software_system_design/distributed_cache) | ⭐⭐⭐ Medium-Hard | LRU, hot keys, stampede |
-| [**Distributed Message Queue**]({{ site.baseurl }}/software_system_design/message_queue) | ⭐⭐⭐⭐ Hard | Append-only log, consumer groups |
-| [**Task Scheduler**]({{ site.baseurl }}/software_system_design/task_scheduler) | ⭐⭐⭐ Medium-Hard | Priority queue, leases |
-| [**Metrics & Monitoring**]({{ site.baseurl }}/software_system_design/metrics_monitoring) | ⭐⭐⭐⭐ Hard | Time-series, alerting |
-| [**Distributed File System (GFS)**]({{ site.baseurl }}/software_system_design/distributed_file_system) | ⭐⭐⭐⭐ Hard | Master-chunk, leases, replication |
-| [**Ad Click Aggregator**]({{ site.baseurl }}/software_system_design/ad_click_aggregator) | ⭐⭐⭐⭐ Hard | Real-time aggregation, exactly-once |
+| [**URL Shortener**](url_shortening.md) | ⭐⭐ Medium | Hashing, distributed IDs |
+| [**Rate Limiter**](rate_limiter.md) | ⭐⭐ Medium | Token bucket, sliding window |
+| [**Key-Value Store**](key_value_store.md) | ⭐⭐⭐⭐ Hard | Consistent hashing, quorum |
+| [**Distributed Cache**](distributed_cache.md) | ⭐⭐⭐ Medium-Hard | LRU, hot keys, stampede |
+| [**Distributed Message Queue**](message_queue.md) | ⭐⭐⭐⭐ Hard | Append-only log, consumer groups |
+| [**Task Scheduler**](task_scheduler.md) | ⭐⭐⭐ Medium-Hard | Priority queue, leases |
+| [**Metrics & Monitoring**](metrics_monitoring.md) | ⭐⭐⭐⭐ Hard | Time-series, alerting |
+| [**Distributed File System (GFS)**](distributed_file_system.md) | ⭐⭐⭐⭐ Hard | Master-chunk, leases, replication |
+| [**Ad Click Aggregator**](ad_click_aggregator.md) | ⭐⭐⭐⭐ Hard | Real-time aggregation, exactly-once |
 
 ### Communication & Social
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Chat System**]({{ site.baseurl }}/software_system_design/chat_system) | ⭐⭐⭐⭐ Hard | WebSockets, message ordering |
-| [**Notification System**]({{ site.baseurl }}/software_system_design/notification_system) | ⭐⭐⭐ Medium-Hard | Multi-channel routing |
-| [**News Feed / Timeline**]({{ site.baseurl }}/software_system_design/news_feed) | ⭐⭐⭐⭐ Hard | Fan-out strategies |
-| [**Voting System**]({{ site.baseurl }}/software_system_design/voting-system-design) | ⭐⭐⭐ Medium-Hard | Idempotency, consistency |
-| [**Email Delivery System**]({{ site.baseurl }}/software_system_design/email_delivery) | ⭐⭐⭐⭐ Hard | SMTP, DKIM/SPF, deliverability |
+| [**Chat System**](chat_system.md) | ⭐⭐⭐⭐ Hard | WebSockets, message ordering |
+| [**Notification System**](notification_system.md) | ⭐⭐⭐ Medium-Hard | Multi-channel routing |
+| [**News Feed / Timeline**](news_feed.md) | ⭐⭐⭐⭐ Hard | Fan-out strategies |
+| [**Voting System**](voting-system-design.md) | ⭐⭐⭐ Medium-Hard | Idempotency, consistency |
+| [**Email Delivery System**](email_delivery.md) | ⭐⭐⭐⭐ Hard | SMTP, DKIM/SPF, deliverability |
 
 ### Media & Content
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Video Streaming (YouTube)**]({{ site.baseurl }}/software_system_design/video_streaming) | ⭐⭐⭐⭐ Hard | CDN, transcoding |
-| [**Photo Sharing (Instagram)**]({{ site.baseurl }}/software_system_design/photo_sharing) | ⭐⭐⭐ Medium-Hard | Object storage, fan-out |
-| [**Cloud Storage (Google Drive)**]({{ site.baseurl }}/software_system_design/cloud_storage) | ⭐⭐⭐⭐ Hard | File chunking, sync |
+| [**Video Streaming (YouTube)**](video_streaming.md) | ⭐⭐⭐⭐ Hard | CDN, transcoding |
+| [**Photo Sharing (Instagram)**](photo_sharing.md) | ⭐⭐⭐ Medium-Hard | Object storage, fan-out |
+| [**Cloud Storage (Google Drive)**](cloud_storage.md) | ⭐⭐⭐⭐ Hard | File chunking, sync |
 
 ### Real-time & Geospatial
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Collaborative Editor**]({{ site.baseurl }}/software_system_design/collaborative_editor) | ⭐⭐⭐⭐ Hard | OT/CRDTs, conflict resolution |
-| [**Ride Sharing (Uber/Lyft)**]({{ site.baseurl }}/software_system_design/ride_sharing) | ⭐⭐⭐⭐ Hard | Geospatial matching |
-| [**Proximity Service**]({{ site.baseurl }}/software_system_design/proximity_service) | ⭐⭐⭐ Medium-Hard | Geohash, quadtree |
+| [**Collaborative Editor**](collaborative_editor.md) | ⭐⭐⭐⭐ Hard | OT/CRDTs, conflict resolution |
+| [**Ride Sharing (Uber/Lyft)**](ride_sharing.md) | ⭐⭐⭐⭐ Hard | Geospatial matching |
+| [**Proximity Service**](proximity_service.md) | ⭐⭐⭐ Medium-Hard | Geohash, quadtree |
 
 ### Commerce & Finance
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Event Booking (Ticketmaster)**]({{ site.baseurl }}/software_system_design/event_booking) | ⭐⭐⭐ Medium-Hard | Inventory locking |
-| [**Payment System**]({{ site.baseurl }}/software_system_design/payment_system) | ⭐⭐⭐⭐ Hard | Double-entry ledger |
+| [**Event Booking (Ticketmaster)**](event_booking.md) | ⭐⭐⭐ Medium-Hard | Inventory locking |
+| [**Payment System**](payment_system.md) | ⭐⭐⭐⭐ Hard | Double-entry ledger |
 
 ### Search
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Web Crawler**]({{ site.baseurl }}/software_system_design/web_crawler) | ⭐⭐⭐⭐ Hard | URL frontier, dedup |
-| [**Search Autocomplete**]({{ site.baseurl }}/software_system_design/search_autocomplete) | ⭐⭐⭐ Medium-Hard | Trie, ranking |
+| [**Web Crawler**](web_crawler.md) | ⭐⭐⭐⭐ Hard | URL frontier, dedup |
+| [**Search Autocomplete**](search_autocomplete.md) | ⭐⭐⭐ Medium-Hard | Trie, ranking |
 
 ### Modern & Trending
 
 | Design | Difficulty | Core Pattern |
 |--------|-----------|--------------|
-| [**Gaming Leaderboard**]({{ site.baseurl }}/software_system_design/gaming_leaderboard) | ⭐⭐⭐ Medium-Hard | Redis sorted sets, real-time ranking |
-| [**API Gateway**]({{ site.baseurl }}/software_system_design/api_gateway) | ⭐⭐⭐⭐ Hard | Plugin architecture, circuit breaker |
-| [**Content Delivery Network**]({{ site.baseurl }}/software_system_design/content_delivery_network) | ⭐⭐⭐⭐ Hard | Edge caching, PoP hierarchy |
+| [**Gaming Leaderboard**](gaming_leaderboard.md) | ⭐⭐⭐ Medium-Hard | Redis sorted sets, real-time ranking |
+| [**API Gateway**](api_gateway.md) | ⭐⭐⭐⭐ Hard | Plugin architecture, circuit breaker |
+| [**Content Delivery Network**](content_delivery_network.md) | ⭐⭐⭐⭐ Hard | Edge caching, PoP hierarchy |
 
 ---
 
@@ -230,8 +220,8 @@ Each example follows a consistent structure that mirrors what interviewers expec
 | **Edge Caching** | Content Delivery Network, Video Streaming — PoP hierarchy |
 | **Plugin / Middleware** | API Gateway — extensible request processing |
 
-{: .note }
-> Master these patterns and you can apply them to any new problem the interviewer throws at you.
+!!! note
+    Master these patterns and you can apply them to any new problem the interviewer throws at you.
 
 ---
 
@@ -272,7 +262,7 @@ Each example follows a consistent structure that mirrors what interviewers expec
 
 After mastering these software system designs:
 
-1. **Go deeper** with [Advanced Topics]({{ site.baseurl }}/advanced/) for Senior/Staff-level concepts
-2. **Learn ML fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) — 7 building blocks
-3. **Tackle ML designs** in [ML System Design]({{ site.baseurl }}/ml_system_design/) — 10 production ML systems
-4. **Master GenAI** in [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 10 LLM/GenAI systems with interview transcripts
+1. **Go deeper** with [Advanced Topics](../advanced/index.md) for Senior/Staff-level concepts
+2. **Learn ML fundamentals** in [GenAI/ML Fundamentals](../genai_ml_basics/index.md) — 7 building blocks
+3. **Tackle ML designs** in [ML System Design](../ml_system_design/index.md) — 10 production ML systems
+4. **Master GenAI** in [GenAI System Design](../genai_ml_system_design/index.md) — 10 LLM/GenAI systems with interview transcripts

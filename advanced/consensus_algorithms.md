@@ -1,19 +1,4 @@
----
-layout: default
-title: Consensus Algorithms
-parent: Advanced Topics
-nav_order: 10
----
-
 # Consensus Algorithms (Raft & Paxos)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 10
 
 Consensus algorithms are the foundation of every strongly consistent distributed system: databases (Spanner, CockroachDB, etcd), configuration stores (ZooKeeper), and coordination services. At L6, interviewers expect you to **articulate when and why you need consensus**, not just recite the algorithm.
 
-{: .note }
-> You will rarely implement Raft or Paxos from scratch. But you must understand their properties to make architectural decisions: "Should this service use a Raft-based store (etcd) or an eventually consistent one (Cassandra)?"
+!!! note
+    You will rarely implement Raft or Paxos from scratch. But you must understand their properties to make architectural decisions: "Should this service use a Raft-based store (etcd) or an eventually consistent one (Cassandra)?"
 
 ---
 
@@ -37,8 +22,8 @@ Consensus algorithms are the foundation of every strongly consistent distributed
 | **Termination (Liveness)** | Every non-faulty node eventually decides |
 | **Fault tolerance** | The system makes progress as long as a majority (quorum) of nodes is alive |
 
-{: .warning }
-> **FLP Impossibility (1985):** In a purely asynchronous system with even one crash failure, no deterministic algorithm can guarantee both safety and liveness. Real systems work around this with timeouts and leader election (giving up pure asynchrony).
+!!! warning
+    **FLP Impossibility (1985):** In a purely asynchronous system with even one crash failure, no deterministic algorithm can guarantee both safety and liveness. Real systems work around this with timeouts and leader election (giving up pure asynchrony).
 
 ---
 
@@ -101,8 +86,8 @@ sequenceDiagram
 | **Multi-Paxos complexity** | Extending to a log requires leader election, log compaction, and membership changes |
 | **Implementation subtlety** | Edge cases in crash recovery, disk flushing, and message reordering |
 
-{: .tip }
-> **Staff-level insight:** Paxos is theoretically foundational but notoriously difficult to implement correctly. This is precisely why Raft was invented—to provide an equivalent algorithm that is easier to understand, implement, and teach.
+!!! tip
+    **Staff-level insight:** Paxos is theoretically foundational but notoriously difficult to implement correctly. This is precisely why Raft was invented—to provide an equivalent algorithm that is easier to understand, implement, and teach.
 
 ---
 
@@ -139,8 +124,8 @@ stateDiagram-v2
   Candidate --> Candidate: Election timeout (split vote)
 ```
 
-{: .note }
-> Randomized election timeouts prevent perpetual split votes. This is Raft's practical solution to the FLP impossibility result.
+!!! note
+    Randomized election timeouts prevent perpetual split votes. This is Raft's practical solution to the FLP impossibility result.
 
 ### Log Replication
 
@@ -215,8 +200,8 @@ sequenceDiagram
 | Replicated state machine (databases) | Metrics or analytics (small errors acceptable) |
 | Configuration management | Caching layers (stale reads are by design) |
 
-{: .warning }
-> **Staff-level insight:** Consensus is expensive (majority round-trip per write). Use it only for the coordination plane, not the data plane. For example, use Raft for leader election in a sharded database, but the data replication within a shard can use simpler async replication if the workload tolerates it.
+!!! warning
+    **Staff-level insight:** Consensus is expensive (majority round-trip per write). Use it only for the coordination plane, not the data plane. For example, use Raft for leader election in a sharded database, but the data replication within a shard can use simpler async replication if the workload tolerates it.
 
 ---
 

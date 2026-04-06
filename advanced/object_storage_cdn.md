@@ -1,19 +1,4 @@
----
-layout: default
-title: Object Storage & CDN
-parent: Advanced Topics
-nav_order: 6
----
-
 # Object Storage & CDN
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -29,8 +14,8 @@ Together they solve three problems at scale:
 
 If you can articulate when data belongs in object storage versus a database or a POSIX filesystem, how edge caching behaves, and how to invalidate or version content safely, you demonstrate production awareness beyond “store files in S3.”
 
-{: .tip }
-> In Staff-level discussions, tie choices to **cost** (egress, request charges, storage class), **consistency** (read-after-write for uploads), and **operational blast radius** (bad cache TTL vs leaked presigned URL).
+!!! tip
+    In Staff-level discussions, tie choices to **cost** (egress, request charges, storage class), **consistency** (read-after-write for uploads), and **operational blast radius** (bad cache TTL vs leaked presigned URL).
 
 ---
 
@@ -46,8 +31,8 @@ If you can articulate when data belongs in object storage versus a database or a
 
 **Object storage** exposes a simple key-value model at massive scale: you upload bytes with a key; you retrieve by key. There is no partial random-write API like a block device; updates are typically **whole-object PUT** or multipart completion. Directories are simulated via **key prefixes** (`user/123/avatar.jpg`), not true filesystem semantics.
 
-{: .note }
-> Interviewers often probe whether you understand that **listing by prefix** and **strong consistency of listing** are separate concerns from single-key GET semantics on some providers.
+!!! note
+    Interviewers often probe whether you understand that **listing by prefix** and **strong consistency of listing** are separate concerns from single-key GET semantics on some providers.
 
 ### S3-compatible APIs, buckets, keys, metadata
 
@@ -91,8 +76,8 @@ You should be ready to say in an interview:
 - **Cross-region replication** may lag; readers in another region might see old data until replication completes.
 - **Versioning** exposes multiple object versions under one key; listing versions is a separate API from GET latest.
 
-{: .warning }
-> Do not assume **strong consistency** for all operations across all vendors. Always qualify with “check the provider’s guarantees for LIST, HEAD, and replication lag.”
+!!! warning
+    Do not assume **strong consistency** for all operations across all vendors. Always qualify with “check the provider’s guarantees for LIST, HEAD, and replication lag.”
 
 ### Multi-part uploads for large files
 
@@ -116,8 +101,8 @@ Benefits: **parallelism**, **retry per part**, **checkpointing** for flaky netwo
 
 **Lifecycle policies** automate transitions: e.g. move objects to Infrequent after 30 days, to Glacier after 180 days, **expire** old logs after 90 days, **abort incomplete multipart uploads** after 7 days.
 
-{: .note }
-> In interviews, mention **minimum storage duration** charges for infrequent tiers — moving data in and out has economic consequences, not just technical ones.
+!!! note
+    In interviews, mention **minimum storage duration** charges for infrequent tiers — moving data in and out has economic consequences, not just technical ones.
 
 ---
 
@@ -159,8 +144,8 @@ Interview answer pattern: **prefer immutable content + long TTL**; use **purge**
 
 For **API response caching** at the edge, only cache **GET** (or explicitly cacheable methods) and respect **Vary** headers if content varies by `Accept-Encoding` or headers.
 
-{: .tip }
-> Pair **short TTL** on HTML entry pages with **long TTL + hashed names** for JS/CSS/images — the pattern behind most SPAs and static site generators.
+!!! tip
+    Pair **short TTL** on HTML entry pages with **long TTL + hashed names** for JS/CSS/images — the pattern behind most SPAs and static site generators.
 
 ### Geo-routing and anycast
 
@@ -204,8 +189,8 @@ Typical flows:
 - **Download**: Mobile app receives a short-lived GET URL for a private object.
 - **Upload**: Client requests a PUT pre-signed URL from your API, then uploads directly to object storage (saving bandwidth through app servers).
 
-{: .note }
-> Always set **short expiry** for presigned URLs, **least privilege** (single object, specific method), and **HTTPS only** in production.
+!!! note
+    Always set **short expiry** for presigned URLs, **least privilege** (single object, specific method), and **HTTPS only** in production.
 
 ### Bucket policies, IAM roles, CORS
 
@@ -257,8 +242,8 @@ Use edge caching for **read-heavy, low-personalization** endpoints: product cata
 
 Avoid caching **authenticated personalized** responses unless you use **edge-side includes**, **cache keys** that include user or segment, or **Vary** correctly — mistakes leak one user’s data to another.
 
-{: .warning }
-> **Never** cache responses that include **PII** without a strict cache key policy and `private` / `no-store` defaults for sensitive routes.
+!!! warning
+    **Never** cache responses that include **PII** without a strict cache key policy and `private` / `no-store` defaults for sensitive routes.
 
 ### Edge compute (Lambda@Edge, Cloudflare Workers)
 
@@ -325,8 +310,8 @@ flowchart TD
 | Shared team drive, legacy NFS app | File storage |
 | Public or large-scale downloads | Object storage + CDN |
 
-{: .tip }
-> If the interviewer mentions **“users upload profile photos”**, your answer should include **direct-to-S3 upload via presigned POST/PUT**, **virus scanning pipeline**, **image processing** (async workers), and **CDN URL** for delivery — not “store the file in Postgres BYTEA.”
+!!! tip
+    If the interviewer mentions **“users upload profile photos”**, your answer should include **direct-to-S3 upload via presigned POST/PUT**, **virus scanning pipeline**, **image processing** (async workers), and **CDN URL** for delivery — not “store the file in Postgres BYTEA.”
 
 ---
 
@@ -516,8 +501,8 @@ func PresignPut(ctx context.Context, bucket, key string, ttl time.Duration) (str
 }
 ```
 
-{: .note }
-> For custom signing policies beyond `PresignClient`, use `github.com/aws/aws-sdk-go-v2/aws/signer/v4` with explicit `Sign` calls; most apps use `s3.NewPresignClient` only.
+!!! note
+    For custom signing policies beyond `PresignClient`, use `github.com/aws/aws-sdk-go-v2/aws/signer/v4` with explicit `Sign` calls; most apps use `s3.NewPresignClient` only.
 
 ---
 
@@ -541,5 +526,5 @@ func PresignPut(ctx context.Context, bucket, key string, ttl time.Duration) (str
 | Cost | Egress and requests often dominate; tier and cache deliberately. |
 | Consistency | Per-key read-after-write common; cross-region and LIST may lag. |
 
-{: .tip }
-> Close design questions by stating **monitoring**: 4xx/5xx from origin, **cache hit ratio**, **S3 request rate**, and **billing alerts** on egress spikes.
+!!! tip
+    Close design questions by stating **monitoring**: 4xx/5xx from origin, **cache hit ratio**, **S3 request rate**, and **billing alerts** on egress spikes.

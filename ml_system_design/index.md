@@ -1,16 +1,6 @@
----
-layout: default
-title: ML System Design
-nav_order: 6
-has_children: true
-permalink: /ml_system_design/
----
-
 # ML System Design
-{: .fs-9 }
 
 Design machine learning systems for production — 10 designs covering ranking, retrieval, personalization, NLP, speech, and ML infrastructure.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -25,38 +15,36 @@ ML system design interviews focus on the **full ML lifecycle**, not just the mod
 | **Serving** | Latency, throughput, model updates |
 | **Monitoring** | Drift detection, performance metrics |
 
-{: .warning }
-> A common mistake: focusing only on the model architecture. Interviewers want to see you design the entire system around it.
+!!! warning
+    A common mistake: focusing only on the model architecture. Interviewers want to see you design the entire system around it.
 
 ---
 
 ## Recommended Study Order
 
-{: .tip }
-> Follow this order — each design introduces new concepts that build on earlier ones.
+!!! tip
+    Follow this order — each design introduces new concepts that build on earlier ones.
 
 | Order | Design | New Concepts Introduced | Prerequisite |
 |-------|--------|------------------------|--------------|
-| 1 | [Image Caption Generator]({{ site.baseurl }}/ml_system_design/image_caption_generator) | Encoder-decoder, GPU serving, Triton | Model Serving fundamentals |
-| 2 | [Image Search]({{ site.baseurl }}/ml_system_design/image_search) | Embeddings, vector DBs, ANN indexes | Image Caption (embeddings) |
-| 3 | [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system) | Two-Tower, collaborative filtering, cold start | Image Search (ANN) |
-| 4 | [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking) | BM25, LambdaMART, retrieval + ranking | Recommendation (two-stage) |
-| 5 | [Fraud Detection]({{ site.baseurl }}/ml_system_design/fraud_detection) | Real-time features, class imbalance, ensembles | Search Ranking (ranking) |
-| 6 | [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization) | Session models, bandits, exploration | Recommendation + Fraud |
-| 7 | [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking) | CTR prediction, auctions, budget pacing | All of the above |
-| 8 | [Real-time Feature Platform]({{ site.baseurl }}/ml_system_design/feature_platform) | Streaming features, PIT joins, drift | Infra for all above |
-| 9 | [Machine Translation]({{ site.baseurl }}/ml_system_design/machine_translation) | Transformer NMT, multilingual, QE, low-resource | Seq2Seq fundamentals |
-| 10 | [Speech Recognition]({{ site.baseurl }}/ml_system_design/speech_recognition) | CTC/RNN-T, streaming ASR, diarization | Audio processing basics |
+| 1 | [Image Caption Generator](image_caption_generator.md) | Encoder-decoder, GPU serving, Triton | Model Serving fundamentals |
+| 2 | [Image Search](image_search.md) | Embeddings, vector DBs, ANN indexes | Image Caption (embeddings) |
+| 3 | [Recommendation System](recommendation_system.md) | Two-Tower, collaborative filtering, cold start | Image Search (ANN) |
+| 4 | [Search Ranking](search_ranking.md) | BM25, LambdaMART, retrieval + ranking | Recommendation (two-stage) |
+| 5 | [Fraud Detection](fraud_detection.md) | Real-time features, class imbalance, ensembles | Search Ranking (ranking) |
+| 6 | [Real-time Personalization](realtime_personalization.md) | Session models, bandits, exploration | Recommendation + Fraud |
+| 7 | [Ads Ranking System](ads_ranking.md) | CTR prediction, auctions, budget pacing | All of the above |
+| 8 | [Real-time Feature Platform](feature_platform.md) | Streaming features, PIT joins, drift | Infra for all above |
+| 9 | [Machine Translation](machine_translation.md) | Transformer NMT, multilingual, QE, low-resource | Seq2Seq fundamentals |
+| 10 | [Speech Recognition](speech_recognition.md) | CTC/RNN-T, streaming ASR, diarization | Audio processing basics |
 
 ---
 
 ## Available Designs
 
-### [Image Caption Generator]({{ site.baseurl }}/ml_system_design/image_caption_generator)
-{: .d-inline-block }
+### [Image Caption Generator](image_caption_generator.md)
 
 Computer Vision
-{: .label .label-purple }
 
 Design a system that generates descriptive captions for images using deep learning.
 
@@ -66,11 +54,9 @@ Design a system that generates descriptive captions for images using deep learni
 
 ---
 
-### [Image Search System]({{ site.baseurl }}/ml_system_design/image_search)
-{: .d-inline-block }
+### [Image Search System](image_search.md)
 
 Vector Search
-{: .label .label-blue }
 
 Design a visual search system for finding similar images or searching by text description.
 
@@ -80,11 +66,9 @@ Design a visual search system for finding similar images or searching by text de
 
 ---
 
-### [Recommendation System]({{ site.baseurl }}/ml_system_design/recommendation_system)
-{: .d-inline-block }
+### [Recommendation System](recommendation_system.md)
 
 Personalization
-{: .label .label-green }
 
 Design a recommendation system for e-commerce or content platforms like Netflix/Amazon.
 
@@ -94,11 +78,9 @@ Design a recommendation system for e-commerce or content platforms like Netflix/
 
 ---
 
-### [Search Ranking]({{ site.baseurl }}/ml_system_design/search_ranking)
-{: .d-inline-block }
+### [Search Ranking](search_ranking.md)
 
 Information Retrieval
-{: .label .label-green }
 
 Design an ML-powered search ranking system (learning-to-rank, retrieval + ranking + re-ranking).
 
@@ -108,11 +90,9 @@ Design an ML-powered search ranking system (learning-to-rank, retrieval + rankin
 
 ---
 
-### [Real-time Fraud Detection]({{ site.baseurl }}/ml_system_design/fraud_detection)
-{: .d-inline-block }
+### [Real-time Fraud Detection](fraud_detection.md)
 
 Low-latency ML
-{: .label .label-yellow }
 
 Design a system that detects fraudulent transactions in real-time (<100ms).
 
@@ -122,11 +102,9 @@ Design a system that detects fraudulent transactions in real-time (<100ms).
 
 ---
 
-### [Real-time Personalization]({{ site.baseurl }}/ml_system_design/realtime_personalization)
-{: .d-inline-block }
+### [Real-time Personalization](realtime_personalization.md)
 
 Session-Based ML
-{: .label .label-purple }
 
 Design a real-time personalization system that adapts to user behavior within a session.
 
@@ -136,14 +114,11 @@ Design a real-time personalization system that adapts to user behavior within a 
 
 ---
 
-### [Ads Ranking System]({{ site.baseurl }}/ml_system_design/ads_ranking)
-{: .d-inline-block }
+### [Ads Ranking System](ads_ranking.md)
 
 Revenue ML
-{: .label .label-red }
 
 NEW
-{: .label .label-yellow }
 
 Design an ads ranking system — the core revenue engine at Google, Meta, Amazon. Predict CTR/CVR, run auctions, manage advertiser budgets.
 
@@ -153,14 +128,11 @@ Design an ads ranking system — the core revenue engine at Google, Meta, Amazon
 
 ---
 
-### [Real-time Feature Platform]({{ site.baseurl }}/ml_system_design/feature_platform)
-{: .d-inline-block }
+### [Real-time Feature Platform](feature_platform.md)
 
 ML Infrastructure
-{: .label .label-red }
 
 NEW
-{: .label .label-yellow }
 
 Design a real-time feature platform that computes, stores, and serves ML features with sub-millisecond latency — solving train-serve skew, point-in-time joins, and feature freshness at scale.
 
@@ -170,14 +142,11 @@ Design a real-time feature platform that computes, stores, and serves ML feature
 
 ---
 
-### [Machine Translation]({{ site.baseurl }}/ml_system_design/machine_translation)
-{: .d-inline-block }
+### [Machine Translation](machine_translation.md)
 
 NLP
-{: .label .label-blue }
 
 NEW
-{: .label .label-yellow }
 
 Design a machine translation system like Google Translate — 100+ languages, text/image/speech, quality estimation, and low-resource language support.
 
@@ -187,14 +156,11 @@ Design a machine translation system like Google Translate — 100+ languages, te
 
 ---
 
-### [Speech Recognition]({{ site.baseurl }}/ml_system_design/speech_recognition)
-{: .d-inline-block }
+### [Speech Recognition](speech_recognition.md)
 
 Audio/Speech
-{: .label .label-purple }
 
 NEW
-{: .label .label-yellow }
 
 Design a speech recognition (ASR) system like Google Speech-to-Text or Whisper — real-time streaming, speaker diarization, 100+ languages.
 
@@ -272,8 +238,8 @@ MONITORING
 └── Business Metrics   → CTR, conversion, revenue impact
 ```
 
-{: .tip }
-> For deep dives on Model Serving, Feature Stores, Data Pipelines, LLMs, and Distributed Training, see the [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) section.
+!!! tip
+    For deep dives on Model Serving, Feature Stores, Data Pipelines, LLMs, and Distributed Training, see the [GenAI/ML Fundamentals](../genai_ml_basics/index.md) section.
 
 ---
 
@@ -296,8 +262,8 @@ MONITORING
 | **Beam search/decoding** | Machine Translation, Speech Recognition |
 | **Streaming inference** | Speech Recognition, Real-time Personalization |
 
-{: .note }
-> Master these patterns and you can apply them to any new ML system design problem.
+!!! note
+    Master these patterns and you can apply them to any new ML system design problem.
 
 ---
 
@@ -322,9 +288,9 @@ MONITORING
 
 After mastering ML system design:
 
-1. **Go deeper on GenAI** with [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) — 10 LLM/GenAI systems with interview transcripts
-2. **Review fundamentals** in [GenAI/ML Fundamentals]({{ site.baseurl }}/genai_ml_basics/) — 7 building blocks including LLM Evaluation and RLHF & Alignment
+1. **Go deeper on GenAI** with [GenAI System Design](../genai_ml_system_design/index.md) — 10 LLM/GenAI systems with interview transcripts
+2. **Review fundamentals** in [GenAI/ML Fundamentals](../genai_ml_basics/index.md) — 7 building blocks including LLM Evaluation and RLHF & Alignment
 3. **Practice with transcripts** — the GenAI section includes full hypothetical interview walkthroughs
 
-{: .note }
-> Looking for **LLM Chatbot, RAG, Code Assistant, AI Agents, or Text-to-Image** designs? These GenAI-specific system designs live in the dedicated [GenAI System Design]({{ site.baseurl }}/genai_ml_system_design/) section.
+!!! note
+    Looking for **LLM Chatbot, RAG, Code Assistant, AI Agents, or Text-to-Image** designs? These GenAI-specific system designs live in the dedicated [GenAI System Design](../genai_ml_system_design/index.md) section.

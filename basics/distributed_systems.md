@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed Systems
-parent: Fundamentals
-nav_order: 11
----
-
 # Distributed Systems Concepts
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -45,15 +30,15 @@ Peter Deutsch and James Gosling identified assumptions that developers incorrect
 7. Transport cost is zero
 8. The network is homogeneous
 
-{: .warning }
-> Every design decision in a distributed system must account for these realities. Ignoring any of them leads to brittle production systems.
+!!! warning
+    Every design decision in a distributed system must account for these realities. Ignoring any of them leads to brittle production systems.
 
 ---
 
 ## CAP Theorem
 
-{: .note }
-> CAP theorem is also covered from a database perspective in [Databases]({{ site.baseurl }}/basics/databases). This section focuses on the distributed systems angle.
+!!! note
+    CAP theorem is also covered from a database perspective in [Databases](databases.md). This section focuses on the distributed systems angle.
 
 The CAP theorem, proposed by Eric Brewer in 2000 and proven by Seth Gilbert and Nancy Lynch in 2002, states that a distributed data store can provide at most **two out of three** guarantees simultaneously:
 
@@ -183,8 +168,8 @@ public class APCounter {
 }
 ```
 
-{: .note }
-> In interviews, always state which side of CAP your design prioritizes and **why**. For payment systems, choose CP. For social feeds, choose AP.
+!!! note
+    In interviews, always state which side of CAP your design prioritizes and **why**. For payment systems, choose CP. For social feeds, choose AP.
 
 ---
 
@@ -561,8 +546,8 @@ flowchart LR
 | **At-least-once** | Message delivered 1 or more times | Reliable, but may produce duplicates |
 | **Exactly-once** | Message delivered exactly 1 time | Ideal, but expensive and complex |
 
-{: .tip }
-> In practice, most systems use **at-least-once** delivery with **idempotent consumers**. This gives reliability without the complexity of exactly-once semantics.
+!!! tip
+    In practice, most systems use **at-least-once** delivery with **idempotent consumers**. This gives reliability without the complexity of exactly-once semantics.
 
 ### Kafka vs RabbitMQ vs SQS
 
@@ -979,8 +964,8 @@ flowchart TD
 | Can consumers be idempotent? | At-least-once delivery | Need exactly-once (complex) |
 | Is hot-spot risk high? | Consistent hashing with vnodes | Simple hash partitioning |
 
-{: .important }
-> In interviews, always discuss trade-offs. There is no universally "best" choice—only choices that fit specific requirements. State your assumptions clearly and explain why you chose one approach over another.
+!!! important
+    In interviews, always discuss trade-offs. There is no universally "best" choice—only choices that fit specific requirements. State your assumptions clearly and explain why you chose one approach over another.
 
 ---
 

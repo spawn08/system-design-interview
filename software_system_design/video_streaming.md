@@ -1,19 +1,4 @@
----
-layout: default
-title: Video Streaming (YouTube)
-parent: System Design Examples
-nav_order: 11
----
-
 # Video Streaming (YouTube)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ## What We're Building
 
@@ -42,8 +27,8 @@ A **video streaming platform** lets creators upload long-form and short-form vid
 | **Consistency vs cost** | Strong consistency everywhere is expensive; many paths are eventual |
 | **Abuse and compliance** | Copyright, CSAM, and spam require detection pipelines and policy |
 
-{: .note }
-> In interviews, **clarify live vs VOD** early. Live streaming uses RTMP/WebRTC ingest and LL-HLS/WebRTC egress; this page focuses on **VOD** (upload then watch), which matches “Design YouTube” unless the interviewer specifies live.
+!!! note
+    In interviews, **clarify live vs VOD** early. Live streaming uses RTMP/WebRTC ingest and LL-HLS/WebRTC egress; this page focuses on **VOD** (upload then watch), which matches “Design YouTube” unless the interviewer specifies live.
 
 ### High-Level System Context (Preview)
 
@@ -107,8 +92,8 @@ flowchart TB
 | FR-7 | **View counts** and basic analytics for creators | Often approximate at scale |
 | FR-8 | **Home / feed** surfaces recommended videos | ML ranking; can be scoped “out of band” |
 
-{: .tip }
-> Mark **recommendations** as a separate sub-system if time is short: ingest signals (views, watches, subs) and serve ranked lists from an offline + online stack.
+!!! tip
+    Mark **recommendations** as a separate sub-system if time is short: ingest signals (views, watches, subs) and serve ranked lists from an offline + online stack.
 
 ### Non-Functional Requirements
 
@@ -146,8 +131,8 @@ Typical REST (or gRPC internal) surface:
 }
 ```
 
-{: .warning }
-> Never expose **raw storage credentials** to clients. Use **pre-signed URLs** or short-lived upload tokens so the browser talks directly to object storage where appropriate.
+!!! warning
+    Never expose **raw storage credentials** to clients. Use **pre-signed URLs** or short-lived upload tokens so the browser talks directly to object storage where appropriate.
 
 ### Technology Selection & Tradeoffs
 
@@ -208,8 +193,8 @@ At interview depth, **name 2–3 realistic options per layer**, compare on **ops
 | **CDN** | **Major managed CDN** + path to **multi-CDN** at scale | Correct default; multi-CDN when **egress cost** and **availability** dominate. |
 | **Metadata** | **PostgreSQL** for relational truth; **Redis** for hot reads; **stream processing** + KV/OLAP for **views** | Keeps **strong consistency** for “what exists” while isolating **write-heavy analytics** from OLTP. |
 
-{: .note }
-> Tie each choice to **constraints**: “We optimize for **time-to-market** and **managed durability** on blobs; we **don’t** optimize for running our own HDFS for user-facing bytes.”
+!!! note
+    Tie each choice to **constraints**: “We optimize for **time-to-market** and **managed durability** on blobs; we **don’t** optimize for running our own HDFS for user-facing bytes.”
 
 ### CAP Theorem Analysis
 
@@ -265,8 +250,8 @@ Define **SLI → SLO → error budget** so you can talk about **on-call**, **pri
 | **Release gates** | If **playback SLO** budget is low, **freeze** risky CDN config / encoder rollouts; **processing** SLO can use **separate** budget |
 | **Customer comms** | **SLO** is internal; external **SLA** may promise **money back** on stricter or narrower terms |
 
-{: .tip }
-> In interviews, say **why** two numbers differ: **TTFB** is user-perceived; **cache hit ratio** is a **leading indicator** of both **cost** and **TTFB** at scale.
+!!! tip
+    In interviews, say **why** two numbers differ: **TTFB** is user-perceived; **cache hit ratio** is a **leading indicator** of both **cost** and **TTFB** at scale.
 
 ### Database Schema
 
@@ -398,8 +383,8 @@ CPU-hours ≈ (2×10^8 / 20) = 10^7 CPU-hours/day
 ≈ huge PB-scale/month; CDN caches reduce origin hits
 ```
 
-{: .note }
-> Estimation **validates architecture**: you need **queues**, **worker autoscaling**, **CDN**, and **tiered storage**. Exact digits matter less than magnitude.
+!!! note
+    Estimation **validates architecture**: you need **queues**, **worker autoscaling**, **CDN**, and **tiered storage**. Exact digits matter less than magnitude.
 
 | Resource | Bottleneck signal | Mitigation |
 |----------|-------------------|------------|
@@ -459,8 +444,8 @@ flowchart LR
 2. **Process**: Orchestrator builds a **DAG** (see deep dive); workers write renditions and segments to object storage; metadata updated to `READY`.
 3. **Play**: Client fetches metadata API for **CDN URLs** of HLS/DASH; player downloads manifest then segments **from CDN**.
 
-{: .tip }
-> Keep **control plane** (APIs, auth) separate from **data plane** (bytes to CDN). Mixing them complicates scaling and security reviews.
+!!! tip
+    Keep **control plane** (APIs, auth) separate from **data plane** (bytes to CDN). Mixing them complicates scaling and security reviews.
 
 ---
 
@@ -497,8 +482,8 @@ sequenceDiagram
     OR->>OR: build DAG, schedule jobs
 ```
 
-{: .warning }
-> **Copyright and policy** checks often run in parallel or after ingest: fingerprinting (e.g. Content ID–style), hash lists, and ML classifiers. Mention **latency vs safety** trade-off: block publish until cleared vs publish then remove.
+!!! warning
+    **Copyright and policy** checks often run in parallel or after ingest: fingerprinting (e.g. Content ID–style), hash lists, and ML classifiers. Mention **latency vs safety** trade-off: block publish until cleared vs publish then remove.
 
 ### 4.2 Video Transcoding (Adaptive Bitrate)
 
@@ -536,8 +521,8 @@ flowchart TB
     J --> K[Write manifests + segments to storage]
 ```
 
-{: .note }
-> **Adaptive bitrate (ABR)** players switch between renditions based on bandwidth and buffer. **Per-title encoding** optimizes ladders per asset; **chunked CMAF** helps align segment boundaries across renditions.
+!!! note
+    **Adaptive bitrate (ABR)** players switch between renditions based on bandwidth and buffer. **Per-title encoding** optimizes ladders per asset; **chunked CMAF** helps align segment boundaries across renditions.
 
 ### 4.3 CDN and Video Delivery (HLS/DASH)
 
@@ -638,8 +623,8 @@ Mention in interviews: detection runs on **processing pipeline** or **separate w
 | View count | Approximate fast | Stronger consistency, costlier |
 | Search | Managed OpenSearch | Self-operated (ops burden) |
 
-{: .warning }
-> **Single hot video** can overload recommendation and metadata caches; use **cache partitioning**, **request coalescing**, and **overload protection** (drop non-critical work first).
+!!! warning
+    **Single hot video** can overload recommendation and metadata caches; use **cache partitioning**, **request coalescing**, and **overload protection** (drop non-critical work first).
 
 ### Operational Concerns
 
@@ -690,8 +675,8 @@ Mention in interviews: detection runs on **processing pipeline** or **separate w
 
 **Candidate:** “A per-row counter in one DB row **doesn’t scale** for viral spikes. I’d use **sharded counters**, **Redis buffers** with periodic flush, or a **stream processor** aggregating view events—often **eventually consistent** with fraud controls. **Exact** totals can be reconciled offline.”
 
-{: .tip }
-> End with **two failures**: stuck transcoding (dead-letter queue, alert on age), and **CDN miss storm** (origin protection, request coalescing).
+!!! tip
+    End with **two failures**: stuck transcoding (dead-letter queue, alert on age), and **CDN miss storm** (origin protection, request coalescing).
 
 ### Code Sketches (Multi-Language)
 
@@ -742,8 +727,8 @@ def package_hls(renditions: list[str], out_dir: str) -> None:
     )
 ```
 
-{: .note }
-> Production code adds **logging**, **timeouts**, **resource limits**, and often **hardware encoders**; the above illustrates the **FFmpeg boundary**.
+!!! note
+    Production code adds **logging**, **timeouts**, **resource limits**, and often **hardware encoders**; the above illustrates the **FFmpeg boundary**.
 
 **Go — streaming HTTP handler (redirect to CDN manifest)**
 
@@ -787,5 +772,5 @@ func (s *Server) ServeHLS(w http.ResponseWriter, r *http.Request) {
 | **Recommendations** | Usually separate; log-rich training data |
 | **Compliance** | **Copyright** fingerprinting and policy; safety classifiers |
 
-{: .note }
-> You will not build all subsystems in 45 minutes. **Narrow** with the interviewer, draw **one** solid data flow, and **deep dive** on transcoding, CDN, or analytics—whichever they care about most.
+!!! note
+    You will not build all subsystems in 45 minutes. **Narrow** with the interviewer, draw **one** solid data flow, and **deep dive** on transcoding, CDN, or analytics—whichever they care about most.

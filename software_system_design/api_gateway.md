@@ -1,19 +1,4 @@
----
-layout: default
-title: API Gateway
-parent: System Design Examples
-nav_order: 26
----
-
 # API Gateway
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -38,8 +23,8 @@ An **API gateway** is a **reverse proxy and policy enforcement point** that sits
 | **Extensibility** | WASM/Lua/plugins—policy without recompiling the binary |
 | **Ops** | Hot config reload, service discovery, mTLS, canary/blue-green |
 
-{: .note }
-> In interviews, separate **data plane** (low latency, stateless logic + fast I/O) from **control plane** (durable config, rollout, audit). Confusing them is a common trap.
+!!! note
+    In interviews, separate **data plane** (low latency, stateless logic + fast I/O) from **control plane** (durable config, rollout, audit). Confusing them is a common trap.
 
 ### Reference systems (interview vocabulary)
 
@@ -125,8 +110,8 @@ Assume **one gateway node** target **100K RPS** sustained for sizing discussions
 | **Egress bandwidth** | `100K × 2 KB` | **~200 MB/s** (~1.6 Gbps) |
 | **Concurrent connections** | Assume 50ms mean service time, open keep-alive | `100K × 0.05` ≈ **5,000** (order-of-magnitude) |
 
-{: .tip }
-> Real numbers depend on **TLS**, **compression**, **HTTP/2 multiplexing**, and **payload size**. Use these as **interview Fermi** checks, not purchase orders.
+!!! tip
+    Real numbers depend on **TLS**, **compression**, **HTTP/2 multiplexing**, and **payload size**. Use these as **interview Fermi** checks, not purchase orders.
 
 ### Storage (PostgreSQL — audit & config)
 
@@ -159,8 +144,8 @@ Assume **one gateway node** target **100K RPS** sustained for sizing discussions
 | **Memory** | Connection buffers, TLS session cache, route tables | **32–64 GB** if large body buffering |
 | **FDs** | `ulimit -n`; one FD per upstream + client connection | Tune to **1M+** on Linux with `sysctl` |
 
-{: .warning }
-> **100K RPS per node** is a **design target**, not a guarantee—**payload size**, **TLS resumption rate**, and **plugin** CPU can move this by **10×**.
+!!! warning
+    **100K RPS per node** is a **design target**, not a guarantee—**payload size**, **TLS resumption rate**, and **plugin** CPU can move this by **10×**.
 
 ---
 
@@ -287,8 +272,8 @@ Request
            +---> subset: version=canary (5%)
 ```
 
-{: .warning }
-> **Hostile clients** can game unseeded random routing—prefer **deterministic** canary (user id hash) for consistent UX and easier debugging.
+!!! warning
+    **Hostile clients** can game unseeded random routing—prefer **deterministic** canary (user id hash) for consistent UX and easier debugging.
 
 #### Service discovery integration
 
@@ -584,8 +569,8 @@ flowchart TB
   FC --> R2[Risk: total outage of API]
 ```
 
-{: .tip }
-> Say clearly: **CAP applies per subsystem**. The **gateway process** favors **availability** of traffic (often **fail open on RL**) vs **strict quota**—that is a **business** knob, not a theorem misunderstanding.
+!!! tip
+    Say clearly: **CAP applies per subsystem**. The **gateway process** favors **availability** of traffic (often **fail open on RL**) vs **strict quota**—that is a **business** knob, not a theorem misunderstanding.
 
 ---
 
@@ -609,8 +594,8 @@ flowchart TB
 | **&lt; 25%** | Feature freeze; incident review; prioritize reliability work |
 | **Exhausted** | **Stop** canary increases; root-cause review before new deploys |
 
-{: .note }
-> **99.99%** ≈ **4.38 min/month** downtime budget—ingress incidents burn budget fast; **multi-AZ** and **graceful degradation** are mandatory talking points.
+!!! note
+    **99.99%** ≈ **4.38 min/month** downtime budget—ingress incidents burn budget fast; **multi-AZ** and **graceful degradation** are mandatory talking points.
 
 ---
 
@@ -729,8 +714,8 @@ CREATE TABLE cache_surrogate_tags (
 CREATE INDEX idx_surrogate_tag ON cache_surrogate_tags(tenant_id, tag);
 ```
 
-{: .warning }
-> Partition `gateway_audit_log` by **month**; use **async insert** from gateway to avoid blocking hot path.
+!!! warning
+    Partition `gateway_audit_log` by **month**; use **async insert** from gateway to avoid blocking hot path.
 
 ---
 
@@ -800,8 +785,8 @@ Content-Type: application/json
 }
 ```
 
-{: .warning }
-> Return **secret once**; persist only **hash** + **prefix** for lookup.
+!!! warning
+    Return **secret once**; persist only **hash** + **prefix** for lookup.
 
 **Publish route snapshot (triggers xDS / etcd push):**
 
@@ -887,8 +872,8 @@ Response cached in Redis `SET introspect:<sha256(token)> JSON EX 30`.
 | **1M RPS** regional | `1M / 100K = 10` nodes at target + **N+2** spare |
 | **Redis** memory | Count **distinct** RL keys at peak × **bytes/key** × **1.5** fragmentation |
 
-{: .tip }
-> Treat gateway as **multiplier**: a **retry storm** from clients can **10×** upstream load—coordinate **retry budgets** with **429** semantics.
+!!! tip
+    Treat gateway as **multiplier**: a **retry storm** from clients can **10×** upstream load—coordinate **retry budgets** with **429** semantics.
 
 ---
 
@@ -978,5 +963,5 @@ Response cached in Redis `SET introspect:<sha256(token)> JSON EX 30`.
 
 ---
 
-{: .tip }
-> **Sound bite:** *“We treat the gateway as a **policy execution engine** at the edge: **Redis** for milliseconds-counts, **Postgres** for **durable** identity and audit, **etcd** for **consistent** routing intent, and **OTel** so every **429** and **503** is explainable in a trace.”*
+!!! tip
+    **Sound bite:** *“We treat the gateway as a **policy execution engine** at the edge: **Redis** for milliseconds-counts, **Postgres** for **durable** identity and audit, **etcd** for **consistent** routing intent, and **OTel** so every **429** and **503** is explainable in a trace.”*

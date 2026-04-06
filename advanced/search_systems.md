@@ -1,19 +1,4 @@
----
-layout: default
-title: Search Systems
-parent: Advanced Topics
-nav_order: 2
----
-
 # Search Systems
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -181,13 +166,11 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 import re
 
-
 @dataclass
 class Posting:
     doc_id: int
     term_frequency: int
     positions: list[int] = field(default_factory=list)
-
 
 class InvertedIndex:
     STOP_WORDS = frozenset({
@@ -658,8 +641,8 @@ flowchart TD
     IDX -->|Minutes OK| BATCH[Periodic batch reindex]
 ```
 
-{: .important }
-> When designing a search system in an interview, always address: (1) how data gets into the index (indexing pipeline), (2) how queries are executed (scatter-gather), (3) how results are ranked (BM25 + optional re-ranking), and (4) how the system scales (sharding, replication).
+!!! important
+    When designing a search system in an interview, always address: (1) how data gets into the index (indexing pipeline), (2) how queries are executed (scatter-gather), (3) how results are ranked (BM25 + optional re-ranking), and (4) how the system scales (sharding, replication).
 
 ---
 

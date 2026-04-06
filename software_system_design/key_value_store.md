@@ -1,19 +1,4 @@
----
-layout: default
-title: Key-Value Store
-parent: System Design Examples
-nav_order: 3
----
-
 # Distributed Key-Value Store
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -28,8 +13,8 @@ A **distributed key-value store** shards data across many nodes, replicates for 
 | **Predictable latency** | Bounded fan-out per operation; avoid global locks |
 | **Operational simplicity** | Symmetric nodes; membership via gossip; no single master for all data |
 
-{: .note }
-> Clarify in the interview whether the interviewer wants **strong consistency** (harder: consensus per key, smaller partitions) or **Dynamo-style eventual consistency** (this guide’s default). Many “design a KV store” prompts expect the latter plus explicit trade-offs.
+!!! note
+    Clarify in the interview whether the interviewer wants **strong consistency** (harder: consensus per key, smaller partitions) or **Dynamo-style eventual consistency** (this guide’s default). Many “design a KV store” prompts expect the latter plus explicit trade-offs.
 
 **Real-world:** Dynamo powers high-scale internal Amazon services; Cassandra and compatible systems power **Netflix**, **Apple**, **Discord**, and many analytics and metadata workloads. The patterns below are standard vocabulary for senior system design interviews.
 
@@ -58,8 +43,8 @@ A **distributed key-value store** shards data across many nodes, replicates for 
 | **Scale** | Billions of keys, PB-scale | Sharding + LSM-friendly storage engines |
 | **Partition tolerance** | Required | Network splits must not halt the whole system |
 
-{: .warning }
-> **Linearizable** reads/writes across arbitrary keys usually require **consensus** (Raft/Paxos) per shard or a centralized transaction layer. Say so explicitly if the interviewer asks for “strong consistency for all operations.”
+!!! warning
+    **Linearizable** reads/writes across arbitrary keys usually require **consensus** (Raft/Paxos) per shard or a centralized transaction layer. Say so explicitly if the interviewer asks for “strong consistency for all operations.”
 
 ### API Design
 
@@ -73,8 +58,8 @@ REST-style (illustrative); production systems often use **binary protocols** (Th
 
 **Conditional writes (optional):** `If-Match: version` for compare-and-swap semantics on top of vector clocks or monotonic counters.
 
-{: .tip }
-> Mention **idempotency keys** on writes for retries: the coordinator can detect duplicate client attempts and avoid double application when combined with versioning.
+!!! tip
+    Mention **idempotency keys** on writes for retries: the coordinator can detect duplicate client attempts and avoid double application when combined with versioning.
 
 ### Technology Selection & Tradeoffs
 
@@ -129,8 +114,8 @@ Interviewers expect you to name **alternatives**, compare them in a table, and c
 
 **CAP** (Brewer): in the face of **network partition**, you cannot simultaneously provide **linearizable consistency (C)** and **full availability (A)** for **every** operation; systems **pick trade-offs** and often offer **tunable** behavior (e.g., **W, R, N**).
 
-{: .note }
-> Pedantic interview nuance: **CAP is not a 3-way “pick two forever”** menu for all operations. It describes **behavior during a partition**. Many production systems are **AP** with **best-effort C** when the network is healthy, and **degrade** gracefully when partitioned.
+!!! note
+    Pedantic interview nuance: **CAP is not a 3-way “pick two forever”** menu for all operations. It describes **behavior during a partition**. Many production systems are **AP** with **best-effort C** when the network is healthy, and **degrade** gracefully when partitioned.
 
 #### What happens during a partition?
 
@@ -198,8 +183,8 @@ flowchart TB
 | **Durability** | Data loss events / objects | **≤ 1 × 10⁻⁹** annual object risk (design + replication + backup) | Yearly review | Justify via **N**, cross-AZ, backups, **repair** SLIs |
 | **Consistency (staleness)** | Time or version lag between **latest write** and **read** seen by a different client | **< 250 ms** **staleness p99** under steady state; **eventual** bound under partition | Rolling 7 days | Exposes **async path**; tie to **repair** and **R,W** |
 
-{: .tip }
-> Separate **latency SLO** (user-facing) from **internal** SLIs: compaction backlog, gossip convergence, disk utilization — those **burn** error budget indirectly via latency spikes.
+!!! tip
+    Separate **latency SLO** (user-facing) from **internal** SLIs: compaction backlog, gossip convergence, disk utilization — those **burn** error budget indirectly via latency spikes.
 
 #### Error budget policy
 
@@ -250,8 +235,8 @@ A production KV store is not only `map<string, bytes>` — it carries **metadata
 | **Statistics** | Min/max key, entry count, for **partition** pruning |
 | **Footer / metadata** | Checksums, codec ids, pointers to index/filter |
 
-{: .note }
-> **WAL + memtable** hold the newest writes; **flush** produces a new **immutable SSTable**. **Compaction** merges SSTables and drops superseded values and **tombstones** when safe — tuning **compaction** balances **read amplification**, **write amplification**, and **space**.
+!!! note
+    **WAL + memtable** hold the newest writes; **flush** produces a new **immutable SSTable**. **Compaction** merges SSTables and drops superseded values and **tombstones** when safe — tuning **compaction** balances **read amplification**, **write amplification**, and **space**.
 
 **Interview sound bite:** *“The **value** is opaque; **versioning** lives in metadata so replicas can **merge** and **repair** without a global lock. **Tombstones** are first-class so deletes replicate correctly under eventual consistency.”*
 
@@ -364,8 +349,8 @@ flowchart TB
   N4 <-->|periodic gossip| N1
 ```
 
-{: .note }
-> **Seed nodes** bootstrap the first connections; afterward gossip propagates join/leave and failure suspicion. Use **Phi accrual** or similar to avoid flapping on slow networks.
+!!! note
+    **Seed nodes** bootstrap the first connections; afterward gossip propagates join/leave and failure suspicion. Use **Phi accrual** or similar to avoid flapping on slow networks.
 
 ---
 
@@ -393,8 +378,8 @@ flowchart TB
 - Replicas placed on **distinct** physical nodes (and ideally racks/AZs).
 - **Coordinator:** Usually the first healthy node in the preference list for that key (or any node that receives the client request can forward as coordinator).
 
-{: .warning }
-> Storing **all** replicas in one AZ gives false comfort: correlated failure domains. Interviewers reward mentioning **rack/AZ awareness** in the preference list.
+!!! warning
+    Storing **all** replicas in one AZ gives false comfort: correlated failure domains. Interviewers reward mentioning **rack/AZ awareness** in the preference list.
 
 ---
 
@@ -414,8 +399,8 @@ Parameters:
 | W=1, R=N | Fast writes; slow reads; last writer visible if single writer path |
 | W=R=2, N=3 | Balanced; overlap for many staleness scenarios |
 
-{: .tip }
-> State **SLA vs cost**: higher **W** increases write latency; higher **R** increases read latency.
+!!! tip
+    State **SLA vs cost**: higher **W** increases write latency; higher **R** increases read latency.
 
 ---
 
@@ -458,8 +443,8 @@ Properties: **Eventual** convergence; **O(log N)** rounds typical for epidemic s
 | SSTable | Immutable sorted string tables; block indexes, bloom filters |
 | Compaction | Size-tiered or leveled; trades write vs read amplification |
 
-{: .note }
-> Interview bonus: **Bloom filters** in SSTables reduce disk I/O for negative lookups.
+!!! note
+    Interview bonus: **Bloom filters** in SSTables reduce disk I/O for negative lookups.
 
 ---
 
@@ -529,8 +514,8 @@ sequenceDiagram
 | **Security** | TLS in transit, encryption at rest, ACLs per keyspace |
 | **Multi-region** | Async replication with higher staleness; conflict handling; optional CRR |
 
-{: .warning }
-> **Clock skew** breaks naive LWW. Use **synchronized time** with bounds, or prefer vector clocks/siblings for correctness-sensitive data.
+!!! warning
+    **Clock skew** breaks naive LWW. Use **synchronized time** with bounds, or prefer vector clocks/siblings for correctness-sensitive data.
 
 ---
 
@@ -932,14 +917,14 @@ public class Coordinator {
 - Cassandra storage architecture — LSM, compaction strategies, repair
 - Bigtable paper — SSTable immutability (conceptual cousin for storage layers)
 
-{: .tip }
-> Practice drawing **one ring**, **one write sequence**, and **one read with repair** under time pressure; that trio covers most follow-up questions.
+!!! tip
+    Practice drawing **one ring**, **one write sequence**, and **one read with repair** under time pressure; that trio covers most follow-up questions.
 
 ---
 
 ## Staff Engineer (L6) Deep Dive
 
-The sections above cover the standard Dynamo-style KV store design. The sections below elevate the answer to **Staff-level depth**. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+The sections above cover the standard Dynamo-style KV store design. The sections below elevate the answer to **Staff-level depth**. See the [Staff Engineer Interview Guide](staff_engineer_expectations.md) for the full L6 expectations framework.
 
 ### Strong Consistency vs. Eventual Consistency: The Full Trade-off
 
@@ -953,8 +938,8 @@ At L5, candidates say "we use quorum." At L6, you must articulate the gap betwee
 | **Cross-key transactions** | Not supported | Requires 2PC or Spanner-style TrueTime |
 | **Latency** | Lower (any N nodes) | Higher (leader round-trip + consensus) |
 
-{: .warning }
-> **Staff-level nuance:** Google Spanner achieves externally consistent reads using **TrueTime** (GPS + atomic clocks) to bound clock uncertainty. If the interviewer asks "how would you make this strongly consistent?", discuss Spanner's approach: commit-wait ensures that any read at time T sees all commits before T.
+!!! warning
+    **Staff-level nuance:** Google Spanner achieves externally consistent reads using **TrueTime** (GPS + atomic clocks) to bound clock uncertainty. If the interviewer asks "how would you make this strongly consistent?", discuss Spanner's approach: commit-wait ensures that any read at time T sees all commits before T.
 
 ### Clock Skew and Ordering
 
@@ -998,8 +983,8 @@ flowchart LR
 | **Time-window (TWCS)** | Low for time-series | Varies | Best for TTL-heavy workloads |
 | **Hybrid** | Tuned per workload | Tuned per workload | Moderate |
 
-{: .tip }
-> **Staff-level answer:** *"For a mixed read/write workload, I'd start with leveled compaction for predictable read latency. For a write-heavy analytics pipeline, I'd switch to size-tiered to reduce write amplification. I'd monitor compaction backlog as a key SLI and alert if pending bytes exceed 2x the steady-state."*
+!!! tip
+    **Staff-level answer:** *"For a mixed read/write workload, I'd start with leveled compaction for predictable read latency. For a write-heavy analytics pipeline, I'd switch to size-tiered to reduce write amplification. I'd monitor compaction backlog as a key SLI and alert if pending bytes exceed 2x the steady-state."*
 
 ### Operational Excellence
 

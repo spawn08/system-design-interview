@@ -1,19 +1,4 @@
----
-layout: default
-title: Vector Database
-parent: GenAI System Design
-nav_order: 10
----
-
 # Design a Vector Database
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -34,8 +19,8 @@ Design a **vector database** purpose-built for AI workloads: **similarity search
 | **Ingestion** | Millions of vectors/hour during bulk re-embed jobs |
 | **Metadata predicates** | Tenant ID, ACL, doc type, time range — combined with ANN |
 
-{: .note }
-> Interviewers reward **clarity on ANN vs exact search**, **recall/latency trade-offs**, and **how filters interact with vector indexes** — not buzzwords about “AI-native storage.”
+!!! note
+    Interviewers reward **clarity on ANN vs exact search**, **recall/latency trade-offs**, and **how filters interact with vector indexes** — not buzzwords about “AI-native storage.”
 
 ### Why Traditional Databases Struggle (Comparison)
 
@@ -121,8 +106,8 @@ def inner_product(x: np.ndarray, y: np.ndarray) -> float:
 | **Maximize alignment** (some recommender setups) | **Inner product** |
 | **Quantization / SIMD** kernels often implemented | **L2²** or **IP** (vendor-specific) |
 
-{: .tip }
-> State explicitly: **“We fix one metric per index; mixing models/metrics without re-indexing is invalid.”**
+!!! tip
+    State explicitly: **“We fix one metric per index; mixing models/metrics without re-indexing is invalid.”**
 
 ### Exact vs Approximate Nearest Neighbor (ANN)
 
@@ -275,8 +260,8 @@ def search_layer_ef(
     return sorted((-a, b) for a, b in w)
 ```
 
-{: .warning }
-> The above **teaches mechanics**; production HNSW (e.g., **hnswlib**, **FAISS**) uses **heuristic neighbor selection**, **batch inserts**, and **highly optimized** distance kernels. In interviews, say you would **delegate core search to a battle-tested library** and focus on **distribution, sharding, and durability**.
+!!! warning
+    The above **teaches mechanics**; production HNSW (e.g., **hnswlib**, **FAISS**) uses **heuristic neighbor selection**, **batch inserts**, and **highly optimized** distance kernels. In interviews, say you would **delegate core search to a battle-tested library** and focus on **distribution, sharding, and durability**.
 
 ### IVF (Inverted File Index)
 
@@ -414,8 +399,8 @@ def adc_l2sq(query: np.ndarray, codes: np.ndarray, codebooks: list[np.ndarray]) 
 | **Query speed** | Fast dot products with SIMD | **ADC table lookups** + accumulators |
 | **Best when** | Need **simple** lossy storage, good SIMD | **Massive** corpora, memory-bound ANN |
 
-{: .note }
-> **IVF + PQ** is the classic **memory-efficient** recipe: IVF reduces candidates; PQ scores them cheaply. **HNSW** often wins on **recall/latency** when RAM is available.
+!!! note
+    **IVF + PQ** is the classic **memory-efficient** recipe: IVF reduces candidates; PQ scores them cheaply. **HNSW** often wins on **recall/latency** when RAM is available.
 
 ### Hybrid Search: Vector + Metadata Filters
 
@@ -463,8 +448,8 @@ flowchart TB
 | **Durability** | **Durable writes** — WAL + object storage for segments |
 | **Consistency** | At least **read-your-writes** within a **primary**; replicas **eventual** |
 
-{: .tip }
-> Tie **P99 < 10ms** to **in-memory hot set + ANN parameters** — not to “faster CPUs” alone.
+!!! tip
+    Tie **P99 < 10ms** to **in-memory hot set + ANN parameters** — not to “faster CPUs” alone.
 
 ---
 
@@ -554,8 +539,8 @@ sequenceDiagram
 
 **Flow:** **Writes** → ingestion → **WAL** → memtable → flushed **immutable segments** in **object storage** with background index **merge**; **reads** → **Query Coordinator** → parallel per-shard **ANN** → **merge-heap** for global top-\\(k\\).
 
-{: .note }
-> Separate **write path** (optimized for throughput + sequential I/O) from **read path** (optimized for **latency** + **parallelism**).
+!!! note
+    Separate **write path** (optimized for throughput + sequential I/O) from **read path** (optimized for **latency** + **parallelism**).
 
 ---
 
@@ -1072,18 +1057,18 @@ def compact_segments(sizes: List[int], max_segment_mb: int = 512) -> int:
 
 ## Interview Tips
 
-{: .tip }
-> **Google-style follow-ups:** **ef_search** vs recall/latency; rebuild vs incremental **HNSW**; **embedding upgrades**; **recall@k** measurement — plus **shadow indices**, **mergeable segments**, and **nprobe/nlist/PQ m**.
+!!! tip
+    **Google-style follow-ups:** **ef_search** vs recall/latency; rebuild vs incremental **HNSW**; **embedding upgrades**; **recall@k** measurement — plus **shadow indices**, **mergeable segments**, and **nprobe/nlist/PQ m**.
 
-{: .warning }
-> **Do not** claim **O(log N)** **exact** nearest neighbor for arbitrary high-dimensional data — **ANN** is the realistic contract at billion scale.
+!!! warning
+    **Do not** claim **O(log N)** **exact** nearest neighbor for arbitrary high-dimensional data — **ANN** is the realistic contract at billion scale.
 
 ---
 
 ## Hypothetical Interview Transcript
 
-{: .note }
-> **45-minute** Google L5/L6-style system design. Interviewer: **Staff Engineer**, **Vertex AI Vector Search**-adjacent team.
+!!! note
+    **45-minute** Google L5/L6-style system design. Interviewer: **Staff Engineer**, **Vertex AI Vector Search**-adjacent team.
 
 **Interviewer:** Design a vector database for AI — billions of vectors, millisecond search. Where do you start?
 

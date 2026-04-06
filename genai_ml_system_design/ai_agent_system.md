@@ -1,19 +1,4 @@
----
-layout: default
-title: AI Agent System
-parent: GenAI System Design
-nav_order: 7
----
-
 # Design an AI Agent System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -35,8 +20,8 @@ We are designing an **autonomous AI agent system** that can **plan**, **invoke t
 | **Sandboxed code executions / day** | 1M–50M (CPU-bound; heavily quotaed) |
 | **Regions** | Multi-region; data residency per tenant |
 
-{: .note }
-> Interview tip: give **ranges** and say what drives the upper bound (web research vs. local file Q&A). Numbers are illustrative; **reasoning** matters more than precision.
+!!! note
+    Interview tip: give **ranges** and say what drives the upper bound (web research vs. local file Q&A). Numbers are illustrative; **reasoning** matters more than precision.
 
 ### Agents vs. Chatbots — Why the Design Changes
 
@@ -208,8 +193,8 @@ flowchart LR
 | **Efficiency** | Steps to success, tokens, wall-clock, $/task | Telemetry from orchestrator |
 | **Safety** | Policy violations, injections, exfil attempts | Red-team suites + production monitors |
 
-{: .note }
-> Separate **outcome** metrics (did we ship the fix?) from **process** metrics (did we call the right API?) — agents can succeed for the wrong reasons or fail after good tool use.
+!!! note
+    Separate **outcome** metrics (did we ship the fix?) from **process** metrics (did we call the right API?) — agents can succeed for the wrong reasons or fail after good tool use.
 
 ### Guardrails and Sandboxing
 
@@ -249,8 +234,8 @@ flowchart LR
 | **Safety** | **Sandboxed** execution; default-deny network; secrets injected by platform |
 | **Cost** | **< $1 per task** average at moderate scale — combine small model for routing + large for reasoning |
 
-{: .warning }
-> Always tie NFRs to **measurement**: what is a “task,” what is included in “tool latency,” and are we counting queueing?
+!!! warning
+    Always tie NFRs to **measurement**: what is a “task,” what is included in “tool latency,” and are we counting queueing?
 
 ---
 
@@ -289,8 +274,8 @@ Vector store: embedding dim × vectors × replicas
   Example: 768-dim × 100M vectors × 4 bytes ≈ 300 GB raw (before compression)
 ```
 
-{: .tip }
-> Mention **compaction**: summarize old scratchpad into bullet memories → fewer tokens → lower cost and fewer errors.
+!!! tip
+    Mention **compaction**: summarize old scratchpad into bullet memories → fewer tokens → lower cost and fewer errors.
 
 ---
 
@@ -358,8 +343,8 @@ sequenceDiagram
     end
 ```
 
-{: .note }
-> **Async path:** long-running tools (deep crawl, batch tests) return a **job id**; orchestrator **suspends** the run and **resumes** on webhook or poll — state machine, not a single blocking thread.
+!!! note
+    **Async path:** long-running tools (deep crawl, batch tests) return a **job id**; orchestrator **suspends** the run and **resumes** on webhook or poll — state machine, not a single blocking thread.
 
 ---
 
@@ -828,8 +813,8 @@ def gate(tool_name: str, tier: RiskTier, policy: Policy, human_approved: bool) -
     return tier in policy.allow_tiers
 ```
 
-{: .warning }
-> **Never** let the model receive raw OAuth tokens. Use **platform-mediated** auth with **scoped**, **short-lived** credentials.
+!!! warning
+    **Never** let the model receive raw OAuth tokens. Use **platform-mediated** auth with **scoped**, **short-lived** credentials.
 
 ---
 
@@ -927,8 +912,8 @@ class BrowserActionExecutor:
         return {"ok": False, "error": "unknown_action"}
 ```
 
-{: .note }
-> **Computer use** (OS-level mouse/keyboard) raises the stakes: prefer **browser-only** sandboxes first; full desktop automation needs **stronger** isolation and **audit** (screen recording, HITL for irreversible clicks).
+!!! note
+    **Computer use** (OS-level mouse/keyboard) raises the stakes: prefer **browser-only** sandboxes first; full desktop automation needs **stronger** isolation and **audit** (screen recording, HITL for irreversible clicks).
 
 ---
 
@@ -1015,8 +1000,8 @@ class AgentEvalHarness:
         }
 ```
 
-{: .tip }
-> Pair **automatic** checks with **periodic human** review on sampled traces — especially for **new** tools and **high-risk** tenants.
+!!! tip
+    Pair **automatic** checks with **periodic human** review on sampled traces — especially for **new** tools and **high-risk** tenants.
 
 ---
 
@@ -1060,8 +1045,8 @@ Agent workloads are **spiky**: one task may enqueue **dozens** of tool calls whi
 | **Search / browser** | Rate limits per tenant + **token bucket** | 429s, shed low-priority tasks |
 | **Memory / vector DB** | Read replicas, partition by tenant | Retrieval latency SLO |
 
-{: .warning }
-> Without **per-tenant concurrency caps**, one customer can **starve** others — classic noisy-neighbor, worse than REST APIs because agent runs are **long** and **stateful**.
+!!! warning
+    Without **per-tenant concurrency caps**, one customer can **starve** others — classic noisy-neighbor, worse than REST APIs because agent runs are **long** and **stateful**.
 
 ### Idempotency and Side Effects
 
@@ -1122,8 +1107,8 @@ flowchart TB
 
 ## Interview Tips
 
-{: .tip }
-> **Strong answers** separate **planning**, **tool execution**, **memory**, and **governance** — and show how they fail independently without taking down the whole platform.
+!!! tip
+    **Strong answers** separate **planning**, **tool execution**, **memory**, and **governance** — and show how they fail independently without taking down the whole platform.
 
 **Do:**
 
@@ -1346,8 +1331,8 @@ We’re at time. Thanks — this was a strong **systems** discussion; next round
 
 ---
 
-{: .note }
-> This transcript is a **study aid**, not a verbatim Google interview. Use it to practice **structured** answers and **trade-offs**, not to memorize lines.
+!!! note
+    This transcript is a **study aid**, not a verbatim Google interview. Use it to practice **structured** answers and **trade-offs**, not to memorize lines.
 
 ---
 
@@ -1395,5 +1380,5 @@ flowchart TB
     EV --> PL
 ```
 
-{: .tip }
-> In interviews, **point** to **control plane vs data plane** — it signals you know how to **operate** the system, not only draw boxes.
+!!! tip
+    In interviews, **point** to **control plane vs data plane** — it signals you know how to **operate** the system, not only draw boxes.

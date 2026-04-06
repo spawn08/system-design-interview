@@ -1,19 +1,4 @@
----
-layout: default
-title: Scalability & Reliability
-parent: Fundamentals
-nav_order: 10
----
-
 # Scalability, Availability, and Reliability
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -79,8 +64,8 @@ flowchart TD
 | **Data consistency** | Easy (single source of truth) | Requires coordination |
 | **Use case** | Databases, stateful apps (short-term) | Stateless services, web servers |
 
-{: .tip }
-> In interviews, always start with "we can scale vertically initially for simplicity, but for long-term growth, we need horizontal scaling." This shows pragmatism.
+!!! tip
+    In interviews, always start with "we can scale vertically initially for simplicity, but for long-term growth, we need horizontal scaling." This shows pragmatism.
 
 ### Stateless vs Stateful Services
 
@@ -247,8 +232,8 @@ Two load-balanced servers, each 99.9%:
 A = 1 - (0.001 × 0.001) = 0.999999 (99.9999%)
 ```
 
-{: .note }
-> This math shows why **redundancy** is essential. Adding a second instance dramatically improves availability even if each individual instance is only moderately reliable.
+!!! note
+    This math shows why **redundancy** is essential. Adding a second instance dramatically improves availability even if each individual instance is only moderately reliable.
 
 ### Redundancy Patterns
 
@@ -725,8 +710,8 @@ SLI → measures → SLO → guarantees → SLA
 | Checkout | Availability | 99.99% | 99.95% |
 | Order Processing | Success rate | > 99.9% | > 99.5% |
 
-{: .note }
-> SLOs should be tighter than SLAs. If your SLA promises 99.9%, set your internal SLO to 99.95%. This gives you an **error budget** to catch issues before breaching the SLA.
+!!! note
+    SLOs should be tighter than SLAs. If your SLA promises 99.9%, set your internal SLO to 99.95%. This gives you an **error budget** to catch issues before breaching the SLA.
 
 ---
 
@@ -765,8 +750,8 @@ flowchart TD
 | "What if a data center goes down?" | Multi-region, DNS failover, cross-region replication |
 | "How do you monitor this?" | Four golden signals, distributed tracing, alerting |
 
-{: .important }
-> In interviews, always quantify your availability and scalability targets. Saying "we need 99.99% availability, which allows 52 minutes of downtime per year" is far more impressive than "it needs to be highly available."
+!!! important
+    In interviews, always quantify your availability and scalability targets. Saying "we need 99.99% availability, which allows 52 minutes of downtime per year" is far more impressive than "it needs to be highly available."
 
 ---
 

@@ -1,19 +1,4 @@
----
-layout: default
-title: Event Sourcing & CQRS
-parent: Advanced Topics
-nav_order: 9
----
-
 # Event Sourcing & CQRS
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -32,8 +17,8 @@ Traditional **CRUD** applications treat the database row as the source of truth:
 
 **When state changes need an audit trail:** Regulated industries (finance, healthcare), order and payment lifecycles, inventory with reservations, and any system where reconstructing past behavior is a first-class requirement. In those cases, storing **events** as the primary record and deriving state from them is often the right mental model — even if the implementation is hybrid.
 
-{: .tip }
-> Event sourcing is not "every microservice must use it." It is a **pattern** for domains where the history of changes is as important as the current value.
+!!! tip
+    Event sourcing is not "every microservice must use it." It is a **pattern** for domains where the history of changes is as important as the current value.
 
 ---
 
@@ -86,8 +71,8 @@ Events live forever in the log. **Schema evolution** rules:
 - Use **event type versioning** (`OrderCreated` vs `OrderCreatedV2`) when semantics change; upcast old payloads to a canonical in-memory representation when replaying.
 - Avoid renaming or reusing event types for different meanings — old payloads remain in the store.
 
-{: .note }
-> Upcasters and versioned serializers are infrastructure you plan for up front; retrofitting them after years of production traffic is expensive.
+!!! note
+    Upcasters and versioned serializers are infrastructure you plan for up front; retrofitting them after years of production traffic is expensive.
 
 ---
 
@@ -128,8 +113,8 @@ flowchart LR
 
 After a command succeeds, the **read model may lag**. Users might briefly see stale lists or counts. UX patterns: optimistic UI with revision tokens, polling, or push notifications when projection catches up.
 
-{: .warning }
-> Hiding eventual consistency is a product problem as much as an architecture problem. If the business requires immediate read-your-writes everywhere, you need synchronous projections or stronger coupling — which reduces the benefits of CQRS.
+!!! warning
+    Hiding eventual consistency is a product problem as much as an architecture problem. If the business requires immediate read-your-writes everywhere, you need synchronous projections or stronger coupling — which reduces the benefits of CQRS.
 
 ---
 
@@ -155,8 +140,8 @@ Clients send commands with **expected version** `v`. The store appends only if t
 
 Replaying thousands of events per aggregate is slow. **Snapshots** persist `(stream_id, version, serialized_state)` periodically. Replay starts from the latest snapshot version + subsequent events. Snapshots are a cache — if lost, you can rebuild from events alone.
 
-{: .important }
-> Snapshot frequency trades disk and write amplification against replay latency. Domain with long-lived aggregates (accounts open for decades) almost always need snapshots or rolling aggregates.
+!!! important
+    Snapshot frequency trades disk and write amplification against replay latency. Domain with long-lived aggregates (accounts open for decades) almost always need snapshots or rolling aggregates.
 
 ---
 
@@ -191,8 +176,8 @@ sequenceDiagram
     end
 ```
 
-{: .tip }
-> Make projections **idempotent**: the same event delivered twice should not corrupt the read model. Use natural keys, upserts, or idempotency keys stored with the processed event id.
+!!! tip
+    Make projections **idempotent**: the same event delivered twice should not corrupt the read model. Use natural keys, upserts, or idempotency keys stored with the processed event id.
 
 ---
 
@@ -215,8 +200,8 @@ Downstream services consume integration events from Kafka, RabbitMQ, SNS/SQS, or
 
 True **exactly-once end-to-end** processing across distributed components is difficult; practically you aim for **exactly-once effects** by combining **at-least-once delivery** with **idempotent consumers** and deduplication stores.
 
-{: .note }
-> Prefer honest **at-least-once** plus idempotent handlers over fragile distributed transactions between the database and the broker unless you have infrastructure that supports transactional outbox with strong guarantees.
+!!! note
+    Prefer honest **at-least-once** plus idempotent handlers over fragile distributed transactions between the database and the broker unless you have infrastructure that supports transactional outbox with strong guarantees.
 
 ---
 
@@ -256,8 +241,8 @@ Append-only logs grow without bound. Strategies: **cold tier** storage, compacte
 
 Invest in **event browsers**, correlation tracing from command to events to projection lag, and **test fixtures** that rebuild state from golden event sequences. Replay in staging is invaluable when production shows unexpected state.
 
-{: .warning }
-> If developers cannot inspect streams and projections easily, operational incidents become guesswork. Tooling is part of the architecture, not an afterthought.
+!!! warning
+    If developers cannot inspect streams and projections easily, operational incidents become guesswork. Tooling is part of the architecture, not an afterthought.
 
 ---
 
@@ -335,17 +320,14 @@ public final class OrderSummaryProjection {
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Protocol
 
-
 @dataclass(frozen=True)
 class OrderCreated:
     order_id: str
     customer_id: str
 
-
 class EventStore(Protocol):
     def append(self, stream_id: str, expected_version: int, events: List[Any]) -> None: ...
     def read_stream(self, stream_id: str) -> List[Any]: ...
-
 
 def fold_state(events: List[Any], init: Dict, handler: Callable[[Dict, Any], Dict]) -> Dict:
     state = init
@@ -353,14 +335,12 @@ def fold_state(events: List[Any], init: Dict, handler: Callable[[Dict, Any], Dic
         state = handler(state, ev)
     return state
 
-
 def handle_place_order(cmd: dict, store: EventStore) -> None:
     stream_id = cmd["order_id"]
     current = store.read_stream(stream_id)
     if current:
         raise ValueError("order already exists")
     store.append(stream_id, expected_version=len(current), events=[OrderCreated(stream_id, cmd["customer_id"])])
-
 
 def project_order_summary(events: List[Any]) -> dict:
     def step(acc: dict, ev: Any) -> dict:
@@ -463,5 +443,5 @@ sequenceDiagram
     Reader-->>Client: response
 ```
 
-{: .important }
-> In interviews, connect this diagram to **failure modes**: broker down (outbox backlog), projection bug (rebuild), conflicting writes (optimistic retry). Showing you understand operations distinguishes senior answers from textbook definitions.
+!!! important
+    In interviews, connect this diagram to **failure modes**: broker down (outbox backlog), projection bug (rebuild), conflicting writes (optimistic retry). Showing you understand operations distinguishes senior answers from textbook definitions.

@@ -1,19 +1,4 @@
----
-layout: default
-title: Gaming Leaderboard
-parent: System Design Examples
-nav_order: 25
----
-
 # Gaming Leaderboard
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -32,8 +17,8 @@ The hot path is **Redis Sorted Sets** (`ZSET`): each logical leaderboard is a so
 | **Sharding at 100M+ players** | Single ZSET per global board **does not scale**; partition by **game × mode × window × shard** |
 | **Friend-relative views** | Social competition increases retention; requires **graph** + **constrained** Redis work |
 
-{: .note }
-> In interviews, **separate** the **ingest path** (Kafka + validation + idempotency) from the **read path** (Redis replicas, optional edge cache). Say explicitly how you avoid a **single hot ZSET** for global “all players.”
+!!! note
+    In interviews, **separate** the **ingest path** (Kafka + validation + idempotency) from the **read path** (Redis replicas, optional edge cache). Say explicitly how you avoid a **single hot ZSET** for global “all players.”
 
 ---
 
@@ -89,8 +74,8 @@ The hot path is **Redis Sorted Sets** (`ZSET`): each logical leaderboard is a so
 | **Peak / average** | Season spike **10×** | **~1.67M/s** raw client events (before filtering) |
 | **Server-accepted submissions / sec** | Product + validation drops **~3%**; peak design **50K/s** | **50K/s** (given NFR) |
 
-{: .tip }
-> Separate **client telemetry** (noisy) from **authoritative score submissions** (fewer). Many events never become ZSET updates.
+!!! tip
+    Separate **client telemetry** (noisy) from **authoritative score submissions** (fewer). Many events never become ZSET updates.
 
 ### Reads
 
@@ -355,8 +340,8 @@ end
 return {0, cur_score}
 ```
 
-{: .tip }
-> Keep Lua scripts **short**—they block the single-threaded Redis event loop. Heavy logic belongs in **Kafka consumers**.
+!!! tip
+    Keep Lua scripts **short**—they block the single-threaded Redis event loop. Heavy logic belongs in **Kafka consumers**.
 
 ### 4.11 Global top-K from shards — k-way merge
 
@@ -511,8 +496,8 @@ flowchart TB
   M --> CP
 ```
 
-{: .tip }
-> Say: **“We expose linearizable writes per shard on the Redis primary, but accept **eventually consistent** cross-region and **replica lag** for reads with **SLO**-bounded staleness.”**
+!!! tip
+    Say: **“We expose linearizable writes per shard on the Redis primary, but accept **eventually consistent** cross-region and **replica lag** for reads with **SLO**-bounded staleness.”**
 
 ---
 
@@ -786,8 +771,8 @@ flowchart LR
 | **PII** | **`display_name`** moderation; **GDPR** delete flows **anonymize** audit where legal |
 | **Logging** | **No** raw **attempt_token** secrets in logs; **hash** identifiers in traces |
 
-{: .important }
-> **Children’s privacy** (COPPA/Kids) may **prohibit** open leaderboards—product may need **opaque** handles or **disabled** social features by region.
+!!! important
+    **Children’s privacy** (COPPA/Kids) may **prohibit** open leaderboards—product may need **opaque** handles or **disabled** social features by region.
 
 ---
 
@@ -812,8 +797,8 @@ flowchart LR
 4. **Global** display = **merge** shard tops **every few seconds**.
 5. **Anti-cheat** = **layers**: **token** + **stats** + async **replay**.
 
-{: .tip }
-> Close with **trade-offs**: **exact global rank** is **expensive**; **product** often accepts **shard-local** exact + **global** approximate.
+!!! tip
+    Close with **trade-offs**: **exact global rank** is **expensive**; **product** often accepts **shard-local** exact + **global** approximate.
 
 ### Python — k-way merge sketch (interview pseudocode)
 

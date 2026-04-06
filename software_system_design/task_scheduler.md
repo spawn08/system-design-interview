@@ -1,19 +1,4 @@
----
-layout: default
-title: Task Scheduler
-parent: System Design Examples
-nav_order: 17
----
-
 # Distributed Task Scheduler
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -31,8 +16,8 @@ A **distributed task scheduler** accepts work from clients, persists it durably,
 
 **Real-world analogs:** AWS EventBridge Scheduler, Google Cloud Tasks, Celery with Redis/RabbitMQ, Sidekiq, Quartz in cluster mode, Kubernetes CronJob, and internal job platforms at large companies.
 
-{: .note }
-> In interviews, confirm scope: **HTTP APIs only** vs **SDKs**, **multi-tenant** quotas, **strict ordering** per user, **workflow** (DAG) vs **single task**, and **geographic** placement. This page assumes a **general-purpose job queue with scheduling**, not a full workflow engine.
+!!! note
+    In interviews, confirm scope: **HTTP APIs only** vs **SDKs**, **multi-tenant** quotas, **strict ordering** per user, **workflow** (DAG) vs **single task**, and **geographic** placement. This page assumes a **general-purpose job queue with scheduling**, not a full workflow engine.
 
 ---
 
@@ -84,8 +69,8 @@ Illustrative **REST** surface (gRPC is common internally with the same semantics
 | `Complete(task_id)` | Terminal success |
 | `Fail(task_id, requeue_delay)` | Retry or move to DLQ per policy |
 
-{: .tip }
-> Always accept an **idempotency key** on create to dedupe retried client requests. Store a mapping `(idempotency_key, tenant_id) -> task_id` with a TTL.
+!!! tip
+    Always accept an **idempotency key** on create to dedupe retried client requests. Store a mapping `(idempotency_key, tenant_id) -> task_id` with a TTL.
 
 ### Technology Selection & Tradeoffs
 
@@ -291,8 +276,8 @@ CREATE INDEX idx_dlq_tenant_failed ON dead_letter_tasks (tenant_id, failed_at DE
 
 **Typical flow:** on terminal failure or exhausted retries, set `tasks.state = 'DLQ'`, insert **`dead_letter_tasks`**, and stop ready-queue visibility. **Replay** creates a **new** task or resets state under a new transaction—never silently delete audit rows.
 
-{: .note }
-> Adjust column types (`TEXT` vs `VARCHAR`) and ENUM vs lookup tables to match org standards. For multi-region, add `region` and replicate with your chosen strategy; **global uniqueness** of `task_id` still matters for idempotency.
+!!! note
+    Adjust column types (`TEXT` vs `VARCHAR`) and ENUM vs lookup tables to match org standards. For multi-region, add `region` and replicate with your chosen strategy; **global uniqueness** of `task_id` still matters for idempotency.
 
 ---
 
@@ -337,8 +322,8 @@ Per task row (illustrative):
 50,000 new rows/sec × 200 bytes ≈ 10 MB/s ingest to index-heavy storage — plan partitioning and compaction.
 ```
 
-{: .warning }
-> **Hot partitions** appear if partitioning is weak (e.g., all tasks for one tenant share a key). Use **hash(task_id)** or **hash(tenant_id, bucket)** to spread load.
+!!! warning
+    **Hot partitions** appear if partitioning is weak (e.g., all tasks for one tenant share a key). Use **hash(task_id)** or **hash(tenant_id, bucket)** to spread load.
 
 ---
 
@@ -384,8 +369,8 @@ flowchart LR
 | **Workers** | Pull or receive pushes, acquire lease, execute user code |
 | **DLQ** | Terminal failure store for inspection and replay tooling |
 
-{: .note }
-> **Separation:** durable metadata in **DB**; **large payloads** in blob storage; **ready work** in a queue optimized for concurrent consumers (Kafka partition, Redis Streams, SQS, etc.).
+!!! note
+    **Separation:** durable metadata in **DB**; **large payloads** in blob storage; **ready work** in a queue optimized for concurrent consumers (Kafka partition, Redis Streams, SQS, etc.).
 
 ---
 
@@ -462,8 +447,8 @@ A **hierarchical timing wheel** (seconds, minutes, hours, days) buckets tasks by
 | **Timing wheel** | O(1) amortized insert per slot | Complexity; multi-level cascades |
 | **Redis ZSET + periodic scan** | Operational simplicity | ZRANGEBYSCORE under load needs sharding |
 
-{: .tip }
-> **Cascading:** when a slot elapses, move tasks to the inner wheel or push to **ready queue**. Use **one dedicated scheduler process per partition** to avoid cross-thread heap contention.
+!!! tip
+    **Cascading:** when a slot elapses, move tasks to the inner wheel or push to **ready queue**. Use **one dedicated scheduler process per partition** to avoid cross-thread heap contention.
 
 #### Scheduling flow
 
@@ -510,8 +495,8 @@ flowchart TD
 | **Consistent hashing** | Add/remove scheduler nodes with minimal remap |
 | **Leader per partition** | Raft/Paxos group owns partition for strong consistency |
 
-{: .note }
-> For **exactly-once handoff to exactly one worker**, you need a single decision maker per task or distributed consensus on lease grant. Pragmatic systems use **at-least-once** + **idempotency**.
+!!! note
+    For **exactly-once handoff to exactly one worker**, you need a single decision maker per task or distributed consensus on lease grant. Pragmatic systems use **at-least-once** + **idempotency**.
 
 ---
 
@@ -545,8 +530,8 @@ A **lease** is a time-bounded right to execute. If the worker dies, the lease ex
 |-------|---------|---------|
 | Minute hour DoM Month DoW | `0 9 * * MON-FRI` | 09:00 weekdays |
 
-{: .warning }
-> **Double fire on leader failover:** two schedulers might both evaluate “due” once. Mitigate with **lease on schedule row**, **fencing token**, or **external token service** so only one materialization wins.
+!!! warning
+    **Double fire on leader failover:** two schedulers might both evaluate “due” once. Mitigate with **lease on schedule row**, **fencing token**, or **external token service** so only one materialization wins.
 
 ---
 
@@ -814,8 +799,8 @@ func RunWithLease(ctx context.Context, svc TaskService, taskID, workerID string,
 | **Workers** | Autoscale on queue depth and p95 runtime |
 | **Multi-region** | Active-passive or regional queues; **cron** in single primary or with strong fencing |
 
-{: .warning }
-> **Clock skew:** use **logical clocks** or **DB time** for `run_at` authority if cross-node ordering matters. NTP drift can cause early/late firing.
+!!! warning
+    **Clock skew:** use **logical clocks** or **DB time** for `run_at` authority if cross-node ordering matters. NTP drift can cause early/late firing.
 
 **Observability checklist:**
 
@@ -892,7 +877,7 @@ A **distributed task scheduler** combines **durable metadata**, **partitioned sc
 
 ## Staff Engineer (L6) Deep Dive
 
-The sections above cover the standard task scheduler design. The sections below cover **Staff-level depth** that separates an L6 answer from an L5. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+The sections above cover the standard task scheduler design. The sections below cover **Staff-level depth** that separates an L6 answer from an L5. See the [Staff Engineer Interview Guide](staff_engineer_expectations.md) for the full L6 expectations framework.
 
 ### Distributed Locking and Fencing Tokens
 
@@ -906,8 +891,8 @@ The core correctness problem in a distributed scheduler: **preventing two worker
 
 
 
-{: .warning }
-> **Staff-level insight:** Redis  leases (Redlock) are insufficient for correctness when downstream state is involved. You need fencing tokens propagated to every stateful operation. Reference: Martin Kleppmann's critique of Redlock.
+!!! warning
+    **Staff-level insight:** Redis  leases (Redlock) are insufficient for correctness when downstream state is involved. You need fencing tokens propagated to every stateful operation. Reference: Martin Kleppmann's critique of Redlock.
 
 ### Zombie Worker Detection
 

@@ -1,19 +1,4 @@
----
-layout: default
-title: Content Delivery Network (CDN)
-parent: System Design Examples
-nav_order: 27
----
-
 # Content Delivery Network (CDN)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -32,8 +17,8 @@ Operationally, the CDN sits on the **critical path** for most consumer internet 
 | **TLS + QUIC + image optimization** | Security, performance, and byte reduction at scale |
 | **Analytics + steering** | Hit ratio, bandwidth, latency per PoP; failover across providers |
 
-{: .note }
-> In interviews, separate **data plane** (serve bytes fast) from **control plane** (configs, certs, purge, analytics). Hyperscalers (**CloudFront**, **Akamai**, **Fastly**, **Cloudflare**) differ mainly in **programmability at the edge**, **WAF depth**, and **pricing** — the architecture below is **provider-agnostic** and maps to both **managed CDNs** and a **custom edge** design.
+!!! note
+    In interviews, separate **data plane** (serve bytes fast) from **control plane** (configs, certs, purge, analytics). Hyperscalers (**CloudFront**, **Akamai**, **Fastly**, **Cloudflare**) differ mainly in **programmability at the edge**, **WAF depth**, and **pricing** — the architecture below is **provider-agnostic** and maps to both **managed CDNs** and a **custom edge** design.
 
 ---
 
@@ -93,8 +78,8 @@ Operationally, the CDN sits on the **critical path** for most consumer internet 
 | **Edge cache hit ratio** (blended) | 92% | Origin sees **800k RPS** equivalent misses + revalidation |
 | **Miss** traffic to shield/origin | 8% of 10M | **800k RPS** at edge requesting fill (includes revalidation storm — shield absorbs) |
 
-{: .tip }
-> Separate **tiny object** (API JSON) from **large object** (video). Below we split **bandwidth** by class.
+!!! tip
+    Separate **tiny object** (API JSON) from **large object** (video). Below we split **bandwidth** by class.
 
 ### Bandwidth (50 Tbps capacity planning)
 
@@ -437,8 +422,8 @@ sub vcl_backend_response {
 }
 ```
 
-{: .tip }
-> Production VCL adds **`return (hash)`** routing, **`vcl_hit` / `vcl_miss`** instrumentation, and **`purge`** handling via **`ban`** or **`ykey`** (surrogate) plugins — **treat this as interview pseudocode**.
+!!! tip
+    Production VCL adds **`return (hash)`** routing, **`vcl_hit` / `vcl_miss`** instrumentation, and **`purge`** handling via **`ban`** or **`ykey`** (surrogate) plugins — **treat this as interview pseudocode**.
 
 ---
 
@@ -920,8 +905,8 @@ server {
 | **Logging** | **PII minimization**; **sampled** logs; **retention** policy |
 | **Compliance** | **DPA** with customers; **SOC2** controls on **config APIs** |
 
-{: .warning }
-> **0-RTT QUIC** can enable **replay** — disable for **non-idempotent** endpoints or require **tokens** bound to **first-flight** constraints.
+!!! warning
+    **0-RTT QUIC** can enable **replay** — disable for **non-idempotent** endpoints or require **tokens** bound to **first-flight** constraints.
 
 ---
 

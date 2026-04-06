@@ -1,19 +1,4 @@
----
-layout: default
-title: Security
-parent: Fundamentals
-nav_order: 9
----
-
 # Security
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -165,8 +150,8 @@ public class CsrfTokenManager {
 }
 ```
 
-{: .tip }
-> Modern SPAs using JWT in `Authorization` headers (not cookies) are naturally CSRF-resistant because the attacker's site cannot read the token from localStorage.
+!!! tip
+    Modern SPAs using JWT in `Authorization` headers (not cookies) are naturally CSRF-resistant because the attacker's site cannot read the token from localStorage.
 
 ---
 
@@ -341,15 +326,15 @@ public class IntegrityVerifier {
 }
 ```
 
-{: .warning }
-> Never store passwords in plaintext or with reversible encryption. Always use bcrypt, scrypt, or Argon2id with a unique salt per password.
+!!! warning
+    Never store passwords in plaintext or with reversible encryption. Always use bcrypt, scrypt, or Argon2id with a unique salt per password.
 
 ---
 
 ## TLS/SSL
 
-{: .note }
-> TLS is also introduced in [Networking]({{ site.baseurl }}/basics/networking) in the context of HTTPS. This section covers the cryptographic details and certificate management.
+!!! note
+    TLS is also introduced in [Networking](networking.md) in the context of HTTPS. This section covers the cryptographic details and certificate management.
 
 TLS (Transport Layer Security) encrypts data in transit between client and server. SSL is its deprecated predecessor—when someone says "SSL" today, they almost always mean TLS.
 
@@ -643,8 +628,8 @@ flowchart TD
     AT -->|Service mesh| MTLS[mTLS]
 ```
 
-{: .important }
-> In every system design interview, proactively mention security concerns. Don't wait to be asked. Stating "we need TLS for all communication, parameterized queries to prevent injection, and we should use a secrets manager for API keys" demonstrates production-ready thinking.
+!!! important
+    In every system design interview, proactively mention security concerns. Don't wait to be asked. Stating "we need TLS for all communication, parameterized queries to prevent injection, and we should use a secrets manager for API keys" demonstrates production-ready thinking.
 
 ---
 

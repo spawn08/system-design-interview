@@ -1,19 +1,4 @@
----
-layout: default
-title: Caching
-parent: Fundamentals
-nav_order: 5
----
-
 # Caching
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 

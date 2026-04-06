@@ -1,19 +1,4 @@
----
-layout: default
-title: Real-time Fraud Detection
-parent: ML System Design
-nav_order: 3
----
-
 # Design a Real-time Fraud Detection System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -1367,4 +1352,3 @@ Want me to dive into any component?"
 | **Monitoring** | Prometheus + custom | Drift detection |
 
 Real-time fraud detection is one of the most challenging ML systems—combining strict latency requirements, severe class imbalance, adversarial actors, and high business stakes. The key is a layered approach with fast rules, accurate ML, and continuous monitoring.
-

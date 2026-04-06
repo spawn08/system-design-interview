@@ -1,19 +1,4 @@
----
-layout: default
-title: Recommendation System
-parent: ML System Design
-nav_order: 2
----
-
 # Design a Recommendation System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -1171,4 +1156,3 @@ Want me to dive deeper into any component?"
 | **A/B Testing** | Custom framework | Measure business impact |
 
 Recommendation systems combine information retrieval, machine learning, and software engineering. The key is balancing accuracy, latency, and business objectives while handling scale.
-

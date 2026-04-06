@@ -1,19 +1,4 @@
----
-layout: default
-title: Real-time Feature Platform
-parent: ML System Design
-nav_order: 8
----
-
 # Design a Real-time Feature Platform
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 8
 
 We are designing a **real-time feature platform**: a system that **computes**, **stores**, **versions**, and **serves** machine learning features at **sub-millisecond to low-single-digit millisecond** latency for online inference, while providing **consistent offline datasets** for training via **point-in-time (PIT) correct joins**. Think **Feast**, **Tecton**, **Databricks Feature Store**, or large-scale internal platforms at hyperscalers.
 
-{: .note }
-> **Why this matters:** **Train–serve skew** is often the **#1 silent killer** of production ML. The model learns from one distribution of features in training and sees a different distribution (or semantics) at serving time—**AUC drops**, **calibration breaks**, and **business metrics regress** without an obvious “bug” in model code.
+!!! note
+    **Why this matters:** **Train–serve skew** is often the **#1 silent killer** of production ML. The model learns from one distribution of features in training and sees a different distribution (or semantics) at serving time—**AUC drops**, **calibration breaks**, and **business metrics regress** without an obvious “bug” in model code.
 
 ### The problem in one sentence
 
@@ -38,8 +23,8 @@ We are designing a **real-time feature platform**: a system that **computes**, *
 | **Online serving SLO** | **P99 &lt; 5 ms** for feature **fetch + assembly** (platform slice); end-to-end budgets are tighter at some companies | Often dominated by **network + fan-out**, not CPU |
 | **Streaming event throughput** | **Millions of events/sec** (aggregate across products) | Partitioned logs; **per-key** ordering matters for correctness |
 
-{: .tip }
-> In interviews, separate **(a)** *feature definition correctness* (PIT, semantics), **(b)** *freshness* (SLA by use case), and **(c)** *serving performance* (batching, index design, cache). Platforms fail in different ways at each layer.
+!!! tip
+    In interviews, separate **(a)** *feature definition correctness* (PIT, semantics), **(b)** *freshness* (SLA by use case), and **(c)** *serving performance* (batching, index design, cache). Platforms fail in different ways at each layer.
 
 ### Why train–serve skew dominates incident postmortems
 
@@ -58,8 +43,8 @@ We are designing a **real-time feature platform**: a system that **computes**, *
 | **Tecton (managed)** | **Managed** streaming + **declarative** features + SLAs | Spark/Flink under the hood; **materialization** jobs; **monitoring** | Trade **vendor coupling** for faster time-to-correctness |
 | **Internal “Google-scale” platforms** | Global **low tail latency** + **strong governance** | Custom control planes; **colocated** caches; **provenance** everywhere | Emphasize **SRE**, **blast radius**, and **tenancy** |
 
-{: .tip }
-> **Sub-millisecond** reads usually require **in-memory** or **NVMe-local** hot tiers, **batching**, and **avoiding Python** on the critical path for assembly—often **C++/Rust** microservices with generated clients.
+!!! tip
+    **Sub-millisecond** reads usually require **in-memory** or **NVMe-local** hot tiers, **batching**, and **avoiding Python** on the critical path for assembly—often **C++/Rust** microservices with generated clients.
 
 ### Sub-millisecond serving: what actually has to be true
 
@@ -82,8 +67,8 @@ We are designing a **real-time feature platform**: a system that **computes**, *
 | **Streaming / near-real-time** | Updates from event streams with windows | Flink / Kafka Streams / Beam; stateful per key | **Milliseconds to seconds** freshness | Session click count last 10 min; rolling fraud velocity |
 | **On-demand** | Computed at request time from **fresh** inputs or **small** subgraphs | Request path code + optional caches | **Single-digit ms** if bounded work | Cross of (query embedding · item embedding); short graph walk |
 
-{: .warning }
-> **“Real-time” is not one thing.** Fraud needs **sub-second** feature freshness; homepage recommendations may tolerate **minutes**; some batch features update **daily** but are still business-critical.
+!!! warning
+    **“Real-time” is not one thing.** Fraud needs **sub-second** feature freshness; homepage recommendations may tolerate **minutes**; some batch features update **daily** but are still business-critical.
 
 #### Latency requirements (illustrative)
 
@@ -115,8 +100,8 @@ The model learned weights assuming **12** as a “typical high-engagement user.�
 | Online CTR | 2.0% | 1.6% (over-exposure to supposedly “hot” users) |
 | Log-loss | Healthy | **Silent** unless calibration monitored |
 
-{: .note }
-> Skew often **does not show up in offline replay** if replay also uses the wrong feature path. This is why **consistency contracts** and **production monitoring** matter as much as offline accuracy.
+!!! note
+    Skew often **does not show up in offline replay** if replay also uses the wrong feature path. This is why **consistency contracts** and **production monitoring** matter as much as offline accuracy.
 
 ---
 
@@ -164,8 +149,8 @@ sequenceDiagram
 | **Hours** | Stable user interests | Breaking news / flash sales |
 | **Days** | Slow inventory rotations | Item cold start within day |
 
-{: .tip }
-> Tie freshness to **decision frequency** and **label delay**. High-frequency decisions need tighter freshness **or** features that are inherently local to the request (on-demand).
+!!! tip
+    Tie freshness to **decision frequency** and **label delay**. High-frequency decisions need tighter freshness **or** features that are inherently local to the request (on-demand).
 
 ---
 
@@ -221,8 +206,8 @@ flowchart LR
 | **Rename field** | **Unsafe** unless dual-write / translation layer |
 | **Change aggregation definition** | **New feature name** (v2) — do not silently replace |
 
-{: .warning }
-> The safest pattern for semantic changes is **a new feature name** (`click_count_7d_v2`) and a **controlled migration** with monitoring—not an in-place “fix.”
+!!! warning
+    The safest pattern for semantic changes is **a new feature name** (`click_count_7d_v2`) and a **controlled migration** with monitoring—not an in-place “fix.”
 
 ---
 
@@ -251,8 +236,8 @@ flowchart LR
 | **N4** | **Durability** | Offline store durable; stream logs retained per compliance needs |
 | **N5** | **AuthZ** | Namespaces isolated (team A cannot read team B’s features) |
 
-{: .note }
-> Latency budgets are **end-to-end agreements**: feature platform, model server, and RPC fan-out must be negotiated as one **SLO chain**.
+!!! note
+    Latency budgets are **end-to-end agreements**: feature platform, model server, and RPC fan-out must be negotiated as one **SLO chain**.
 
 ---
 
@@ -266,8 +251,8 @@ Assume **10k** logical features, **100M** entities, **sparse** storage model:
   - Raw feature payload (if dense): \(10^4 \times 10^8 \times 32\) bytes ≈ **32 PB** (unrealistic if truly dense)
 - In practice, **sparsity** and **hot set** caching reduce steady-state storage; many entities are cold.
 
-{: .tip }
-> Interview trick: argue **sparsity**, **feature groups**, **importance sampling**, and **tiered storage**—then give a **range** (TB–PB) depending on retention and replication.
+!!! tip
+    Interview trick: argue **sparsity**, **feature groups**, **importance sampling**, and **tiered storage**—then give a **range** (TB–PB) depending on retention and replication.
 
 ### Online store working set
 
@@ -443,8 +428,8 @@ registry.register(
 )
 ```
 
-{: .note }
-> **Lineage** should connect **features → datasets → models → dashboards**. Even a minimal `upstream_tables` field pays dividends in incidents.
+!!! note
+    **Lineage** should connect **features → datasets → models → dashboards**. Even a minimal `upstream_tables` field pays dividends in incidents.
 
 ---
 
@@ -524,8 +509,8 @@ GROUP BY user_id
 """
 ```
 
-{: .tip }
-> Prefer **explicit partition specs** in backfills. “Full recompute since dawn of time” is how platforms accidentally **miss SLA** and **overload warehouses**.
+!!! tip
+    Prefer **explicit partition specs** in backfills. “Full recompute since dawn of time” is how platforms accidentally **miss SLA** and **overload warehouses**.
 
 ---
 
@@ -599,8 +584,8 @@ def keyed_demo(events: Iterable[ClickEvent]) -> Dict[str, int]:
     return out
 ```
 
-{: .warning }
-> **At-least-once** delivery + incremental aggregates ⇒ you need **dedupe keys** or **exactly-once** end-to-end semantics. Otherwise skew creeps in slowly.
+!!! warning
+    **At-least-once** delivery + incremental aggregates ⇒ you need **dedupe keys** or **exactly-once** end-to-end semantics. Otherwise skew creeps in slowly.
 
 ---
 
@@ -723,8 +708,8 @@ vec, missing = server.assemble(
 )
 ```
 
-{: .tip }
-> Add **hedged requests** only with care—duplicates can amplify hot keys. Prefer **batching at the caller** + **per-tenant quotas**.
+!!! tip
+    Add **hedged requests** only with care—duplicates can amplify hot keys. Prefer **batching at the caller** + **per-tenant quotas**.
 
 ---
 
@@ -790,8 +775,8 @@ pit = point_in_time_join(
 )
 ```
 
-{: .note }
-> For multi-entity joins (user + item), enforce **per-entity as-of** semantics; a single global timestamp is a common leakage footgun.
+!!! note
+    For multi-entity joins (user + item), enforce **per-entity as-of** semantics; a single global timestamp is a common leakage footgun.
 
 ---
 
@@ -851,8 +836,8 @@ def evaluate_drift(reference: np.ndarray, production: np.ndarray, name: str) -> 
     return DriftAlert(feature=name, psi=p, ks=k)
 ```
 
-{: .warning }
-> **PSI thresholds** are not universal—tail-heavy features need different binning (quantiles) and **separate monitors** for missingness.
+!!! warning
+    **PSI thresholds** are not universal—tail-heavy features need different binning (quantiles) and **separate monitors** for missingness.
 
 ---
 
@@ -908,8 +893,8 @@ probe = staleness_from_timestamps(
 )
 ```
 
-{: .tip }
-> Emit **freshness percentiles** per feature namespace—not only averages—because **tail staleness** drives worst-case model behavior.
+!!! tip
+    Emit **freshness percentiles** per feature namespace—not only averages—because **tail staleness** drives worst-case model behavior.
 
 ---
 
@@ -993,8 +978,8 @@ probe = staleness_from_timestamps(
 | **Feature store vs “just Redis”?** | Redis is **storage**; a **platform** adds **registry, lineage, PIT training, governance, monitoring** |
 | **How to handle backfills safely?** | Incremental partitions, **rate limits**, **validation gates**, **canary** consumers |
 
-{: .note }
-> Close with **operational maturity**: SLAs, **backfills**, **incident tooling**, and **governance**—not only architecture diagrams.
+!!! note
+    Close with **operational maturity**: SLAs, **backfills**, **incident tooling**, and **governance**—not only architecture diagrams.
 
 ### Red flags interviewers listen for
 

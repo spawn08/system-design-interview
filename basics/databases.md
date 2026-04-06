@@ -1,19 +1,4 @@
----
-layout: default
-title: Databases
-parent: Fundamentals
-nav_order: 4
----
-
 # Databases
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -955,5 +940,5 @@ flowchart TD
 - [MongoDB Manual](https://www.mongodb.com/docs/manual/) — document database patterns
 - [CAP Theorem Revisited](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) — Eric Brewer's 2012 reflection
 
-{: .note }
-> For deeper coverage of CAP theorem and consistency models, see also [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems).
+!!! note
+    For deeper coverage of CAP theorem and consistency models, see also [Distributed Systems](distributed_systems.md).

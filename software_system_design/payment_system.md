@@ -1,19 +1,4 @@
----
-layout: default
-title: Payment System
-parent: System Design Examples
-nav_order: 18
----
-
 # Payment System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -29,8 +14,8 @@ A **payment system** lets customers pay merchants for goods or services using ca
 
 Real-world examples include Stripe Connect, Adyen for Platforms, PayPal Commerce, and in-house systems at marketplaces and SaaS billing engines.
 
-{: .note }
-> In interviews, scope matters: clarify one-time checkout vs subscriptions, domestic vs cross-border, and whether you are the merchant of record or a marketplace splitting funds.
+!!! note
+    In interviews, scope matters: clarify one-time checkout vs subscriptions, domestic vs cross-border, and whether you are the merchant of record or a marketplace splitting funds.
 
 ### Why This Problem Shows Up in Interviews
 
@@ -129,8 +114,8 @@ Content-Type: application/json
 { "id": "evt_...", "type": "charge.captured", "data": { "object": { ... } } }
 ```
 
-{: .tip }
-> Put `Idempotency-Key` on every mutating call. Store keys with the resulting payment id and status so retries replay the same outcome without duplicate side effects.
+!!! tip
+    Put `Idempotency-Key` on every mutating call. Store keys with the resulting payment id and status so retries replay the same outcome without duplicate side effects.
 
 ### Technology Selection & Tradeoffs
 
@@ -196,8 +181,8 @@ Both can run ACID transactions, but defaults and ecosystem differ in ways that m
 
 **Our choice (example for this guide):** **PostgreSQL** for OLTP payments and **double-entry ledger** tables with strict constraints; **Kafka or RabbitMQ** depending on whether we need **log replay** and multi-subscriber analytics (Kafka) or **simpler job queuing** first (RabbitMQ); **idempotency keys in PostgreSQL** in the same transaction as payment creation; **Stripe or Adyen** as PSP for cards until volume and geography justify **Adyen**-style acquiring depth or **direct bank** for ACH/SEPA with a dedicated banking partner. Rationale: **minimize split-brain** between “charged” and “recorded,” **pass audits**, and **defer** bank-direct complexity until compliance and ops can absorb it.
 
-{: .note }
-> In interviews, “we use Redis for idempotency” is acceptable **if** you explain failover, persistence, and why the **authoritative** outcome still lives in the relational store.
+!!! note
+    In interviews, “we use Redis for idempotency” is acceptable **if** you explain failover, persistence, and why the **authoritative** outcome still lives in the relational store.
 
 ### CAP Theorem Analysis
 
@@ -242,8 +227,8 @@ flowchart TB
   P -->|do not serve wrong balance| LD
 ```
 
-{: .important }
-> PSPs are **external CP-ish systems** with their own failure modes: your design must **reconcile** and **never assume** your DB and Stripe agree without verification.
+!!! important
+    PSPs are **external CP-ish systems** with their own failure modes: your design must **reconcile** and **never assume** your DB and Stripe agree without verification.
 
 ### SLA and SLO Definitions
 
@@ -263,8 +248,8 @@ flowchart TB
 - If budget is **exhausted**: freeze non-critical deploys, prioritize incident fixes, defer risky changes; consider **stricter review** for ledger migrations.
 - **Latency SLOs** consume budget when p99 exceeds threshold for a rolling window—triggers **alerting** and **capacity** review, not necessarily customer credits unless SLA says so.
 
-{: .tip }
-> Tie SLOs to **user stories**: “buyer sees confirmation within X” beats raw millisecond vanity for behavioral acceptance.
+!!! tip
+    Tie SLOs to **user stories**: “buyer sees confirmation within X” beats raw millisecond vanity for behavioral acceptance.
 
 ### Database Schema
 
@@ -364,8 +349,8 @@ CREATE TABLE refunds (
 -- (PostgreSQL CHECK cannot reference other rows reliably for this invariant.)
 ```
 
-{: .warning }
-> PostgreSQL **CHECK** referencing other rows is limited; production schemas often use a **trigger** or **application-level validation** to ensure refund totals never exceed captured amount. The interview point is: **enforce invariants somewhere**—prefer DB if your team can maintain it.
+!!! warning
+    PostgreSQL **CHECK** referencing other rows is limited; production schemas often use a **trigger** or **application-level validation** to ensure refund totals never exceed captured amount. The interview point is: **enforce invariants somewhere**—prefer DB if your team can maintain it.
 
 ---
 
@@ -403,8 +388,8 @@ Card authorization latency: 200ms–2s (PSP + network)
 Webhook processing: must be fast (ack) but heavy work async (queue)
 ```
 
-{: .warning }
-> Estimation proves you think about **data growth** and **PSP rate limits**. Mention webhook signing verification and backoff if the interviewer cares about operations.
+!!! warning
+    Estimation proves you think about **data growth** and **PSP rate limits**. Mention webhook signing verification and backoff if the interviewer cares about operations.
 
 ---
 
@@ -548,8 +533,8 @@ sequenceDiagram
   WH->>PS: mark captured / enqueue settlement
 ```
 
-{: .important }
-> **Settlement** timing is PSP-specific. Your `captured` state usually means “we got a successful capture from PSP,” while **bank settlement** may lag; use `settled` when your reconciliation matches PSP reports and bank deposits.
+!!! important
+    **Settlement** timing is PSP-specific. Your `captured` state usually means “we got a successful capture from PSP,” while **bank settlement** may lag; use `settled` when your reconciliation matches PSP reports and bank deposits.
 
 ### 4.2 Idempotency and Exactly-Once Processing
 
@@ -637,8 +622,8 @@ def post_capture(
     ]
 ```
 
-{: .note }
-> Pick **one** debit/credit convention and stick to it. Many systems store signed amounts with account types (asset/liability/revenue) to enforce balancing rules in code or DB constraints.
+!!! note
+    Pick **one** debit/credit convention and stick to it. Many systems store signed amounts with account types (asset/liability/revenue) to enforce balancing rules in code or DB constraints.
 
 ### 4.4 Payment Service Provider (PSP) Integration
 
@@ -694,8 +679,8 @@ func (h *EventHandler) ServeStripe(w http.ResponseWriter, r *http.Request) {
 
 **PayPal** patterns are similar: verify signatures or certificates, treat `event id` as dedupe key, respond quickly and offload work to a queue if processing is heavy.
 
-{: .warning }
-> Always verify webhook authenticity **before** parsing business payloads. Return non-2xx only when you want the PSP to retry; avoid tight coupling between verification and long DB transactions.
+!!! warning
+    Always verify webhook authenticity **before** parsing business payloads. Return non-2xx only when you want the PSP to retry; avoid tight coupling between verification and long DB transactions.
 
 ### 4.5 Reconciliation
 
@@ -738,8 +723,8 @@ flowchart LR
 2. Freeze or debit merchant balance per policy.
 3. Evidence window for contesting; terminal outcomes update `chargeback_open` to won/lost.
 
-{: .tip }
-> Separate **customer refund** (merchant-initiated) from **chargeback** (issuer-initiated reversal). They follow different timelines and accounting treatment.
+!!! tip
+    Separate **customer refund** (merchant-initiated) from **chargeback** (issuer-initiated reversal). They follow different timelines and accounting treatment.
 
 ### 4.7 Fraud Prevention
 
@@ -769,8 +754,8 @@ Practices:
 - Access control and audit for anyone touching payment configuration.
 - Regular vulnerability scanning and key rotation.
 
-{: .important }
-> In interviews, saying **“we use Stripe.js / Elements and only handle tokens”** is often the expected answer for minimizing PCI scope.
+!!! important
+    In interviews, saying **“we use Stripe.js / Elements and only handle tokens”** is often the expected answer for minimizing PCI scope.
 
 ---
 

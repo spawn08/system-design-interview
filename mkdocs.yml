@@ -1,0 +1,207 @@
+site_name: System Design Interview Guide
+site_description: Master system design interviews with practical examples and clear explanations — 75+ topics across software engineering, ML, and GenAI
+site_author: Amarsingh Thakur
+site_url: https://spawn08.github.io/system-design-interview/
+repo_url: https://github.com/spawn08/system-design-interview
+repo_name: spawn08/system-design-interview
+copyright: Copyright &copy; 2026 System Design Interview Guide contributors
+
+docs_dir: .
+
+exclude_docs: |
+  _includes/
+  _sass/
+  overrides/
+  site/
+  .github/
+  .git/
+  .cursor/
+  .rage/
+  .claude/
+  tool/
+  node_modules/
+  __pycache__/
+  *.csv
+  Gemfile*
+  requirements.txt
+  LICENSE
+  README.md
+
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.path
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - header.autohide
+  icon:
+    logo: material/server-network
+    repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+plugins:
+  - search
+
+extra_css:
+  - assets/css/theme.css
+
+extra_javascript:
+  - assets/js/mermaid-config.js
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/spawn08/system-design-interview
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+nav:
+  - Home: index.md
+  - Fundamentals:
+    - basics/index.md
+    - Interview Framework: basics/interview_framework.md
+    - Estimation & Planning: basics/estimation.md
+    - Networking: basics/networking.md
+    - Databases: basics/databases.md
+    - Caching: basics/caching.md
+    - Load Balancing: basics/load_balancer.md
+    - API Design: basics/api_design.md
+    - Concurrency: basics/concurrency.md
+    - Security: basics/security.md
+    - Scalability & Reliability: basics/scalability.md
+    - Distributed Systems: basics/distributed_systems.md
+  - Advanced Topics:
+    - advanced/index.md
+    - Message Queues & Streaming: advanced/message_queues.md
+    - Search Systems: advanced/search_systems.md
+    - Data Warehousing & Lakes: advanced/data_warehousing.md
+    - Microservices Architecture: advanced/microservices.md
+    - Consistency Patterns: advanced/consistency_patterns.md
+    - Object Storage & CDN: advanced/object_storage_cdn.md
+    - Distributed Locking: advanced/distributed_locking.md
+    - Observability: advanced/observability.md
+    - Event Sourcing & CQRS: advanced/event_sourcing_cqrs.md
+    - Consensus Algorithms: advanced/consensus_algorithms.md
+    - Distributed Transactions: advanced/distributed_transactions.md
+    - Sharding & Partitioning: advanced/sharding_partitioning.md
+    - Behavioral & Leadership (L6): advanced/behavioral_leadership.md
+  - System Design Examples:
+    - software_system_design/index.md
+    - Staff Engineer Interview Guide: software_system_design/staff_engineer_expectations.md
+    - URL Shortener (TinyURL): software_system_design/url_shortening.md
+    - Voting System: software_system_design/voting-system-design.md
+    - Key-Value Store: software_system_design/key_value_store.md
+    - Rate Limiter: software_system_design/rate_limiter.md
+    - Web Crawler: software_system_design/web_crawler.md
+    - Notification System: software_system_design/notification_system.md
+    - Chat System: software_system_design/chat_system.md
+    - News Feed / Timeline: software_system_design/news_feed.md
+    - Search Autocomplete: software_system_design/search_autocomplete.md
+    - Distributed Cache: software_system_design/distributed_cache.md
+    - Video Streaming (YouTube): software_system_design/video_streaming.md
+    - Photo Sharing (Instagram): software_system_design/photo_sharing.md
+    - Collaborative Editor (Google Docs): software_system_design/collaborative_editor.md
+    - Ride Sharing (Uber/Lyft): software_system_design/ride_sharing.md
+    - Cloud Storage (Google Drive): software_system_design/cloud_storage.md
+    - Event Booking (Ticketmaster): software_system_design/event_booking.md
+    - Task Scheduler: software_system_design/task_scheduler.md
+    - Payment System: software_system_design/payment_system.md
+    - Proximity Service: software_system_design/proximity_service.md
+    - Distributed Message Queue: software_system_design/message_queue.md
+    - Metrics & Monitoring System: software_system_design/metrics_monitoring.md
+    - Email Delivery System: software_system_design/email_delivery.md
+    - Distributed File System: software_system_design/distributed_file_system.md
+    - Ad Click Aggregator: software_system_design/ad_click_aggregator.md
+    - Gaming Leaderboard: software_system_design/gaming_leaderboard.md
+    - API Gateway: software_system_design/api_gateway.md
+    - Content Delivery Network (CDN): software_system_design/content_delivery_network.md
+  - GenAI/ML Fundamentals:
+    - genai_ml_basics/index.md
+    - Model Serving: genai_ml_basics/model_serving.md
+    - Feature Stores: genai_ml_basics/feature_stores.md
+    - Data Pipelines for ML: genai_ml_basics/data_pipelines.md
+    - Large Language Models: genai_ml_basics/llm_systems.md
+    - Distributed Training: genai_ml_basics/distributed_training.md
+    - LLM Evaluation: genai_ml_basics/llm_evaluation.md
+    - RLHF & Alignment: genai_ml_basics/rlhf_alignment.md
+  - ML System Design:
+    - ml_system_design/index.md
+    - Image Caption Generator: ml_system_design/image_caption_generator.md
+    - Recommendation System: ml_system_design/recommendation_system.md
+    - Real-time Fraud Detection: ml_system_design/fraud_detection.md
+    - Image Search System: ml_system_design/image_search.md
+    - Search Ranking: ml_system_design/search_ranking.md
+    - Real-time Personalization: ml_system_design/realtime_personalization.md
+    - Ads Ranking System: ml_system_design/ads_ranking.md
+    - Real-time Feature Platform: ml_system_design/feature_platform.md
+    - Machine Translation: ml_system_design/machine_translation.md
+    - Speech Recognition: ml_system_design/speech_recognition.md
+  - GenAI System Design:
+    - genai_ml_system_design/index.md
+    - LLM-Powered Chatbot: genai_ml_system_design/llm_chatbot.md
+    - Enterprise RAG System: genai_ml_system_design/enterprise_rag.md
+    - AI Code Assistant: genai_ml_system_design/ai_code_assistant.md
+    - LLM Content Moderation: genai_ml_system_design/content_moderation.md
+    - ML Training Platform: genai_ml_system_design/ml_training_platform.md
+    - Multi-Modal Search: genai_ml_system_design/multimodal_search.md
+    - AI Agent System: genai_ml_system_design/ai_agent_system.md
+    - LLM Gateway: genai_ml_system_design/llm_gateway.md
+    - Text-to-Image Generation: genai_ml_system_design/text_to_image.md
+    - Vector Database: genai_ml_system_design/vector_database.md

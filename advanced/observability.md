@@ -1,19 +1,4 @@
----
-layout: default
-title: Observability
-parent: Advanced Topics
-nav_order: 8
----
-
 # Observability
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -31,8 +16,8 @@ The **three pillars** are often described as:
 | **Metrics** | How much, how often, over time? | Aggregated numeric time series |
 | **Traces** | How did a request flow through services? | Causal chains of operations (spans) |
 
-{: .note }
-> The three pillars are a useful mental model, not a shopping list. In practice they **correlate**: trace IDs link to log lines; RED metrics sit on top of trace-derived or request-scoped measurements. Modern platforms (OpenTelemetry, vendor suites) unify collection and context propagation.
+!!! note
+    The three pillars are a useful mental model, not a shopping list. In practice they **correlate**: trace IDs link to log lines; RED metrics sit on top of trace-derived or request-scoped measurements. Modern platforms (OpenTelemetry, vendor suites) unify collection and context propagation.
 
 ---
 
@@ -57,8 +42,8 @@ Benefits:
 | **DEBUG** | Diagnostic detail for development | Cache key resolved, query plan |
 | **TRACE** | Very verbose, often disabled in production | Per-frame parsing in a protocol |
 
-{: .warning }
-> **Avoid** logging secrets, full payment payloads, or raw tokens — even in ERROR. Prefer structured fields with redaction policies. Volume at INFO/DEBUG can dominate storage cost; sample or gate verbose logs in production.
+!!! warning
+    **Avoid** logging secrets, full payment payloads, or raw tokens — even in ERROR. Prefer structured fields with redaction policies. Volume at INFO/DEBUG can dominate storage cost; sample or gate verbose logs in production.
 
 ### Log aggregation (ELK stack: Elasticsearch, Logstash, Kibana)
 
@@ -197,8 +182,8 @@ If RED is healthy for a service, users usually get a good experience unless reso
 - **Saturation**: extra work queued (run queue length, disk await).
 - **Errors**: failed operations (I/O errors, packet drops).
 
-{: .tip }
-> Combine **RED** on the service with **USE** on nodes and shared infrastructure to separate "my app is slow" from "the disk is saturated."
+!!! tip
+    Combine **RED** on the service with **USE** on nodes and shared infrastructure to separate "my app is slow" from "the disk is saturated."
 
 ### Prometheus + Grafana stack
 
@@ -344,8 +329,8 @@ func main() {
 | **Head-based** | At trace start (random %, rate limited) | Simple, low memory | Might drop the exact rare trace you need |
 | **Tail-based** (e.g. some commercial pipelines) | After spans collected, keep interesting traces | Keeps errors/slow paths | Higher buffering cost and complexity |
 
-{: .important }
-> Always sample in high-traffic systems — 100% tracing can overwhelm collectors and storage. Tune sample rate against cost and debuggability.
+!!! important
+    Always sample in high-traffic systems — 100% tracing can overwhelm collectors and storage. Tune sample rate against cost and debuggability.
 
 ### Trace correlation with logs and metrics
 
@@ -453,8 +438,8 @@ Kubernetes (and similar runtimes) use:
 - **Liveness**: Is the process stuck or deadlocked? Failure → **restart** the container.
 - **Readiness**: Can this instance accept traffic? Failure → **remove** from load balancer until healthy.
 
-{: .warning }
-> Do not put slow dependencies (full database checks) on **liveness** — transient blips restart the whole pod. Use **readiness** for dependency checks; keep liveness cheap.
+!!! warning
+    Do not put slow dependencies (full database checks) on **liveness** — transient blips restart the whole pod. Use **readiness** for dependency checks; keep liveness cheap.
 
 ### Defining SLIs (latency, availability, throughput)
 
@@ -600,5 +585,5 @@ flowchart TD
 - [USE Method](http://www.brendangregg.com/usemethod.html) — Brendan Gregg on resource analysis.
 - [Mermaid documentation](https://mermaid.js.org/) — diagrams as code (used above).
 
-{: .tip }
-> In interviews, naming **RED**, **USE**, **SLO/error budget**, and **head vs tail sampling** signals production experience — but always tie choices back to **what users experience** and **operational cost**.
+!!! tip
+    In interviews, naming **RED**, **USE**, **SLO/error budget**, and **head vs tail sampling** signals production experience — but always tie choices back to **what users experience** and **operational cost**.

@@ -1,19 +1,4 @@
----
-layout: default
-title: Collaborative Editor (Google Docs)
-parent: System Design Examples
-nav_order: 13
----
-
 # Collaborative Editor (Google Docs)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -49,8 +34,8 @@ A **multi-user collaborative document editor** where many clients edit the same 
 | **Notion / Confluence** | Block models + permissions + search | Rich schema + indexing is as important as typing latency |
 | **Figma** | CRDT-style multiplayer on structured data | Domain-specific replicated data types beat generic text OT for many apps |
 
-{: .note }
-> In interviews, cite **orders of magnitude** and **dominant costs** (WebSocket fan-out, transform CPU, storage growth), not unverifiable exact product metrics.
+!!! note
+    In interviews, cite **orders of magnitude** and **dominant costs** (WebSocket fan-out, transform CPU, storage growth), not unverifiable exact product metrics.
 
 ### Comparison to Adjacent Systems
 
@@ -87,8 +72,8 @@ A **multi-user collaborative document editor** where many clients edit the same 
 | **Scalability** | Horizontal connection tier; shard by document | Hot documents are a reality; isolate noisy neighbors |
 | **Security** | TLS everywhere; ACL on connect and per-operation | Stolen session or WS token must not exfiltrate content |
 
-{: .warning }
-> Do not promise **linearizable typing** across the globe. Real systems use **regional serving**, **single-writer sequencing per document** (common), or **CRDTs** with bounded staleness—pick one story and stay consistent.
+!!! warning
+    Do not promise **linearizable typing** across the globe. Real systems use **regional serving**, **single-writer sequencing per document** (common), or **CRDTs** with bounded staleness—pick one story and stay consistent.
 
 ### API Design
 
@@ -121,8 +106,8 @@ A **multi-user collaborative document editor** where many clients edit the same 
 }
 ```
 
-{: .tip }
-> Always carry a **client-generated op id** for idempotent application on retries. The server maps it to a monotonic **server sequence** for total order (if you use a log).
+!!! tip
+    Always carry a **client-generated op id** for idempotent application on retries. The server maps it to a monotonic **server sequence** for total order (if you use a log).
 
 ### Technology Selection & Tradeoffs
 
@@ -137,8 +122,8 @@ Picking technologies here is really picking **semantics** (how conflicts resolve
 | **Diff-merge (3-way / patch)** | Compare states or diffs at sync time; merge overlapping regions with heuristics | Simple mental model for **infrequent** sync (e.g., config files) | Terrible for **fine-grained concurrent typing**; merge conflicts surface constantly | Not a primary engine for live co-editing; OK for coarse-grained sections |
 | **Locking (pessimistic)** | Serialize edits via section/paragraph locks | Predictable; easy to explain | Awful UX at scale; doesn’t match “many cursors”; fails on flaky networks | Rare; maybe admin “checkout” modes |
 
-{: .note }
-> **Interview anchor:** OT and CRDT both target **eventual convergence**; diff-merge and locking trade away real-time collaboration quality for simplicity.
+!!! note
+    **Interview anchor:** OT and CRDT both target **eventual convergence**; diff-merge and locking trade away real-time collaboration quality for simplicity.
 
 #### Real-time transport: WebSocket vs WebRTC vs SSE
 
@@ -157,8 +142,8 @@ Picking technologies here is really picking **semantics** (how conflicts resolve
 | **Append-only log (Kafka / durable journal)** | **Per-doc ordered ops**, replay, audit; partition key = `doc_id` | Retention/compaction policy is a product decision; not a human-query store by itself |
 | **S3 (object store)** | **Snapshots**, exports, cold revision blobs | High latency vs DB; **eventual listing** consistency; perfect for WORM-style snapshot storage |
 
-{: .warning }
-> In interviews, say clearly: **hot path** = append op to **durable ordered log** + async **snapshot** to object storage; **cold path** = rebuild from log tail + latest snapshot.
+!!! warning
+    In interviews, say clearly: **hot path** = append op to **durable ordered log** + async **snapshot** to object storage; **cold path** = rebuild from log tail + latest snapshot.
 
 #### Presence and cursor: Redis Pub/Sub vs dedicated presence service vs peer-to-peer
 
@@ -210,8 +195,8 @@ flowchart TB
   TOK -->|authorize| clients
 ```
 
-{: .tip }
-> **Answer template:** “We guarantee **strong per-document operation order** on the log partition; **eventual** materialized document state; **best-effort** presence; **fail-closed** ACL when in doubt.” That shows you separate **hard invariants** from **UX-soft paths**.
+!!! tip
+    **Answer template:** “We guarantee **strong per-document operation order** on the log partition; **eventual** materialized document state; **best-effort** presence; **fail-closed** ACL when in doubt.” That shows you separate **hard invariants** from **UX-soft paths**.
 
 ---
 
@@ -233,8 +218,8 @@ SLAs are **contracts** (often external); **SLOs** are internal targets measured 
 - **Durability SLO** is **non-negotiable**: any breach triggers **incident**, possible **pause releases**, and **freeze** risky migrations.
 - **User-visible degradation order**: throttle presence → batch broadcasts → read-only mode for overloaded docs (if product allows) → never silently drop **acknowledged** ops.
 
-{: .note }
-> Pair every SLO with **how you measure it**: synthetic probes for WS regions, **trace span** from gateway → sequencer → fan-out, and **reconciliation jobs** for durability (checksum snapshot vs replayed tail).
+!!! note
+    Pair every SLO with **how you measure it**: synthetic probes for WS regions, **trace span** from gateway → sequencer → fan-out, and **reconciliation jobs** for durability (checksum snapshot vs replayed tail).
 
 ---
 
@@ -293,8 +278,8 @@ CREATE TABLE collaborators (
 CREATE INDEX idx_collab_user ON collaborators (user_id);
 ```
 
-{: .tip }
-> Mention **why** `client_op_id` is unique per `doc_id`: retries after timeouts must not **double-apply** ops. For CRDT-heavy designs, `operation` may store **binary blobs**; keep **seq** for catch-up and **debuggability**.
+!!! tip
+    Mention **why** `client_op_id` is unique per `doc_id`: retries after timeouts must not **double-apply** ops. For CRDT-heavy designs, `operation` may store **binary blobs**; keep **seq** for catch-up and **debuggability**.
 
 ---
 
@@ -349,8 +334,8 @@ Connection memory dominates gateway fleet sizing (buffers, TLS, kernel tuning).
 | Storage | PB-scale with history + media | Tiered storage, compaction, legal hold |
 | Egress | Fan-out to collaborators per op | Coalesce broadcasts; binary framing |
 
-{: .note }
-> The **dominant interview discussion** is rarely raw QPS—it is **correctness (OT vs CRDT)**, **ordering**, and **failure modes** (reconnect, duplicate ops).
+!!! note
+    The **dominant interview discussion** is rarely raw QPS—it is **correctness (OT vs CRDT)**, **ordering**, and **failure modes** (reconnect, duplicate ops).
 
 ---
 
@@ -416,8 +401,8 @@ sequenceDiagram
   GW->>CB: remote op N+1
 ```
 
-{: .tip }
-> Separate **transport** (gateway) from **document correctness** (service). Gateways should be restartable; session state is either sticky with recovery or fully reconstructable from the log.
+!!! tip
+    Separate **transport** (gateway) from **document correctness** (service). Gateways should be restartable; session state is either sticky with recovery or fully reconstructable from the log.
 
 ---
 
@@ -435,8 +420,8 @@ This is the **primary trade-off interviewers probe**.
 | **Cons** | Correctness of transform functions is hard; edge cases multiply with rich text | Memory overhead; tombstones; more complex UX for undo/redo in some models |
 | **Offline** | Typically harder; may need replay + transform storms | Natural fit; merge on reconnect |
 
-{: .warning }
-> Avoid absolutes. **Google Docs historically leaned on OT-class techniques with careful engineering**; many modern apps use **CRDT libraries** for faster feature velocity. Interview credit comes from **clear criteria**: team expertise, offline requirements, rich schema, audit needs.
+!!! warning
+    Avoid absolutes. **Google Docs historically leaned on OT-class techniques with careful engineering**; many modern apps use **CRDT libraries** for faster feature velocity. Interview credit comes from **clear criteria**: team expertise, offline requirements, rich schema, audit needs.
 
 **When interviewers push:** articulate **invariants**:
 
@@ -496,8 +481,8 @@ public final class OtInsert {
 }
 ```
 
-{: .note }
-> Real OT suites (e.g., for rich text) are **thousands of tests** and careful tie-breaking. Interview answer: "I'd start from a proven library or a minimal op model and add property-based tests."
+!!! note
+    Real OT suites (e.g., for rich text) are **thousands of tests** and careful tie-breaking. Interview answer: "I'd start from a proven library or a minimal op model and add property-based tests."
 
 ### 4.3 CRDTs for Collaborative Editing
 
@@ -547,8 +532,8 @@ class RgaDoc:
         return "".join(a.ch for a in self.atoms if not a.deleted)
 ```
 
-{: .warning }
-> The snippet is **educational**, not production-complete. Real RGA uses careful **ordering keys**, **tombstone compaction** policies, and **clock** strategies.
+!!! warning
+    The snippet is **educational**, not production-complete. Real RGA uses careful **ordering keys**, **tombstone compaction** policies, and **clock** strategies.
 
 **Merge intuition (mermaid)**
 
@@ -617,8 +602,8 @@ func (h *Hub) Broadcast(docID string, msg []byte) {
 }
 ```
 
-{: .tip }
-> For multi-region, consider **global doc routing** with regional primary, or **CRDT-first** clients that can tolerate partitioned merges with clear UX.
+!!! tip
+    For multi-region, consider **global doc routing** with regional primary, or **CRDT-first** clients that can tolerate partitioned merges with clear UX.
 
 **WebSocket architecture (mermaid)**
 
@@ -669,8 +654,8 @@ Presence is **ephemeral** and **high volume**. Typical strategies:
 | **Reconnect** | Send basis revision; server returns transformed ops or CRDT merge |
 | **Conflict UX** | For OT systems, surface rare conflicts explicitly; CRDTs reduce hard conflicts but not semantic ones |
 
-{: .note }
-> True offline-first is a **product commitment**. If you only need "flaky network tolerance," batching + reconnect + idempotency may suffice without full offline editing.
+!!! note
+    True offline-first is a **product commitment**. If you only need "flaky network tolerance," batching + reconnect + idempotency may suffice without full offline editing.
 
 ### 4.8 Access Control and Sharing
 
@@ -714,8 +699,8 @@ Presence is **ephemeral** and **high volume**. Typical strategies:
 
 ## Interview Tips
 
-{: .tip }
-> Start with **requirements** and **data model** (plain text vs blocks). Immediately signal you know **OT vs CRDT** is the core trade-off.
+!!! tip
+    Start with **requirements** and **data model** (plain text vs blocks). Immediately signal you know **OT vs CRDT** is the core trade-off.
 
 **Good signals**
 
@@ -780,7 +765,7 @@ Presence is **ephemeral** and **high volume**. Typical strategies:
 
 ## Staff Engineer (L6) Deep Dive
 
-The sections above cover the standard collaborative editor design. The sections below cover **Staff-level depth** that distinguishes an L6 answer. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+The sections above cover the standard collaborative editor design. The sections below cover **Staff-level depth** that distinguishes an L6 answer. See the [Staff Engineer Interview Guide](staff_engineer_expectations.md) for the full L6 expectations framework.
 
 ### OT vs CRDT: The Decision Framework (Beyond "Pros and Cons")
 
@@ -795,8 +780,8 @@ At L6, don't just list trade-offs. Articulate a **decision framework** based on 
 | **Undo/redo semantics matter** | Well-understood in OT literature | CRDT undo is subtle; may require "undo CRDTs" |
 | **Audit trail / compliance** | Central log with server-assigned sequence | Requires additional logging layer |
 
-{: .tip }
-> **Staff-level answer:** *"For a greenfield product targeting enterprises with offline editing requirements, I'd choose CRDTs (e.g., Yjs or Automerge). For a product extending an existing OT-based editor like Google Docs, the cost of migration outweighs the architectural benefit—I'd invest in hardening the OT transform functions and adding better offline queuing."*
+!!! tip
+    **Staff-level answer:** *"For a greenfield product targeting enterprises with offline editing requirements, I'd choose CRDTs (e.g., Yjs or Automerge). For a product extending an existing OT-based editor like Google Docs, the cost of migration outweighs the architectural benefit—I'd invest in hardening the OT transform functions and adding better offline queuing."*
 
 ### WebSocket Connection Management at Scale
 
@@ -845,8 +830,8 @@ When a single document has thousands of concurrent editors (e.g., a company all-
 | **CRDT with regional merge** | Each region accepts writes locally; merge asynchronously | True multi-region writes; conflict-free but higher storage overhead |
 | **Active-active with OT** | Requires cross-region consensus per op | Highest correctness; highest latency; usually impractical at scale |
 
-{: .note }
-> Google Docs uses a form of single-region primary per document with regional routing. This is a pragmatic choice—most documents have collaborators in the same timezone.
+!!! note
+    Google Docs uses a form of single-region primary per document with regional routing. This is a pragmatic choice—most documents have collaborators in the same timezone.
 
 ### Operational Excellence
 

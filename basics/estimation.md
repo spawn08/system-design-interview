@@ -1,19 +1,4 @@
----
-layout: default
-title: Estimation & Planning
-parent: Fundamentals
-nav_order: 2
----
-
 # Estimation and Capacity Planning
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -96,8 +81,8 @@ These are the reference numbers you should memorize for interviews. They provide
 | 100 million requests/day | ~1,200 RPS |
 | 1 billion requests/day | ~12,000 RPS |
 
-{: .tip }
-> Memorize the conversion: **1 million requests per day ≈ 12 requests per second**. This is the most useful number in system design interviews.
+!!! tip
+    Memorize the conversion: **1 million requests per day ≈ 12 requests per second**. This is the most useful number in system design interviews.
 
 ---
 
@@ -533,8 +518,8 @@ Use this template when the interviewer asks you to estimate:
    - Database choice based on total storage + QPS
 ```
 
-{: .important }
-> The numbers don't need to be exact. Interviewers care that you can: (1) make reasonable assumptions, (2) perform order-of-magnitude calculations, and (3) use the results to make architectural decisions. Always round aggressively and explain your reasoning.
+!!! important
+    The numbers don't need to be exact. Interviewers care that you can: (1) make reasonable assumptions, (2) perform order-of-magnitude calculations, and (3) use the results to make architectural decisions. Always round aggressively and explain your reasoning.
 
 ---
 

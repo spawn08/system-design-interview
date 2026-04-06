@@ -1,16 +1,6 @@
----
-layout: default
-title: Data Pipelines for ML
-parent: GenAI/ML Fundamentals
-nav_order: 3
-permalink: /genai_ml_basics/data_pipelines
----
-
 # Data Pipelines for ML
-{: .fs-9 }
 
 Design end-to-end data pipelines that ingest, transform, validate, and deliver high-quality data for machine learning training and serving.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -1062,12 +1052,12 @@ class PipelineMonitor:
 
 ### Common Pitfalls
 
-{: .warning }
-> 1. **No data validation** — garbage in, garbage out; models trained on corrupt data fail silently
-> 2. **Not idempotent** — re-running a pipeline should produce the same result, not duplicate data
-> 3. **Ignoring late data** — events arriving after the processing window need a strategy
-> 4. **No backfill support** — what happens when you fix a bug? You need to re-process historical data
-> 5. **Tight coupling** — transformation code embedded in orchestrator makes testing impossible
+!!! warning
+    1. **No data validation** — garbage in, garbage out; models trained on corrupt data fail silently
+    2. **Not idempotent** — re-running a pipeline should produce the same result, not duplicate data
+    3. **Ignoring late data** — events arriving after the processing window need a strategy
+    4. **No backfill support** — what happens when you fix a bug? You need to re-process historical data
+    5. **Tight coupling** — transformation code embedded in orchestrator makes testing impossible
 
 ### Sample Interview Dialogue
 

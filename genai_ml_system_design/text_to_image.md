@@ -1,19 +1,4 @@
----
-layout: default
-title: Text-to-Image Generation
-parent: GenAI System Design
-nav_order: 9
----
-
 # Design a Text-to-Image Generation System (Imagen / DALL-E / Midjourney)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -33,8 +18,8 @@ We are designing a **production text-to-image system** comparable to **Google Im
 | **Model weights** | **2–10B+** parameters (class-leading) | Latent diffusion reduces pixel-space cost |
 | **Typical output** | **512² → 1024²** base; **up to 2048²** with SR | Cascades dominate latency budgets |
 
-{: .note }
-> Interview tip: cite **ranges** and **drivers** (steps, resolution, batching), not fake precision. Panels expect you to reason about **GPU-seconds per image** and **queue depth**.
+!!! note
+    Interview tip: cite **ranges** and **drivers** (steps, resolution, batching), not fake precision. Panels expect you to reason about **GPU-seconds per image** and **queue depth**.
 
 ### Why This Problem Is Hard
 
@@ -90,8 +75,8 @@ Train the model **with conditioning dropout** so it can run **conditional** and 
 \tilde{\epsilon}_\theta = \epsilon_\theta(x_t, t, \varnothing) + w \cdot \big(\epsilon_\theta(x_t, t, c) - \epsilon_\theta(x_t, t, \varnothing)\big)
 \\]
 
-{: .warning }
-> CFG increases **compute** (two forward passes) and can amplify **artifacts** or **oversaturated** looks at extreme \\(w\\).
+!!! warning
+    CFG increases **compute** (two forward passes) and can amplify **artifacts** or **oversaturated** looks at extreme \\(w\\).
 
 ### Text Conditioning (CLIP, T5, Cross-Attention)
 
@@ -136,8 +121,8 @@ flowchart TB
   end
 ```
 
-{: .warning }
-> **Preview vs final:** many products show **fast** low-step or low-res outputs first, then **replace** with the SR-enhanced asset once ready — this improves **perceived latency** without breaking the **<10s** SLO for *final* pixels.
+!!! warning
+    **Preview vs final:** many products show **fast** low-step or low-res outputs first, then **replace** with the SR-enhanced asset once ready — this improves **perceived latency** without breaking the **<10s** SLO for *final* pixels.
 
 ---
 
@@ -164,8 +149,8 @@ flowchart TB
 | **Safety** | Block **CSAM**, **graphic violence**, **non-consensual intimate imagery**; mitigate **deepfakes** | Classifiers + policy + provenance tooling; jurisdiction-aware |
 | **Cost** | **< $0.01 / image** at steady state | Quantization, multi-tenant batching, model distillation, SR only when needed |
 
-{: .note }
-> Translate **1000 images/min** into **GPU occupancy**: if one GPU does ~6–12 images/min depending on settings, you need **O(100)** GPU streams (order-of-magnitude), plus headroom for failures and spikes.
+!!! note
+    Translate **1000 images/min** into **GPU occupancy**: if one GPU does ~6–12 images/min depending on settings, you need **O(100)** GPU streams (order-of-magnitude), plus headroom for failures and spikes.
 
 ---
 
@@ -317,8 +302,8 @@ def inject_cross_attention(unet_block: nn.Module, text_ctx: torch.Tensor) -> tor
     return text_ctx
 ```
 
-{: .note }
-> **Cross-attention injection** is where "prompt engineering" meets **geometry**: the same words produce different spatial attention maps across layers.
+!!! note
+    **Cross-attention injection** is where "prompt engineering" meets **geometry**: the same words produce different spatial attention maps across layers.
 
 ---
 
@@ -466,8 +451,8 @@ def reduce_steps_teacher_student(
     return teacher_steps, student_steps
 ```
 
-{: .note }
-> In **production**, you also **clip** \\(\hat{x}_0\\) to a sensible latent range before the DDIM update to avoid **exploding** latents when \\(\bar{\alpha}_t\\) is tiny — HuggingFace schedulers call this `pred_original_sample` clipping.
+!!! note
+    In **production**, you also **clip** \\(\hat{x}_0\\) to a sensible latent range before the DDIM update to avoid **exploding** latents when \\(\bar{\alpha}_t\\) is tiny — HuggingFace schedulers call this `pred_original_sample` clipping.
 
 **Step-reduction techniques:** distilled models, **consistency models**, **solver order** (DPM-Solver++), **timestep skipping**, **progressive growing** (coarse then refine).
 
@@ -788,8 +773,8 @@ def full_safety_pipeline(
 
 **Defense in depth:** **input** policy → **output** classifiers → **rate limits** → **user reputation** → **human review queues** for edge cases.
 
-{: .warning }
-> **CSAM** and **NCII** are **zero-tolerance** domains: embeddings + classifiers are **assistive**; **hash-matching** (e.g. **PhotoDNA**-class approaches where legally available), **vendor APIs**, and **mandatory reporting** workflows are **not** replaceable by a stub. Always defer to **legal** and **trust & safety** engineering.
+!!! warning
+    **CSAM** and **NCII** are **zero-tolerance** domains: embeddings + classifiers are **assistive**; **hash-matching** (e.g. **PhotoDNA**-class approaches where legally available), **vendor APIs**, and **mandatory reporting** workflows are **not** replaceable by a stub. Always defer to **legal** and **trust & safety** engineering.
 
 ---
 
@@ -962,8 +947,8 @@ def online_rating_feedback_loop(ratings: List[int]) -> float:
     return sum(ratings) / max(len(ratings), 1)
 ```
 
-{: .note }
-> Pair **FID** with **precision/recall in feature space** (Improved Precision and Recall for GANs) when you care about **mode collapse** — FID alone can miss **diversity** issues.
+!!! note
+    Pair **FID** with **precision/recall in feature space** (Improved Precision and Recall for GANs) when you care about **mode collapse** — FID alone can miss **diversity** issues.
 
 **Offline + online:** **FID / precision-recall for diversity**, **CLIPScore / PickScore**, **human Elo**, **A/B** on slices (anime, photoreal, typography).
 
@@ -1012,8 +997,8 @@ flowchart TB
   CKPT --> EVAL --> SRV
 ```
 
-{: .warning }
-> **Copyright** on training data is a **legal and product** issue: **document** sources, honor **robots.txt** / **licenses**, support **creator opt-out**, and separate **technical** dedup from **licensing** compliance.
+!!! warning
+    **Copyright** on training data is a **legal and product** issue: **document** sources, honor **robots.txt** / **licenses**, support **creator opt-out**, and separate **technical** dedup from **licensing** compliance.
 
 ---
 
@@ -1240,5 +1225,5 @@ flowchart TB
 | **Training** | **Data filtering**, **noise/v-pred** objectives, **LoRA/DreamBooth**, **preference alignment**, **distributed** + **EMA** checkpoints |
 | **Economics** | **GPU-sec/image** is the unit — design the system to shrink it without breaking safety |
 
-{: .note }
-> Practice explaining **one** sampler intuition, **one** safety story, and **one** cost lever — interviewers often probe depth on **any** of the three.
+!!! note
+    Practice explaining **one** sampler intuition, **one** safety story, and **one** cost lever — interviewers often probe depth on **any** of the three.

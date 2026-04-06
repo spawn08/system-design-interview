@@ -1,19 +1,4 @@
----
-layout: default
-title: Real-time Personalization
-parent: ML System Design
-nav_order: 6
----
-
 # Real-time Personalization System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -21,8 +6,8 @@ nav_order: 6
 
 A **real-time personalization system** adapts recommendations and rankings to a user’s **current session**—not only to long-term profile history. It responds within milliseconds to clicks, scrolls, dwell time, and cart actions so the next screen feels “aware” of what the user is doing *right now*.
 
-{: .note }
-> **Session vs. long-term personalization:** Batch or nightly jobs can refresh user embeddings and cohort features. Real-time personalization adds a **fast loop** from event → features → model → ranked list, usually with strict latency budgets.
+!!! note
+    **Session vs. long-term personalization:** Batch or nightly jobs can refresh user embeddings and cohort features. Real-time personalization adds a **fast loop** from event → features → model → ranked list, usually with strict latency budgets.
 
 **Typical surfaces:**
 - E-commerce: home, category rails, search ranking, checkout upsells
@@ -43,8 +28,8 @@ A **real-time personalization system** adapts recommendations and rankings to a 
 | **Infra** | Scheduled ETL, offline training | Streaming, online features, low-latency inference |
 | **Failure mode** | Stale but safe | Wrong session → obvious mistakes |
 
-{: .tip }
-> In interviews, state clearly: you still need **offline** training and **batch** features; real-time is an **additional** path, not a replacement for the whole stack.
+!!! tip
+    In interviews, state clearly: you still need **offline** training and **batch** features; real-time is an **additional** path, not a replacement for the whole stack.
 
 ---
 
@@ -84,8 +69,8 @@ Bandits formalize **exploration vs. exploitation**: show items likely to reward 
 | **Thompson Sampling** | Sample from posterior over reward | Strong empirical performance; Bayesian flavor |
 | **Contextual bandits** | Use user/context features (LinUCB, neural policies) | Personalization with side information |
 
-{: .warning }
-> Bandits optimize **short-term reward** unless you add constraints. Combine with **diversity**, **fairness**, and **long-term metrics** in production.
+!!! warning
+    Bandits optimize **short-term reward** unless you add constraints. Combine with **diversity**, **fairness**, and **long-term metrics** in production.
 
 ### User Embeddings
 
@@ -121,8 +106,8 @@ Bandits formalize **exploration vs. exploitation**: show items likely to reward 
 | **State update** | User/session state visible within &lt; 100 ms of interaction | Async path acceptable if next page uses fresh state |
 | **Availability** | 99.95%+ | Graceful degradation |
 
-{: .note }
-> Always separate **API latency** (blocking user) from **async pipeline latency** (Kafka consumer lag). Interviewers reward crisp SLAs.
+!!! note
+    Always separate **API latency** (blocking user) from **async pipeline latency** (Kafka consumer lag). Interviewers reward crisp SLAs.
 
 ### Metrics
 
@@ -135,8 +120,8 @@ Bandits formalize **exploration vs. exploitation**: show items likely to reward 
 - **Hit Rate@K**, **NDCG@K**, **MRR**
 - **Coverage** (catalog), **intra-list diversity**, **calibration**
 
-{: .tip }
-> Mention **interleaving** or **counterfactual** evaluation when discussing online metrics—shows maturity.
+!!! tip
+    Mention **interleaving** or **counterfactual** evaluation when discussing online metrics—shows maturity.
 
 ---
 
@@ -161,8 +146,8 @@ Peak (×3–×5): **~200K–350K events/sec** to size Kafka.
 - Assume **10 rank calls / session** (home, listing, search, PDP):  
   `100M × 3 × 10 = 3B rank calls/day` → **~35K QPS average**, peak **~100K–150K QPS**.
 
-{: .note }
-> Separate **event ingestion QPS** from **inference QPS**—they differ by product instrumentation.
+!!! note
+    Separate **event ingestion QPS** from **inference QPS**—they differ by product instrumentation.
 
 **Feature store reads:**
 - Assume **40 feature keys / request** (session + user + item side features for top-200 candidates):  
@@ -220,8 +205,8 @@ flowchart TB
 
 **Near-line:** session state, rolling aggregates, trending, delayed corrections (e.g., purchase confirmation).
 
-{: .warning }
-> **Training/serving skew** is the #1 failure mode: document how feature definitions are **versioned** and **materialized** the same way offline and online.
+!!! warning
+    **Training/serving skew** is the #1 failure mode: document how feature definitions are **versioned** and **materialized** the same way offline and online.
 
 ---
 
@@ -426,8 +411,8 @@ def json_dumps_features(obj: Dict[str, Any]) -> str:
     return json.dumps(obj, separators=(",", ":"), sort_keys=True)
 ```
 
-{: .tip }
-> For **50 ms** budgets, precompute heavy aggregates **asynchronously**; the blocking path reads **O(1)** keys and small tensors.
+!!! tip
+    For **50 ms** budgets, precompute heavy aggregates **asynchronously**; the blocking path reads **O(1)** keys and small tensors.
 
 ---
 
@@ -783,8 +768,8 @@ class LinUCB:
         self.b[arm] += reward * x
 ```
 
-{: .note }
-> Production systems often use **policy logging** and **off-policy evaluation** (IPS, SNIPS) before shipping bandit changes broadly.
+!!! note
+    Production systems often use **policy logging** and **off-policy evaluation** (IPS, SNIPS) before shipping bandit changes broadly.
 
 ---
 
@@ -1183,8 +1168,8 @@ flowchart LR
     POP --> LR
 ```
 
-{: .note }
-> In interviews, explicitly budget **latency per stage**: e.g., 5 ms recall + 10 ms pre-rank + 25 ms rank + 10 ms re-rank with parallel fan-out where possible.
+!!! note
+    In interviews, explicitly budget **latency per stage**: e.g., 5 ms recall + 10 ms pre-rank + 25 ms rank + 10 ms re-rank with parallel fan-out where possible.
 
 ---
 
@@ -1215,8 +1200,8 @@ flowchart LR
 - **Filter bubbles:** diversity constraints, **topic coverage** metrics.
 - **Fairness:** monitor outcomes across **regions**, **age buckets** (where legal), **seller** segments for marketplaces.
 
-{: .warning }
-> Personalization can **amplify inequality of attention** (head items get stronger). Explicit **exploration** and **creator fairness** objectives are increasingly common in interviews.
+!!! warning
+    Personalization can **amplify inequality of attention** (head items get stronger). Explicit **exploration** and **creator fairness** objectives are increasingly common in interviews.
 
 ---
 
@@ -1230,8 +1215,8 @@ flowchart LR
 6. **Be honest about cold start** — no magic; bandits + content + popularity.
 7. **Connect to business:** conversion vs engagement; short-term lifts can hurt long-term retention.
 
-{: .tip }
-> End with **“how I’d validate”**: offline metrics → bucketed offline sim → small experiment → ramp—mirrors how strong candidates structure answers.
+!!! tip
+    End with **“how I’d validate”**: offline metrics → bucketed offline sim → small experiment → ramp—mirrors how strong candidates structure answers.
 
 ---
 

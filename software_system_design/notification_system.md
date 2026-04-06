@@ -1,19 +1,4 @@
----
-layout: default
-title: Notification System
-parent: System Design Examples
-nav_order: 5
----
-
 # Design a Notification System
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -135,8 +120,8 @@ User preferences: 500M users × 200 bytes = 100 GB
 | SES (Email) | 500 emails/sec (default) | 1,450/sec peak | 3 accounts or limit increase |
 | Twilio (SMS) | 100 msg/sec | 580/sec peak | 6 accounts or upgrade |
 
-{: .note }
-> Provider rate limits often become the bottleneck, not your infrastructure. Size your connection pools and account partitions to handle peak load with headroom.
+!!! note
+    Provider rate limits often become the bottleneck, not your infrastructure. Size your connection pools and account partitions to handle peak load with headroom.
 
 ---
 
@@ -217,8 +202,8 @@ flowchart TB
   end
 ```
 
-{: .warning }
-> User preferences being **CP** is a deliberate choice with compliance implications. If you use an AP store for preferences and serve a stale "opted-in" state after a user opts out, you may violate **CAN-SPAM** or **GDPR**. In interviews, connecting CAP decisions to business/legal constraints is a strong signal.
+!!! warning
+    User preferences being **CP** is a deliberate choice with compliance implications. If you use an AP store for preferences and serve a stale "opted-in" state after a user opts out, you may violate **CAN-SPAM** or **GDPR**. In interviews, connecting CAP decisions to business/legal constraints is a strong signal.
 
 ---
 
@@ -253,8 +238,8 @@ flowchart TB
 | **< 25%** | Freeze promotional campaigns; focus on delivery reliability |
 | **Exhausted** | Incident review; pause all non-transactional notifications |
 
-{: .tip }
-> In interviews, separate SLAs by **notification type**. Applying a single 99.9% SLA to promotional emails is wasteful; applying 95% to OTPs is dangerous. This nuance shows mature system thinking.
+!!! tip
+    In interviews, separate SLAs by **notification type**. Applying a single 99.9% SLA to promotional emails is wasteful; applying 95% to OTPs is dangerous. This nuance shows mature system thinking.
 
 ---
 
@@ -373,8 +358,8 @@ CREATE TABLE in_app_notifications (
 | **notification_events** (C*) | ~200 B | 1.5B/day (avg 3 events/notification) | ~27 TB | RF=3 → 81 TB |
 | **in_app_notifications** (C*) | ~300 B | 25M/day (5% of total) | ~675 GB | RF=3 → 2 TB |
 
-{: .note }
-> Cassandra storage dominates the system. Plan for **~150 TB total** across Cassandra with RF=3 and 90-day retention. Use **LeveledCompactionStrategy** for read-heavy tables (`in_app_notifications`) and **TimeWindowCompactionStrategy** for write-heavy tables (`notification_history`).
+!!! note
+    Cassandra storage dominates the system. Plan for **~150 TB total** across Cassandra with RF=3 and 90-day retention. Use **LeveledCompactionStrategy** for read-heavy tables (`in_app_notifications`) and **TimeWindowCompactionStrategy** for write-heavy tables (`notification_history`).
 
 ---
 
@@ -478,8 +463,8 @@ CREATE TABLE in_app_notifications (
 }
 ```
 
-{: .tip }
-> In interviews, highlight the **`idempotency_key`** field in the API — it prevents duplicate notifications on client retries. Also note the **202 Accepted** response (async processing), not 200 OK (which would imply synchronous delivery).
+!!! tip
+    In interviews, highlight the **`idempotency_key`** field in the API — it prevents duplicate notifications on client retries. Also note the **202 Accepted** response (async processing), not 200 OK (which would imply synchronous delivery).
 
 ---
 
@@ -2039,7 +2024,7 @@ A notification system is a classic example of event-driven architecture. The key
 
 ## Staff Engineer (L6) Deep Dive
 
-The sections above cover the standard notification system design. The sections below cover **Staff-level depth** that separates an L6 answer. See the [Staff Engineer Interview Guide]({{ site.baseurl }}/software_system_design/staff_engineer_expectations) for the full L6 expectations framework.
+The sections above cover the standard notification system design. The sections below cover **Staff-level depth** that separates an L6 answer. See the [Staff Engineer Interview Guide](staff_engineer_expectations.md) for the full L6 expectations framework.
 
 ### Exactly-Once Delivery Semantics
 
@@ -2052,8 +2037,8 @@ At L5, candidates say "use an idempotency key." At L6, articulate the full end-t
 | **Provider delivery** | Most providers (FCM, APNS, SES) accept a client-provided message ID for dedup on their side |
 | **Application effect** | For critical notifications (OTPs), the downstream service should verify the token was not already consumed |
 
-{: .warning }
-> **True exactly-once is impossible** across distributed systems without unbounded cost. The practical approach: at-least-once delivery with idempotent consumers at every layer. A Staff engineer states this explicitly and designs the dedup chain.
+!!! warning
+    **True exactly-once is impossible** across distributed systems without unbounded cost. The practical approach: at-least-once delivery with idempotent consumers at every layer. A Staff engineer states this explicitly and designs the dedup chain.
 
 ### Transactional Outbox Pattern
 
@@ -2104,8 +2089,8 @@ flowchart TD
 | **Global queue + regional workers** | Single Kafka cluster; workers in each region consume and deliver locally | Simpler queue management; cross-region consumer lag |
 | **Follow-the-user** | Route notification to the region where the user's device is currently connected | Best for push and in-app; requires real-time presence tracking |
 
-{: .tip }
-> **Staff-level answer:** *"For SMS and email, I'd use regional queues because latency is not critical and it simplifies compliance (e.g., EU SMS must originate from EU Twilio numbers). For push notifications, I'd route to the region closest to the user's last known location to minimize FCM/APNS latency."*
+!!! tip
+    **Staff-level answer:** *"For SMS and email, I'd use regional queues because latency is not critical and it simplifies compliance (e.g., EU SMS must originate from EU Twilio numbers). For push notifications, I'd route to the region closest to the user's last known location to minimize FCM/APNS latency."*
 
 ### Notification Aggregation and Batching
 
@@ -2136,4 +2121,3 @@ Sending 50 individual "X liked your photo" notifications is a bad UX. At L6, dis
 | **Year 1** | Add analytics pipeline; self-service template UI; A/B testing for notification content | Measure open/click rates; optimize send times |
 | **Year 2** | Multi-region with regional Kafka; transactional outbox for event-driven notifications | Add compliance controls (GDPR right-to-erasure for notification history) |
 | **Year 3** | ML-driven send-time optimization; intelligent aggregation; per-user channel preference prediction | Reduce notification fatigue; increase engagement; cost optimization via channel selection |
-

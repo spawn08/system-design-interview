@@ -1,19 +1,4 @@
----
-layout: default
-title: Interview Framework
-parent: Fundamentals
-nav_order: 1
----
-
 # System Design Interview Framework
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -23,8 +8,8 @@ System design interviews are not primarily tests of how many technologies you ha
 
 A repeatable framework is the meta-skill that sits above any single domain. Whether the prompt is a URL shortener, a chat system, or a video pipeline, the same phases apply: clarify what “good” means, sketch a coherent whole, zoom into the riskiest parts, then close with honesty about limitations and next steps. Interviewers notice when candidates jump straight to Kafka and microservices without knowing the read/write ratio, and they also notice when someone methodically narrows the problem before drawing a box.
 
-{: .note }
-> Treat the framework as a **conversation map**, not a script. The goal is to show judgment: which questions to ask first, what to defer, and when to stop designing and start discussing failure modes.
+!!! note
+    Treat the framework as a **conversation map**, not a script. The goal is to show judgment: which questions to ask first, what to defer, and when to stop designing and start discussing failure modes.
 
 The sections below align to a typical **35–45 minute** session. Adjust pacing if your interviewer announces a shorter slot; the relative proportions (short clarify, medium breadth, longest depth, short close) still hold.
 
@@ -43,8 +28,8 @@ Before you draw anything substantial, align on what you are building and what �
 - **Constraints**: Tech stack assumptions, geographic scope, compliance, budget for operational complexity.
 - **Scale**: Order-of-magnitude daily active users, write vs read patterns, peak vs average load. You do not need exact numbers yet—rough ranges are enough to choose data stores and caching strategies.
 
-{: .tip }
-> If the interviewer is vague, propose a concrete scenario (“Assume 100M DAU, mostly reads”) and ask whether that is in the right ballpark. **Proposing and validating** is faster than open-ended guessing.
+!!! tip
+    If the interviewer is vague, propose a concrete scenario (“Assume 100M DAU, mostly reads”) and ask whether that is in the right ballpark. **Proposing and validating** is faster than open-ended guessing.
 
 End this phase with a one-sentence problem statement you can point back to while you design.
 
@@ -68,8 +53,8 @@ Spend the bulk of the interview on **two or three critical components**, not six
 
 For each area, state the goal, your chosen approach, and **at least one alternative** with a trade-off (latency vs consistency, cost vs simplicity). Invite the interviewer to steer: “I can go deeper on the database schema or on cache invalidation—which is more useful?”
 
-{: .warning }
-> Avoid **tour-of-everything** deep dives. Listing seven technologies without depth reads as breadth without judgment. Pick your battles.
+!!! warning
+    Avoid **tour-of-everything** deep dives. Listing seven technologies without depth reads as breadth without judgment. Pick your battles.
 
 ### Step 4: Trade-offs and Wrap-up (about 5 minutes)
 
@@ -122,8 +107,8 @@ Rough numbers keep your design honest and prevent orders-of-magnitude mistakes. 
 
 - **DAU to average QPS (very rough)**: If each daily active user generates \(U\) meaningful requests per day spread over \(T\) seconds of “active day,” average RPS is \(\text{DAU} \times U / T\). A common shortcut: assume a fraction of DAU is concurrent and each user generates a few requests per minute during peak—then **peak RPS** is often **3–10x** average for consumer products (highly variable).
 
-{: .tip }
-> State assumptions explicitly: “If peak is 5x average, then …” Interviewers care that you **bound** the problem, not that you recall industry averages.
+!!! tip
+    State assumptions explicitly: “If peak is 5x average, then …” Interviewers care that you **bound** the problem, not that you recall industry averages.
 
 ### Storage
 
@@ -147,10 +132,10 @@ These are **memory aids**, not universal truths—always reconcile with the scen
 | SSD random read | Microseconds to low milliseconds (system dependent) |
 | Cross-region RTT | Tens to hundreds of milliseconds |
 
-For a deeper treatment with worked examples, use the dedicated [Estimation]({{ site.baseurl }}/basics/estimation) page alongside this framework.
+For a deeper treatment with worked examples, use the dedicated [Estimation](estimation.md) page alongside this framework.
 
-{: .note }
-> If arithmetic is not your strength, **write the formula on the board** and plug numbers slowly. A clear structure beats a wrong fast answer.
+!!! note
+    If arithmetic is not your strength, **write the formula on the board** and plug numbers slowly. A clear structure beats a wrong fast answer.
 
 ---
 
@@ -179,8 +164,8 @@ Treat them as **scoped trade-off exercises**, not traps.
 2. Name the cost: latency, complexity, availability, operational load.
 3. Sketch the minimal adjustment to your design—or explain why the current stack is insufficient and what you would replace.
 
-{: .tip }
-> It is acceptable to say **“I would measure that in production”** for fine-grained performance questions, as long as you say **what** you would measure (p99 latency, error rate, saturation) and **how** it would change your design.
+!!! tip
+    It is acceptable to say **“I would measure that in production”** for fine-grained performance questions, as long as you say **what** you would measure (p99 latency, error rate, saturation) and **how** it would change your design.
 
 ---
 
@@ -206,8 +191,8 @@ Strong candidates compare **at least two** realistic options for major decisions
 
 Drawing without labeling arrows or without a verbal walkthrough wastes the interviewer’s attention. **Annotate** bottlenecks and **verbalize** the critical path.
 
-{: .warning }
-> **Debating the interviewer** about requirements rarely helps. If they set a constraint, adapt your design and explain the impact.
+!!! warning
+    **Debating the interviewer** about requirements rarely helps. If they set a constraint, adapt your design and explain the impact.
 
 ---
 
@@ -306,11 +291,11 @@ This pattern shows **closed questions** where helpful, **explicit assumptions**,
 
 ## Further Reading
 
-- [Estimation]({{ site.baseurl }}/basics/estimation) — Back-of-the-envelope drills and sizing patterns that pair with Step 1 and Step 2.
-- [Scalability, Availability, and Reliability]({{ site.baseurl }}/basics/scalability) — Vocabulary for NFR discussions and failure-aware design.
-- [Distributed Systems]({{ site.baseurl }}/basics/distributed_systems) — Consensus, replication, and messaging—common deep-dive territory in Step 3.
-- [Databases]({{ site.baseurl }}/basics/databases) — Choosing stores and articulating consistency trade-offs during deep dive.
-- [API Design]({{ site.baseurl }}/basics/api_design) — Shaping boundaries and contracts in Step 2.
+- [Estimation](estimation.md) — Back-of-the-envelope drills and sizing patterns that pair with Step 1 and Step 2.
+- [Scalability, Availability, and Reliability](scalability.md) — Vocabulary for NFR discussions and failure-aware design.
+- [Distributed Systems](distributed_systems.md) — Consensus, replication, and messaging—common deep-dive territory in Step 3.
+- [Databases](databases.md) — Choosing stores and articulating consistency trade-offs during deep dive.
+- [API Design](api_design.md) — Shaping boundaries and contracts in Step 2.
 
 ---
 

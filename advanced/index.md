@@ -1,16 +1,6 @@
----
-layout: default
-title: Advanced Topics
-nav_order: 3
-has_children: true
-permalink: /advanced/
----
-
 # Advanced Topics
-{: .fs-9 }
 
 Deep dives into the building blocks of large-scale, production-grade distributed systems — essential for Senior and Staff-level interviews.
-{: .fs-6 .fw-300 }
 
 ---
 
@@ -24,24 +14,24 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 
 | Topic | Description | Difficulty |
 |-------|-------------|------------|
-| [Message Queues & Stream Processing]({{ site.baseurl }}/advanced/message_queues) | Kafka, RabbitMQ, Flink, event-driven architecture | ⭐⭐⭐ Advanced |
-| [Search Systems]({{ site.baseurl }}/advanced/search_systems) | Inverted indexes, Elasticsearch, ranking, autocomplete | ⭐⭐⭐ Advanced |
-| [Data Warehousing & Data Lakes]({{ site.baseurl }}/advanced/data_warehousing) | ETL, star schema, Hadoop, Spark, lakehouse | ⭐⭐⭐ Advanced |
-| [Microservices Architecture]({{ site.baseurl }}/advanced/microservices) | Service discovery, API gateways, Docker, Kubernetes | ⭐⭐⭐ Advanced |
-| [Consistency Patterns]({{ site.baseurl }}/advanced/consistency_patterns) | Strong, eventual, causal consistency, CRDTs, sagas | ⭐⭐⭐⭐ Expert |
-| [Object Storage & CDN]({{ site.baseurl }}/advanced/object_storage_cdn) | S3-style storage, edge caching, presigned URLs, streaming | ⭐⭐⭐ Advanced |
-| [Distributed Locking]({{ site.baseurl }}/advanced/distributed_locking) | Redlock, fencing tokens, ZooKeeper, lease-based locks | ⭐⭐⭐ Advanced |
-| [Observability]({{ site.baseurl }}/advanced/observability) | Logging, metrics, tracing, OpenTelemetry, alerting | ⭐⭐⭐ Advanced |
-| [Event Sourcing & CQRS]({{ site.baseurl }}/advanced/event_sourcing_cqrs) | Append-only logs, projections, read/write separation | ⭐⭐⭐⭐ Expert |
+| [Message Queues & Stream Processing](message_queues.md) | Kafka, RabbitMQ, Flink, event-driven architecture | ⭐⭐⭐ Advanced |
+| [Search Systems](search_systems.md) | Inverted indexes, Elasticsearch, ranking, autocomplete | ⭐⭐⭐ Advanced |
+| [Data Warehousing & Data Lakes](data_warehousing.md) | ETL, star schema, Hadoop, Spark, lakehouse | ⭐⭐⭐ Advanced |
+| [Microservices Architecture](microservices.md) | Service discovery, API gateways, Docker, Kubernetes | ⭐⭐⭐ Advanced |
+| [Consistency Patterns](consistency_patterns.md) | Strong, eventual, causal consistency, CRDTs, sagas | ⭐⭐⭐⭐ Expert |
+| [Object Storage & CDN](object_storage_cdn.md) | S3-style storage, edge caching, presigned URLs, streaming | ⭐⭐⭐ Advanced |
+| [Distributed Locking](distributed_locking.md) | Redlock, fencing tokens, ZooKeeper, lease-based locks | ⭐⭐⭐ Advanced |
+| [Observability](observability.md) | Logging, metrics, tracing, OpenTelemetry, alerting | ⭐⭐⭐ Advanced |
+| [Event Sourcing & CQRS](event_sourcing_cqrs.md) | Append-only logs, projections, read/write separation | ⭐⭐⭐⭐ Expert |
 
 ### Staff Engineer (L6) Track
 
 | Topic | Description | Difficulty |
 |-------|-------------|------------|
-| [Consensus Algorithms (Raft/Paxos)]({{ site.baseurl }}/advanced/consensus_algorithms) | Leader election, log replication, safety properties, Paxos vs Raft | ⭐⭐⭐⭐ Expert |
-| [Distributed Transactions (2PC/Saga)]({{ site.baseurl }}/advanced/distributed_transactions) | Two-phase commit, Saga orchestration/choreography, transactional outbox | ⭐⭐⭐⭐ Expert |
-| [Sharding & Partitioning]({{ site.baseurl }}/advanced/sharding_partitioning) | Partition key selection, hot spots, resharding, cross-shard operations | ⭐⭐⭐ Advanced |
-| [Behavioral & Leadership (L6)]({{ site.baseurl }}/advanced/behavioral_leadership) | STAR method for Staff, conflict resolution, technical vision, Googliness | ⭐⭐⭐⭐ Expert |
+| [Consensus Algorithms (Raft/Paxos)](consensus_algorithms.md) | Leader election, log replication, safety properties, Paxos vs Raft | ⭐⭐⭐⭐ Expert |
+| [Distributed Transactions (2PC/Saga)](distributed_transactions.md) | Two-phase commit, Saga orchestration/choreography, transactional outbox | ⭐⭐⭐⭐ Expert |
+| [Sharding & Partitioning](sharding_partitioning.md) | Partition key selection, hot spots, resharding, cross-shard operations | ⭐⭐⭐ Advanced |
+| [Behavioral & Leadership (L6)](behavioral_leadership.md) | STAR method for Staff, conflict resolution, technical vision, Googliness | ⭐⭐⭐⭐ Expert |
 
 ---
 
@@ -67,15 +57,15 @@ Once you've mastered the fundamentals, interviewers at Senior/Staff level expect
 
 ## Prerequisites
 
-You should be comfortable with the [Fundamentals]({{ site.baseurl }}/basics/) before tackling these topics, especially:
+You should be comfortable with the [Fundamentals](../basics/index.md) before tackling these topics, especially:
 
 - **Distributed Systems** — CAP theorem, consensus protocols
 - **Databases** — SQL vs NoSQL, replication, sharding
 - **Networking** — HTTP, gRPC, WebSockets
 - **Scalability & Reliability** — Horizontal scaling, circuit breakers
 
-{: .tip }
-> At Senior/Staff level, interviewers care less about knowing the "right answer" and more about your ability to reason through trade-offs, articulate why you'd choose one approach over another, and identify failure modes before they become production incidents.
+!!! tip
+    At Senior/Staff level, interviewers care less about knowing the "right answer" and more about your ability to reason through trade-offs, articulate why you'd choose one approach over another, and identify failure modes before they become production incidents.
 
 ---
 

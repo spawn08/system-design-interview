@@ -1,19 +1,4 @@
----
-layout: default
-title: Distributed Message Queue
-parent: System Design Examples
-nav_order: 21
----
-
 # Design a Distributed Message Queue (Kafka-like)
-{: .no_toc }
-
-<details open markdown="block">
-  <summary>Table of Contents</summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 
@@ -45,8 +30,8 @@ A **distributed message queue** (or **log-centric streaming platform**) decouple
 | **Point-to-point** | Each message consumed by one worker from a queue | Task queues, job dispatch |
 | **Streaming / log** | Ordered, replayable sequence of records; retention is first-class | ETL, CDC, event sourcing |
 
-{: .note }
-> In interviews, say explicitly whether you are designing a **classic queue** (delete on ack) or a **log** (retain + offsets). Kafka-style designs are usually **log + consumer offsets**; RabbitMQ classic queues are closer to **point-to-point** with optional pub/sub via exchanges.
+!!! note
+    In interviews, say explicitly whether you are designing a **classic queue** (delete on ack) or a **log** (retain + offsets). Kafka-style designs are usually **log + consumer offsets**; RabbitMQ classic queues are closer to **point-to-point** with optional pub/sub via exchanges.
 
 ---
 
@@ -71,8 +56,8 @@ Append-only partitioned log (retain + independent offsets)
                     +-- ConsumerGroup A reads o0.. (same bytes, different cursor)
 ```
 
-{: .tip }
-> The mental model is **Git for events**: commits stay in history until **retention** or **compaction** policies trim them—not because someone “finished reading.”
+!!! tip
+    The mental model is **Git for events**: commits stay in history until **retention** or **compaction** policies trim them—not because someone “finished reading.”
 
 ### Partition as the unit of parallelism
 
@@ -123,8 +108,8 @@ Member A crashes
   -> B may re-read from last COMMITTED offset (duplicates possible)
 ```
 
-{: .warning }
-> **Uncommitted** offsets are **not** durable progress—only **committed** offsets define restart behavior unless you use an **external** store for idempotency keys.
+!!! warning
+    **Uncommitted** offsets are **not** durable progress—only **committed** offsets define restart behavior unless you use an **external** store for idempotency keys.
 
 ### ISR, LEO, and high watermark (HW)
 
@@ -142,8 +127,8 @@ HW = min(LEO across ISR) adjusted so only fully replicated records are "committe
                |<--- readable by consumer up to HW-1 (committed) --->|
 ```
 
-{: .note }
-> **LEO** is per-replica progress; **HW** is the **replication barrier** for **visibility**—they differ on every broker during catch-up.
+!!! note
+    **LEO** is per-replica progress; **HW** is the **replication barrier** for **visibility**—they differ on every broker during catch-up.
 
 ### Exactly-once semantics: decomposition
 
@@ -161,8 +146,8 @@ flowchart LR
   IP --> TX --> IC
 ```
 
-{: .note }
-> In interviews, say **exactly-once *effects*** require **all three layers** in the path of side effects—not just broker flags.
+!!! note
+    In interviews, say **exactly-once *effects*** require **all three layers** in the path of side effects—not just broker flags.
 
 ---
 
@@ -202,8 +187,8 @@ flowchart LR
 | **Availability** | **99.99%** | RF=3, leader election, rack awareness |
 | **Elastic scale** | Add brokers; expand partitions (key compatibility) | Operational story |
 
-{: .warning }
-> **Exactly-once** in distributed systems is usually **exactly-once semantics for side effects** composed from **idempotent writes + transactional reads/writes** or **transactions + idempotent producer**—not “the network delivered exactly once.” Say that clearly in Staff interviews.
+!!! warning
+    **Exactly-once** in distributed systems is usually **exactly-once semantics for side effects** composed from **idempotent writes + transactional reads/writes** or **transactions + idempotent producer**—not “the network delivered exactly once.” Say that clearly in Staff interviews.
 
 ### API Design
 
@@ -262,8 +247,8 @@ class Consumer:
     def commit(self, offsets: dict[tuple[str, int], int]) -> None: ...
 ```
 
-{: .tip }
-> Mention **metadata service** (topic → partition leaders), **authentication** (SASL), and **compression** (`gzip`, `lz4`, `zstd`) at the boundary—they matter for production.
+!!! tip
+    Mention **metadata service** (topic → partition leaders), **authentication** (SASL), and **compression** (`gzip`, `lz4`, `zstd`) at the boundary—they matter for production.
 
 ### Technology Selection & Tradeoffs
 
@@ -278,8 +263,8 @@ Choosing a message platform is choosing **durability semantics**, **operational 
 | **Hybrid / layered** | Apache Pulsar | Broker serves clients; **BookKeeper** or cloud journal for persistence; **tiered** offload | Strong isolation, geo, tiered storage story | More moving parts; steeper learning curve |
 | **Cloud-native managed** | Amazon SQS + SNS, GCP Pub/Sub, Azure Event Hubs | Fully managed APIs, quotas, IAM | Fast to production, no broker fleet to run | Vendor semantics, egress/ingress costs, less control over internals |
 
-{: .note }
-> **Why this matters in interviews:** “Kafka vs RabbitMQ” is not a beauty contest—it is **log + replay + fan-out** vs **routing + competing consumers + delete-on-ack**. Pick the model that matches **retention**, **ordering**, and **who owns consumer scale-out**.
+!!! note
+    **Why this matters in interviews:** “Kafka vs RabbitMQ” is not a beauty contest—it is **log + replay + fan-out** vs **routing + competing consumers + delete-on-ack**. Pick the model that matches **retention**, **ordering**, and **who owns consumer scale-out**.
 
 #### Storage backend (for log-style systems)
 
@@ -289,8 +274,8 @@ Choosing a message platform is choosing **durability semantics**, **operational 
 | **Page cache + OS read path** | Writes hit page cache; `sendfile`/mmap for reads | **Zero-copy**-friendly fan-out; low CPU | Tail latency spikes if cache cold or GC pauses |
 | **Tiered storage (e.g. older segments → S3)** | Hot data local; cold in object store | Long retention **without** linear disk spend | **Read latency** for cold segments; ops complexity |
 
-{: .tip }
-> Tie storage to **SLO**: local SSD + page cache wins **p99 produce/fetch**; tiered wins **$/GB-month** for compliance retention. Say both when the interviewer mentions “7 years of audit logs.”
+!!! tip
+    Tie storage to **SLO**: local SSD + page cache wins **p99 produce/fetch**; tiered wins **$/GB-month** for compliance retention. Say both when the interviewer mentions “7 years of audit logs.”
 
 #### Delivery semantics
 
@@ -300,8 +285,8 @@ Choosing a message platform is choosing **durability semantics**, **operational 
 | **At-least-once** | Message **never lost** if committed; may be **processed twice** | Duplicates on retry | Ack **after** processing + **idempotent** sinks |
 | **Exactly-once (broker + app)** | **Effects** happen once | Requires **idempotent producer**, **transactions** where needed, **idempotent consumer/sink** | Sequence numbers, txn boundaries, dedupe keys |
 
-{: .warning }
-> **Exactly-once** is a **system property**, not a single checkbox: the broker can dedupe **retries** and support **transactions**, but **your database** still needs **keys** or **upserts** so duplicate delivery does not double-charge.
+!!! warning
+    **Exactly-once** is a **system property**, not a single checkbox: the broker can dedupe **retries** and support **transactions**, but **your database** still needs **keys** or **upserts** so duplicate delivery does not double-charge.
 
 #### Protocol
 
@@ -326,8 +311,8 @@ Distributed queues sit on the **CP vs AP** frontier: **network partitions** forc
 | | **AP** (accept leader writes without ISR) | **Higher availability** of the write API | Risk **data loss** on failover (**unclean leader election**)—must be explicit |
 | Producer cannot reach leader | Either | **Timeouts / retries** | At-least-once with **duplicate** risk unless idempotent producer |
 
-{: .note }
-> **CAP** is about **network partition**, not “disk died.” Replication and **leader election** are how you map **partition tolerance** to concrete broker behavior.
+!!! note
+    **CAP** is about **network partition**, not “disk died.” Replication and **leader election** are how you map **partition tolerance** to concrete broker behavior.
 
 **ISR (in-sync replica) model (sketch):** Each partition has a **leader** and **followers**. The **ISR** is the set of replicas **caught up** within lag bounds. A produce with **`acks=all`** is acknowledged only after **all ISR replicas** have the record (Kafka’s exact rules involve **HW** and **leader epochs**—interviews use this story). If a follower **falls behind**, it is **dropped from ISR**; **`min.insync.replicas`** blocks commits if the ISR is too small—**CP** over **taking writes without enough copies**.
 
@@ -349,8 +334,8 @@ flowchart TB
   Healthy -->|split-brain risk if two leaders| Partition
 ```
 
-{: .tip }
-> **Staff sound bite:** Under partition, **Kafka-style** systems with **`acks=all` + min ISR** behave **CP** on the **commit set** (you may **not** get an ack). **Unclean election** trades **C** for **A**—say that only for **explicit** disaster policies.
+!!! tip
+    **Staff sound bite:** Under partition, **Kafka-style** systems with **`acks=all` + min ISR** behave **CP** on the **commit set** (you may **not** get an ack). **Unclean election** trades **C** for **A**—say that only for **explicit** disaster policies.
 
 ---
 
@@ -366,8 +351,8 @@ SLIs are **measurable**; SLOs are **targets** over a window; error budgets decid
 | **Availability** | Successful produce+fetch API / total attempts | **99.95%**–**99.99%** API monthly | **Controller** quorum, rolling restarts, AZ spread |
 | **Ordering guarantee** | Violations of **per-partition** total order | **100%** within partition for keyed traffic | Misconfigured **parallelism** or **retries** break order |
 
-{: .note }
-> Publish SLO is **broker-local**; end-to-end SLO is **product-owned**—always separate them in interviews.
+!!! note
+    Publish SLO is **broker-local**; end-to-end SLO is **product-owned**—always separate them in interviews.
 
 **Error budget policy (example):**
 
@@ -378,8 +363,8 @@ SLIs are **measurable**; SLOs are **targets** over a window; error budgets decid
 | **&lt; 25%** | Incident review; **no** partition increases without review; paging on SLO burn |
 | **Exhausted** | **Freeze** releases until root cause; exec review |
 
-{: .warning }
-> **Consumer lag** is not always an SLO violation: define whether **max lag** (e.g. **&lt; 5 minutes** at p99) is a **product SLO** or an **internal** alerting threshold.
+!!! warning
+    **Consumer lag** is not always an SLO violation: define whether **max lag** (e.g. **&lt; 5 minutes** at p99) is a **product SLO** or an **internal** alerting threshold.
 
 ---
 
@@ -403,8 +388,8 @@ Clear **entities** help you explain **metadata**, **storage layout**, and **fail
 | **Headers** | Metadata (trace id, content-type, schema id) without parsing **value** |
 | **Timestamp** | **Create** time (producer or broker **LogAppendTime**); used for retention and **timeindex** |
 
-{: .tip }
-> Say **headers** carry **observability** and **routing hints**; **value** carries **business data**—helps in schema-evolution questions.
+!!! tip
+    Say **headers** carry **observability** and **routing hints**; **value** carries **business data**—helps in schema-evolution questions.
 
 **Consumer group state (logical):**
 
@@ -424,8 +409,8 @@ Clear **entities** help you explain **metadata**, **storage layout**, and **fail
 | **Payload copy or reference** | Idempotency; **large** bodies may be **blob store** pointer |
 | **Retry count, first/last failure time** | **Backoff** and **alert** thresholds |
 
-{: .note }
-> **DLQ** is often a **separate topic** (or queue product) with **short retention** + **alerting**—not infinite storage of bad messages.
+!!! note
+    **DLQ** is often a **separate topic** (or queue product) with **short retention** + **alerting**—not infinite storage of bad messages.
 
 ---
 
@@ -477,8 +462,8 @@ With replication factor 3 on disk for durability: ~1.8 PB physical
 (ignoring compression; compression often 2–5× for text-like payloads)
 ```
 
-{: .note }
-> Real clusters use **compression** and **tiered storage** (older segments to object store). Your number should move **order-of-magnitude**, not three decimals.
+!!! note
+    Real clusters use **compression** and **tiered storage** (older segments to object store). Your number should move **order-of-magnitude**, not three decimals.
 
 ### Partitions & Brokers (Rough Cut)
 
@@ -497,8 +482,8 @@ Illustrative: 50 brokers × 12 partitions/broker → 600 partitions
 (illustrative shard count; Kafka clusters often run thousands of partitions)
 ```
 
-{: .warning }
-> **Hot partitions** (popular keys) blow up this math. Always mention **skew** and **splitting topics** or **salt keys** when estimation is challenged.
+!!! warning
+    **Hot partitions** (popular keys) blow up this math. Always mention **skew** and **splitting topics** or **salt keys** when estimation is challenged.
 
 ### Broker Count (Order-of-Magnitude)
 
@@ -580,8 +565,8 @@ sequenceDiagram
 | **Offset storage** | `__consumer_offsets` topic or external store (rare) |
 | **Metadata service (ZK/KRaft)** | Topic config, leader/ISR, controlled shutdown, ACL metadata |
 
-{: .tip }
-> Draw **one partition’s leader + two followers** on the whiteboard before talking about ISR—interviewers map mental models faster.
+!!! tip
+    Draw **one partition’s leader + two followers** on the whiteboard before talking about ISR—interviewers map mental models faster.
 
 ---
 
@@ -784,11 +769,11 @@ def stream_compact_segment(
             yield r
 ```
 
-{: .tip }
-> Interview line: compaction is **not** “delete random rows”—it is **key-ordered merging** of segments so the **tail** of the log for each key wins; tombstones **suppress** older values until garbage-collected.
+!!! tip
+    Interview line: compaction is **not** “delete random rows”—it is **key-ordered merging** of segments so the **tail** of the log for each key wins; tombstones **suppress** older values until garbage-collected.
 
-{: .note }
-> **Why segments?** Limit file size, bound recovery, allow **delete by whole file** on retention, and enable **compacted topics** (Kafka log compaction) to rewrite segments in the background.
+!!! note
+    **Why segments?** Limit file size, bound recovery, allow **delete by whole file** on retention, and enable **compacted topics** (Kafka log compaction) to rewrite segments in the background.
 
 **High watermark (HW) vs committed:** The **leader** maintains the **log end offset (LEO)** per replica; the **high watermark** is the smallest LEO across **ISR** (simplified mental model). Consumers only read up to HW for **committed** data under the usual replication story—interviewers may probe edge cases around leader election and **unclean** failover.
 
@@ -844,8 +829,8 @@ class Partition:
         return [self.leader] + alive
 ```
 
-{: .warning }
-> If **min.insync.replicas** is not met, producer with `acks=all` should **fail**—you trade availability for avoiding silent data loss. Explain this trade-off.
+!!! warning
+    If **min.insync.replicas** is not met, producer with `acks=all` should **fail**—you trade availability for avoiding silent data loss. Explain this trade-off.
 
 **Rack awareness:** place replicas on **different racks/AZs** so a single failure domain does not wipe ISR. The controller tries to honor **replica placement constraints** when assigning partitions.
 
@@ -905,8 +890,8 @@ def send_with_retries(client, topic: str, key: bytes, value: bytes, max_retry: i
             backoff(attempt)
 ```
 
-{: .tip }
-> State clearly: **EOS** across services usually needs **idempotent consumers** or **dedupe store**—the broker does not magically make downstream DB writes exactly-once without application design.
+!!! tip
+    State clearly: **EOS** across services usually needs **idempotent consumers** or **dedupe store**—the broker does not magically make downstream DB writes exactly-once without application design.
 
 **Transactional producer (two-phase style):** `initTransactions` → `beginTransaction` → send batches → `sendOffsetsToTransaction` → `commitTransaction`. Aborts are visible to consumers per `isolation.level` (`read_committed` skips open transactions).
 
@@ -975,8 +960,8 @@ for {
 }
 ```
 
-{: .note }
-> **Rebalance storm** during GC pauses or slow processing is a classic production issue—tune **session.timeout.ms**, **max.poll.interval.ms**, and use **cooperative** rebalancing where possible.
+!!! note
+    **Rebalance storm** during GC pauses or slow processing is a classic production issue—tune **session.timeout.ms**, **max.poll.interval.ms**, and use **cooperative** rebalancing where possible.
 
 **Static membership (optional):** **group.instance.id** pins a consumer identity to reduce churn on rolling deploys—fewer unnecessary rebalances when the same container comes back.
 
@@ -1032,8 +1017,8 @@ func SendFile(conn net.Conn, f *os.File, off int64, n int64) (int64, error) {
 // Prefer syscall.Sendfile on Linux for zero-copy when available
 ```
 
-{: .tip }
-> Mention **batching trade-off**: higher `linger.ms` improves throughput and compression ratio but hurts **p99 latency**—tie to SLO.
+!!! tip
+    Mention **batching trade-off**: higher `linger.ms` improves throughput and compression ratio but hurts **p99 latency**—tie to SLO.
 
 **Batching knobs (Kafka producer):**
 
@@ -1070,8 +1055,8 @@ def partition_for_key(key: bytes, num_partitions: int) -> int:
     return h % num_partitions if num_partitions > 0 else 0
 ```
 
-{: .warning }
-> **Global ordering** across all events usually implies **one partition** or a **central sequencer**—say you’d only do it for rare audit streams, not the main firehose.
+!!! warning
+    **Global ordering** across all events usually implies **one partition** or a **central sequencer**—say you’d only do it for rare audit streams, not the main firehose.
 
 **Retries vs ordering:** With `max.in.flight.requests.per.connection > 1` and retries, ordering can break if batches complete out of order—**idempotent producer** + careful `in-flight` settings restore predictable behavior; interviewers often expect you to mention this interaction.
 
@@ -1099,8 +1084,8 @@ props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
 3. Cleaners **merge** segments: for each key, **only the last record** in offset order is kept in the output segment; **tombstones** (null value) **delete** the key from the compacted view but may be **retained** briefly so replicas/consumers observe the delete.
 4. **Inter-segment** order is preserved by **merge-sort style** iteration by offset.
 
-{: .note }
-> Real brokers **schedule** cleaner I/O to avoid starving produce/fetch; **throttle** and **buffer** settings matter on SSD-heavy clusters.
+!!! note
+    Real brokers **schedule** cleaner I/O to avoid starving produce/fetch; **throttle** and **buffer** settings matter on SSD-heavy clusters.
 
 **Python: compact one segment’s records by key** (same idea as a cleaner pass merging in-order iterators):
 
@@ -1138,8 +1123,8 @@ def compact_dirty_segment(records: list[KV]) -> list[KV]:
 
 **Tombstone records and delete markers:** A **tombstone** is a record with **null value** (Kafka: `null` payload). It tells compaction and consumers “this key is deleted.” **Compaction** eventually removes the tombstone after **`delete.retention.ms`** so the key does not stay in the log forever—until then, replicas must **replicate** tombstones for correctness.
 
-{: .warning }
-> If you **never** emit tombstones for deleted keys, **old values** can **reappear** after failover or when a consumer reads from an **uncompacted** tail—design deletes explicitly in compacted topics.
+!!! warning
+    If you **never** emit tombstones for deleted keys, **old values** can **reappear** after failover or when a consumer reads from an **uncompacted** tail—design deletes explicitly in compacted topics.
 
 **Trade-offs:**
 
@@ -1150,8 +1135,8 @@ def compact_dirty_segment(records: list[KV]) -> list[KV]:
 | **Read path** | Consumers of **changelog** see **key-level** truth faster than scanning full history |
 | **Ordering** | Still **per-partition** total order in the **uncompacted** log; compacted file is **per-key latest** view |
 
-{: .tip }
-> Mention **"dirty ratio"** in interviews: the cleaner prioritizes segments where **obsolete** records are a **large fraction** of bytes—**maximizing reclaim per I/O dollar**.
+!!! tip
+    Mention **"dirty ratio"** in interviews: the cleaner prioritizes segments where **obsolete** records are a **large fraction** of bytes—**maximizing reclaim per I/O dollar**.
 
 ### 4.8 Multi-Region Replication
 
@@ -1194,11 +1179,11 @@ flowchart LR
 | **RPO** | Data **lost** on disaster = **replication lag** + **unreplicated** in-flight produce; **sync** cross-region is rare (latency) |
 | **RTO** | Time to **redirect** clients / **promote** secondary; includes **DNS**, **metadata**, and **consumer** restart |
 
-{: .note }
-> State **RPO ≠ 0** for async geo replication unless you pay **cross-region sync** latency and **durability** costs on every write.
+!!! note
+    State **RPO ≠ 0** for async geo replication unless you pay **cross-region sync** latency and **durability** costs on every write.
 
-{: .warning }
-> **Exactly-once** across regions is **harder**: idempotence and transactions are **per cluster**—end-to-end pipelines need **dedupe** at sinks or **external** coordination.
+!!! warning
+    **Exactly-once** across regions is **harder**: idempotence and transactions are **per cluster**—end-to-end pipelines need **dedupe** at sinks or **external** coordination.
 
 ---
 
@@ -1252,15 +1237,15 @@ flowchart LR
 | **AuthZ** | ACLs on topic/resource |
 | **Quotas** | Produce/fetch byte rate per principal |
 
-{: .note }
-> Production answers tie **SLO** (lag p99, uptime) to **alerting** and **runbooks** (unclean election, broker replacement).
+!!! note
+    Production answers tie **SLO** (lag p99, uptime) to **alerting** and **runbooks** (unclean election, broker replacement).
 
 ---
 
 ## Interview Tips
 
-{: .note }
-> **Common Google-style follow-ups:** How does **leader failover** change ordering? What happens to **uncommitted** messages? How do you avoid **split-brain**? Explain **watermark** and **committed offset** vs **LEO**. Compare **Kafka vs RabbitMQ** for task queues. How would you implement **priority** (usually separate topics or weighted consumers)? What about **multi-region**: **active-active** consumers and **offset** mapping? How does **Kafka Streams** achieve **exactly-once**? What is the **cooperative sticky** assignor solving?
+!!! note
+    **Common Google-style follow-ups:** How does **leader failover** change ordering? What happens to **uncommitted** messages? How do you avoid **split-brain**? Explain **watermark** and **committed offset** vs **LEO**. Compare **Kafka vs RabbitMQ** for task queues. How would you implement **priority** (usually separate topics or weighted consumers)? What about **multi-region**: **active-active** consumers and **offset** mapping? How does **Kafka Streams** achieve **exactly-once**? What is the **cooperative sticky** assignor solving?
 
 **Quick checklist:**
 
