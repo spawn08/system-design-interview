@@ -132,24 +132,24 @@ Process Memory:
     ```python
     import threading
     import time
-
+    
     def worker(name):
         print(f"{name} starting")
         time.sleep(2)  # Simulate work
         print(f"{name} done")
-
+    
     # Create threads
     thread1 = threading.Thread(target=worker, args=("Thread-1",))
     thread2 = threading.Thread(target=worker, args=("Thread-2",))
-
+    
     # Start threads
     thread1.start()
     thread2.start()
-
+    
     # Wait for completion
     thread1.join()
     thread2.join()
-
+    
     print("All threads complete")
     ```
 
@@ -158,11 +158,11 @@ Process Memory:
     ```java
     public class Worker implements Runnable {
         private String name;
-
+    
         public Worker(String name) {
             this.name = name;
         }
-
+    
         @Override
         public void run() {
             System.out.println(name + " starting");
@@ -174,7 +174,7 @@ Process Memory:
             System.out.println(name + " done");
         }
     }
-
+    
     // Create and start
     Thread t1 = new Thread(new Worker("Thread-1"));
     Thread t2 = new Thread(new Worker("Thread-2"));

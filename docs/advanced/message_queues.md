@@ -137,9 +137,9 @@ flowchart TD
     from confluent_kafka import Producer, Consumer, KafkaError
     import json
     import logging
-
+    
     logger = logging.getLogger(__name__)
-
+    
     class OrderEventProducer:
         def __init__(self, bootstrap_servers: str, topic: str):
             self.topic = topic
@@ -149,7 +149,7 @@ flowchart TD
                 'enable.idempotence': True,
                 'retries': 3,
             })
-
+    
         def publish(self, user_id: str, event: dict) -> None:
             value = json.dumps(event).encode('utf-8')
             self.producer.produce(
@@ -159,14 +159,14 @@ flowchart TD
                 callback=self._delivery_callback,
             )
             self.producer.flush()
-
+    
         @staticmethod
         def _delivery_callback(err, msg):
             if err:
                 logger.error(f"Delivery failed: {err}")
             else:
                 logger.info(f"Delivered to {msg.topic()}[{msg.partition()}] @ offset {msg.offset()}")
-
+    
     class OrderEventConsumer:
         def __init__(self, bootstrap_servers: str, group_id: str, topic: str):
             self.consumer = Consumer({
@@ -177,7 +177,7 @@ flowchart TD
             })
             self.consumer.subscribe([topic])
             self._running = True
-
+    
         def consume(self, process_fn):
             while self._running:
                 msg = self.consumer.poll(timeout=1.0)
@@ -188,14 +188,14 @@ flowchart TD
                         continue
                     logger.error(f"Consumer error: {msg.error()}")
                     continue
-
+    
                 try:
                     event = json.loads(msg.value().decode('utf-8'))
                     process_fn(msg.key().decode('utf-8'), event)
                     self.consumer.commit(asynchronous=False)
                 except Exception as e:
                     logger.error(f"Processing failed: {e}, sending to DLQ")
-
+    
         def shutdown(self):
             self._running = False
             self.consumer.close()
@@ -209,7 +209,7 @@ flowchart TD
     private final KafkaProducer<String, String> producer;
     private final String topic;
     private final ObjectMapper mapper = new ObjectMapper();
-
+    
     public OrderEventProducer(String bootstrapServers, String topic) {
         this.topic = topic;
         Properties props = new Properties();
@@ -221,15 +221,15 @@ flowchart TD
         props.put(ProducerConfig.RETRIES_CONFIG, 3);
         this.producer = new KafkaProducer<>(props);
     }
-
+    
     public CompletableFuture<RecordMetadata> publishOrderCreated(OrderEvent event) {
         String key = event.getUserId();  // partition by user for ordering
         String value = mapper.writeValueAsString(event);
-
+    
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
         record.headers().add("event_type", "ORDER_CREATED".getBytes());
         record.headers().add("timestamp", String.valueOf(System.currentTimeMillis()).getBytes());
-
+    
         CompletableFuture<RecordMetadata> future = new CompletableFuture<>();
         producer.send(record, (metadata, exception) -> {
             if (exception != null) {
@@ -240,7 +240,7 @@ flowchart TD
         });
         return future;
     }
-
+    
     public void close() { producer.close(); }
     }
     
@@ -290,48 +290,48 @@ flowchart TD
 
     ```go
     package messaging
-
+    
     import (
     	"context"
     	"encoding/json"
     	"log"
-
+    
     	"github.com/IBM/sarama"
     )
-
+    
     type OrderEvent struct {
     	OrderID string  `json:"order_id"`
     	UserID  string  `json:"user_id"`
     	Amount  float64 `json:"amount"`
     	Status  string  `json:"status"`
     }
-
+    
     // Producer wraps a Kafka sync producer with order event publishing.
     type Producer struct {
     	producer sarama.SyncProducer
     	topic    string
     }
-
+    
     func NewProducer(brokers []string, topic string) (*Producer, error) {
     	config := sarama.NewConfig()
     	config.Producer.RequiredAcks = sarama.WaitForAll
     	config.Producer.Idempotent = true
     	config.Producer.Return.Successes = true
     	config.Net.MaxOpenRequests = 1 // required for idempotent producer
-
+    
     	producer, err := sarama.NewSyncProducer(brokers, config)
     	if err != nil {
     		return nil, err
     	}
     	return &Producer{producer: producer, topic: topic}, nil
     }
-
+    
     func (p *Producer) PublishOrderEvent(event OrderEvent) (int32, int64, error) {
     	value, err := json.Marshal(event)
     	if err != nil {
     		return 0, 0, err
     	}
-
+    
     	msg := &sarama.ProducerMessage{
     		Topic: p.topic,
     		Key:   sarama.StringEncoder(event.UserID), // partition by user
@@ -340,17 +340,17 @@ flowchart TD
     	partition, offset, err := p.producer.SendMessage(msg)
     	return partition, offset, err
     }
-
+    
     func (p *Producer) Close() error { return p.producer.Close() }
-
+    
     // ConsumerGroupHandler implements sarama.ConsumerGroupHandler for order events.
     type ConsumerGroupHandler struct {
     	ProcessFn func(event OrderEvent) error
     }
-
+    
     func (h *ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
     func (h *ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-
+    
     func (h *ConsumerGroupHandler) ConsumeClaim(
     	session sarama.ConsumerGroupSession,
     	claim sarama.ConsumerGroupClaim,
@@ -361,33 +361,33 @@ flowchart TD
     			log.Printf("Failed to unmarshal: %v", err)
     			continue
     		}
-
+    
     		if err := h.ProcessFn(event); err != nil {
     			log.Printf("Processing failed for order %s: %v", event.OrderID, err)
     			// in production: send to dead-letter topic
     			continue
     		}
-
+    
     		session.MarkMessage(msg, "") // mark for commit
     	}
     	return nil
     }
-
+    
     func StartConsumerGroup(ctx context.Context, brokers []string, groupID, topic string,
     	processFn func(OrderEvent) error) error {
-
+    
     	config := sarama.NewConfig()
     	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{
     		sarama.NewBalanceStrategyRoundRobin(),
     	}
     	config.Consumer.Offsets.Initial = sarama.OffsetOldest
-
+    
     	group, err := sarama.NewConsumerGroup(brokers, groupID, config)
     	if err != nil {
     		return err
     	}
     	defer group.Close()
-
+    
     	handler := &ConsumerGroupHandler{ProcessFn: processFn}
     	for {
     		if err := group.Consume(ctx, []string{topic}, handler); err != nil {

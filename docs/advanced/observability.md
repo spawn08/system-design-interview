@@ -72,7 +72,7 @@ A **correlation ID** (or **request ID**) is generated at the edge (API gateway, 
     ```python
     import structlog
     import logging
-
+    
     structlog.configure(
         processors=[
             structlog.stdlib.add_log_level,
@@ -83,9 +83,9 @@ A **correlation ID** (or **request ID**) is generated at the edge (API gateway, 
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
     )
-
+    
     log = structlog.get_logger()
-
+    
     def handle_checkout(correlation_id: str, order_id: str) -> None:
         bind = log.bind(correlation_id=correlation_id, order_id=order_id)
         bind.info("checkout_started")
@@ -99,11 +99,11 @@ A **correlation ID** (or **request ID**) is generated at the edge (API gateway, 
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
     import org.slf4j.MDC;
-
+    
     public final class CheckoutHandler {
-
+    
         private static final Logger log = LoggerFactory.getLogger(CheckoutHandler.class);
-
+    
         public void handle(String correlationId, String orderId) {
             MDC.put("correlation_id", correlationId);
             MDC.put("order_id", orderId);
@@ -115,7 +115,7 @@ A **correlation ID** (or **request ID**) is generated at the edge (API gateway, 
                 MDC.clear();
             }
         }
-
+    
         private void processPayment(String orderId) {
             log.warn("payment_retry attempt=1 order_id={}", orderId);
         }
@@ -126,17 +126,17 @@ A **correlation ID** (or **request ID**) is generated at the edge (API gateway, 
 
     ```go
     package main
-
+    
     import (
     	"context"
     	"log/slog"
     	"os"
     )
-
+    
     func main() {
     	h := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
     	logger := slog.New(h)
-
+    
     	ctx := context.Background()
     	logger.InfoContext(ctx, "checkout_started",
     		slog.String("correlation_id", "req-abc"),
@@ -213,22 +213,22 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
 
     ```python
     from prometheus_client import Counter, Histogram, start_http_server
-
+    
     CHECKOUT_STARTED = Counter("checkout_started_total", "Checkout flows started")
     CHECKOUT_LATENCY = Histogram(
         "checkout_latency_seconds",
         "Checkout latency",
         buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0),
     )
-
+    
     def checkout() -> None:
         CHECKOUT_STARTED.inc()
         with CHECKOUT_LATENCY.time():
             do_work()
-
+    
     def do_work() -> None:
         pass
-
+    
     if __name__ == "__main__":
         start_http_server(8000)
     ```
@@ -239,12 +239,12 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
     import io.micrometer.core.instrument.Counter;
     import io.micrometer.core.instrument.MeterRegistry;
     import io.micrometer.core.instrument.Timer;
-
+    
     public final class OrderService {
-
+    
         private final Counter checkoutStarted;
         private final Timer checkoutLatency;
-
+    
         public OrderService(MeterRegistry registry) {
             this.checkoutStarted = Counter.builder("checkout_started_total")
                 .description("Checkout flows started")
@@ -253,14 +253,14 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
                 .publishPercentileHistogram()
                 .register(registry);
         }
-
+    
         public void checkout() {
             checkoutStarted.increment();
             checkoutLatency.recordCallable(() -> {
                 return doWork();
             });
         }
-
+    
         private String doWork() throws Exception {
             Thread.sleep(10);
             return "ok";
@@ -272,15 +272,15 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
 
     ```go
     package main
-
+    
     import (
     	"net/http"
-
+    
     	"github.com/prometheus/client_golang/prometheus"
     	"github.com/prometheus/client_golang/prometheus/promauto"
     	"github.com/prometheus/client_golang/prometheus/promhttp"
     )
-
+    
     var (
     	checkoutStarted = promauto.NewCounter(prometheus.CounterOpts{
     		Name: "checkout_started_total",
@@ -292,16 +292,16 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
     		Buckets: prometheus.DefBuckets,
     	})
     )
-
+    
     func checkout() {
     	checkoutStarted.In()
     	timer := prometheus.NewTimer(checkoutLatency)
     	defer timer.ObserveDuration()
     	doWork()
     }
-
+    
     func doWork() {}
-
+    
     func main() {
     	http.Handle("/metrics", promhttp.Handler())
     	_ = http.ListenAndServe(":8000", nil)
@@ -350,18 +350,18 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
     from opentelemetry import trace
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-
+    
     provider = TracerProvider()
     provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     trace.set_tracer_provider(provider)
-
+    
     tracer = trace.get_tracer(__name__)
-
+    
     def charge(order_id: str) -> None:
         with tracer.start_as_current_span("charge") as span:
             span.set_attribute("order.id", order_id)
             call_provider()
-
+    
     def call_provider() -> None:
         pass
     ```
@@ -373,15 +373,15 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
     import io.opentelemetry.api.trace.Span;
     import io.opentelemetry.api.trace.Tracer;
     import io.opentelemetry.context.Scope;
-
+    
     public final class PaymentClient {
-
+    
         private final Tracer tracer;
-
+    
         public PaymentClient(OpenTelemetry otel) {
             this.tracer = otel.getTracer("payments", "1.0.0");
         }
-
+    
         public void charge(String orderId) {
             Span span = tracer.spanBuilder("charge")
                 .setAttribute("order.id", orderId)
@@ -395,7 +395,7 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
                 span.end();
             }
         }
-
+    
         private void callProvider() {
             // outbound HTTP would propagate context automatically with OTel instrumentation
         }
@@ -406,15 +406,15 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
 
     ```go
     package main
-
+    
     import (
     	"context"
-
+    
     	"go.opentelemetry.io/otel"
     	"go.opentelemetry.io/otel/attribute"
     	"go.opentelemetry.io/otel/codes"
     )
-
+    
     func charge(ctx context.Context, orderID string) error {
     	tracer := otel.Tracer("payments")
     	ctx, span := tracer.Start(ctx, "charge")
@@ -427,7 +427,7 @@ Prometheus is embedded TSDB for many teams; at larger scale you may use **Thanos
     	}
     	return nil
     }
-
+    
     func callProvider(ctx context.Context) error {
     	return nil
     }

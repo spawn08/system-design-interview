@@ -501,70 +501,70 @@ sequenceDiagram
 
     ```python
     from __future__ import annotations
-
+    
     import uuid
     from datetime import datetime, timezone
     from typing import List, Optional
-
+    
     from pydantic import BaseModel, Field, field_validator
-
-
+    
+    
     class MediaRef(BaseModel):
         object_key: str
         mime_type: str
-
-
+    
+    
     class CreatePostRequest(BaseModel):
         text: Optional[str] = None
         media: List[MediaRef] = Field(default_factory=list)
-
+    
         @field_validator("text")
         @classmethod
         def strip_text(cls, v: Optional[str]) -> Optional[str]:
             return v.strip() if isinstance(v, str) else v
-
+    
         def validate_nonempty(self) -> None:
             if (not self.text) and not self.media:
                 raise ValueError("empty post")
             if self.text and len(self.text) > 10_000:
                 raise ValueError("text too long")
-
-
+    
+    
     class PostRecord(BaseModel):
         id: str
         author_id: str
         text: Optional[str]
         created_at: datetime
-
-
+    
+    
     class PostRepository:
         def insert(
             self, author_id: str, req: CreatePostRequest
         ) -> PostRecord:  # pragma: no cover - interface
             raise NotImplementedError
-
-
+    
+    
     class EventPublisher:
         def publish_post_created(self, post: PostRecord, media: List[MediaRef]) -> None:
             raise NotImplementedError
-
-
+    
+    
     class PostService:
         def __init__(self, posts: PostRepository, events: EventPublisher) -> None:
             self._posts = posts
             self._events = events
-
+    
         def create_post(self, author_id: str, req: CreatePostRequest) -> PostRecord:
             req.validate_nonempty()
             saved = self._posts.insert(author_id, req)
             self._events.publish_post_created(saved, req.media)
             return saved
-
+    
         @staticmethod
         def new_id() -> str:
             return f"p_{uuid.uuid4().hex}"
-
-
+    
+    
     def utcnow() -> datetime:
         return datetime.now(timezone.utc)
     ```
@@ -573,27 +573,27 @@ sequenceDiagram
 
     ```java
     package com.example.feed.post;
-
+    
     import java.time.Instant;
     import java.util.List;
     import java.util.UUID;
-
+    
     public final class CreatePostRequest {
         public String text;
         public List<MediaRef> media;
-
+    
         public static final class MediaRef {
             public String objectKey;
             public String mimeType;
         }
     }
-
+    
     public final class PostRecord {
         public final String id;
         public final String authorId;
         public final String text;
         public final Instant createdAt;
-
+    
         public PostRecord(String id, String authorId, String text, Instant createdAt) {
             this.id = id;
             this.authorId = authorId;
@@ -601,31 +601,31 @@ sequenceDiagram
             this.createdAt = createdAt;
         }
     }
-
+    
     public interface PostRepository {
         PostRecord insert(String authorId, String text, List<CreatePostRequest.MediaRef> media);
     }
-
+    
     public interface EventPublisher {
         void publishPostCreated(PostRecord post, List<CreatePostRequest.MediaRef> media);
     }
-
+    
     public final class PostService {
         private final PostRepository posts;
         private final EventPublisher events;
-
+    
         public PostService(PostRepository posts, EventPublisher events) {
             this.posts = posts;
             this.events = events;
         }
-
+    
         public PostRecord createPost(String authorId, CreatePostRequest req) {
             validate(req);
             PostRecord saved = posts.insert(authorId, req.text, req.media);
             events.publishPostCreated(saved, req.media);
             return saved;
         }
-
+    
         private static void validate(CreatePostRequest req) {
             if (req.text == null || req.text.isBlank()) {
                 if (req.media == null || req.media.isEmpty()) {
@@ -636,7 +636,7 @@ sequenceDiagram
                 throw new IllegalArgumentException("text too long");
             }
         }
-
+    
         public static String newId() {
             return "p_" + UUID.randomUUID().toString().replace("-", "");
         }
@@ -647,46 +647,46 @@ sequenceDiagram
 
     ```go
     package post
-
+    
     import (
     	"errors"
     	"fmt"
     	"strings"
     	"time"
-
+    
     	"github.com/google/uuid"
     )
-
+    
     type MediaRef struct {
     	ObjectKey string
     	MimeType  string
     }
-
+    
     type CreatePostRequest struct {
     	Text  string
     	Media []MediaRef
     }
-
+    
     type PostRecord struct {
     	ID        string
     	AuthorID  string
     	Text      string
     	CreatedAt time.Time
     }
-
+    
     type PostRepository interface {
     	Insert(authorID string, req CreatePostRequest) (PostRecord, error)
     }
-
+    
     type EventPublisher interface {
     	PublishPostCreated(PostRecord, []MediaRef) error
     }
-
+    
     type Service struct {
     	Posts  PostRepository
     	Events EventPublisher
     }
-
+    
     func (s *Service) CreatePost(authorID string, req CreatePostRequest) (PostRecord, error) {
     	if err := validateCreate(req); err != nil {
     		return PostRecord{}, err
@@ -700,7 +700,7 @@ sequenceDiagram
     	}
     	return saved, nil
     }
-
+    
     func validateCreate(req CreatePostRequest) error {
     	text := strings.TrimSpace(req.Text)
     	if text == "" && len(req.Media) == 0 {
@@ -711,7 +711,7 @@ sequenceDiagram
     	}
     	return nil
     }
-
+    
     func NewID() string {
     	return "p_" + strings.ReplaceAll(uuid.New().String(), "-", "")
     }
@@ -760,34 +760,34 @@ flowchart LR
 
     ```python
     from __future__ import annotations
-
+    
     from dataclasses import dataclass
     from typing import Iterable, List, Protocol
-
-
+    
+    
     @dataclass(frozen=True)
     class PostCreatedEvent:
         post_id: str
         author_id: str
         created_at_epoch_ms: int
         media_keys: List[str]
-
-
+    
+    
     class FollowGraphClient(Protocol):
         def followers_paged(self, author_id: str, page_size: int) -> Iterable[List[str]]:
             ...
-
-
+    
+    
     class FeedCacheClient(Protocol):
         def add_to_feed(self, follower_user_id: str, post_id: str, score: float) -> None:
             ...
-
-
+    
+    
     class CelebrityPolicy(Protocol):
         def should_push_to_all_followers(self, author_id: str, follower_count: int) -> bool:
             ...
-
-
+    
+    
     class FanOutWorker:
         def __init__(
             self,
@@ -798,7 +798,7 @@ flowchart LR
             self._graph = graph
             self._cache = cache
             self._policy = policy
-
+    
         def on_post_created(self, e: PostCreatedEvent, follower_count: int) -> None:
             if not self._policy.should_push_to_all_followers(e.author_id, follower_count):
                 return
@@ -812,40 +812,40 @@ flowchart LR
 
     ```java
     package com.example.feed.fanout;
-
+    
     import java.util.List;
-
+    
     public record PostCreatedEvent(
             String postId,
             String authorId,
             long createdAtEpochMs,
             List<String> mediaKeys
     ) {}
-
+    
     public interface FollowGraphClient {
         /** Returns follower ids in pages; fan-out worker iterates. */
         Iterable<List<String>> followersPaged(String authorId, int pageSize);
     }
-
+    
     public interface FeedCacheClient {
         void addToFeed(String followerUserId, String postId, long score);
     }
-
+    
     public interface CelebrityPolicy {
         boolean shouldPushToAllFollowers(String authorId, long followerCount);
     }
-
+    
     public final class FanOutWorker {
         private final FollowGraphClient graph;
         private final FeedCacheClient cache;
         private final CelebrityPolicy policy;
-
+    
         public FanOutWorker(FollowGraphClient graph, FeedCacheClient cache, CelebrityPolicy policy) {
             this.graph = graph;
             this.cache = cache;
             this.policy = policy;
         }
-
+    
         public void onPostCreated(PostCreatedEvent e, long followerCount) {
             if (!policy.shouldPushToAllFollowers(e.authorId(), followerCount)) {
                 return;
@@ -864,32 +864,32 @@ flowchart LR
 
     ```go
     package fanout
-
+    
     type PostCreatedEvent struct {
     	PostID            string
     	AuthorID          string
     	CreatedAtEpochMs  int64
     	MediaKeys         []string
     }
-
+    
     type FollowGraphClient interface {
     	FollowersPaged(authorID string, pageSize int) (pages [][]string)
     }
-
+    
     type FeedCacheClient interface {
     	AddToFeed(followerUserID, postID string, score float64) error
     }
-
+    
     type CelebrityPolicy interface {
     	ShouldPushToAllFollowers(authorID string, followerCount int64) bool
     }
-
+    
     type Worker struct {
     	Graph   FollowGraphClient
     	Cache   FeedCacheClient
     	Policy  CelebrityPolicy
     }
-
+    
     func (w *Worker) OnPostCreated(e PostCreatedEvent, followerCount int64) error {
     	if !w.Policy.ShouldPushToAllFollowers(e.AuthorID, followerCount) {
     		return nil
@@ -1025,25 +1025,25 @@ class RankingService:
 
     ```java
     package com.example.feed.cache;
-
+    
     import redis.clients.jedis.Jedis;
     import redis.clients.jedis.params.ZAddParams;
-
+    
     public final class FeedCacheManager {
         private final Jedis jedis;
         private final int maxEntries;
-
+    
         public FeedCacheManager(Jedis jedis, int maxEntries) {
             this.jedis = jedis;
             this.maxEntries = maxEntries;
         }
-
+    
         public void addPost(String userId, String postId, double score) {
             String key = "feed:" + userId;
             jedis.zadd(key, score, postId, ZAddParams.zAddParams().nx());
             jedis.zremrangeByRank(key, 0, -maxEntries - 1);
         }
-
+    
         public java.util.List<String> getPage(String userId, int limit, double maxScoreExclusive) {
             String key = "feed:" + userId;
             return jedis.zrevrangeByScore(key, "(" + maxScoreExclusive, "-inf", 0, limit);
@@ -1055,19 +1055,19 @@ class RankingService:
 
     ```go
     package cache
-
+    
     import (
     	"context"
     	"fmt"
-
+    
     	"github.com/redis/go-redis/v9"
     )
-
+    
     type FeedCacheManager struct {
     	Rdb        *redis.Client
     	MaxEntries int64
     }
-
+    
     func (m *FeedCacheManager) AddPost(ctx context.Context, userID, postID string, score float64) error {
     	key := fmt.Sprintf("feed:%s", userID)
     	pipe := m.Rdb.TxPipeline()
@@ -1076,7 +1076,7 @@ class RankingService:
     	_, err := pipe.Exec(ctx)
     	return err
     }
-
+    
     func (m *FeedCacheManager) GetPage(ctx context.Context, userID string, limit int, maxExclusive float64) ([]string, error) {
     	key := fmt.Sprintf("feed:%s", userID)
     	opt := &redis.ZRangeBy{
@@ -1445,21 +1445,21 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
     ```python
     import uuid
     from dataclasses import dataclass
-
+    
     import boto3
-
-
+    
+    
     @dataclass(frozen=True)
     class UploadUrlResponse:
         upload_url: str
         object_key: str
-
-
+    
+    
     class PresignedUploadService:
         def __init__(self, bucket: str, region: str) -> None:
             self._bucket = bucket
             self._client = boto3.client("s3", region_name=region)
-
+    
         def create_upload_url(self, user_id: str, content_type: str, max_bytes: int) -> UploadUrlResponse:
             key = f"u/{user_id}/{uuid.uuid4().hex}"
             url = self._client.generate_presigned_url(
@@ -1479,24 +1479,24 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
 
     ```java
     package com.example.feed.media;
-
+    
     import java.net.URL;
     import java.time.Duration;
     import java.util.UUID;
-
+    
     import software.amazon.awssdk.services.s3.model.PutObjectRequest;
     import software.amazon.awssdk.services.s3.presigner.S3Presigner;
     import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-
+    
     public final class PresignedUploadService {
         private final S3Presigner presigner;
         private final String bucket;
-
+    
         public PresignedUploadService(S3Presigner presigner, String bucket) {
             this.presigner = presigner;
             this.bucket = bucket;
         }
-
+    
         public UploadUrlResponse createUploadUrl(String userId, String contentType, long maxBytes) {
             String key = "u/" + userId + "/" + UUID.randomUUID();
             PutObjectRequest put = PutObjectRequest.builder()
@@ -1512,7 +1512,7 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
             URL url = presigner.presignPutObject(pre).url();
             return new UploadUrlResponse(url.toString(), key);
         }
-
+    
         public record UploadUrlResponse(String uploadUrl, String objectKey) {}
     }
     ```
@@ -1521,28 +1521,28 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
 
     ```go
     package media
-
+    
     import (
     	"context"
     	"fmt"
     	"time"
-
+    
     	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
     	"github.com/aws/aws-sdk-go-v2/service/s3"
     	"github.com/google/uuid"
     )
-
+    
     type Presigner struct {
     	Client    *s3.Client
     	Presigner *s3.PresignClient
     	Bucket    string
     }
-
+    
     type UploadURLResponse struct {
     	UploadURL string
     	ObjectKey string
     }
-
+    
     func (p *Presigner) CreateUploadURL(ctx context.Context, userID, contentType string, maxBytes int64) (UploadURLResponse, error) {
     	key := fmt.Sprintf("u/%s/%s", userID, uuid.NewString())
     	in := &s3.PutObjectInput{
@@ -1557,7 +1557,7 @@ func followerCount(ctx context.Context, g FollowGraphClient, author string) (int
     	}
     	return UploadURLResponse{UploadURL: out.URL, ObjectKey: key}, nil
     }
-
+    
     // v4.Signer used implicitly by PresignClient — keep import if custom signing needed
     var _ = v4.Signer{}
     ```
@@ -1588,22 +1588,22 @@ flowchart TB
 
     ```python
     from __future__ import annotations
-
+    
     import heapq
     from dataclasses import dataclass
     from typing import Iterable, List, Set
-
-
+    
+    
     @dataclass(order=True)
     class ScoredId:
         neg_score: float
         post_id: str
-
+    
         @staticmethod
         def from_pair(post_id: str, score: float) -> "ScoredId":
             return ScoredId(neg_score=-score, post_id=post_id)
-
-
+    
+    
     def merge_by_score(streams: Iterable[List[tuple[str, float]]], limit: int) -> List[str]:
         heap: List[tuple[float, int, str, int]] = []
         arrays = [list(s) for s in streams]
@@ -1628,11 +1628,11 @@ flowchart TB
 
     ```java
     package com.example.feed.merge;
-
+    
     import java.util.*;
     import java.util.stream.Collectors;
     import java.util.stream.Stream;
-
+    
     public final class FeedMerger {
         public static List<String> mergeByScore(
                 List<ScoredId> a,
@@ -1651,7 +1651,7 @@ flowchart TB
             }
             return out;
         }
-
+    
         public record ScoredId(String id, double score) {}
     }
     ```
@@ -1660,14 +1660,14 @@ flowchart TB
 
     ```go
     package merge
-
+    
     import "sort"
-
+    
     type ScoredID struct {
     	ID    string
     	Score float64
     }
-
+    
     func MergeByScore(a, b []ScoredID, limit int) []string {
     	all := append(append([]ScoredID{}, a...), b...)
     	sort.Slice(all, func(i, j int) bool {

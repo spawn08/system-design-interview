@@ -550,7 +550,7 @@ sequenceDiagram
     import bisect
     import hashlib
     from typing import List, Tuple
-
+    
     class ConsistentHash:
         def __init__(self, nodes: List[str], vnodes: int = 128):
             self.vnodes = vnodes
@@ -560,13 +560,13 @@ sequenceDiagram
                     h = self._hash(f"{node}:{i}")
                     self.ring.append((h, node))
             self.ring.sort(key=lambda x: x[0])
-
+    
         def _hash(self, key: str) -> int:
             return int(hashlib.md5(key.encode()).hexdigest(), 16)
-
+    
         def _ring_positions(self) -> List[int]:
             return [p for p, _ in self.ring]
-
+    
         def node_for_key(self, key: str) -> str:
             if not self.ring:
                 raise RuntimeError("empty ring")
@@ -585,10 +585,10 @@ sequenceDiagram
     import java.util.Collections;
     import java.util.List;
     import java.util.TreeMap;
-
+    
     public final class ConsistentHashRing {
         private final TreeMap<Long, String> ring = new TreeMap<>();
-
+    
         public ConsistentHashRing(List<String> nodes, int vnodes) throws Exception {
             for (String n : nodes) {
                 for (int i = 0; i < vnodes; i++) {
@@ -597,7 +597,7 @@ sequenceDiagram
                 }
             }
         }
-
+    
         public String nodeForKey(String key) throws Exception {
             if (ring.isEmpty()) throw new IllegalStateException("empty ring");
             long h = hash(key);
@@ -605,7 +605,7 @@ sequenceDiagram
             if (ceil == null) ceil = ring.firstKey();
             return ring.get(ceil);
         }
-
+    
         private static long hash(String s) throws Exception {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] d = md.digest(s.getBytes(StandardCharsets.UTF_8));
@@ -620,22 +620,22 @@ sequenceDiagram
 
     ```go
     package kvhash
-
+    
     import (
     	"crypto/md5"
     	"encoding/binary"
     	"sort"
     )
-
+    
     type Ring struct {
     	nodes []nodeEntry
     }
-
+    
     type nodeEntry struct {
     	pos  uint64
     	host string
     }
-
+    
     func NewRing(physical []string, vnodes int) *Ring {
     	var entries []nodeEntry
     	for _, p := range physical {
@@ -647,12 +647,12 @@ sequenceDiagram
     	sort.Slice(entries, func(i, j int) bool { return entries[i].pos < entries[j].pos })
     	return &Ring{nodes: entries}
     }
-
+    
     func hashUint64(s string) uint64 {
     	sum := md5.Sum([]byte(s))
     	return binary.BigEndian.Uint64(sum[:8])
     }
-
+    
     func (r *Ring) Pick(key string) string {
     	if len(r.nodes) == 0 {
     		return ""
@@ -675,11 +675,11 @@ sequenceDiagram
 
     ```python
     from typing import Dict, Optional, Tuple
-
+    
     def merge_vc(a: Dict[str, int], b: Dict[str, int]) -> Dict[str, int]:
         keys = set(a) | set(b)
         return {k: max(a.get(k, 0), b.get(k, 0)) for k in keys}
-
+    
     def compare_vc(x: Dict[str, int], y: Dict[str, int]) -> Optional[str]:
         # returns 'before', 'after', 'concurrent', or 'equal'
         x_le = all(x.get(k, 0) <= y.get(k, 0) for k in set(x) | set(y))
@@ -698,7 +698,7 @@ sequenceDiagram
     ```java
     import java.util.HashMap;
     import java.util.Map;
-
+    
     public final class VectorClocks {
         public static Map<String, Integer> merge(Map<String, Integer> a, Map<String, Integer> b) {
             Map<String, Integer> out = new HashMap<>(a);
@@ -707,7 +707,7 @@ sequenceDiagram
             }
             return out;
         }
-
+    
         public static String compare(Map<String, Integer> x, Map<String, Integer> y) {
             boolean xLeY = true, yLeX = true;
             var keys = new java.util.HashSet<String>();
@@ -731,7 +731,7 @@ sequenceDiagram
 
     ```go
     package vc
-
+    
     func Merge(a, b map[string]uint64) map[string]uint64 {
     	out := map[string]uint64{}
     	for k, v := range a {
@@ -744,7 +744,7 @@ sequenceDiagram
     	}
     	return out
     }
-
+    
     func Compare(a, b map[string]uint64) string {
     	xLeY, yLeX := true, true
     	keys := map[string]struct{}{}
@@ -785,18 +785,18 @@ sequenceDiagram
     class Replica:
         def __init__(self):
             self.data = {}
-
+    
         def put(self, key, value, vc):
             self.data[key] = (value, vc)
-
+    
         def get(self, key):
             return self.data.get(key)
-
+    
     class Coordinator:
         def __init__(self, replicas, n, w, r):
             self.replicas = replicas
             self.n, self.w, self.r = n, w, r
-
+    
         def put(self, key, value, merge_vc_fn):
             # pick N replicas from ring (omitted); wait for W acks
             new_vc = {}  # increment self id in real impl
@@ -807,7 +807,7 @@ sequenceDiagram
                 if acks >= self.w:
                     break
             return True
-
+    
         def get(self, key, merge_vc_fn):
             versions = []
             for rep in self.replicas[: self.r]:
@@ -821,17 +821,17 @@ sequenceDiagram
     ```java
     public class Coordinator {
         public record Val(String data, Map<String, Integer> vc) {}
-
+    
         private final List<Replica> replicas;
         private final int n, w, r;
-
+    
         public Coordinator(List<Replica> replicas, int n, int w, int r) {
             this.replicas = replicas;
             this.n = n;
             this.w = w;
             this.r = r;
         }
-
+    
         public void put(String key, Val value) {
             int acks = 0;
             for (int i = 0; i < Math.min(n, replicas.size()); i++) {
@@ -849,17 +849,17 @@ sequenceDiagram
     	Val string
     	VC  map[string]uint64
     }
-
+    
     type Store interface {
     	Put(key string, v Value)
     	Get(key string) (Value, bool)
     }
-
+    
     type Coordinator struct {
     	Replicas []Store
     	N, W, R  int
     }
-
+    
     func (c *Coordinator) Put(key string, v Value) {
     	w := 0
     	for i := 0; i < c.N && i < len(c.Replicas); i++ {

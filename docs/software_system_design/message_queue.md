@@ -596,21 +596,21 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
     import struct
     from bisect import bisect_right
     from dataclasses import dataclass
-
+    
     _LEN = struct.Struct(">I")
-
-
+    
+    
     @dataclass(frozen=True)
     class IndexEntry:
         relative_offset: int
         physical_position: int
-
-
+    
+    
     class Segment:
         """One on-disk segment: append-only log + sidecar sparse offset index."""
-
+    
         INDEX_EVERY = 4  # demo: index every N records; production uses byte stride
-
+    
         def __init__(self, base_offset: int, log_path: str, index_path: str):
             self.base_offset = base_offset
             self.log_path = log_path
@@ -618,7 +618,7 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
             self._entries: list[IndexEntry] = []
             self._record_count = 0
             self._rebuild_meta_from_log()
-
+    
         def _rebuild_meta_from_log(self) -> None:
             self._entries = []
             if not os.path.exists(self.log_path):
@@ -638,7 +638,7 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
                     pos += 4 + ln
                     rel += 1
             self._record_count = rel
-
+    
         def _load_index_file(self) -> None:
             if not os.path.exists(self.index_path) or self._entries:
                 return
@@ -648,12 +648,12 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
             for i in range(0, len(raw), 8):
                 rel, pos = struct.unpack_from(">ii", raw, i)
                 self._entries.append(IndexEntry(rel, pos))
-
+    
         def _persist_index(self) -> None:
             with open(self.index_path, "wb") as f:
                 for e in self._entries:
                     f.write(struct.pack(">ii", e.relative_offset, e.physical_position))
-
+    
         def append(self, record_bytes: bytes) -> int:
             physical = os.path.getsize(self.log_path) if os.path.exists(self.log_path) else 0
             rel = self._record_count
@@ -665,7 +665,7 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
             self._record_count += 1
             self._persist_index()
             return self.base_offset + rel
-
+    
         def _floor_entry(self, target_rel: int) -> tuple[int, int]:
             if not self._entries:
                 return (0, 0)
@@ -675,7 +675,7 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
                 return (0, 0)
             e = self._entries[i]
             return (e.relative_offset, e.physical_position)
-
+    
         def read_at_relative(self, target_rel: int) -> bytes | None:
             if target_rel < 0 or target_rel >= self._record_count:
                 return None
@@ -696,13 +696,13 @@ Each record is `length-prefixed` payload bytes. The **sparse index** stores `(re
     // Illustrative: sparse offset index — map relative offset -> physical position
     public final class OffsetIndex {
         private final MappedByteBuffer mmap;
-
+    
         public void append(int relativeOffset, int physicalPosition) {
             // each entry: 4 bytes relative offset + 4 bytes position
             mmap.putInt(relativeOffset);
             mmap.putInt(physicalPosition);
         }
-
+    
         public int lookup(long targetOffset) {
             // binary search for floor of targetOffset
             return 0;
@@ -1001,7 +1001,7 @@ stateDiagram-v2
     ```python
     # asyncio streams: high-level; for true zero-copy use OS sendfile via socket.sendfile in CPython 3.9+
     import socket
-
+    
     def sendfile_sock(sock: socket.socket, file, offset: int, count: int) -> int:
         return sock.sendfile(file, offset=offset, count=count)
     ```
@@ -1018,7 +1018,7 @@ stateDiagram-v2
 
     ```go
     import "os"
-
+    
     func SendFile(conn net.Conn, f *os.File, off int64, n int64) (int64, error) {
         return io.CopyN(conn, io.NewSectionReader(f, off, n), n)
     }

@@ -76,15 +76,15 @@ The unique token is required so that only the owner can delete the key (compare 
     ```python
     import uuid
     import redis
-
+    
     r = redis.Redis(host="localhost", port=6379, db=0)
     LOCK_KEY = "lock:payments:shard-3"
     TOKEN = str(uuid.uuid4())
     TTL_MS = 10_000
-
+    
     def acquire() -> bool:
         return bool(r.set(LOCK_KEY, TOKEN, nx=True, px=TTL_MS))
-
+    
     def release() -> None:
         lua = """
         if redis.call("get", KEYS[1]) == ARGV[1] then
@@ -102,7 +102,7 @@ The unique token is required so that only the owner can delete the key (compare 
     // Acquire with SET NX PX
     String token = UUID.randomUUID().toString();
     Boolean ok = redisCommands.set(key, token, SetArgs.Builder.nx().px(ttlMs));
-
+    
     // Release atomically only if value matches
     String lua =
         "if redis.call('get', KEYS[1]) == ARGV[1] then " +
@@ -114,17 +114,17 @@ The unique token is required so that only the owner can delete the key (compare 
 
     ```go
     package main
-
+    
     import (
     	"context"
     	"time"
-
+    
     	"github.com/google/uuid"
     	"github.com/redis/go-redis/v9"
     )
-
+    
     var ctx = context.Background()
-
+    
     func acquireLock(rdb *redis.Client, key string, ttl time.Duration) (token string, ok bool) {
     	token = uuid.NewString()
     	ok, err := rdb.SetNX(ctx, key, token, ttl).Result()

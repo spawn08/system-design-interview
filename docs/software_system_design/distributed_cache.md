@@ -350,21 +350,21 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     ```python
     # LRU with OrderedDict
     from __future__ import annotations
-
+    
     from collections import OrderedDict
     from threading import RLock
     from typing import Optional, Tuple
     import time
-
-
+    
+    
     class LRUCache:
         """O(1) LRU via OrderedDict (Python 3.7+ dict is ordered; we keep explicit LRU API)."""
-
+    
         def __init__(self, capacity: int) -> None:
             self._cap = capacity
             self._data: OrderedDict[str, Tuple[float, bytes]] = OrderedDict()
             self._lock = RLock()
-
+    
         def get(self, key: str) -> Optional[bytes]:
             with self._lock:
                 if key not in self._data:
@@ -375,7 +375,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
                     return None
                 self._data.move_to_end(key)
                 return val
-
+    
         def set(self, key: str, value: bytes, ttl_sec: Optional[float] = None) -> None:
             exp = time.time() + ttl_sec if ttl_sec else 0.0
             with self._lock:
@@ -394,27 +394,27 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     import java.util.concurrent.ConcurrentHashMap;
     import java.util.Optional;
     import java.util.concurrent.atomic.AtomicLong;
-
+    
     /** Illustrative thread-safe string cache with TTL checked on read (lazy expiry). */
     public final class ConcurrentStringCache {
         private static final class Entry {
             final byte[] value;
             final long expireAtNanos; // Long.MAX_VALUE if no expiry
-
+    
             Entry(byte[] value, long expireAtNanos) {
                 this.value = value;
                 this.expireAtNanos = expireAtNanos;
             }
-
+    
             boolean expired() {
                 return expireAtNanos != Long.MAX_VALUE
                         && System.nanoTime() > expireAtNanos;
             }
         }
-
+    
         private final ConcurrentHashMap<String, Entry> map = new ConcurrentHashMap<>();
         private final AtomicLong approximateBytes = new AtomicLong(0L);
-
+    
         public Optional<byte[]> get(String key) {
             Entry e = map.get(key);
             if (e == null) return Optional.empty();
@@ -424,7 +424,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
             }
             return Optional.of(e.value);
         }
-
+    
         public void set(String key, byte[] value, Optional<Long> ttlMillis) {
             long exp = ttlMillis
                     .map(ms -> System.nanoTime() + ms * 1_000_000L)
@@ -434,7 +434,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
             long delta = value.length - (old == null ? 0 : old.value.length);
             approximateBytes.addAndGet(delta);
         }
-
+    
         public void delete(String key) {
             Entry old = map.remove(key);
             if (old != null) {
@@ -449,27 +449,27 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     ```go
     // Sharded maps with RWMutex
     package cache
-
+    
     import (
     	"hash/fnv"
     	"sync"
     	"time"
     )
-
+    
     type entry struct {
     	val     []byte
     	deadline time.Time // zero means no TTL
     }
-
+    
     type shard struct {
     	mu sync.RWMutex
     	m  map[string]entry
     }
-
+    
     type ShardedCache struct {
     	shards []*shard
     }
-
+    
     func NewShardedCache(shardCount int) *ShardedCache {
     	s := make([]*shard, shardCount)
     	for i := range s {
@@ -477,13 +477,13 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     	}
     	return &ShardedCache{shards: s}
     }
-
+    
     func (c *ShardedCache) shardFor(key string) *shard {
     	h := fnv.New32a()
     	_, _ = h.Write([]byte(key))
     	return c.shards[h.Sum32()%uint32(len(c.shards))]
     }
-
+    
     func (c *ShardedCache) Get(key string) ([]byte, bool) {
     	sh := c.shardFor(key)
     	sh.mu.RLock()
@@ -500,7 +500,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     	}
     	return e.val, true
     }
-
+    
     func (c *ShardedCache) Set(key string, val []byte, ttl time.Duration) {
     	sh := c.shardFor(key)
     	sh.mu.Lock()
@@ -542,26 +542,26 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     import time
     from dataclasses import dataclass, field
     from typing import Dict, List, Optional
-
-
+    
+    
     @dataclass(order=True)
     class Expiring:
         deadline: float
         key: str = field(compare=False)
-
-
+    
+    
     class TTLIndex:
         """Min-heap of keys by deadline — illustrative active expiry scanner."""
-
+    
         def __init__(self) -> None:
             self._heap: List[Expiring] = []
             self._entry: Dict[str, bytes] = {}
-
+    
         def set(self, key: str, val: bytes, ttl_sec: float) -> None:
             deadline = time.time() + ttl_sec
             heapq.heappush(self._heap, Expiring(deadline, key))
             self._entry[key] = val
-
+    
         def purge_expired(self) -> int:
             now = time.time()
             removed = 0
@@ -579,7 +579,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     // LRU cache O(1)
     import java.util.HashMap;
     import java.util.Map;
-
+    
     public class LRUCache {
         static class Node {
             String key;
@@ -587,25 +587,25 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
             Node prev, next;
             Node(String k, String v) { key = k; val = v; }
         }
-
+    
         private final Map<String, Node> index = new HashMap<>();
         private final Node head = new Node("", "");
         private final Node tail = new Node("", "");
         private final int capacity;
-
+    
         public LRUCache(int capacity) {
             this.capacity = capacity;
             head.next = tail;
             tail.prev = head;
         }
-
+    
         public String get(String key) {
             Node n = index.get(key);
             if (n == null) return null;
             moveToHead(n);
             return n.val;
         }
-
+    
         public void put(String key, String val) {
             Node n = index.get(key);
             if (n != null) {
@@ -621,24 +621,24 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
             index.put(key, neo);
             addToHead(neo);
         }
-
+    
         private void addToHead(Node n) {
             n.prev = head;
             n.next = head.next;
             head.next.prev = n;
             head.next = n;
         }
-
+    
         private void remove(Node n) {
             n.prev.next = n.next;
             n.next.prev = n.prev;
         }
-
+    
         private void moveToHead(Node n) {
             remove(n);
             addToHead(n);
         }
-
+    
         private Node removeTail() {
             Node last = tail.prev;
             remove(last);
@@ -652,15 +652,15 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     ```go
     // LFU (simplified frequency buckets)
     package eviction
-
+    
     import "container/list"
-
+    
     type lfuItem struct {
     	key   string
     	freq  int
     	elem  *list.Element // element in freqList[freq]
     }
-
+    
     // LFUCache uses a map + per-frequency doubly linked lists for O(1) typical ops.
     type LFUCache struct {
     	cap   int
@@ -669,7 +669,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     	nodes map[string]*lfuItem
     	freqs map[int]*list.List
     }
-
+    
     func NewLFU(capacity int) *LFUCache {
     	return &LFUCache{
     		cap:   capacity,
@@ -677,7 +677,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     		freqs: make(map[int]*list.List),
     	}
     }
-
+    
     func (c *LFUCache) Get(key string) (string, bool) {
     	n, ok := c.nodes[key]
     	if !ok {
@@ -686,7 +686,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     	c.increment(n)
     	return n.key, true // value stored separately in real impl
     }
-
+    
     func (c *LFUCache) increment(it *lfuItem) {
     	// remove from old freq list
     	oldList := c.freqs[it.freq]
@@ -705,7 +705,7 @@ Deep dive with code appears in [§4.5](#45-cache-patterns).
     	}
     	it.elem = newList.PushFront(it.key)
     }
-
+    
     func (c *LFUCache) evict() {
     	list := c.freqs[c.min]
     	back := list.Back()
@@ -751,26 +751,26 @@ flowchart LR
     // Slot-based routing (Redis Cluster–style)
     public final class SlotRouter {
         public static final int SLOT_COUNT = 16_384;
-
+    
         private final String[] slotToNode; // simplified: slot -> node id
-
+    
         public SlotRouter(String[] slotToNode) {
             if (slotToNode.length != SLOT_COUNT) {
                 throw new IllegalArgumentException("expected " + SLOT_COUNT + " slots");
             }
             this.slotToNode = slotToNode;
         }
-
+    
         public static int crc16slot(byte[] key) {
             // Interview: cite Redis CRC16 + mod 16384; implementation omitted for brevity
             return Math.floorMod(crc16(key), SLOT_COUNT);
         }
-
+    
         public String route(byte[] key) {
             int slot = crc16slot(key);
             return slotToNode[slot];
         }
-
+    
         private static int crc16(byte[] bs) {
             int crc = 0;
             for (byte b : bs) {
@@ -786,21 +786,21 @@ flowchart LR
     ```go
     // Consistent hash ring (Ketama-style sketch)
     package shard
-
+    
     import (
     	"crypto/sha1"
     	"hash"
     	"sort"
     	"strconv"
     )
-
+    
     type Ring struct {
     	hash   hash.Hash
     	replicas int
     	keys     []int
     	hashMap  map[int]string
     }
-
+    
     func NewRing(replicas int) *Ring {
     	return &Ring{
     		hash:     sha1.New(),
@@ -808,7 +808,7 @@ flowchart LR
     		hashMap:  make(map[int]string),
     	}
     }
-
+    
     func (r *Ring) Add(nodes ...string) {
     	for _, node := range nodes {
     		for i := 0; i < r.replicas; i++ {
@@ -819,14 +819,14 @@ flowchart LR
     	}
     	sort.Ints(r.keys)
     }
-
+    
     func (r *Ring) hashKey(key string) int {
     	r.hash.Reset()
     	r.hash.Write([]byte(key))
     	bs := r.hash.Sum(nil)
     	return int(bs[3]) | int(bs[2])<<8 | int(bs[1])<<16 | int(bs[0])<<24
     }
-
+    
     func (r *Ring) Get(key string) string {
     	if len(r.keys) == 0 {
     		return ""
@@ -884,17 +884,17 @@ flowchart TB
     // Illustrative replication manager
     import java.util.concurrent.BlockingQueue;
     import java.util.concurrent.LinkedBlockingQueue;
-
+    
     public class ReplicationManager {
         public record Command(String op, String key, byte[] value) {}
-
+    
         private final BlockingQueue<Command> outbound = new LinkedBlockingQueue<>();
-
+    
         public void replicate(Command cmd) throws InterruptedException {
             // Leader: append to local WAL, then async fan-out
             outbound.put(cmd);
         }
-
+    
         public void followerLoop(Runnable applier) {
             new Thread(() -> {
                 while (true) {
@@ -932,21 +932,21 @@ flowchart TB
     import queue
     import threading
     from typing import Callable
-
-
+    
+    
     class WriteBehind:
         def __init__(self, flush: Callable[[str, bytes], None], workers: int = 2) -> None:
             self._q: "queue.Queue[tuple[str, bytes]]" = queue.Queue(maxsize=10_000)
             self._flush = flush
             for _ in range(workers):
                 threading.Thread(target=self._loop, daemon=True).start()
-
+    
         def _loop(self) -> None:
             while True:
                 key, val = self._q.get()
                 self._flush(key, val)
                 self._q.task_done()
-
+    
         def enqueue(self, key: str, val: bytes) -> None:
             self._q.put((key, val))
     ```
@@ -958,12 +958,12 @@ flowchart TB
     public class CacheAsideUserRepo {
         private final ConcurrentStringCache cache;
         private final UserDb db;
-
+    
         public CacheAsideUserRepo(ConcurrentStringCache cache, UserDb db) {
             this.cache = cache;
             this.db = db;
         }
-
+    
         public byte[] getUser(String id) {
             return cache.get("user:" + id).orElseGet(() -> {
                 byte[] row = db.loadUser(id);
@@ -973,12 +973,12 @@ flowchart TB
                 return row;
             });
         }
-
+    
         public void updateUser(String id, byte[] row) {
             db.saveUser(id, row);
             cache.delete("user:" + id);
         }
-
+    
         public interface UserDb {
             byte[] loadUser(String id);
             void saveUser(String id, byte[] row);
@@ -996,7 +996,7 @@ flowchart TB
     		Save(key string, val []byte) error
     	}
     }
-
+    
     func (w *WriteThrough) Set(key string, val []byte, ttl time.Duration) error {
     	if err := w.db.Save(key, val); err != nil {
     		return err
@@ -1021,18 +1021,18 @@ flowchart TB
     # Optimistic versioning
     from dataclasses import dataclass
     from typing import Dict, Optional, Tuple
-
-
+    
+    
     @dataclass
     class VerVal:
         ver: int
         data: bytes
-
-
+    
+    
     class VersionedStore:
         def __init__(self) -> None:
             self._m: Dict[str, VerVal] = {}
-
+    
         def cas(self, key: str, expected_ver: int, new_data: bytes) -> bool:
             cur = self._m.get(key)
             if cur is None or cur.ver != expected_ver:
@@ -1046,14 +1046,14 @@ flowchart TB
     ```java
     // CAS-style update
     import java.util.concurrent.atomic.AtomicReference;
-
+    
     public class CasValue {
         private final AtomicReference<Versioned> ref;
-
+    
         public CasValue(byte[] initial) {
             this.ref = new AtomicReference<>(new Versioned(1, initial));
         }
-
+    
         public boolean compareAndSet(byte[] expect, byte[] update) {
             Versioned cur = ref.get();
             if (!java.util.Arrays.equals(cur.data, expect)) {
@@ -1062,7 +1062,7 @@ flowchart TB
             Versioned next = new Versioned(cur.version + 1, update);
             return ref.compareAndSet(cur, next);
         }
-
+    
         private record Versioned(int version, byte[] data) {}
     }
     ```
@@ -1072,19 +1072,19 @@ flowchart TB
     ```go
     // Lock with lease (single-node demo; not full Redlock)
     package distlock
-
+    
     import (
     	"context"
     	"time"
     )
-
+    
     type Locker interface {
     	TryLock(ctx context.Context, key string, ttl time.Duration) (unlock func(), ok bool)
     }
-
+    
     // SingleRedisLocker is illustrative; production uses random token + Lua compare-and-del.
     type SingleRedisLocker struct{}
-
+    
     func (SingleRedisLocker) TryLock(ctx context.Context, key string, ttl time.Duration) (func(), bool) {
     	// SET key token NX PX ttl — omitted: connect to Redis
     	return func() {}, true
@@ -1122,18 +1122,18 @@ flowchart TB
     ```python
     # Pipeline-style batching (conceptual)
     from typing import Iterable, List, Tuple, Protocol
-
-
+    
+    
     class RedisLike(Protocol):
         def get(self, key: str) -> bytes | None: ...
         def set(self, key: str, val: bytes) -> None: ...
-
-
+    
+    
     def pipeline_get(client: RedisLike, keys: Iterable[str]) -> List[bytes | None]:
         # Real: redis.pipeline(); here: sequential illustration
         return [client.get(k) for k in keys]
-
-
+    
+    
     def pipeline_set(client: RedisLike, pairs: List[Tuple[str, bytes]]) -> None:
         for k, v in pairs:
             client.set(k, v)
@@ -1148,24 +1148,24 @@ flowchart TB
     import java.sql.SQLException;
     import java.util.ArrayDeque;
     import java.util.Deque;
-
+    
     public class SimplePool implements AutoCloseable {
         private final Deque<Connection> pool = new ArrayDeque<>();
         private final String url;
         private final int max;
-
+    
         public SimplePool(String url, int max) {
             this.url = url;
             this.max = max;
         }
-
+    
         public synchronized Connection borrow() throws SQLException {
             if (!pool.isEmpty()) {
                 return pool.pollFirst();
             }
             return DriverManager.getConnection(url);
         }
-
+    
         public synchronized void release(Connection c) {
             if (pool.size() < max) {
                 pool.addLast(c);
@@ -1173,7 +1173,7 @@ flowchart TB
                 try { c.close(); } catch (SQLException ignored) { }
             }
         }
-
+    
         public void close() {
             pool.forEach(c -> { try { c.close(); } catch (SQLException ignored) { } });
             pool.clear();
@@ -1198,16 +1198,16 @@ flowchart TB
     from collections import defaultdict
     from typing import DefaultDict, List
     import threading
-
-
+    
+    
     class SimplePubSub:
         def __init__(self) -> None:
             self._lock = threading.RLock()
             self._topics: DefaultDict[str, List["queue.Queue[str]"]] = defaultdict(list)
-
+    
         def publish(self, topic: str, msg: str) -> None:
             import queue
-
+    
             with self._lock:
                 subs = list(self._topics[topic])
             for q in subs:
@@ -1223,15 +1223,15 @@ flowchart TB
     // Minimal subscriber sketch
     import java.util.concurrent.*;
     import java.util.concurrent.CopyOnWriteArrayList;
-
+    
     public class SimplePubSub {
         private final ConcurrentHashMap<String, CopyOnWriteArrayList<BlockingQueue<String>>> topics
                 = new ConcurrentHashMap<>();
-
+    
         public void subscribe(String topic, BlockingQueue<String> q) {
             topics.computeIfAbsent(topic, t -> new CopyOnWriteArrayList<>()).add(q);
         }
-
+    
         public void publish(String topic, String msg) {
             var subs = topics.get(topic);
             if (subs == null) return;
@@ -1245,18 +1245,18 @@ flowchart TB
     ```go
     // Minimal in-memory pub/sub
     package pubsub
-
+    
     import "sync"
-
+    
     type Bus struct {
     	mu   sync.RWMutex
     	subs map[string][]chan string
     }
-
+    
     func NewBus() *Bus {
     	return &Bus{subs: make(map[string][]chan string)}
     }
-
+    
     func (b *Bus) Subscribe(topic string) <-chan string {
     	ch := make(chan string, 16)
     	b.mu.Lock()
@@ -1264,7 +1264,7 @@ flowchart TB
     	b.mu.Unlock()
     	return ch
     }
-
+    
     func (b *Bus) Publish(topic, msg string) {
     	b.mu.RLock()
     	defer b.mu.RUnlock()
@@ -1301,22 +1301,22 @@ flowchart TB
     # Asyncio lock-per-key (illustrative)
     import asyncio
     from typing import Awaitable, Callable, Dict, TypeVar
-
+    
     K = TypeVar("K")
     V = TypeVar("V")
-
-
+    
+    
     class AsyncSingleFlight:
         def __init__(self) -> None:
             self._locks: Dict[K, asyncio.Lock] = {}
             self._map_lock = asyncio.Lock()
-
+    
         async def _lock_for(self, key: K) -> asyncio.Lock:
             async with self._map_lock:
                 if key not in self._locks:
                     self._locks[key] = asyncio.Lock()
                 return self._locks[key]
-
+    
         async def do(self, key: K, factory: Callable[[], Awaitable[V]]) -> V:
             lk = await self._lock_for(key)
             async with lk:
@@ -1328,10 +1328,10 @@ flowchart TB
     ```java
     // Singleflight-style loader (per-key)
     import java.util.concurrent.*;
-
+    
     public class StampedeGuard<K, V> {
         private final ConcurrentHashMap<K, CompletableFuture<V>> inflight = new ConcurrentHashMap<>();
-
+    
         public V get(K key, Loader<K, V> loader) throws Exception {
             CompletableFuture<V> fut = inflight.computeIfAbsent(
                     key, k -> CompletableFuture.supplyAsync(() -> {
@@ -1349,7 +1349,7 @@ flowchart TB
                 inflight.remove(key, fut);
             }
         }
-
+    
         @FunctionalInterface
         public interface Loader<K, V> {
             V load(K key) throws Exception;
@@ -1362,13 +1362,13 @@ flowchart TB
     ```go
     // singleflight pattern
     package stampede
-
+    
     import "golang.org/x/sync/singleflight"
-
+    
     type Guard struct {
     	g singleflight.Group
     }
-
+    
     func (g *Guard) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
     	return g.g.Do(key, fn)
     }

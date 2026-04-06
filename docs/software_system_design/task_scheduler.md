@@ -582,7 +582,7 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
     ```python
     import requests
     from datetime import datetime, timezone
-
+    
     def submit_task(base_url: str, payload: dict, run_at: datetime, idempotency_key: str) -> str:
         body = {"payload": payload, "run_at": run_at.astimezone(timezone.utc).isoformat()}
         r = requests.post(
@@ -601,9 +601,9 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
     public final class TaskClient {
       private final HttpClient http = HttpClient.newHttpClient();
       private final String baseUrl;
-
+    
       public TaskClient(String baseUrl) { this.baseUrl = baseUrl; }
-
+    
       public String submitTask(String jsonPayload, Instant runAt, String idempotencyKey)
           throws IOException, InterruptedException {
         String body = String.format(
@@ -630,7 +630,7 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
     	Payload map[string]any `json:"payload"`
     	RunAt   string         `json:"run_at"`
     }
-
+    
     func SubmitTask(ctx context.Context, base string, payload map[string]any, runAt time.Time, idem string) (string, error) {
     	b := SubmitBody{Payload: payload, RunAt: runAt.UTC().Format(time.RFC3339)}
     	raw, _ := json.Marshal(b)
@@ -708,16 +708,16 @@ Below are minimal illustrations of **task submission**, a **scheduler tick**, an
     ```python
     import threading
     import time
-
+    
     def run_with_lease(svc, task_id: str, worker_id: str, lease_sec: float) -> bool:
         if not svc.try_lease(task_id, worker_id, lease_sec):
             return False
         stop = threading.Event()
-
+    
         def heartbeat():
             while not stop.wait(timeout=lease_sec / 3):
                 svc.heartbeat(task_id, worker_id, lease_sec)
-
+    
         t = threading.Thread(target=heartbeat, daemon=True)
         t.start()
         try:

@@ -326,15 +326,15 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
     ```python
     import boto3
     from botocore.client import Config
-
+    
     def upload_file(local_path: str, bucket: str, key: str) -> None:
         s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
         s3.upload_file(local_path, bucket, key)
-
+    
     def download_file(bucket: str, key: str, local_path: str) -> None:
         s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
         s3.download_file(bucket, key, local_path)
-
+    
     def presigned_get_url(bucket: str, key: str, expires_in: int = 300) -> str:
         s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
         return s3.generate_presigned_url(
@@ -342,7 +342,7 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
             Params={"Bucket": bucket, "Key": key},
             ExpiresIn=expires_in,
         )
-
+    
     def presigned_put_url(bucket: str, key: str, expires_in: int = 300) -> str:
         s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
         return s3.generate_presigned_url(
@@ -364,30 +364,30 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
     import software.amazon.awssdk.services.s3.presigner.S3Presigner;
     import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
     import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-
+    
     import java.nio.file.Path;
     import java.time.Duration;
-
+    
     public class S3Examples {
-
+    
         private final S3Client s3;
         private final S3Presigner presigner;
-
+    
         public S3Examples(Region region) {
             var creds = DefaultCredentialsProvider.create();
             this.s3 = S3Client.builder().region(region).credentialsProvider(creds).build();
             this.presigner = S3Presigner.builder().region(region).credentialsProvider(creds).build();
         }
-
+    
         public void upload(String bucket, String key, Path file) {
             s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
                     RequestBody.fromFile(file));
         }
-
+    
         public void download(String bucket, String key, Path destination) {
             s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(), destination);
         }
-
+    
         public String presignedGetUrl(String bucket, String key, Duration ttl) {
             var get = GetObjectRequest.builder().bucket(bucket).key(key).build();
             var presign = GetObjectPresignRequest.builder()
@@ -396,7 +396,7 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
                     .build();
             return presigner.presignGetObject(presign).url().toString();
         }
-
+    
         public String presignedPutUrl(String bucket, String key, Duration ttl) {
             var put = PutObjectRequest.builder().bucket(bucket).key(key).build();
             var presign = PutObjectPresignRequest.builder()
@@ -412,17 +412,17 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
 
     ```go
     package s3example
-
+    
     import (
     	"context"
     	"io"
     	"os"
     	"time"
-
+    
     	"github.com/aws/aws-sdk-go-v2/config"
     	"github.com/aws/aws-sdk-go-v2/service/s3"
     )
-
+    
     func Upload(ctx context.Context, bucket, key, localPath string) error {
     	cfg, err := config.LoadDefaultConfig(ctx)
     	if err != nil {
@@ -441,7 +441,7 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
     	})
     	return err
     }
-
+    
     func Download(ctx context.Context, bucket, key, localPath string) error {
     	cfg, err := config.LoadDefaultConfig(ctx)
     	if err != nil {
@@ -461,7 +461,7 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
     	_, err = io.Copy(f, out.Body)
     	return err
     }
-
+    
     // PresignGet uses the built-in presign helper (SDK v2).
     func PresignGet(ctx context.Context, bucket, key string, ttl time.Duration) (string, error) {
     	cfg, err := config.LoadDefaultConfig(ctx)
@@ -481,7 +481,7 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
     	}
     	return out.URL, nil
     }
-
+    
     // PresignPut signs a PUT for direct browser/client upload.
     func PresignPut(ctx context.Context, bucket, key string, ttl time.Duration) (string, error) {
     	cfg, err := config.LoadDefaultConfig(ctx)

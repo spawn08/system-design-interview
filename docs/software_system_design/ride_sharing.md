@@ -673,7 +673,7 @@ Ride sharing combines **high-write location streams**, **geospatial indexing** (
 
     ```python
     BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
-
+    
     def encode_geohash(lat: float, lon: float, precision: int = 9) -> str:
         """Simple geohash encoder (interleaved bit string), for interview illustration."""
         lat_interval = (-90.0, 90.0)
@@ -712,11 +712,11 @@ Ride sharing combines **high-write location streams**, **geospatial indexing** (
     ```java
     import java.util.LinkedHashSet;
     import java.util.Set;
-
+    
     /** Interview-style stub: use a library in production (e.g., ch.hsr geohash). */
     public final class GeoSearchRing {
         private GeoSearchRing() {}
-
+    
         public static Set<String> ring(String centerGeohash, int neighborDepth) {
             Set<String> cells = new LinkedHashSet<>();
             cells.add(centerGeohash);

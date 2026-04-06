@@ -1303,58 +1303,58 @@ Same algorithm as **Redis Implementation: Token Bucket with Lua Script** in sect
     ```python
     import redis
     import time
-
+    
     TOKEN_BUCKET_SCRIPT = """
     local key = KEYS[1]
     local capacity = tonumber(ARGV[1])
     local refill_rate = tonumber(ARGV[2])
     local now = tonumber(ARGV[3])
     local requested = tonumber(ARGV[4])
-
+    
     -- Get current bucket state
     local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
     local tokens = tonumber(bucket[1]) or capacity
     local last_refill = tonumber(bucket[2]) or now
-
+    
     -- Calculate tokens to add based on time elapsed
     local elapsed = now - last_refill
     local tokens_to_add = elapsed * refill_rate
     tokens = math.min(capacity, tokens + tokens_to_add)
-
+    
     -- Check if request can be allowed
     local allowed = 0
     if tokens >= requested then
         tokens = tokens - requested
         allowed = 1
     end
-
+    
     -- Save state
     redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
     redis.call('EXPIRE', key, math.ceil(capacity / refill_rate) * 2)
-
+    
     return {allowed, tokens}
     """
-
+    
     class TokenBucketLimiter:
         def __init__(self, redis_client: redis.Redis, capacity: int, refill_rate: float):
             self.redis = redis_client
             self.capacity = capacity
             self.refill_rate = refill_rate
             self.script = self.redis.register_script(TOKEN_BUCKET_SCRIPT)
-
+    
         def is_allowed(self, client_id: str, tokens: int = 1) -> tuple[bool, float]:
             """Check if request is allowed."""
             key = f"tokenbucket:{client_id}"
             now = time.time()
-
+    
             result = self.script(
                 keys=[key],
                 args=[self.capacity, self.refill_rate, now, tokens]
             )
-
+    
             allowed = bool(result[0])
             remaining_tokens = float(result[1])
-
+    
             return allowed, remaining_tokens
     ```
 
@@ -1363,12 +1363,12 @@ Same algorithm as **Redis Implementation: Token Bucket with Lua Script** in sect
     ```java
     import redis.clients.jedis.JedisPooled;
     import java.util.List;
-
+    
     public class RedisTokenBucketLimiter {
         private final JedisPooled jedis;
         private final String luaScript;
         private String scriptSha;
-
+    
         public RedisTokenBucketLimiter(JedisPooled jedis) {
             this.jedis = jedis;
             this.luaScript = """
@@ -1377,34 +1377,34 @@ Same algorithm as **Redis Implementation: Token Bucket with Lua Script** in sect
                 local refill_rate = tonumber(ARGV[2])
                 local now = tonumber(ARGV[3])
                 local requested = tonumber(ARGV[4])
-
+    
                 local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
                 local tokens = tonumber(bucket[1]) or capacity
                 local last_refill = tonumber(bucket[2]) or now
-
+    
                 local elapsed = now - last_refill
                 tokens = math.min(capacity, tokens + elapsed * refill_rate)
-
+    
                 local allowed = 0
                 if tokens >= requested then
                     tokens = tokens - requested
                     allowed = 1
                 end
-
+    
                 redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
                 redis.call('EXPIRE', key, math.ceil(capacity / refill_rate) * 2)
-
+    
                 return {allowed, math.floor(tokens)}
                 """;
             this.scriptSha = jedis.scriptLoad(luaScript);
         }
-
+    
         public record RateLimitResult(boolean allowed, int remainingTokens) {}
-
+    
         public RateLimitResult isAllowed(String clientId, int capacity, double refillRate) {
             String key = "ratelimit:" + clientId;
             double now = System.currentTimeMillis() / 1000.0;
-
+    
             Object result = jedis.evalsha(scriptSha,
                 List.of(key),
                 List.of(
@@ -1413,7 +1413,7 @@ Same algorithm as **Redis Implementation: Token Bucket with Lua Script** in sect
                     String.valueOf(now),
                     "1"
                 ));
-
+    
             @SuppressWarnings("unchecked")
             List<Long> values = (List<Long>) result;
             return new RateLimitResult(values.get(0) == 1, values.get(1).intValue());
@@ -1425,67 +1425,67 @@ Same algorithm as **Redis Implementation: Token Bucket with Lua Script** in sect
 
     ```go
     package ratelimit
-
+    
     import (
     	"context"
     	"fmt"
     	"strconv"
     	"time"
-
+    
     	"github.com/redis/go-redis/v9"
     )
-
+    
     var tokenBucketScript = redis.NewScript(`
     local key = KEYS[1]
     local capacity = tonumber(ARGV[1])
     local refill_rate = tonumber(ARGV[2])
     local now = tonumber(ARGV[3])
     local requested = tonumber(ARGV[4])
-
+    
     local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
     local tokens = tonumber(bucket[1]) or capacity
     local last_refill = tonumber(bucket[2]) or now
-
+    
     local elapsed = now - last_refill
     tokens = math.min(capacity, tokens + elapsed * refill_rate)
-
+    
     local allowed = 0
     if tokens >= requested then
         tokens = tokens - requested
         allowed = 1
     end
-
+    
     redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
     redis.call('EXPIRE', key, math.ceil(capacity / refill_rate) * 2)
-
+    
     return {allowed, math.floor(tokens)}
     `)
-
+    
     type RateLimiter struct {
     	client     *redis.Client
     	capacity   int
     	refillRate float64
     }
-
+    
     type Result struct {
     	Allowed   bool
     	Remaining int
     }
-
+    
     func NewRateLimiter(client *redis.Client, capacity int, refillRate float64) *RateLimiter {
     	return &RateLimiter{client: client, capacity: capacity, refillRate: refillRate}
     }
-
+    
     func (rl *RateLimiter) IsAllowed(ctx context.Context, clientID string) (Result, error) {
     	key := fmt.Sprintf("ratelimit:%s", clientID)
     	now := float64(time.Now().UnixMilli()) / 1000.0
-
+    
     	vals, err := tokenBucketScript.Run(ctx, rl.client, []string{key},
     		rl.capacity, rl.refillRate, now, 1).Int64Slice()
     	if err != nil {
     		return Result{Allowed: true, Remaining: rl.capacity}, err // fail open
     	}
-
+    
     	return Result{
     		Allowed:   vals[0] == 1,
     		Remaining: int(vals[1]),
@@ -1502,15 +1502,15 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
     ```python
     from fastapi import FastAPI, Request, HTTPException
     from fastapi.responses import JSONResponse
-
+    
     app = FastAPI()
-
+    
     @app.middleware("http")
     async def rate_limit_middleware(request: Request, call_next):
         client_id = get_client_id(request)  # API key, IP, etc.
-
+    
         allowed, info = rate_limiter.is_allowed(client_id)
-
+    
         if not allowed:
             return JSONResponse(
                 status_code=429,
@@ -1522,23 +1522,23 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
                     "Retry-After": str(info["retry_after"])
                 }
             )
-
+    
         response = await call_next(request)
-
+    
         # Add rate limit headers to successful responses
         response.headers["X-RateLimit-Limit"] = str(info["limit"])
         response.headers["X-RateLimit-Remaining"] = str(info["remaining"])
         response.headers["X-RateLimit-Reset"] = str(info["reset"])
-
+    
         return response
-
+    
     def get_client_id(request: Request) -> str:
         """Extract client identifier from request."""
         # Prefer API key
         api_key = request.headers.get("X-API-Key")
         if api_key:
             return f"api:{api_key}"
-
+    
         # Fall back to IP
         return f"ip:{request.client.host}"
     ```
@@ -1549,30 +1549,30 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
     import jakarta.servlet.*;
     import jakarta.servlet.http.*;
     import java.io.IOException;
-
+    
     public class RateLimitFilter implements Filter {
         private final RedisTokenBucketLimiter limiter;
         private final int capacity;
         private final double refillRate;
-
+    
         public RateLimitFilter(RedisTokenBucketLimiter limiter, int capacity, double refillRate) {
             this.limiter = limiter;
             this.capacity = capacity;
             this.refillRate = refillRate;
         }
-
+    
         @Override
         public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
                 throws IOException, ServletException {
             HttpServletRequest httpReq = (HttpServletRequest) req;
             HttpServletResponse httpResp = (HttpServletResponse) resp;
-
+    
             String clientId = resolveClientId(httpReq);
             var result = limiter.isAllowed(clientId, capacity, refillRate);
-
+    
             httpResp.setHeader("X-RateLimit-Limit", String.valueOf(capacity));
             httpResp.setHeader("X-RateLimit-Remaining", String.valueOf(result.remainingTokens()));
-
+    
             if (!result.allowed()) {
                 httpResp.setStatus(429);
                 httpResp.setHeader("Retry-After", String.valueOf((int) (1.0 / refillRate)));
@@ -1582,7 +1582,7 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
             }
             chain.doFilter(req, resp);
         }
-
+    
         private String resolveClientId(HttpServletRequest req) {
             String apiKey = req.getHeader("X-API-Key");
             if (apiKey != null) return "api:" + apiKey;
@@ -1597,13 +1597,13 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
 
     ```go
     package ratelimit
-
+    
     import (
     	"encoding/json"
     	"net/http"
     	"strconv"
     )
-
+    
     func Middleware(limiter *RateLimiter) func(http.Handler) http.Handler {
     	return func(next http.Handler) http.Handler {
     		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1613,10 +1613,10 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
     				next.ServeHTTP(w, r) // fail open on Redis error
     				return
     			}
-
+    
     			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limiter.capacity))
     			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(result.Remaining))
-
+    
     			if !result.Allowed {
     				w.Header().Set("Retry-After", "60")
     				w.WriteHeader(http.StatusTooManyRequests)
@@ -1630,7 +1630,7 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
     		})
     	}
     }
-
+    
     func resolveClientID(r *http.Request) string {
     	if key := r.Header.Get("X-API-Key"); key != "" {
     		return "api:" + key

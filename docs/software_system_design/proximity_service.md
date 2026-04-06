@@ -558,9 +558,9 @@ Illustrative implementations: **geohash encode/decode**, **radius filter**, **qu
 
     ```python
     import math
-
+    
     BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
-
+    
     def decode_bbox(hash_str: str):
         even = True
         lat_min, lat_max = -90.0, 90.0
@@ -583,14 +583,14 @@ Illustrative implementations: **geohash encode/decode**, **radius filter**, **qu
                         lat_max = mid
                 even = not even
         return lat_min, lat_max, lon_min, lon_max
-
+    
     def haversine_m(lat1, lon1, lat2, lon2, R=6371000.0):
         p1, p2 = math.radians(lat1), math.radians(lat2)
         dphi = math.radians(lat2 - lat1)
         dl = math.radians(lon2 - lon1)
         a = math.sin(dphi/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
         return 2 * R * math.asin(min(1.0, math.sqrt(a)))
-
+    
     def in_radius(candidates, lat, lon, radius_m):
         return [p for p in candidates if haversine_m(lat, lon, p["lat"], p["lon"]) <= radius_m]
     ```
@@ -600,7 +600,7 @@ Illustrative implementations: **geohash encode/decode**, **radius filter**, **qu
     ```java
     public final class GeoQuery {
         private static final double R_EARTH_M = 6_371_000.0;
-
+    
         public static double haversineM(double lat1, double lon1, double lat2, double lon2) {
             double p1 = Math.toRadians(lat1);
             double p2 = Math.toRadians(lat2);
@@ -610,14 +610,14 @@ Illustrative implementations: **geohash encode/decode**, **radius filter**, **qu
                     + Math.cos(p1) * Math.cos(p2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
             return 2 * R_EARTH_M * Math.asin(Math.min(1.0, Math.sqrt(a)));
         }
-
+    
         /** Rough meters per degree latitude (for small bbox). */
         public static Bounds bboxAround(double lat, double lon, double radiusM) {
             double dLat = radiusM / 111_320.0;
             double dLon = radiusM / (111_320.0 * Math.cos(Math.toRadians(lat)));
             return new Bounds(lat - dLat, lat + dLat, lon - dLon, lon + dLon);
         }
-
+    
         public record Bounds(double latMin, double latMax, double lonMin, double lonMax) {}
     }
     ```

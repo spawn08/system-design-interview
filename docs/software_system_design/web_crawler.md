@@ -562,33 +562,33 @@ flowchart TB
     import heapq
     import time
     from urllib.parse import urlparse
-
+    
     @dataclass
     class URLEntry:
         url: str
         priority: float
         depth: int
         discovered_at: float
-
+    
         def __lt__(self, other):
             return self.priority > other.priority  # Higher priority first
-
+    
     class URLFrontier:
         def __init__(self, politeness_delay: float = 1.0):
             self.host_queues: Dict[str, List[URLEntry]] = {}
             self.host_last_access: Dict[str, float] = {}
             self.politeness_delay = politeness_delay
             self.hosts_ready: List[tuple] = []  # (next_access_time, host)
-
+    
         def add_url(self, url: str, priority: float = 1.0, depth: int = 0):
             """Add URL to appropriate host queue."""
             host = urlparse(url).netloc
-
+    
             if host not in self.host_queues:
                 self.host_queues[host] = []
                 # New host is immediately ready
                 heapq.heappush(self.hosts_ready, (0, host))
-
+    
             entry = URLEntry(
                 url=url,
                 priority=priority,
@@ -596,29 +596,29 @@ flowchart TB
                 discovered_at=time.time()
             )
             heapq.heappush(self.host_queues[host], entry)
-
+    
         def get_next_url(self) -> Optional[str]:
             """Get next URL respecting politeness."""
             now = time.time()
-
+    
             while self.hosts_ready:
                 next_time, host = heapq.heappop(self.hosts_ready)
-
+    
                 if next_time > now:
                     # No host is ready yet
                     heapq.heappush(self.hosts_ready, (next_time, host))
                     return None
-
+    
                 if host in self.host_queues and self.host_queues[host]:
                     entry = heapq.heappop(self.host_queues[host])
-
+    
                     # Schedule next access for this host
                     next_access = now + self.politeness_delay
                     heapq.heappush(self.hosts_ready, (next_access, host))
-
+    
                     self.host_last_access[host] = now
                     return entry.url
-
+    
             return None
     ```
 
@@ -637,7 +637,7 @@ flowchart TB
     import java.util.concurrent.PriorityBlockingQueue;
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
-
+    
     /**
      * URL Frontier backed by a priority queue with politeness enforcement.
      * In production, replace with Kafka-backed distributed frontier.
@@ -646,7 +646,7 @@ flowchart TB
         private final PriorityBlockingQueue<CrawlTask> queue;
         private final ConcurrentHashMap<String, Long> domainLastAccess;
         private final long politeDelayMs;
-
+    
         public record CrawlTask(String url, int priority, int depth)
                 implements Comparable<CrawlTask> {
             @Override
@@ -654,24 +654,24 @@ flowchart TB
                 return Integer.compare(this.priority, other.priority);
             }
         }
-
+    
         public URLFrontier(long politeDelayMs) {
             this.queue = new PriorityBlockingQueue<>();
             this.domainLastAccess = new ConcurrentHashMap<>();
             this.politeDelayMs = politeDelayMs;
         }
-
+    
         public void add(String url, int priority, int depth) {
             queue.offer(new CrawlTask(url, priority, depth));
         }
-
+    
         public CrawlTask next() throws InterruptedException {
             while (true) {
                 CrawlTask task = queue.take();
                 String domain = URI.create(task.url()).getHost();
                 long lastAccess = domainLastAccess.getOrDefault(domain, 0L);
                 long elapsed = System.currentTimeMillis() - lastAccess;
-
+    
                 if (elapsed < politeDelayMs) {
                     Thread.sleep(politeDelayMs - elapsed);
                 }
@@ -679,23 +679,23 @@ flowchart TB
                 return task;
             }
         }
-
+    
         public int size() { return queue.size(); }
     }
-
+    
     /**
      * Crawler worker that fetches pages, extracts links, and publishes results.
      */
     public class CrawlerWorker implements Runnable {
         private static final Pattern LINK_PATTERN =
             Pattern.compile("href=[\"'](https?://[^\"'\\s>]+)[\"']", Pattern.CASE_INSENSITIVE);
-
+    
         private final URLFrontier frontier;
         private final HttpClient httpClient;
         private final Set<String> visited;
         private final int maxDepth;
         private volatile boolean running = true;
-
+    
         public CrawlerWorker(URLFrontier frontier, Set<String> visited, int maxDepth) {
             this.frontier = frontier;
             this.visited = visited;
@@ -705,7 +705,7 @@ flowchart TB
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
         }
-
+    
         @Override
         public void run() {
             while (running) {
@@ -713,7 +713,7 @@ flowchart TB
                     URLFrontier.CrawlTask task = frontier.next();
                     if (task.depth() > maxDepth) continue;
                     if (!visited.add(task.url())) continue;
-
+    
                     HttpResponse<String> response = httpClient.send(
                         HttpRequest.newBuilder()
                             .uri(URI.create(task.url()))
@@ -723,7 +723,7 @@ flowchart TB
                             .build(),
                         HttpResponse.BodyHandlers.ofString()
                     );
-
+    
                     if (response.statusCode() == 200) {
                         String body = response.body();
                         processPage(task.url(), body);
@@ -735,7 +735,7 @@ flowchart TB
                 }
             }
         }
-
+    
         private List<String> extractLinks(String html, int currentDepth) {
             List<String> links = new ArrayList<>();
             Matcher matcher = LINK_PATTERN.matcher(html);
@@ -744,11 +744,11 @@ flowchart TB
             }
             return links;
         }
-
+    
         private void processPage(String url, String content) {
             // store content, update index, emit to pipeline
         }
-
+    
         public void shutdown() { running = false; }
     }
     ```
@@ -757,7 +757,7 @@ flowchart TB
 
     ```go
     package crawler
-
+    
     import (
     	"context"
     	"fmt"
@@ -768,9 +768,9 @@ flowchart TB
     	"sync"
     	"time"
     )
-
+    
     var linkPattern = regexp.MustCompile(`href=["'](https?://[^"'\s>]+)["']`)
-
+    
     type CrawlResult struct {
     	URL        string
     	StatusCode int
@@ -779,7 +779,7 @@ flowchart TB
     	Duration   time.Duration
     	Error      error
     }
-
+    
     type Crawler struct {
     	client         *http.Client
     	visited        sync.Map
@@ -790,7 +790,7 @@ flowchart TB
     	maxDepth       int
     	workerCount    int
     }
-
+    
     func NewCrawler(workerCount int, politeDelay time.Duration, maxDepth int) *Crawler {
     	return &Crawler{
     		client: &http.Client{
@@ -809,12 +809,12 @@ flowchart TB
     		workerCount: workerCount,
     	}
     }
-
+    
     func (c *Crawler) Start(ctx context.Context, seedURLs []string) <-chan CrawlResult {
     	for _, u := range seedURLs {
     		c.frontier <- u
     	}
-
+    
     	var wg sync.WaitGroup
     	for i := 0; i < c.workerCount; i++ {
     		wg.Add(1)
@@ -823,15 +823,15 @@ flowchart TB
     			c.worker(ctx)
     		}()
     	}
-
+    
     	go func() {
     		wg.Wait()
     		close(c.results)
     	}()
-
+    
     	return c.results
     }
-
+    
     func (c *Crawler) worker(ctx context.Context) {
     	for {
     		select {
@@ -847,7 +847,7 @@ flowchart TB
     			c.enforcePoliteness(rawURL)
     			result := c.fetch(rawURL)
     			c.results <- result
-
+    
     			if result.Error == nil {
     				for _, link := range result.Links {
     					if _, seen := c.visited.Load(link); !seen {
@@ -861,25 +861,25 @@ flowchart TB
     		}
     	}
     }
-
+    
     func (c *Crawler) fetch(rawURL string) CrawlResult {
     	start := time.Now()
-
+    
     	req, err := http.NewRequest("GET", rawURL, nil)
     	if err != nil {
     		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
     	}
     	req.Header.Set("User-Agent", "SystemDesignBot/1.0")
-
+    
     	resp, err := c.client.Do(req)
     	if err != nil {
     		return CrawlResult{URL: rawURL, Error: err, Duration: time.Since(start)}
     	}
     	defer resp.Body.Close()
-
+    
     	body, _ := io.ReadAll(io.LimitReader(resp.Body, 5*1024*1024)) // 5MB max
     	links := extractLinks(string(body), rawURL)
-
+    
     	return CrawlResult{
     		URL:        rawURL,
     		StatusCode: resp.StatusCode,
@@ -888,14 +888,14 @@ flowchart TB
     		Duration:   time.Since(start),
     	}
     }
-
+    
     func (c *Crawler) enforcePoliteness(rawURL string) {
     	parsed, err := url.Parse(rawURL)
     	if err != nil {
     		return
     	}
     	domain := parsed.Host
-
+    
     	if lastHit, ok := c.domainLastHit.Load(domain); ok {
     		elapsed := time.Since(lastHit.(time.Time))
     		if elapsed < c.politeDelay {
@@ -904,7 +904,7 @@ flowchart TB
     	}
     	c.domainLastHit.Store(domain, time.Now())
     }
-
+    
     func extractLinks(html, baseURL string) []string {
     	matches := linkPattern.FindAllStringSubmatch(html, -1)
     	var links []string
