@@ -49,7 +49,7 @@
 }
 
 /* ── Header ───────────────────────────────────────────────────── */
-.md-header {
+[data-md-color-scheme="slate"] .md-header {
   background: rgba(12, 10, 29, 0.85) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -58,9 +58,11 @@
 }
 
 [data-md-color-scheme="default"] .md-header {
-  background: rgba(250, 249, 255, 0.85) !important;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  background: rgba(250, 249, 255, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .md-header__title {
@@ -118,10 +120,17 @@
   letter-spacing: -0.04em;
   line-height: 1.2;
   margin-bottom: 0.6em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1 {
   background: var(--sdi-gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+[data-md-color-scheme="default"] .md-typeset h1 {
+  color: #1e1b4b;
 }
 
 .md-typeset h2 {
@@ -153,8 +162,20 @@
   font-weight: 600;
   font-size: 1.15em;
   margin-top: 2.2em;
-  color: var(--md-accent-fg-color);
   letter-spacing: -0.01em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  color: var(--md-accent-fg-color);
+}
+
+[data-md-color-scheme="default"] .md-typeset h3 {
+  color: #4338ca;
+}
+
+[data-md-color-scheme="default"] .md-typeset h2 {
+  color: #1e1b4b;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .md-typeset h4 {
@@ -514,6 +535,71 @@
 /* ── Instant Loading Progress ─────────────────────────────────── */
 .md-progress {
   background: var(--sdi-gradient-primary) !important;
+}
+
+/* ── Light mode — Tables ─────────────────────────────────────── */
+[data-md-color-scheme="default"] .md-typeset table:not([class]) {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+[data-md-color-scheme="default"] .md-typeset table:not([class]) th {
+  background: rgba(99, 102, 241, 0.05);
+  color: #4338ca;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-md-color-scheme="default"] .md-typeset table:not([class]) td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+[data-md-color-scheme="default"] .md-typeset table:not([class]) tbody tr:hover td {
+  background: rgba(99, 102, 241, 0.03);
+}
+
+/* ── Light mode — Code ───────────────────────────────────────── */
+[data-md-color-scheme="default"] .md-typeset pre {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+[data-md-color-scheme="default"] .md-typeset :not(pre) > code {
+  background: rgba(99, 102, 241, 0.06);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+/* ── Light mode — Sidebar ────────────────────────────────────── */
+[data-md-color-scheme="default"] .md-sidebar {
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+[data-md-color-scheme="default"] .md-nav__link--active {
+  background: rgba(99, 102, 241, 0.06);
+  border-left: 2px solid var(--md-accent-fg-color);
+}
+
+/* ── Light mode — Admonitions ────────────────────────────────── */
+[data-md-color-scheme="default"] .md-typeset .admonition,
+[data-md-color-scheme="default"] .md-typeset details {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* ── Light mode — Search ─────────────────────────────────────── */
+[data-md-color-scheme="default"] .md-search__form {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--sdi-radius);
+}
+
+/* ── Light mode — Footer ─────────────────────────────────────── */
+[data-md-color-scheme="default"] .md-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ── Light mode — h2 underline ───────────────────────────────── */
+[data-md-color-scheme="default"] .md-typeset h2::after {
+  background: linear-gradient(135deg, #4338ca, #0891b2);
 }
 
 /* ── Navigation Path (Breadcrumbs) ────────────────────────────── */
