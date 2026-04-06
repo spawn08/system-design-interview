@@ -6,27 +6,6 @@ repo_url: https://github.com/spawn08/system-design-interview
 repo_name: spawn08/system-design-interview
 copyright: Copyright &copy; 2026 System Design Interview Guide contributors
 
-docs_dir: .
-
-exclude_docs: |
-  _includes/
-  _sass/
-  overrides/
-  site/
-  .github/
-  .git/
-  .cursor/
-  .rage/
-  .claude/
-  tool/
-  node_modules/
-  __pycache__/
-  *.csv
-  Gemfile*
-  requirements.txt
-  LICENSE
-  README.md
-
 theme:
   name: material
   custom_dir: overrides
