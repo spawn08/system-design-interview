@@ -56,8 +56,8 @@ extra_css:
   - assets/css/theme.css
 
 extra_javascript:
-  - assets/js/mermaid-config.js
   - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+  - assets/js/mermaid-config.js
 
 extra:
   social:
