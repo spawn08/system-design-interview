@@ -3225,11 +3225,11 @@
 <hr />
 <h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../estimation/">Estimation</a> — Back-of-the-envelope drills and sizing patterns that pair with Step 1 and Step 2.</li>
-<li><a href="../scalability/">Scalability, Availability, and Reliability</a> — Vocabulary for NFR discussions and failure-aware design.</li>
-<li><a href="../distributed_systems/">Distributed Systems</a> — Consensus, replication, and messaging—common deep-dive territory in Step 3.</li>
-<li><a href="../databases/">Databases</a> — Choosing stores and articulating consistency trade-offs during deep dive.</li>
-<li><a href="../api_design/">API Design</a> — Shaping boundaries and contracts in Step 2.</li>
+<li><a href="../estimation/">Estimation</a> — Back-of-the-envelope calculations (QPS, storage, bandwidth) anchor your design in reality during Steps 1 and 2. Without concrete numbers, interviewers cannot evaluate whether your architecture actually handles the stated scale.</li>
+<li><a href="../scalability/">Scalability, Availability, and Reliability</a> — Defines the non-functional requirements vocabulary (SLOs, error budgets, RTO/RPO) that distinguishes senior candidates. Step 1 requires you to state these requirements explicitly; this section provides the framework for doing so.</li>
+<li><a href="../distributed_systems/">Distributed Systems</a> — Covers consensus protocols (Raft, Paxos), replication strategies, and CAP trade-offs that are the most common deep-dive topics in Step 3. Interviewers probe these to assess whether you understand <em>why</em> your architecture works under failure, not just the happy path.</li>
+<li><a href="../databases/">Databases</a> — The data store choice (SQL vs. NoSQL, B-tree vs. LSM, strong vs. eventual consistency) is often the most consequential decision in a system design. This section provides the framework for articulating <em>why</em> you chose a specific store for a specific access pattern.</li>
+<li><a href="../api_design/">API Design</a> — Step 2 requires defining the system's external interface. Understanding REST constraints, idempotency guarantees, and versioning strategies lets you design clean API boundaries that communicate your architectural intent to the interviewer.</li>
 </ul>
 <hr />
 <p><em>Last updated: this page is a process guide; combine it with fundamentals topics above when preparing for interviews.</em></p>

@@ -4474,15 +4474,15 @@
 <tbody>
 <tr>
 <td><strong>Feast / Tecton docs</strong></td>
-<td>Patterns for registry + offline/online stores</td>
+<td>Feast (open-source) and Tecton (managed) define the feature store architecture: a feature registry (schema, ownership, lineage), an offline store (data warehouse for training) and an online store (low-latency cache for serving). The key innovation is the "time-travel" join — retrieving feature values as they were at training time to prevent data leakage. Understanding this dual-store pattern and point-in-time correctness is essential for any ML platform design.</td>
 </tr>
 <tr>
 <td><strong>Flink windowing</strong></td>
-<td>Event-time, watermarks, state</td>
+<td>Real-time feature computation requires aggregating streaming data over time windows. Flink's documentation covers the three windowing strategies (tumbling, sliding, session), event-time vs. processing-time semantics, and watermarks (how to handle late-arriving data without waiting forever). These concepts directly determine how features like "purchases in last 30 minutes" or "login frequency in the last hour" are computed with correctness guarantees.</td>
 </tr>
 <tr>
 <td><strong>Data validation (Great Expectations / Deequ)</strong></td>
-<td>Automated quality gates in batch paths</td>
+<td>ML models silently degrade when input features drift — unlike application bugs, there's no crash or error. Great Expectations (Python) and Deequ (Spark/Scala, by Amazon) provide automated data quality assertions (null rates, value distributions, schema conformance) that act as gates in feature pipelines. Understanding data validation is critical because the most common ML production failure is not model bugs but bad data flowing through unchecked.</td>
 </tr>
 </tbody>
 </table>

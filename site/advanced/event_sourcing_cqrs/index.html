@@ -3363,28 +3363,34 @@
 <tr>
 <th>Resource</th>
 <th>Topic</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Martin Fowler — <em>Event Sourcing</em></td>
 <td>Conceptual overview and when to use</td>
+<td>Fowler's article explains the fundamental insight: instead of storing current state (which loses history), store the sequence of events that produced it. This enables temporal queries ("what was the balance at 3pm?"), complete audit trails, and the ability to rebuild state from scratch. He also honestly covers the downsides — schema evolution of events is painful, and event stores grow without bound.</td>
 </tr>
 <tr>
 <td>Greg Young — CQRS materials</td>
 <td>Command/query separation and read models</td>
+<td>Greg Young formalized CQRS as a pattern where write models (optimized for business invariants) and read models (optimized for query performance) are completely separate. This was needed because a single model that handles both writes and complex reads leads to bloated schemas and performance compromises. His materials explain how event sourcing naturally feeds CQRS — events are projected into purpose-built read stores.</td>
 </tr>
 <tr>
 <td><em>Implementing Domain-Driven Design</em> (Vaughn Vernon)</td>
 <td>Aggregates, domain events, bounded contexts</td>
+<td>Vernon's book bridges the gap between DDD theory (Evans) and practical implementation with event sourcing. It explains why aggregates are the consistency boundary for commands, how domain events flow between bounded contexts, and why getting aggregate boundaries wrong leads to either distributed transactions (too large) or inconsistent state (too small).</td>
 </tr>
 <tr>
 <td>Enterprise Integration Patterns (Hohpe &amp; Woolf)</td>
 <td>Messaging, idempotency, outbox</td>
+<td>Event-sourced systems communicate through messages, and this book catalogues the patterns for reliable messaging: the transactional outbox (atomically write to DB and event store), idempotent consumers (handle duplicate delivery), and content-based routing. These are the building blocks that make event-driven architectures work in production.</td>
 </tr>
 <tr>
 <td>Kafka / Pulsar documentation</td>
 <td>Log-based integration at scale</td>
+<td>Kafka and Pulsar provide the durable, ordered, replayable log that event sourcing requires as its backbone. Understanding log compaction (retaining only the latest value per key), consumer group semantics, and exactly-once delivery is essential for implementing event sourcing at scale — the event store is effectively a Kafka topic.</td>
 </tr>
 </tbody>
 </table>

@@ -4329,24 +4329,29 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
 <tr>
 <th>Paper / resource</th>
 <th>Focus</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>InstructGPT</strong> (Ouyang et al.)</td>
 <td>RLHF pipeline popularization</td>
+<td>This 2022 paper demonstrated that a 1.3B parameter model fine-tuned with RLHF (human feedback on outputs → reward model → PPO optimization) outperformed the 175B GPT-3 on human preference evaluations. It popularized the three-stage alignment pipeline (SFT → reward modeling → RL) that became the standard approach for aligning LLMs. The paper also revealed the "alignment tax" — aligned models sometimes perform worse on academic benchmarks while being preferred by humans.</td>
 </tr>
 <tr>
 <td><strong>Constitutional AI</strong> (Bai et al.)</td>
 <td>Principles + self critique</td>
+<td>Anthropic's CAI paper addressed the scalability bottleneck of RLHF: collecting human preference data is expensive and slow. CAI replaces human feedback with a set of written principles (a "constitution") that the model uses to critique and revise its own outputs. This self-supervision approach dramatically reduces human annotation requirements while enabling explicit, auditable safety rules — essential for production systems that need to evolve safety policies without retraining from scratch.</td>
 </tr>
 <tr>
 <td><strong>DPO</strong> (Rafailov et al.)</td>
 <td>Direct preference optimization</td>
+<td>DPO (2023) proved that the reward model in RLHF is mathematically unnecessary — the optimal policy can be derived directly from preference pairs using a simple binary cross-entropy loss. This eliminates the instability of PPO training, reduces computational cost by ~50%, and simplifies the alignment pipeline to a single supervised fine-tuning step. DPO became the practical default for teams without the infrastructure to run stable RL training at scale.</td>
 </tr>
 <tr>
 <td><strong>Anthropic / OpenAI system cards</strong></td>
 <td>Production disclosures and limitations</td>
+<td>System cards document real-world alignment failures, red-teaming results, and mitigation strategies deployed in production. They reveal the gap between research-grade alignment and production-grade safety — jailbreaks, prompt injection, capability elicitation, and the ongoing cat-and-mouse game. Reading these cards provides the vocabulary for discussing alignment risks in system design interviews: what can go wrong, how to detect it, and how to roll back.</td>
 </tr>
 </tbody>
 </table>

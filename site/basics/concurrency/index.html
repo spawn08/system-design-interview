@@ -3935,12 +3935,12 @@
 <hr />
 <h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
 <ul>
-<li><em>Java Concurrency in Practice</em> by Brian Goetz — the definitive reference for JVM concurrency</li>
-<li><a href="https://greenteapress.com/wp/semaphores/">The Little Book of Semaphores</a> by Allen Downey — free concurrency textbook</li>
-<li><a href="https://docs.python.org/3/library/asyncio.html">Python asyncio Documentation</a></li>
-<li><a href="https://go.dev/blog/pipelines">Go Concurrency Patterns</a> — goroutines, channels, and pipeline patterns</li>
-<li><em>Designing Data-Intensive Applications</em> by Martin Kleppmann — Chapter 8: The Trouble with Distributed Systems</li>
-<li><a href="https://martinfowler.com/articles/lmax.html">Martin Fowler: LMAX Architecture</a> — single-threaded high-performance design</li>
+<li><em>Java Concurrency in Practice</em> by Brian Goetz — Written by the architect of <code>java.util.concurrent</code>, this book explains why concurrent programming is fundamentally harder than sequential: visibility (CPU caches hide updates), atomicity (check-then-act races), and ordering (compiler/CPU reordering). It provides the mental model for reasoning about thread safety in any language, not just Java.</li>
+<li><a href="https://greenteapress.com/wp/semaphores/">The Little Book of Semaphores</a> by Allen Downey — A free, problem-driven textbook that builds concurrency intuition through increasingly complex synchronization puzzles (producer-consumer, readers-writers, dining philosophers). Each solution illustrates a pattern that recurs in real distributed systems.</li>
+<li><a href="https://docs.python.org/3/library/asyncio.html">Python asyncio Documentation</a> — Python's single-threaded concurrency model uses cooperative multitasking via an event loop, avoiding the complexity of threads and locks. Understanding async/await is essential for I/O-bound services (API servers, crawlers) where thread-per-request models waste resources waiting on network calls.</li>
+<li><a href="https://go.dev/blog/pipelines">Go Concurrency Patterns</a> — Go's goroutines and channels implement CSP (Communicating Sequential Processes), a fundamentally different concurrency model from shared-memory threading. This blog series explains fan-out/fan-in, cancellation, and pipeline patterns that are directly applicable to building concurrent data processing systems.</li>
+<li><em>Designing Data-Intensive Applications</em> by Martin Kleppmann — Chapter 8 ("The Trouble with Distributed Systems") explains why distributed concurrency is qualitatively harder than local concurrency: unreliable clocks make ordering ambiguous, network partitions create split-brain scenarios, and the lack of shared memory eliminates atomic compare-and-swap as a coordination tool.</li>
+<li><a href="https://martinfowler.com/articles/lmax.html">Martin Fowler: LMAX Architecture</a> — LMAX proved that a single-threaded design using a lock-free ring buffer (the Disruptor) could process 6 million orders/sec, outperforming multi-threaded alternatives. The architecture eliminated concurrency complexity entirely by serializing all business logic through one thread, using mechanical sympathy (cache-line alignment, branch prediction) for raw speed.</li>
 </ul>
 
 

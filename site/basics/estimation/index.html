@@ -3455,24 +3455,29 @@
 <tr>
 <th>Topic</th>
 <th>Resource</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Latency Numbers</td>
 <td><a href="https://colin-scott.github.io/personal_website/research/interactive_latency.html">Jeff Dean's Numbers Everyone Should Know</a></td>
+<td>Jeff Dean (Google Fellow) compiled the canonical latency reference — L1 cache (0.5ns) to cross-continent RTT (150ms) — that anchors every back-of-the-envelope estimate. Knowing these orders of magnitude lets you instantly judge whether a design is feasible (e.g., a single-machine lookup at 1μs vs. a cross-region call at 150ms means 150,000× difference).</td>
 </tr>
 <tr>
 <td>System Design Primer</td>
 <td><a href="https://github.com/donnemartin/system-design-primer">github.com/donnemartin/system-design-primer</a></td>
+<td>A community-curated repository that organizes scalability patterns, estimation templates, and real-world architecture examples into one reference. Useful as a structured study companion for connecting individual concepts (caching, sharding, load balancing) into end-to-end system designs.</td>
 </tr>
 <tr>
 <td>Capacity Planning</td>
 <td><a href="http://highscalability.com/">High Scalability Blog</a></td>
+<td>Documents real architecture decisions from companies at scale — how Twitter handles 400K tweets/sec, how WhatsApp serves 2B users on Erlang, etc. These case studies provide the concrete numbers and architectural patterns needed to calibrate your own estimation intuition.</td>
 </tr>
 <tr>
 <td>DDIA</td>
 <td>Designing Data-Intensive Applications by Martin Kleppmann</td>
+<td>The most comprehensive modern reference for distributed systems engineering. Kleppmann rigorously covers storage engines, replication, partitioning, consistency, and batch/stream processing with clear trade-off analysis. Chapters 1–2 provide the foundation for estimation thinking: understanding what bottlenecks (disk, network, CPU) dominate which workloads.</td>
 </tr>
 </tbody>
 </table>

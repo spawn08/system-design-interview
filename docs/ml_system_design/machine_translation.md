@@ -1048,10 +1048,10 @@ flowchart TB
 
 ## Further Reading (patterns, not endorsements)
 
-- **Transformer / attention:** Vaswani et al., *Attention Is All You Need*
-- **Subword:** Sennrich et al., *Neural Machine Translation of Rare Words with Subword Units* (BPE for NMT)
-- **Multilingual NMT:** Johnson et al., *Google’s Multilingual Neural Machine Translation System: Enabling Zero-Shot Translation*
-- **Distillation:** Kim & Rush, *Sequence-Level Knowledge Distillation*
+- **Transformer / attention:** Vaswani et al., *Attention Is All You Need* (2017) — This paper replaced recurrent and convolutional architectures with pure self-attention, solving the sequential computation bottleneck that limited RNN-based translation. The Transformer processes all positions in parallel, uses multi-head attention to capture different relationship types, and introduced positional encoding for sequence ordering. It became the foundation of BERT, GPT, and every modern NMT system because it scales efficiently to long sequences and massive parallelism on GPUs.
+- **Subword:** Sennrich et al., *Neural Machine Translation of Rare Words with Subword Units* (BPE for NMT) — Before BPE, NMT systems used fixed vocabularies and replaced unknown words with UNK tokens, producing gibberish for rare words and morphologically rich languages. Byte Pair Encoding learns a vocabulary of subword units from data, enabling open-vocabulary translation without exploding vocabulary size. This technique is now used in every modern tokenizer (GPT, BERT, T5).
+- **Multilingual NMT:** Johnson et al., *Google’s Multilingual Neural Machine Translation System: Enabling Zero-Shot Translation* (2017) — This paper showed that a single NMT model trained on many language pairs simultaneously can translate between language pairs it was *never* trained on (zero-shot), simply by prepending a target language tag to the input. The architecture enabled positive transfer between related languages and dramatically reduced the engineering cost of supporting N languages from O(N²) separate models to one shared model.
+- **Distillation:** Kim & Rush, *Sequence-Level Knowledge Distillation* (2016) — Large NMT models are too slow and expensive for production serving. This paper showed that a small "student" model trained on the large "teacher" model’s outputs achieves near-teacher quality at a fraction of the inference cost. The technique is the foundation for deploying efficient translation models in latency-sensitive production systems.
 
 ---
 

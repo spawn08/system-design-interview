@@ -4084,12 +4084,12 @@ Injecting malicious code through user input.</p>
 <hr />
 <h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="https://http2-explained.haxx.se/">HTTP/2 Explained</a> — Daniel Stenberg's guide to HTTP/2</li>
-<li><a href="https://hpbn.co/">High Performance Browser Networking</a> by Ilya Grigorik — free online book</li>
-<li><a href="https://grpc.io/docs/">gRPC Documentation</a> — protocol buffers and service definitions</li>
-<li><em>Computer Networking: A Top-Down Approach</em> by Kurose &amp; Ross</li>
-<li><a href="https://datatracker.ietf.org/doc/html/rfc6455">RFC 6455: The WebSocket Protocol</a></li>
-<li><a href="https://www.cloudflare.com/learning/">Cloudflare Learning Center</a> — DNS, CDN, TLS explained clearly</li>
+<li><a href="https://http2-explained.haxx.se/">HTTP/2 Explained</a> — Daniel Stenberg (curl author) explains why HTTP/1.1's head-of-line blocking and lack of multiplexing forced workarounds like domain sharding and sprite sheets. HTTP/2 introduced binary framing, multiplexed streams over a single TCP connection, header compression (HPACK), and server push — reducing page load latency by 15–50% in practice.</li>
+<li><a href="https://hpbn.co/">High Performance Browser Networking</a> by Ilya Grigorik — A free, comprehensive guide by a Google engineer covering TCP slow start, TLS handshake optimization, UDP/QUIC, and WebSocket performance. It bridges the gap between networking theory and practical performance tuning — essential for understanding why system design choices (connection pooling, keep-alive, CDN placement) matter at the protocol level.</li>
+<li><a href="https://grpc.io/docs/">gRPC Documentation</a> — Google built gRPC to replace its internal Stubby RPC framework with an open standard. It uses HTTP/2 for multiplexing, Protocol Buffers for efficient binary serialization (10× smaller than JSON), and code-generated client/server stubs for type-safe inter-service communication. The documentation covers unary, server-streaming, client-streaming, and bidirectional streaming patterns used in microservice architectures.</li>
+<li><em>Computer Networking: A Top-Down Approach</em> by Kurose &amp; Ross — The standard university textbook that explains networking from the application layer (HTTP, DNS, SMTP) down to the physical layer. Understanding TCP congestion control (AIMD, slow start), IP routing, and ARP is necessary for diagnosing performance problems and making informed decisions about protocol selection in system design.</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc6455">RFC 6455: The WebSocket Protocol</a> — HTTP's request-response model requires the client to initiate every exchange, making real-time updates inefficient (long-polling wastes connections). WebSocket upgrades an HTTP connection to a full-duplex, persistent channel where either side can send messages. The RFC defines the handshake, frame format, and close semantics that power chat systems, live dashboards, and collaborative editors.</li>
+<li><a href="https://www.cloudflare.com/learning/">Cloudflare Learning Center</a> — Clear, visual explanations of DNS resolution, CDN caching, DDoS mitigation, and TLS/SSL. Particularly useful for understanding how edge networks reduce latency and absorb traffic spikes — concepts that appear in nearly every system design involving global users.</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

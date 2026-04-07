@@ -1086,8 +1086,8 @@ def sanitize_suggestions(items: list[str], blocklist: set[str]) -> list[str]:
 
 ### Real-world references (high level)
 
-- Large-scale search stacks combine **inverted indexes** for full-text retrieval with **separate suggestion systems** optimized for prefixes.
-- **Typeahead** products often rely on **aggregated query logs** and **strict filtering** pipelines—public engineering blogs from major search providers discuss streaming aggregation and caching, though exact internals vary.
+- Large-scale search stacks combine **inverted indexes** for full-text retrieval with **separate suggestion systems** optimized for prefixes. The architectural reason for this separation is that full-text search (inverted index + BM25 scoring) and prefix-based autocomplete (trie or prefix hash) have fundamentally different data structures and latency requirements — autocomplete must return within 50–100ms on every keystroke, while search results can tolerate 200–500ms. Systems like Google and Bing maintain entirely separate serving paths for these two functions.
+- **Typeahead** products often rely on **aggregated query logs** and **strict filtering** pipelines — aggregated query logs provide the popularity signal (most-typed queries become suggestions), while filtering pipelines remove offensive, sensitive, or low-quality suggestions in real time. Public engineering blogs from major search providers (LinkedIn, Pinterest, Airbnb) discuss streaming aggregation (Kafka + Flink for real-time query counting) and multi-tier caching (L1 in-memory per edge server, L2 shared Redis clusters, L3 precomputed offline) that enable sub-50ms suggestion latency globally.
 
 !!! note
     Use “**real-world references**” in interviews cautiously: cite **patterns** (Kafka, Flink, Redis, CDNs) rather than unverifiable internal numbers.

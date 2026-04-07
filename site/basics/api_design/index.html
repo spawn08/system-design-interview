@@ -3992,32 +3992,39 @@
 <tr>
 <th>Topic</th>
 <th>Resource</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>REST Dissertation</td>
 <td><a href="https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm">Roy Fielding's Dissertation (2000)</a></td>
+<td>Fielding defined REST as an architectural style — not a protocol — with six constraints (stateless, cacheable, uniform interface, layered, client-server, code-on-demand). Most "REST APIs" violate these constraints. Reading the original explains why HATEOAS exists, when RPC is actually more appropriate, and how the web's scalability emerges from these specific constraints.</td>
 </tr>
 <tr>
 <td>HTTP Specification</td>
 <td><a href="https://httpwg.org/specs/rfc9110.html">RFC 9110 - HTTP Semantics</a></td>
+<td>The 2022 consolidation of HTTP semantics (replacing RFCs 7230–7235) defines what methods, status codes, and headers actually mean. Understanding idempotency guarantees (PUT is idempotent, POST is not) and safe methods (GET must not have side effects) is essential for designing correct APIs — especially around caching, retries, and load balancer behavior.</td>
 </tr>
 <tr>
 <td>GraphQL Spec</td>
 <td><a href="https://spec.graphql.org/">graphql.org/spec</a></td>
+<td>Facebook created GraphQL (2012, open-sourced 2015) to solve the mobile data-fetching problem: REST endpoints either over-fetched (wasting bandwidth) or required multiple round-trips. GraphQL lets clients specify exactly the data shape they need in a single request. The spec defines the type system, query execution model, and introspection that make this possible.</td>
 </tr>
 <tr>
 <td>OAuth 2.0</td>
 <td><a href="https://tools.ietf.org/html/rfc6749">RFC 6749</a></td>
+<td>OAuth 2.0 solved the "password anti-pattern" — users giving their credentials to third-party apps. It introduced delegated authorization via access tokens, enabling "Login with Google" without sharing passwords. The RFC defines four grant types for different scenarios (web apps, mobile, server-to-server, single-page apps) and is the foundation of modern API authentication.</td>
 </tr>
 <tr>
 <td>JWT</td>
 <td><a href="https://tools.ietf.org/html/rfc7519">RFC 7519</a></td>
+<td>JSON Web Tokens provide a compact, self-contained way to transmit claims between services without server-side session storage. The RFC defines the structure (header.payload.signature), enabling stateless authentication at scale — critical for microservices where a centralized session store becomes a bottleneck.</td>
 </tr>
 <tr>
 <td>API Design Guidelines</td>
 <td><a href="https://github.com/microsoft/api-guidelines">Microsoft REST API Guidelines</a></td>
+<td>A battle-tested, opinionated guide covering versioning strategies, pagination, filtering, error response formats, and long-running operations. It codifies patterns that Microsoft learned from operating Azure APIs at massive scale — useful as a concrete reference when making API design decisions.</td>
 </tr>
 </tbody>
 </table>

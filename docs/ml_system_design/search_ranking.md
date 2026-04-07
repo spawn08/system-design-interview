@@ -1323,14 +1323,14 @@ def pairwise_preferences(blocks: List[QueryImpressionBlock]) -> List[Tuple[str, 
 
 ## Real-world references (for depth)
 
-| Topic | Pointer |
-|-------|---------|
-| Learning to rank | Burges, **From RankNet to LambdaRank to LambdaMART** (Microsoft technical report) |
-| BM25 | Robertson & Zaragoza, **The Probabilistic Relevance Framework** |
-| Dense retrieval | Reimers & Gurevych, **Sentence-BERT** |
-| ANN | Malkov & Yashunin, **HNSW**; Johnson et al., **Faiss** |
-| Position bias | Joachims et al., **Unbiased learning-to-rank** (propensity / IPS) |
-| Production patterns | Google **WDM**-style stack is proprietary — discuss **generic** two-stage + re-rank |
+| Topic | Pointer | Why This Matters |
+|-------|---------|-----------------|
+| Learning to rank | Burges, **From RankNet to LambdaRank to LambdaMART** (Microsoft technical report) | This paper traces the evolution of learning-to-rank from pairwise (RankNet: minimize pairwise inversions) to listwise (LambdaRank: optimize NDCG directly via gradient tricks) to the tree-based LambdaMART that powered Bing's search ranking. Understanding this progression explains why modern search systems use gradient-boosted trees for ranking: they handle heterogeneous features (text, behavioral, contextual) without normalization and provide interpretable feature importance for debugging. |
+| BM25 | Robertson & Zaragoza, **The Probabilistic Relevance Framework** | BM25 is the default first-stage retrieval function in virtually every search engine. It derives from a probabilistic model of relevance and introduces two key innovations over tf-idf: term frequency saturation (the 10th occurrence of a word matters less than the 2nd) and document length normalization (longer documents aren't unfairly penalized). The tunable k1 and b parameters control these behaviors and must be tuned per corpus. |
+| Dense retrieval | Reimers & Gurevych, **Sentence-BERT** | Sentence-BERT adapted BERT for efficient sentence similarity by fine-tuning siamese networks to produce fixed-size embeddings. Before SBERT, computing semantic similarity required passing every query-document pair through BERT (O(n) inference per query). SBERT pre-computes document embeddings offline, enabling sub-millisecond ANN retrieval. This is the foundation of the "two-tower" retrieval architecture used in modern search and recommendation systems. |
+| ANN | Malkov & Yashunin, **HNSW**; Johnson et al., **Faiss** | HNSW (Hierarchical Navigable Small World) graphs provide the best recall-latency trade-off for approximate nearest neighbor search in high-dimensional spaces. Faiss (Facebook AI Similarity Search) provides production-grade implementations of HNSW, IVF, and PQ quantization. Together, they enable searching billions of dense embeddings in milliseconds — the infrastructure that makes dense retrieval practical at scale. |
+| Position bias | Joachims et al., **Unbiased learning-to-rank** (propensity / IPS) | Users click higher-ranked results regardless of relevance (position bias), contaminating the click data used to train ranking models. Joachims showed how to correct for this using inverse propensity scoring (IPS): weight each click by 1/P(click|position) to estimate true relevance. Without this correction, ranking models learn to replicate the existing ranking rather than improve it — a critical issue for any search system that trains on click data. |
+| Production patterns | Google **WDM**-style stack is proprietary — discuss **generic** two-stage + re-rank | Production search architectures universally follow a multi-stage pipeline: fast recall (BM25 or ANN retrieves thousands of candidates), scoring (a learned model ranks hundreds), and re-ranking (a heavy model refines the top tens). Each stage trades off latency for quality. In interviews, describe this generic pattern with concrete latency budgets per stage rather than claiming knowledge of proprietary systems. |
 
 !!! note
     Interview answers should emphasize **architecture and measurement**, not proprietary names you cannot explain.

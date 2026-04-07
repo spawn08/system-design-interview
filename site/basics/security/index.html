@@ -3674,28 +3674,34 @@
 <tr>
 <th>Topic</th>
 <th>Resource</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>OWASP Top 10</td>
 <td><a href="https://owasp.org/www-project-top-ten/">owasp.org/www-project-top-ten</a></td>
+<td>The industry-standard classification of the most critical web application security risks. Updated periodically by security practitioners worldwide, it defines what "secure by default" means — injection, broken auth, misconfig, SSRF, etc. Every security-aware system design should address at least the top 5 threats from this list.</td>
 </tr>
 <tr>
 <td>TLS 1.3</td>
 <td><a href="https://tools.ietf.org/html/rfc8446">RFC 8446</a></td>
+<td>TLS 1.3 (2018) reduced the handshake from 2 round-trips to 1 (and 0-RTT for resumed sessions), removed insecure cipher suites (RC4, SHA-1, CBC), and mandated forward secrecy. The RFC explains why previous versions were vulnerable to downgrade attacks and how the redesigned handshake eliminates entire classes of MITM exploits.</td>
 </tr>
 <tr>
 <td>Zero Trust</td>
 <td><a href="https://csrc.nist.gov/publications/detail/sp/800-207/final">NIST SP 800-207</a></td>
+<td>Traditional perimeter security ("castle and moat") fails when attackers breach the network boundary. NIST's Zero Trust Architecture framework (2020) formalized the principle of "never trust, always verify" — every request must be authenticated and authorized regardless of network location. This is the architectural foundation for modern service mesh security (mTLS between microservices).</td>
 </tr>
 <tr>
 <td>Password Hashing</td>
 <td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP Password Storage Cheat Sheet</a></td>
+<td>Explains why bcrypt/scrypt/Argon2id are required instead of SHA-256 — adaptive hashing functions are deliberately slow to make brute-force attacks computationally infeasible. Covers salt generation, work factor tuning, and migration strategies from legacy hashing schemes.</td>
 </tr>
 <tr>
 <td>JWT Best Practices</td>
 <td><a href="https://tools.ietf.org/html/rfc8725">RFC 8725</a></td>
+<td>JWTs are widely misused — this RFC documents the pitfalls: algorithm confusion attacks (<code>alg: none</code>), key confusion between HMAC and RSA, token replay, and excessive claim lifetimes. It provides concrete recommendations for secure JWT usage in distributed systems where stateless authentication is needed.</td>
 </tr>
 </tbody>
 </table>

@@ -3404,11 +3404,11 @@
 <hr />
 <h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Amazon S3 User Guide</strong> — Consistency model, multipart upload, storage classes, and replication (official AWS documentation).</li>
-<li><strong>RFC 7234</strong> — HTTP caching semantics (<code>Cache-Control</code>, validation).</li>
-<li><strong>Mozilla MDN: HTTP caching</strong> — Practical guide to browser and shared caches.</li>
-<li><strong>AWS Well-Architected: Cost Optimization</strong> — Data transfer and storage tier patterns.</li>
-<li><strong>“High Performance Browser Networking” (Ilya Grigorik)</strong> — CDN, TCP, and HTTP/2 behavior for latency-sensitive designs.</li>
+<li><strong>Amazon S3 User Guide</strong> — S3 defined the object storage paradigm: flat namespace, HTTP API, 11 nines of durability via erasure coding across AZs. The guide covers the strong read-after-write consistency model (achieved in 2020 after years of eventual consistency), multipart upload for large objects, lifecycle policies for automated tiering (S3 → S3-IA → Glacier), and cross-region replication. Understanding S3's architecture explains why object storage replaced HDFS for most data lake workloads.</li>
+<li><strong>RFC 7234</strong> — This RFC defines how HTTP caching actually works: <code>Cache-Control</code> directives (max-age, no-cache, no-store, private, public), conditional requests (ETag, If-None-Match, Last-Modified), and cache validation. Correct CDN behavior depends on these semantics — misconfigured headers cause either stale content or unnecessary origin fetches that defeat the CDN's purpose.</li>
+<li><strong>Mozilla MDN: HTTP caching</strong> — A practical, visual guide that explains the caching chain (browser cache → shared proxy cache → CDN → origin) and how <code>Vary</code> headers, <code>stale-while-revalidate</code>, and cache partitioning work in practice. Particularly useful for understanding why a CDN hit rate is low (often due to missing or overly restrictive cache headers).</li>
+<li><strong>AWS Well-Architected: Cost Optimization</strong> — Data transfer (egress) is often the largest hidden cost in cloud architectures. This pillar covers strategies: use CloudFront to reduce S3 egress charges, compress objects before storage, implement intelligent tiering, and avoid cross-region transfers. Essential for system designs where the interviewer asks "how would you optimize cost at scale?"</li>
+<li><strong>“High Performance Browser Networking” (Ilya Grigorik)</strong> — Grigorik explains the end-to-end latency chain: TCP slow start, TLS handshake, DNS resolution, and HTTP/2 multiplexing. Understanding these mechanics reveals why CDN PoP placement (reducing RTT), connection reuse (avoiding slow start), and edge TLS termination matter for content delivery performance.</li>
 </ul>
 <hr />
 <h2 id="quick-interview-checklist">Quick interview checklist<a class="headerlink" href="#quick-interview-checklist" title="Permanent link">&para;</a></h2>

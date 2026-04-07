@@ -4640,32 +4640,39 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 <tr>
 <th>Topic</th>
 <th>Pointer</th>
+<th>Why This Matters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Learning to rank</td>
 <td>Burges, <strong>From RankNet to LambdaRank to LambdaMART</strong> (Microsoft technical report)</td>
+<td>This paper traces the evolution of learning-to-rank from pairwise (RankNet: minimize pairwise inversions) to listwise (LambdaRank: optimize NDCG directly via gradient tricks) to the tree-based LambdaMART that powered Bing's search ranking. Understanding this progression explains why modern search systems use gradient-boosted trees for ranking: they handle heterogeneous features (text, behavioral, contextual) without normalization and provide interpretable feature importance for debugging.</td>
 </tr>
 <tr>
 <td>BM25</td>
 <td>Robertson &amp; Zaragoza, <strong>The Probabilistic Relevance Framework</strong></td>
+<td>BM25 is the default first-stage retrieval function in virtually every search engine. It derives from a probabilistic model of relevance and introduces two key innovations over tf-idf: term frequency saturation (the 10th occurrence of a word matters less than the 2nd) and document length normalization (longer documents aren't unfairly penalized). The tunable k1 and b parameters control these behaviors and must be tuned per corpus.</td>
 </tr>
 <tr>
 <td>Dense retrieval</td>
 <td>Reimers &amp; Gurevych, <strong>Sentence-BERT</strong></td>
+<td>Sentence-BERT adapted BERT for efficient sentence similarity by fine-tuning siamese networks to produce fixed-size embeddings. Before SBERT, computing semantic similarity required passing every query-document pair through BERT (O(n) inference per query). SBERT pre-computes document embeddings offline, enabling sub-millisecond ANN retrieval. This is the foundation of the "two-tower" retrieval architecture used in modern search and recommendation systems.</td>
 </tr>
 <tr>
 <td>ANN</td>
 <td>Malkov &amp; Yashunin, <strong>HNSW</strong>; Johnson et al., <strong>Faiss</strong></td>
+<td>HNSW (Hierarchical Navigable Small World) graphs provide the best recall-latency trade-off for approximate nearest neighbor search in high-dimensional spaces. Faiss (Facebook AI Similarity Search) provides production-grade implementations of HNSW, IVF, and PQ quantization. Together, they enable searching billions of dense embeddings in milliseconds — the infrastructure that makes dense retrieval practical at scale.</td>
 </tr>
 <tr>
 <td>Position bias</td>
 <td>Joachims et al., <strong>Unbiased learning-to-rank</strong> (propensity / IPS)</td>
+<td>Users click higher-ranked results regardless of relevance (position bias), contaminating the click data used to train ranking models. Joachims showed how to correct for this using inverse propensity scoring (IPS): weight each click by 1/P(click</td>
 </tr>
 <tr>
 <td>Production patterns</td>
 <td>Google <strong>WDM</strong>-style stack is proprietary — discuss <strong>generic</strong> two-stage + re-rank</td>
+<td>Production search architectures universally follow a multi-stage pipeline: fast recall (BM25 or ANN retrieves thousands of candidates), scoring (a learned model ranks hundreds), and re-ranking (a heavy model refines the top tens). Each stage trades off latency for quality. In interviews, describe this generic pattern with concrete latency budgets per stage rather than claiming knowledge of proprietary systems.</td>
 </tr>
 </tbody>
 </table>

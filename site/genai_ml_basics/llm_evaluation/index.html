@@ -4334,10 +4334,10 @@ R_A' = R_A + K \cdot (S_A - E_A)
 <hr />
 <h3 id="further-reading-pointers">Further Reading (Pointers)<a class="headerlink" href="#further-reading-pointers" title="Permanent link">&para;</a></h3>
 <ul>
-<li>BLEU / ROUGE / BERTScore papers and tooling docs for implementation details.</li>
-<li>LMSYS Chatbot Arena methodology for <strong>pairwise</strong> and <strong>Elo</strong>.</li>
-<li>RAGAS documentation for <strong>retrieval-augmented</strong> evaluation primitives.</li>
-<li>TruthfulQA for <strong>honesty</strong> evaluation design.</li>
+<li><strong>BLEU / ROUGE / BERTScore</strong> — BLEU (Papineni et al., 2002) measures n-gram precision between generated and reference text, originally designed for machine translation. ROUGE (Lin, 2004) measures recall-oriented overlap, designed for summarization. Both have known limitations: they correlate poorly with human judgment for open-ended generation. BERTScore (Zhang et al., 2020) addresses this by computing semantic similarity using contextual embeddings instead of surface-level token matching. Understanding when each metric is appropriate (and when none suffice) is critical for LLM evaluation system design.</li>
+<li><strong>LMSYS Chatbot Arena</strong> — The Arena introduced crowdsourced pairwise comparison (users choose between two blind model outputs) with Elo rating aggregation as the most reliable method for ranking LLMs on open-ended tasks. This methodology is important because automated metrics fail to capture nuanced quality differences in chat — human preference is the gold standard, and Elo provides a principled way to aggregate noisy pairwise judgments into a global ranking.</li>
+<li><strong>RAGAS documentation</strong> — RAGAS (Retrieval-Augmented Generation Assessment) provides metrics specifically designed for RAG pipelines: faithfulness (does the answer match the retrieved context?), answer relevance (does it address the question?), and context precision/recall (did retrieval find the right documents?). These decomposed metrics are essential because RAG failures can come from retrieval, generation, or both — and a single end-to-end metric cannot diagnose which component is broken.</li>
+<li><strong>TruthfulQA</strong> — Lin et al. created TruthfulQA to measure whether LLMs generate truthful answers rather than repeating popular misconceptions. The benchmark revealed that larger models are often <em>less</em> truthful (they better internalize common falsehoods from training data). This is the foundation for evaluating honesty and hallucination in LLM systems — a critical quality dimension that standard accuracy benchmarks completely miss.</li>
 </ul>
 <p>This page is a <strong>fundamentals</strong> layer — pair it with <a href="../../genai_ml_system_design/enterprise_rag/">Enterprise RAG</a> and <a href="../../genai_ml_system_design/llm_chatbot/">LLM Chatbot</a> system design notes for end-to-end stories.</p>
 
