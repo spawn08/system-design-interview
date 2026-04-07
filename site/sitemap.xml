@@ -196,12 +196,32 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/document_qa_system/</loc>
+         <lastmod>2026-04-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/enterprise_rag/</loc>
          <lastmod>2026-04-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/hallucination_detection/</loc>
+         <lastmod>2026-04-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/llm_chatbot/</loc>
+         <lastmod>2026-04-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/llm_evaluation_pipeline/</loc>
+         <lastmod>2026-04-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/llm_finetuning_platform/</loc>
          <lastmod>2026-04-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
@@ -217,6 +237,11 @@
     </url>
     <url>
          <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/multimodal_search/</loc>
+         <lastmod>2026-04-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://spawn08.github.io/system-design-interview/genai_ml_system_design/prompt_management/</loc>
          <lastmod>2026-04-07</lastmod>
          <changefreq>daily</changefreq>
     </url>

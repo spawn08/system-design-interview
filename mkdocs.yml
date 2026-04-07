@@ -177,11 +177,16 @@ nav:
     - genai_ml_system_design/index.md
     - LLM-Powered Chatbot: genai_ml_system_design/llm_chatbot.md
     - Enterprise RAG System: genai_ml_system_design/enterprise_rag.md
+    - Document Q&A System: genai_ml_system_design/document_qa_system.md
     - AI Code Assistant: genai_ml_system_design/ai_code_assistant.md
     - LLM Content Moderation: genai_ml_system_design/content_moderation.md
+    - Hallucination Detection & Prevention: genai_ml_system_design/hallucination_detection.md
     - ML Training Platform: genai_ml_system_design/ml_training_platform.md
+    - LLM Fine-Tuning Platform: genai_ml_system_design/llm_finetuning_platform.md
     - Multi-Modal Search: genai_ml_system_design/multimodal_search.md
     - AI Agent System: genai_ml_system_design/ai_agent_system.md
     - LLM Gateway: genai_ml_system_design/llm_gateway.md
+    - LLM Evaluation Pipeline: genai_ml_system_design/llm_evaluation_pipeline.md
+    - Prompt Management & Versioning: genai_ml_system_design/prompt_management.md
     - Text-to-Image Generation: genai_ml_system_design/text_to_image.md
     - Vector Database: genai_ml_system_design/vector_database.md

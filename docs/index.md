@@ -61,13 +61,14 @@ Week 1-2: Foundations
   LLM Systems (RAG, fine-tuning, vector DBs) → Distributed Training → LLM Evaluation → RLHF & Alignment
 
 Week 3-4: GenAI Design Problems
-  LLM Chatbot → Enterprise RAG → AI Code Assistant → LLM Gateway
+  LLM Chatbot → Enterprise RAG → Document Q&A → AI Code Assistant → LLM Gateway
 
 Week 5-6: Advanced GenAI
-  AI Agent System → Content Moderation → Text-to-Image → Multi-Modal Search
+  AI Agent System → Content Moderation → Hallucination Detection → Text-to-Image → Multi-Modal Search
 
-Week 7-8: Infrastructure + Practice
-  ML Training Platform → Mock interviews with interview transcripts
+Week 7-8: Infrastructure + LLM Ops + Practice
+  ML Training Platform → Fine-Tuning Platform → LLM Evaluation Pipeline → Prompt Management
+  Mock interviews with interview transcripts
 ```
 
 ### Path 4: Staff Engineer (L6) — All Domains
@@ -205,16 +206,21 @@ Production ML systems — 10 designs covering ranking, retrieval, personalizatio
 - [**Speech Recognition**](ml_system_design/speech_recognition.md) - CTC/RNN-T, streaming ASR, speaker diarization, Whisper
 
 ### [GenAI System Design](genai_ml_system_design/index.md)
-Production GenAI systems — 10 designs with Google-style interview transcripts.
+Production GenAI systems — 15 designs with Google-style interview transcripts.
 
 - [**LLM-Powered Chatbot**](genai_ml_system_design/llm_chatbot.md) - KV-cache, PagedAttention, streaming, safety
 - [**Enterprise RAG System**](genai_ml_system_design/enterprise_rag.md) - Chunking, hybrid retrieval, ACLs, citations
+- [**Document Q&A System**](genai_ml_system_design/document_qa_system.md) - PDF parsing, 10K+ docs, cross-encoder re-ranking, citations
 - [**AI Code Assistant**](genai_ml_system_design/ai_code_assistant.md) - FIM, speculative decoding, repo context
 - [**LLM Content Moderation**](genai_ml_system_design/content_moderation.md) - Cascade architecture, adversarial robustness
+- [**Hallucination Detection**](genai_ml_system_design/hallucination_detection.md) - Claim extraction, NLI verification, confidence scoring
 - [**ML Training Platform**](genai_ml_system_design/ml_training_platform.md) - Gang scheduling, checkpointing, GPU clusters
+- [**LLM Fine-Tuning Platform**](genai_ml_system_design/llm_finetuning_platform.md) - LoRA/QLoRA, private data, differential privacy, blue-green deploy
 - [**Multi-Modal Search**](genai_ml_system_design/multimodal_search.md) - CLIP embeddings, cross-modal retrieval
 - [**AI Agent System**](genai_ml_system_design/ai_agent_system.md) - ReAct, tool use, planning, memory, multi-agent
 - [**LLM Gateway**](genai_ml_system_design/llm_gateway.md) - Multi-model routing, semantic caching, cost control
+- [**LLM Evaluation Pipeline**](genai_ml_system_design/llm_evaluation_pipeline.md) - LLM-as-judge, Elo rating, benchmarks, A/B testing
+- [**Prompt Management & Versioning**](genai_ml_system_design/prompt_management.md) - Prompt registry, templating, A/B testing, environment promotion
 - [**Text-to-Image Generation**](genai_ml_system_design/text_to_image.md) - Diffusion models, latent space, safety, CFG
 - [**Vector Database**](genai_ml_system_design/vector_database.md) - HNSW, IVF-PQ, hybrid search, billion-scale ANN
 
@@ -265,8 +271,8 @@ Follow the [Learning Path](#recommended-learning-paths) for your target role abo
 | **System Design Examples** | 28 classic problems (incl. Staff Guide) | Intermediate-Hard |
 | **GenAI/ML Fundamentals** | 7 ML/GenAI building blocks | Medium-Hard |
 | **ML System Design** | 10 ML systems | Hard |
-| **GenAI System Design** | 10 GenAI systems (with interview transcripts) | Very Hard |
-| **Total** | **79** | |
+| **GenAI System Design** | 15 GenAI systems (with interview transcripts) | Very Hard |
+| **Total** | **84** | |
 
 ---
 

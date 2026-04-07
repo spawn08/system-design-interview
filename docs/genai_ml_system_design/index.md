@@ -1,6 +1,6 @@
 # GenAI System Design
 
-Production system design for Generative AI — 10 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.
+Production system design for Generative AI — 15 designs covering chatbots, RAG, document Q&A, agents, code assistants, hallucination detection, fine-tuning, evaluation pipelines, prompt management, image generation, and more. Each includes a hypothetical Google-style interview transcript.
 
 ---
 
@@ -39,17 +39,27 @@ Traditional ML system design focuses on **classification, ranking, and retrieval
 
 | Order | Design | New Concepts Introduced | Builds On |
 |-------|--------|------------------------|-----------|
-| 4 | [AI Code Assistant](ai_code_assistant.md) | FIM, repo context, speculative decoding | Chatbot (serving) + RAG (retrieval) |
-| 5 | [AI Agent System](ai_agent_system.md) | ReAct, tool use, planning, memory, multi-agent | Chatbot + RAG + Gateway |
-| 6 | [LLM Content Moderation](content_moderation.md) | Cascade, adversarial robustness, human-in-the-loop | Chatbot (safety pipeline) |
+| 4 | [Document Q&A System](document_qa_system.md) | PDF parsing, OCR, cross-encoder re-ranking, citations | RAG (retrieval) |
+| 5 | [AI Code Assistant](ai_code_assistant.md) | FIM, repo context, speculative decoding | Chatbot (serving) + RAG (retrieval) |
+| 6 | [AI Agent System](ai_agent_system.md) | ReAct, tool use, planning, memory, multi-agent | Chatbot + RAG + Gateway |
+| 7 | [LLM Content Moderation](content_moderation.md) | Cascade, adversarial robustness, human-in-the-loop | Chatbot (safety pipeline) |
+| 8 | [Hallucination Detection](hallucination_detection.md) | Claim extraction, NLI verification, confidence scoring | RAG + Moderation |
 
 ### Phase 3: Advanced GenAI
 
 | Order | Design | New Concepts Introduced | Builds On |
 |-------|--------|------------------------|-----------|
-| 7 | [Text-to-Image Generation](text_to_image.md) | Diffusion models, CFG, latent space, safety | Chatbot (GPU serving) + Moderation |
-| 8 | [Multi-Modal Search](multimodal_search.md) | CLIP/SigLIP, cross-modal retrieval, video | RAG (retrieval) + Image generation |
-| 9 | [ML Training Platform](ml_training_platform.md) | Gang scheduling, checkpointing, GPU clusters | All (training infrastructure for all models) |
+| 9 | [Text-to-Image Generation](text_to_image.md) | Diffusion models, CFG, latent space, safety | Chatbot (GPU serving) + Moderation |
+| 10 | [Multi-Modal Search](multimodal_search.md) | CLIP/SigLIP, cross-modal retrieval, video | RAG (retrieval) + Image generation |
+| 11 | [ML Training Platform](ml_training_platform.md) | Gang scheduling, checkpointing, GPU clusters | All (training infrastructure for all models) |
+| 12 | [LLM Fine-Tuning Platform](llm_finetuning_platform.md) | LoRA/QLoRA, VPC data plane, eval gates, blue-green | RAG + Training Platform |
+
+### Phase 4: LLM Operations & Infrastructure
+
+| Order | Design | New Concepts Introduced | Builds On |
+|-------|--------|------------------------|-----------|
+| 13 | [LLM Evaluation Pipeline](llm_evaluation_pipeline.md) | LLM-as-judge, Elo rating, benchmarks, A/B testing | All (quality assurance for all LLM systems) |
+| 14 | [Prompt Management & Versioning](prompt_management.md) | Prompt registry, templating, environment promotion | Gateway + Evaluation Pipeline |
 
 ---
 
@@ -90,6 +100,34 @@ Design an LLM gateway/proxy that handles routing, fallback, semantic caching, ra
 **Key concepts:** Semantic caching, intelligent model routing, token-based rate limiting, circuit breaker per provider, PII scrubbing, cost attribution, unified API normalization
 
 **Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Document Q&A System](document_qa_system.md)
+
+Enterprise Knowledge
+
+NEW
+
+Design a document Q&A system that handles 10,000+ PDFs — PDF parsing, table/image extraction, chunking, hybrid retrieval with re-ranking, and citation-grounded generation.
+
+**Key concepts:** PDF parsing (PyMuPDF, Unstructured), OCR, recursive chunking, bi-encoder embeddings, HNSW, BM25 + dense hybrid retrieval, cross-encoder re-ranking, citation extraction, incremental indexing, ACL-aware retrieval
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Hallucination Detection & Prevention](hallucination_detection.md)
+
+Trust & Safety
+
+NEW
+
+Design a system to detect and prevent LLM hallucinations in customer-facing products — claim extraction, fact verification, confidence scoring, and defense-in-depth guardrails.
+
+**Key concepts:** Claim extraction (NLI), fact verification (knowledge graph + search), self-consistency checking, token-level confidence scoring, output grounding, guardrails, human-in-the-loop review, calibration fine-tuning
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
 
 ---
 
@@ -169,6 +207,46 @@ Design an ML training platform like Vertex AI / SageMaker — job scheduling, di
 
 ---
 
+### [LLM Fine-Tuning Platform](llm_finetuning_platform.md)
+
+GenAI Training
+
+Design a VPC-native LLM fine-tuning platform for private enterprise data — curation, LoRA/QLoRA, DP, experiment tracking, evaluation vs. base, and blue-green deployment.
+
+**Key concepts:** Instruction SFT formatting, deduplication, LoRA/QLoRA, gradient accumulation, checkpointing, model merging, MLflow/W&B, differential privacy, A/B and shadow eval, catastrophic forgetting
+
+**Difficulty:** ⭐⭐⭐⭐⭐ Very Hard
+
+---
+
+### [LLM Evaluation Pipeline](llm_evaluation_pipeline.md)
+
+LLM Operations
+
+NEW
+
+Design an evaluation pipeline for LLM-based products — automated benchmarks, LLM-as-judge, human evaluation with Elo ratings, safety testing, A/B testing, and golden dataset regression.
+
+**Key concepts:** MMLU/HumanEval/GSM8K benchmarks, BLEU/ROUGE/pass@k metrics, LLM-as-judge with calibration, Elo rating computation, red-teaming, golden dataset regression, statistical significance testing, online vs offline evaluation
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
+### [Prompt Management & Versioning](prompt_management.md)
+
+LLM Operations
+
+NEW
+
+Design a prompt management and versioning system — prompt registry, Jinja templating, A/B testing, golden dataset evaluation, environment promotion, and one-click rollback.
+
+**Key concepts:** Prompt registry, version DAG, Jinja templating, semantic diff, A/B traffic splitting, golden dataset evaluation, environment promotion (dev → staging → prod), rollback, audit trail, prompt composition and chaining
+
+**Difficulty:** ⭐⭐⭐⭐ Hard
+
+---
+
 ### [Vector Database](vector_database.md)
 
 AI Infrastructure
@@ -196,7 +274,12 @@ Design a vector database purpose-built for AI applications — HNSW, IVF-PQ inde
 | **Text-to-Image** | < 10s per image | Safety, quality | FID, CLIP score, Human preference |
 | **Vector Database** | < 10ms P99 | Billion-scale ANN, recall | Recall@K, QPS |
 | **Multi-Modal Search** | < 300ms | Cross-modal alignment | NDCG@K, Recall@K |
+| **Document Q&A** | < 3s end-to-end | PDF parsing, multi-doc queries | Answer accuracy, Citation precision |
+| **Hallucination Detection** | < 1s overhead | Claim verification at scale | Hallucination rate, Precision/Recall |
 | **ML Training Platform** | N/A (throughput) | GPU utilization, fault tolerance | MFU, Job completion rate |
+| **LLM Fine-Tuning Platform** | N/A (train) / inherits inference | Data residency, eval gates, forgetting | Win-rate vs base, ε budget, rollback time |
+| **LLM Evaluation Pipeline** | < 30min per eval run | Subjective quality, no ground truth | Benchmark scores, Elo ratings |
+| **Prompt Management** | < 10ms resolution | Version drift, A/B correctness | Prompt win-rate, Rollback time |
 
 ---
 
@@ -266,16 +349,18 @@ Use this adapted framework in your interviews:
 GenAI/ML Fundamentals              GenAI System Design Questions
 ─────────────────────              ─────────────────────────────
 Model Serving          ──────►     LLM Chatbot, Code Assistant, LLM Gateway
-LLM Systems            ──────►     Enterprise RAG, Chatbot, AI Agents
+LLM Systems            ──────►     Enterprise RAG, Chatbot, AI Agents, Document Q&A
 Feature Stores         ──────►     Content Moderation
-Distributed Training   ──────►     ML Training Platform, Text-to-Image
+Distributed Training   ──────►     ML Training Platform, Text-to-Image, Fine-Tuning Platform
 Data Pipelines         ──────►     All GenAI Systems
+LLM Evaluation         ──────►     LLM Evaluation Pipeline, Hallucination Detection
+RLHF & Alignment       ──────►     Fine-Tuning Platform, Prompt Management
 
 ML System Design                   GenAI System Design Questions
 ────────────────                   ─────────────────────────────
-Image Search           ──────►     Multi-Modal Search
-Search Ranking         ──────►     Enterprise RAG (retrieval)
-Fraud Detection        ──────►     Content Moderation (cascade)
+Image Search           ──────►     Multi-Modal Search, Document Q&A
+Search Ranking         ──────►     Enterprise RAG (retrieval), Document Q&A
+Fraud Detection        ──────►     Content Moderation (cascade), Hallucination Detection
 Ads Ranking            ──────►     LLM Gateway (cost optimization)
 ```
 

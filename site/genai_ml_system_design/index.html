@@ -2249,6 +2249,16 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
       
@@ -2341,6 +2351,27 @@
   
   
     <li class="md-nav__item">
+      <a href="document_qa_system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Document Q&A System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="ai_code_assistant/" class="md-nav__link">
         
   
@@ -2383,11 +2414,53 @@
   
   
     <li class="md-nav__item">
+      <a href="hallucination_detection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hallucination Detection & Prevention
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="ml_training_platform/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     ML Training Platform
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="llm_finetuning_platform/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Fine-Tuning Platform
   </span>
   
 
@@ -2467,6 +2540,48 @@
   
   
     <li class="md-nav__item">
+      <a href="llm_evaluation_pipeline/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLM Evaluation Pipeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="prompt_management/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Prompt Management & Versioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="text_to_image/" class="md-nav__link">
         
   
@@ -2528,7 +2643,7 @@
 
 
 <h1 id="genai-system-design">GenAI System Design<a class="headerlink" href="#genai-system-design" title="Permanent link">&para;</a></h1>
-<p>Production system design for Generative AI — 10 designs covering chatbots, RAG, agents, code assistants, image generation, and more. Each includes a hypothetical Google-style interview transcript.</p>
+<p>Production system design for Generative AI — 15 designs covering chatbots, RAG, document Q&amp;A, agents, code assistants, hallucination detection, fine-tuning, evaluation pipelines, prompt management, image generation, and more. Each includes a hypothetical Google-style interview transcript.</p>
 <hr />
 <h2 id="why-genai-system-design-is-a-separate-category">Why GenAI System Design Is a Separate Category<a class="headerlink" href="#why-genai-system-design-is-a-separate-category" title="Permanent link">&para;</a></h2>
 <p>Traditional ML system design focuses on <strong>classification, ranking, and retrieval</strong>. GenAI introduces fundamentally different challenges:</p>
@@ -2620,21 +2735,33 @@
 <tbody>
 <tr>
 <td>4</td>
+<td><a href="document_qa_system/">Document Q&amp;A System</a></td>
+<td>PDF parsing, OCR, cross-encoder re-ranking, citations</td>
+<td>RAG (retrieval)</td>
+</tr>
+<tr>
+<td>5</td>
 <td><a href="ai_code_assistant/">AI Code Assistant</a></td>
 <td>FIM, repo context, speculative decoding</td>
 <td>Chatbot (serving) + RAG (retrieval)</td>
 </tr>
 <tr>
-<td>5</td>
+<td>6</td>
 <td><a href="ai_agent_system/">AI Agent System</a></td>
 <td>ReAct, tool use, planning, memory, multi-agent</td>
 <td>Chatbot + RAG + Gateway</td>
 </tr>
 <tr>
-<td>6</td>
+<td>7</td>
 <td><a href="content_moderation/">LLM Content Moderation</a></td>
 <td>Cascade, adversarial robustness, human-in-the-loop</td>
 <td>Chatbot (safety pipeline)</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="hallucination_detection/">Hallucination Detection</a></td>
+<td>Claim extraction, NLI verification, confidence scoring</td>
+<td>RAG + Moderation</td>
 </tr>
 </tbody>
 </table>
@@ -2650,22 +2777,53 @@
 </thead>
 <tbody>
 <tr>
-<td>7</td>
+<td>9</td>
 <td><a href="text_to_image/">Text-to-Image Generation</a></td>
 <td>Diffusion models, CFG, latent space, safety</td>
 <td>Chatbot (GPU serving) + Moderation</td>
 </tr>
 <tr>
-<td>8</td>
+<td>10</td>
 <td><a href="multimodal_search/">Multi-Modal Search</a></td>
 <td>CLIP/SigLIP, cross-modal retrieval, video</td>
 <td>RAG (retrieval) + Image generation</td>
 </tr>
 <tr>
-<td>9</td>
+<td>11</td>
 <td><a href="ml_training_platform/">ML Training Platform</a></td>
 <td>Gang scheduling, checkpointing, GPU clusters</td>
 <td>All (training infrastructure for all models)</td>
+</tr>
+<tr>
+<td>12</td>
+<td><a href="llm_finetuning_platform/">LLM Fine-Tuning Platform</a></td>
+<td>LoRA/QLoRA, VPC data plane, eval gates, blue-green</td>
+<td>RAG + Training Platform</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-4-llm-operations-infrastructure">Phase 4: LLM Operations &amp; Infrastructure<a class="headerlink" href="#phase-4-llm-operations-infrastructure" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Design</th>
+<th>New Concepts Introduced</th>
+<th>Builds On</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>13</td>
+<td><a href="llm_evaluation_pipeline/">LLM Evaluation Pipeline</a></td>
+<td>LLM-as-judge, Elo rating, benchmarks, A/B testing</td>
+<td>All (quality assurance for all LLM systems)</td>
+</tr>
+<tr>
+<td>14</td>
+<td><a href="prompt_management/">Prompt Management &amp; Versioning</a></td>
+<td>Prompt registry, templating, environment promotion</td>
+<td>Gateway + Evaluation Pipeline</td>
 </tr>
 </tbody>
 </table>
@@ -2689,6 +2847,20 @@
 <p>Design an LLM gateway/proxy that handles routing, fallback, semantic caching, rate limiting, cost tracking, and observability across multiple LLM providers.</p>
 <p><strong>Key concepts:</strong> Semantic caching, intelligent model routing, token-based rate limiting, circuit breaker per provider, PII scrubbing, cost attribution, unified API normalization</p>
 <p><strong>Difficulty:</strong> ⭐⭐⭐⭐ Hard</p>
+<hr />
+<h3 id="document-qa-system"><a href="document_qa_system/">Document Q&amp;A System</a><a class="headerlink" href="#document-qa-system" title="Permanent link">&para;</a></h3>
+<p>Enterprise Knowledge</p>
+<p>NEW</p>
+<p>Design a document Q&amp;A system that handles 10,000+ PDFs — PDF parsing, table/image extraction, chunking, hybrid retrieval with re-ranking, and citation-grounded generation.</p>
+<p><strong>Key concepts:</strong> PDF parsing (PyMuPDF, Unstructured), OCR, recursive chunking, bi-encoder embeddings, HNSW, BM25 + dense hybrid retrieval, cross-encoder re-ranking, citation extraction, incremental indexing, ACL-aware retrieval</p>
+<p><strong>Difficulty:</strong> ⭐⭐⭐⭐ Hard</p>
+<hr />
+<h3 id="hallucination-detection-prevention"><a href="hallucination_detection/">Hallucination Detection &amp; Prevention</a><a class="headerlink" href="#hallucination-detection-prevention" title="Permanent link">&para;</a></h3>
+<p>Trust &amp; Safety</p>
+<p>NEW</p>
+<p>Design a system to detect and prevent LLM hallucinations in customer-facing products — claim extraction, fact verification, confidence scoring, and defense-in-depth guardrails.</p>
+<p><strong>Key concepts:</strong> Claim extraction (NLI), fact verification (knowledge graph + search), self-consistency checking, token-level confidence scoring, output grounding, guardrails, human-in-the-loop review, calibration fine-tuning</p>
+<p><strong>Difficulty:</strong> ⭐⭐⭐⭐⭐ Very Hard</p>
 <hr />
 <h3 id="ai-code-assistant"><a href="ai_code_assistant/">AI Code Assistant</a><a class="headerlink" href="#ai-code-assistant" title="Permanent link">&para;</a></h3>
 <p>Developer Tools</p>
@@ -2727,6 +2899,26 @@
 <p>Design an ML training platform like Vertex AI / SageMaker — job scheduling, distributed training, experiment tracking, and GPU cluster management.</p>
 <p><strong>Key concepts:</strong> GPU scheduling (gang scheduling), checkpointing, elastic training, experiment tracking, hyperparameter tuning, multi-tenancy, cost attribution</p>
 <p><strong>Difficulty:</strong> ⭐⭐⭐⭐⭐ Very Hard</p>
+<hr />
+<h3 id="llm-fine-tuning-platform"><a href="llm_finetuning_platform/">LLM Fine-Tuning Platform</a><a class="headerlink" href="#llm-fine-tuning-platform" title="Permanent link">&para;</a></h3>
+<p>GenAI Training</p>
+<p>Design a VPC-native LLM fine-tuning platform for private enterprise data — curation, LoRA/QLoRA, DP, experiment tracking, evaluation vs. base, and blue-green deployment.</p>
+<p><strong>Key concepts:</strong> Instruction SFT formatting, deduplication, LoRA/QLoRA, gradient accumulation, checkpointing, model merging, MLflow/W&amp;B, differential privacy, A/B and shadow eval, catastrophic forgetting</p>
+<p><strong>Difficulty:</strong> ⭐⭐⭐⭐⭐ Very Hard</p>
+<hr />
+<h3 id="llm-evaluation-pipeline"><a href="llm_evaluation_pipeline/">LLM Evaluation Pipeline</a><a class="headerlink" href="#llm-evaluation-pipeline" title="Permanent link">&para;</a></h3>
+<p>LLM Operations</p>
+<p>NEW</p>
+<p>Design an evaluation pipeline for LLM-based products — automated benchmarks, LLM-as-judge, human evaluation with Elo ratings, safety testing, A/B testing, and golden dataset regression.</p>
+<p><strong>Key concepts:</strong> MMLU/HumanEval/GSM8K benchmarks, BLEU/ROUGE/pass@k metrics, LLM-as-judge with calibration, Elo rating computation, red-teaming, golden dataset regression, statistical significance testing, online vs offline evaluation</p>
+<p><strong>Difficulty:</strong> ⭐⭐⭐⭐ Hard</p>
+<hr />
+<h3 id="prompt-management-versioning"><a href="prompt_management/">Prompt Management &amp; Versioning</a><a class="headerlink" href="#prompt-management-versioning" title="Permanent link">&para;</a></h3>
+<p>LLM Operations</p>
+<p>NEW</p>
+<p>Design a prompt management and versioning system — prompt registry, Jinja templating, A/B testing, golden dataset evaluation, environment promotion, and one-click rollback.</p>
+<p><strong>Key concepts:</strong> Prompt registry, version DAG, Jinja templating, semantic diff, A/B traffic splitting, golden dataset evaluation, environment promotion (dev → staging → prod), rollback, audit trail, prompt composition and chaining</p>
+<p><strong>Difficulty:</strong> ⭐⭐⭐⭐ Hard</p>
 <hr />
 <h3 id="vector-database"><a href="vector_database/">Vector Database</a><a class="headerlink" href="#vector-database" title="Permanent link">&para;</a></h3>
 <p>AI Infrastructure</p>
@@ -2801,10 +2993,40 @@
 <td>NDCG@K, Recall@K</td>
 </tr>
 <tr>
+<td><strong>Document Q&amp;A</strong></td>
+<td>&lt; 3s end-to-end</td>
+<td>PDF parsing, multi-doc queries</td>
+<td>Answer accuracy, Citation precision</td>
+</tr>
+<tr>
+<td><strong>Hallucination Detection</strong></td>
+<td>&lt; 1s overhead</td>
+<td>Claim verification at scale</td>
+<td>Hallucination rate, Precision/Recall</td>
+</tr>
+<tr>
 <td><strong>ML Training Platform</strong></td>
 <td>N/A (throughput)</td>
 <td>GPU utilization, fault tolerance</td>
 <td>MFU, Job completion rate</td>
+</tr>
+<tr>
+<td><strong>LLM Fine-Tuning Platform</strong></td>
+<td>N/A (train) / inherits inference</td>
+<td>Data residency, eval gates, forgetting</td>
+<td>Win-rate vs base, ε budget, rollback time</td>
+</tr>
+<tr>
+<td><strong>LLM Evaluation Pipeline</strong></td>
+<td>&lt; 30min per eval run</td>
+<td>Subjective quality, no ground truth</td>
+<td>Benchmark scores, Elo ratings</td>
+</tr>
+<tr>
+<td><strong>Prompt Management</strong></td>
+<td>&lt; 10ms resolution</td>
+<td>Version drift, A/B correctness</td>
+<td>Prompt win-rate, Rollback time</td>
 </tr>
 </tbody>
 </table>
@@ -2873,17 +3095,19 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>GenAI/ML Fundamentals              GenAI System Design Questions
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>─────────────────────              ─────────────────────────────
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Model Serving          ──────►     LLM Chatbot, Code Assistant, LLM Gateway
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>LLM Systems            ──────►     Enterprise RAG, Chatbot, AI Agents
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>LLM Systems            ──────►     Enterprise RAG, Chatbot, AI Agents, Document Q&amp;A
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Feature Stores         ──────►     Content Moderation
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Distributed Training   ──────►     ML Training Platform, Text-to-Image
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Distributed Training   ──────►     ML Training Platform, Text-to-Image, Fine-Tuning Platform
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Data Pipelines         ──────►     All GenAI Systems
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>ML System Design                   GenAI System Design Questions
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>────────────────                   ─────────────────────────────
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Image Search           ──────►     Multi-Modal Search
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Search Ranking         ──────►     Enterprise RAG (retrieval)
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Fraud Detection        ──────►     Content Moderation (cascade)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>Ads Ranking            ──────►     LLM Gateway (cost optimization)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>LLM Evaluation         ──────►     LLM Evaluation Pipeline, Hallucination Detection
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>RLHF &amp; Alignment       ──────►     Fine-Tuning Platform, Prompt Management
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>ML System Design                   GenAI System Design Questions
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>────────────────                   ─────────────────────────────
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Image Search           ──────►     Multi-Modal Search, Document Q&amp;A
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>Search Ranking         ──────►     Enterprise RAG (retrieval), Document Q&amp;A
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Fraud Detection        ──────►     Content Moderation (cascade), Hallucination Detection
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>Ads Ranking            ──────►     LLM Gateway (cost optimization)
 </span></code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
