@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph Recall [Recall]
+        ANN[ANN index\nTwo-tower / co-vis]
+        POP[Popular + rules]
+    end
+    subgraph Prerank [Pre-rank]
+        LR[Lightweight model\n1000 to 200]
+    end
+    subgraph Rank [Rank]
+        DNN[Deep ranker\nMMoE]
+    end
+    subgraph Rerank [Re-rank]
+        MMR[MMR / business rules]
+        B[Bandit slot]
+    end
+    ANN --> LR --> DNN --> MMR --> B
+    POP --> LR

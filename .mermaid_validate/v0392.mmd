@@ -1,0 +1,13 @@
+flowchart TB
+    A[Raw object in storage] --> B[Probe node]
+    B --> C[Audio transcode]
+    B --> D[Video 1080p]
+    B --> E[Video 720p]
+    B --> F[Video 480p]
+    D --> G[HLS packager 1080p]
+    E --> H[HLS packager 720p]
+    F --> I[HLS packager 480p]
+    G --> J[Master playlist]
+    H --> J
+    I --> J
+    J --> K[Write manifests + segments to storage]

@@ -1,0 +1,20 @@
+flowchart TB
+    subgraph Inputs [Inputs]
+        T[Text]
+        I[Image / OCR]
+        S[Speech ASR stream]
+    end
+    
+    LD[Language Detection]
+    PRE[Preprocessing<br/>normalize + tokenize]
+    ROUTE[Model Router<br/>pair / modality / SLA]
+    MT[Translation Model<br/>GPU workers]
+    POST[Post-processing<br/>detokenize + casing + placeholders]
+    QE[Quality Estimation]
+    OUT[Response + warnings + alternatives]
+    
+    T --> LD --> PRE --> ROUTE --> MT --> POST --> QE --> OUT
+    I --> OCR[OCR + script detection] --> LD
+    S --> ASR[ASR] --> LD
+    
+    BATCH[Batch / Document Pipeline] --> SEG[Segmentation + doc context cache] --> ROUTE

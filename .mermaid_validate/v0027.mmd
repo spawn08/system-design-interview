@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant SO as Saga Orchestrator
+  participant O as Order Service
+  participant I as Inventory Service
+  participant P as Payment Service
+
+  SO->>O: Create order (PENDING)
+  O-->>SO: Order created
+  SO->>I: Reserve inventory
+  I-->>SO: Reserved
+  SO->>P: Charge payment
+  P-->>SO: Payment failed!
+  Note over SO: Compensation needed
+  SO->>I: Release inventory (compensate)
+  I-->>SO: Released
+  SO->>O: Cancel order (compensate)
+  O-->>SO: Cancelled

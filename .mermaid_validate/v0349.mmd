@@ -1,0 +1,43 @@
+flowchart TB
+  subgraph Clients
+    M[Mobile / Web]
+  end
+  subgraph Edge
+    CF[CDN]
+    AG[API Gateway / LB]
+  end
+  subgraph App
+    US[Upload service]
+    PS[Post service]
+    FS[Feed service]
+    SG[Social graph service]
+    RK[Ranking service]
+  end
+  subgraph Async
+    Q[Message queue]
+    IP[Image processor workers]
+    FW[Fan-out workers]
+  end
+  subgraph Data
+    OS[(Object storage S3)]
+    DB[(Metadata DB sharded)]
+    RC[(Redis feed cache)]
+    G[(Graph store)]
+  end
+  M --> AG
+  M --> CF
+  CF --> OS
+  AG --> US
+  AG --> PS
+  AG --> FS
+  AG --> SG
+  FS --> RK
+  FS --> RC
+  PS --> DB
+  PS --> Q
+  Q --> IP
+  Q --> FW
+  IP --> OS
+  FW --> RC
+  SG --> G
+  PS --> OS

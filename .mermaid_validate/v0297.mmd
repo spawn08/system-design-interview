@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant C as Client
+  participant G as Game server
+  participant I as Ingest API
+  participant K as Kafka
+  participant W as Redis writer
+  participant R as Redis primary
+  participant P as PostgreSQL
+
+  C->>G: Finish match
+  G->>C: attempt_token
+  C->>I: POST score + token
+  I->>I: idempotency + validate
+  I->>K: produce ScoreEvent
+  K->>W: consume
+  W->>W: anti-cheat fast path
+  W->>R: ZADD shard ZSET
+  W->>P: async write-behind batch
+  C->>I: GET leaderboard (read replica)
+  I->>R: ZREVRANGE / ZREVRANK

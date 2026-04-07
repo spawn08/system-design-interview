@@ -1,0 +1,19 @@
+flowchart TD
+    Q["Need async communication?"] --> MODEL{"What model?"}
+    MODEL -->|One consumer per message| QUEUE[Point-to-Point Queue]
+    MODEL -->|Multiple consumers per message| PUBSUB[Publish-Subscribe]
+    
+    QUEUE --> TECH1{"Requirements?"}
+    TECH1 -->|Complex routing, RPC| RMQ[RabbitMQ]
+    TECH1 -->|High throughput, replay| KAFKA[Kafka]
+    TECH1 -->|Managed, simple| SQS[Amazon SQS]
+    
+    PUBSUB --> TECH2{"Requirements?"}
+    TECH2 -->|Event streaming, replay| KAFKA2[Kafka]
+    TECH2 -->|Managed pub/sub| SNS[SNS + SQS / Pub/Sub]
+    TECH2 -->|Real-time fan-out| REDIS[Redis Pub/Sub]
+    
+    KAFKA --> PROC{"Need processing?"}
+    PROC -->|Simple transforms| KS[Kafka Streams]
+    PROC -->|Complex, stateful| FLINK[Apache Flink]
+    PROC -->|Micro-batch OK| SPARK[Spark Streaming]

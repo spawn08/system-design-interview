@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph r1["Region A"]
+    P1[Prometheus / Agent pool]
+  end
+  subgraph r2["Region B"]
+    P2[Prometheus / Agent pool]
+  end
+  subgraph global["Global read path"]
+    FED[Federation / Thanos querier]
+    GRA[Grafana]
+  end
+  P1 --> FED
+  P2 --> FED
+  FED --> GRA

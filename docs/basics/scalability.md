@@ -36,13 +36,13 @@ Before discussing how to scale, define **what** you're scaling for. Load can mea
 
 ```mermaid
 flowchart TD
-    subgraph Vertical Scaling
+    subgraph vs["Vertical Scaling"]
         V1[Small Server<br/>4 CPU, 8GB RAM] --> V2[Bigger Server<br/>32 CPU, 128GB RAM]
         V2 --> V3[Biggest Server<br/>128 CPU, 1TB RAM]
         V3 --> LIMIT[Hard limit reached!]
     end
     
-    subgraph Horizontal Scaling
+    subgraph hs["Horizontal Scaling"]
         H1[Server 1] 
         H2[Server 2]
         H3[Server 3]
@@ -108,9 +108,9 @@ Auto-scaling automatically adjusts the number of running instances based on curr
 ```mermaid
 flowchart LR
     M[Metrics<br/>CPU, Memory, RPS] --> AS{Auto-Scaler}
-    AS -->|CPU > 70%| UP[Scale Up<br/>Add instances]
-    AS -->|CPU < 30%| DOWN[Scale Down<br/>Remove instances]
-    AS -->|Within range| KEEP[Maintain]
+    AS -->|"CPU > 70%"| UP[Scale Up<br/>Add instances]
+    AS -->|"CPU < 30%"| DOWN[Scale Down<br/>Remove instances]
+    AS -->|"Within range"| KEEP[Maintain]
     
     UP --> CD[Cooldown Period<br/>Wait before next action]
     DOWN --> CD
@@ -614,11 +614,11 @@ flowchart LR
     LAST[Last Backup] -->|RPO| FAIL[Failure Occurs]
     FAIL -->|RTO| RECOVER[System Recovered]
     
-    subgraph Data Loss Window
+    subgraph dlw["Data Loss Window"]
         LAST --> FAIL
     end
     
-    subgraph Downtime Window
+    subgraph dtw["Downtime Window"]
         FAIL --> RECOVER
     end
 ```
@@ -636,20 +636,20 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    DNS[Global DNS<br/>Route 53 / CloudFlare] -->|US users| R1
-    DNS -->|EU users| R2
+    DNS["Global DNS<br/>Route 53 / CloudFlare"] -->|"US users"| r1
+    DNS -->|"EU users"| r2
     
-    subgraph R1[US-East Region]
+    subgraph r1["US-East Region"]
         LB1[Load Balancer] --> S1[Services]
         S1 --> DB1[(Primary DB)]
     end
     
-    subgraph R2[EU-West Region]
+    subgraph r2["EU-West Region"]
         LB2[Load Balancer] --> S2[Services]
         S2 --> DB2[(Secondary DB)]
     end
     
-    DB1 <-->|Cross-region<br/>replication| DB2
+    DB1 <-->|"Cross-region<br/>replication"| DB2
 ```
 
 ---
@@ -764,22 +764,22 @@ SLI → measures → SLO → guarantees → SLA
 ```mermaid
 flowchart TD
     Q[System Design Question] --> S{Scale needed?}
-    S -->|1000s of users| VERT[Vertical Scaling<br/>Simple, single server]
-    S -->|Millions of users| HORIZ[Horizontal Scaling<br/>Load balancer + stateless services]
+    S -->|"1000s of users"| VERT[Vertical Scaling<br/>Simple, single server]
+    S -->|"Millions of users"| HORIZ[Horizontal Scaling<br/>Load balancer + stateless services]
     
     HORIZ --> DB{Database bottleneck?}
-    DB -->|Read-heavy| REPLICA[Read Replicas]
-    DB -->|Write-heavy| SHARD[Sharding]
-    DB -->|Both| CQRS[CQRS + Event Sourcing]
+    DB -->|"Read-heavy"| REPLICA[Read Replicas]
+    DB -->|"Write-heavy"| SHARD[Sharding]
+    DB -->|"Both"| CQRS[CQRS + Event Sourcing]
     
     HORIZ --> AV{Availability target?}
-    AV -->|99.9%| AA[Active-Active<br/>Multi-AZ]
-    AV -->|99.99%+| MR[Multi-Region<br/>Active-Active]
+    AV -->|"99.9%"| AA[Active-Active<br/>Multi-AZ]
+    AV -->|"99.99%+"| MR[Multi-Region<br/>Active-Active]
     
     HORIZ --> REL{Reliability needs?}
-    REL -->|Transient failures| RETRY[Retry + Backoff]
-    REL -->|Cascading failures| CB[Circuit Breaker + Bulkhead]
-    REL -->|Data loss prevention| REPL[Replication + Backups]
+    REL -->|"Transient failures"| RETRY[Retry + Backoff]
+    REL -->|"Cascading failures"| CB[Circuit Breaker + Bulkhead]
+    REL -->|"Data loss prevention"| REPL[Replication + Backups]
 ```
 
 ### Quick Reference for Interviews

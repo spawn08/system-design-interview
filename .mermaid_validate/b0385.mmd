@@ -1,0 +1,7 @@
+flowchart LR
+    Redirect[Redirect Service] -->|async| Kafka[Kafka]
+    Kafka --> Worker1[Analytics Worker]
+    Kafka --> Worker2[Analytics Worker]
+    Worker1 --> ClickHouse[(ClickHouse)]
+    Worker2 --> ClickHouse
+    ClickHouse --> Dashboard[Analytics Dashboard]

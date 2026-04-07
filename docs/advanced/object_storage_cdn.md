@@ -52,7 +52,7 @@ flowchart TB
         PUT[PUT Object]
         GET[GET Object]
         LIST[ListObjectsV2]
-        MPU[CreateMultipartUpload / UploadPart / CompleteMultipartUpload]
+        MPU["CreateMultipartUpload / UploadPart / CompleteMultipartUpload"]
     end
 
     subgraph Bucket["Bucket: my-app-media"]
@@ -114,7 +114,7 @@ A **CDN** is a distributed network of **Points of Presence (PoPs)** with **edge 
 
 ```mermaid
 flowchart LR
-    U[User] -->|DNS / HTTP| EDGE[Edge PoP]
+    U[User] -->|"DNS / HTTP"| EDGE[Edge PoP]
     EDGE -->|cache HIT| U
     EDGE -->|cache MISS| ORIGIN[Origin<br/>Object store or app]
     ORIGIN --> EDGE
@@ -287,7 +287,7 @@ flowchart TD
     START --> Q1{Structured query,<br/>transactions, joins?}
     Q1 -->|Yes| DB[(Relational or<br/>document DB)]
     Q1 -->|No| Q2{POSIX filesystem,<br/>random writes, low latency<br/>local disk?}
-    Q2 -->|Yes| FS[Block / file storage<br/>attached volume]
+    Q2 -->|Yes| FS["Block / file storage<br/>attached volume"]
     Q2 -->|No| Q3{Huge scale, HTTP access,<br/>immutable or whole-object updates?}
     Q3 -->|Yes| OBJ[Object storage<br/>+ CDN for reads]
     Q3 -->|No| OTHER[Revisit requirements]

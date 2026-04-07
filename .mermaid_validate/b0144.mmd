@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant U as User
+    participant GW as Gateway
+    participant G as Guardrails
+    participant E as Embedder
+    participant V as Vector DB
+    participant R as Re-ranker
+    participant P as Prompt Builder
+    participant L as LLM
+    participant F as Output Filter
+
+    U->>GW: "What is our refund policy?"
+    GW->>G: Input safety check
+    G->>E: Encode query
+    E->>V: Similarity search (top-20)
+    V-->>R: 20 candidate chunks
+    R-->>P: Top-5 re-ranked chunks
+    P->>P: Build prompt with context
+    P->>L: Generate (streaming)
+    L-->>F: Token stream
+    F-->>GW: Filtered + cited stream
+    GW-->>U: SSE response with citations

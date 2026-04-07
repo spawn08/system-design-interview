@@ -1,0 +1,14 @@
+flowchart TB
+  C[Clients]
+  G1[Gateway AZ1]
+  G2[Gateway AZ2]
+  R[Router / Doc shard owner]
+  L[Op log]
+
+  C --> G1
+  C --> G2
+  G1 --> R
+  G2 --> R
+  R --> L
+  R --> G1
+  R --> G2

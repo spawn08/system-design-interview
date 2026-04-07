@@ -179,31 +179,31 @@ Cross-encoder on **only top 50–100** is typical; bi-encoder / BM25 over full c
 
 ```mermaid
 flowchart TB
-    subgraph Client [Client]
+    subgraph cli["Client"]
         U[User]
     end
 
-    subgraph Edge [Edge]
-        LB[Load Balancer / API GW]
+    subgraph edge["Edge"]
+        LB["Load Balancer / API GW"]
     end
 
-    subgraph Qu [Query Path]
+    subgraph qpath["Query Path"]
         QU[Query Understanding Service]
         IX[Inverted Index Service]
         ANN[ANN Index<br/>Dense Embeddings]
         FUS[Hybrid Fusion]
     end
 
-    subgraph Rank [Ranking]
+    subgraph rank["Ranking"]
         FE[Feature Service]
         RM[Ranking Model<br/>LightGBM / DNN]
         CE[Cross-Encoder<br/>Optional Top-K]
-        RER[Re-ranker<br/>MMR / Rules]
+        RER["Re-ranker<br/>MMR / Rules"]
     end
 
-    subgraph Data [Stores]
-        DOC[(Doc Store / KV)]
-        CACHE[(Query / Result Cache)]
+    subgraph stores["Stores"]
+        DOC[("Doc Store / KV")]
+        CACHE[("Query / Result Cache")]
     end
 
     U --> LB --> QU
@@ -1037,12 +1037,12 @@ def combined_score(
 
 ```mermaid
 flowchart LR
-    subgraph Metrics [Metrics]
+    subgraph met["Metrics"]
         LAT[Latency histogram]
-        CTR[CTR / conversion]
+        CTR["CTR / conversion"]
         NULL[Empty result rate]
     end
-    subgraph Actions [Actions]
+    subgraph act["Actions"]
         ALERT[PagerDuty]
         ROLL[Auto rollback]
         EXP[Experiment pause]
@@ -1051,6 +1051,7 @@ flowchart LR
     CTR --> EXP
     NULL --> ROLL
 ```
+
 
 **Python: simple query-level debug record (for tooling)**
 
@@ -1116,11 +1117,11 @@ def assign_experiment(user_id: str, exp_ranges: Dict[str, Tuple[int, int]]) -> O
 
 ```mermaid
 flowchart TB
-    subgraph Global [Global layer]
+    subgraph glob["Global layer"]
         Q[Query]
         M[Merge top-K per shard]
     end
-    subgraph Shards [Shards 0..B-1]
+    subgraph shards["Shards 0..B-1"]
         S0[Shard 0<br/>Index + ANN]
         S1[Shard 1<br/>Index + ANN]
         SB[Shard B-1]

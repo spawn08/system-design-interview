@@ -1,0 +1,17 @@
+flowchart LR
+  subgraph Meta["Metadata path — CP-leaning"]
+    M[Quorum / Raft log]
+    NS[Namespace + chunkmap]
+    M --> NS
+  end
+  subgraph Data["Data path — AP-leaning reads"]
+    R1[Replica A]
+    R2[Replica B]
+    R3[Replica C]
+  end
+  subgraph Part["Network partition"]
+    P[Some edges cut]
+  end
+  Part -.->|may isolate| Meta
+  Part -.->|replicas may be split| Data
+  Meta -->|leases + version| Data

@@ -1,0 +1,13 @@
+stateDiagram-v2
+  [*] --> PENDING: create
+  PENDING --> SCHEDULED: run_at set / delay
+  SCHEDULED --> READY: tick <= run_at
+  READY --> RUNNING: lease acquired
+  RUNNING --> COMPLETED: success
+  RUNNING --> READY: lease expired (retry)
+  RUNNING --> FAILED: terminal error
+  READY --> DLQ: attempts exhausted
+  RUNNING --> DLQ: attempts exhausted
+  FAILED --> DLQ: policy routes here
+  COMPLETED --> [*]
+  DLQ --> [*]

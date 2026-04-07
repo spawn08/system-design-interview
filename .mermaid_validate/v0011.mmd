@@ -1,0 +1,15 @@
+flowchart TD
+    Q[Consistency Requirement] --> DATA{What kind of data?}
+    DATA -->|Financial / inventory| STRONG[Strong Consistency<br/>Quorum W+R>N or 2PC]
+    DATA -->|User-facing counters| EVENTUAL_CRDT[Eventual + CRDT<br/>G-Counter, PN-Counter]
+    DATA -->|Social features| EVENTUAL[Eventual Consistency<br/>LWW or merge function]
+    DATA -->|Chat / collaboration| CAUSAL[Causal Consistency<br/>Vector clocks]
+    
+    STRONG --> SCOPE{Scope?}
+    SCOPE -->|Single database| TXN[Database Transactions<br/>SERIALIZABLE isolation]
+    SCOPE -->|Multiple services| SAGA[Saga Pattern<br/>+ Outbox]
+    SCOPE -->|Multiple databases| QUORUM[Quorum Reads/Writes]
+    
+    EVENTUAL --> CONFLICT{Conflicts likely?}
+    CONFLICT -->|Rare| LWW[Last-Writer-Wins]
+    CONFLICT -->|Common| MERGE[CRDTs or<br/>application merge]

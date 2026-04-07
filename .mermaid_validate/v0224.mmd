@@ -1,0 +1,47 @@
+flowchart TB
+    subgraph Online [Online Serving]
+        API[Recommendation API]
+        Ranker[Re-ranking Service]
+        Cache[(Redis Cache)]
+    end
+    
+    subgraph Retrieval [Candidate Retrieval]
+        CF[Collaborative Filtering]
+        CB[Content-Based]
+        Pop[Popular Items]
+        ANN[ANN Index<br/>FAISS/Pinecone]
+    end
+    
+    subgraph Offline [Offline Training]
+        Train[Model Training]
+        Features[Feature Pipeline]
+        Batch[Batch Predictions]
+    end
+    
+    subgraph Data [Data Layer]
+        Events[(Event Stream<br/>Kafka)]
+        DW[(Data Warehouse<br/>BigQuery)]
+        FeatureStore[(Feature Store)]
+        ModelReg[(Model Registry)]
+    end
+    
+    API --> Cache
+    Cache --> Ranker
+    Ranker --> CF
+    Ranker --> CB
+    Ranker --> Pop
+    Ranker --> ANN
+    
+    CF --> FeatureStore
+    CB --> FeatureStore
+    
+    Events --> Features
+    Features --> DW
+    Features --> FeatureStore
+    
+    DW --> Train
+    Train --> ModelReg
+    Train --> Batch
+    Batch --> Cache
+    
+    ANN --> ModelReg

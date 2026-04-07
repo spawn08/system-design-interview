@@ -1,0 +1,8 @@
+flowchart TD
+  A[File bytes on disk] --> B[CDC chunker\nRabin boundaries]
+  B --> C[Per-chunk cryptographic hash]
+  C --> D{Hash exists in store?}
+  D -- Yes --> E[Reference only\nmetadata write]
+  D -- No --> F[Upload chunk bytes]
+  F --> G[Commit manifest]
+  E --> G

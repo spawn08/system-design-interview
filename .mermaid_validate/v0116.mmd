@@ -1,0 +1,11 @@
+flowchart LR
+    LAST[Last Backup] -->|RPO| FAIL[Failure Occurs]
+    FAIL -->|RTO| RECOVER[System Recovered]
+    
+    subgraph Data Loss Window
+        LAST --> FAIL
+    end
+    
+    subgraph Downtime Window
+        FAIL --> RECOVER
+    end

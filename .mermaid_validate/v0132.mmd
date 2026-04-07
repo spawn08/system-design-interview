@@ -1,0 +1,24 @@
+graph LR
+    subgraph "Stage 0: DDP"
+        G0_M[Model ✓]
+        G0_O[Optimizer ✓]
+        G0_G[Gradients ✓]
+    end
+
+    subgraph "Stage 1: Partition Optimizer"
+        G1_M[Model ✓]
+        G1_O[Optimizer ⅛]
+        G1_G[Gradients ✓]
+    end
+
+    subgraph "Stage 2: + Partition Gradients"
+        G2_M[Model ✓]
+        G2_O[Optimizer ⅛]
+        G2_G[Gradients ⅛]
+    end
+
+    subgraph "Stage 3: + Partition Parameters"
+        G3_M[Model ⅛]
+        G3_O[Optimizer ⅛]
+        G3_G[Gradients ⅛]
+    end

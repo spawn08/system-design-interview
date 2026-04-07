@@ -1,0 +1,5 @@
+flowchart LR
+    CLIENT[Client] -->|write x=5| N1[Node 1<br/>x=5]
+    N1 -->|replicate| N2[Node 2<br/>x=5 or x=?]
+    N1 -->|replicate| N3[Node 3<br/>x=5 or x=?]
+    CLIENT2[Another Client] -->|read x| N2

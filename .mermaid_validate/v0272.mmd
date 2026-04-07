@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph Partitioned["Network partition"]
+    C1[Clients / AZ A]
+    N1[Shard primary A]
+    N2[Replica B - possibly stale]
+  end
+  C1 -->|read| N2
+  C1 -->|ideal write| N1
+  N1 -.->|replication blocked| N2
+  C1 -->|choice: fail vs stale| X{Serve stale read?}
+  X -->|AP: yes| R[Return replica value + optional version]
+  X -->|CP: no| E[Error / retry / redirect]

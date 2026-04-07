@@ -1,0 +1,11 @@
+flowchart LR
+    subgraph Single machine
+        P1[Process A] --> M[Mutex]
+        P2[Process B] --> M
+    end
+    
+    subgraph Distributed
+        S1[Service 1] --> L[Lock service]
+        S2[Service 2] --> L
+        L --> R[(Shared resource)]
+    end

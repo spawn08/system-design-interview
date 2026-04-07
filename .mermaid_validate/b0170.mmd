@@ -1,0 +1,30 @@
+flowchart LR
+    subgraph Sources [Data Sources]
+        GDrive[Google Drive]
+        Confluence[Confluence]
+        Slack[Slack]
+        GitHub[GitHub]
+        Jira[Jira]
+    end
+
+    subgraph Connectors [Connector Layer]
+        CDC[Change Data<br/>Capture]
+        Webhook[Webhook<br/>Listeners]
+        Poller[Periodic<br/>Poller]
+    end
+
+    subgraph Processing [Processing Pipeline]
+        Extract[Text<br/>Extraction]
+        Dedup[Deduplication]
+        Chunk[Chunking]
+        Embed[Embedding<br/>Generation]
+        ACL[ACL<br/>Resolution]
+    end
+
+    subgraph Storage [Storage]
+        VDB[(Vector DB)]
+        Search[(Search Index)]
+        Meta[(Metadata Store)]
+    end
+
+    Sources --> Connectors --> Processing --> Storage

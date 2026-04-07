@@ -1,0 +1,13 @@
+sequenceDiagram
+  participant Agent
+  participant GW as Gateway
+  participant ING as Ingester
+  participant WAL as WAL
+  participant OBJ as Object store
+
+  Agent->>GW: Push batch (or GW pulls /metrics)
+  GW->>ING: Route by tenant/hash
+  ING->>WAL: Append records (fsync policy)
+  ING->>ING: Memory head + chunk encoders
+  Note over ING: Flush immutable block (e.g. every 2h)
+  ING->>OBJ: Upload block + index

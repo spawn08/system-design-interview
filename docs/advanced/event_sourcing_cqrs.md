@@ -30,7 +30,7 @@ An **event** is an immutable fact: something that happened in the past, named in
 
 ```mermaid
 flowchart LR
-    subgraph Aggregate lifecycle
+    subgraph al["Aggregate lifecycle"]
         E1[OrderCreated] --> E2[LineItemAdded]
         E2 --> E3[PaymentAuthorized]
         E3 --> E4[OrderShipped]
@@ -57,7 +57,7 @@ To rebuild state, load all events for a stream in order and apply a **pure** han
 
 ```mermaid
 flowchart TD
-    ES[(Event store)] -->|stream events| REPLAY[Replay / fold]
+    ES[(Event store)] -->|stream events| REPLAY["Replay / fold"]
     REPLAY --> S1[State at t1]
     REPLAY --> S2[State at t2]
     REPLAY --> SN[State now]
@@ -89,12 +89,12 @@ CQRS does not require event sourcing (you can CQRS with two SQL tables), but **e
 
 ```mermaid
 flowchart LR
-    subgraph Write side
+    subgraph ws["Write side"]
         CMD[Command] --> H[Command handler]
         H --> ES[(Event store)]
     end
-    subgraph Read side
-        PROJ[Projection] --> RM[(Read DB / cache)]
+    subgraph rs["Read side"]
+        PROJ[Projection] --> RM["Read DB / cache"]
         Q[Query] --> RM
     end
     ES -->|events| PROJ
@@ -252,11 +252,11 @@ Use this flowchart to structure answers in system design interviews when someone
 
 ```mermaid
 flowchart TD
-    START([Need strong audit / time-travel history?]) -->|No| CRUD[Prefer CRUD + optional audit table]
+    START([("Need strong audit / time-travel history?")]) -->|No| CRUD[Prefer CRUD + optional audit table]
     START -->|Yes| DOMAIN{Domain events stable<br/>and bounded context clear?}
     DOMAIN -->|Unclear| MODEL[Clarify aggregates,<br/>consistency boundaries]
     DOMAIN -->|Yes| WRITE{Write model can be<br/>append-only stream?}
-    WRITE -->|No| HYBRID[Hybrid: critical subdomains<br/>event-sourced, rest CRUD]
+    WRITE -->|No| HYBRID["Hybrid: critical subdomains<br/>event-sourced, rest CRUD"]
     WRITE -->|Yes| READ{Read patterns diverse<br/>or heavy?}
     READ -->|No| ES[Event sourcing +<br/>simple read model]
     READ -->|Yes| CQRS[Event sourcing + CQRS<br/>+ projections]

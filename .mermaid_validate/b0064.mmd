@@ -1,0 +1,18 @@
+flowchart TD
+    START([Interviewer asks about<br/>monitoring or debugging])
+    START --> Q1{New greenfield vs<br/>existing stack?}
+    Q1 -->|Greenfield| P1[Propose OpenTelemetry<br/>+ Prometheus/Grafana<br/>+ structured logs]
+    Q1 -->|Existing| P2[Integrate with current<br/>ELK / Datadog / cloud suite]
+
+    P1 --> Q2{Traffic scale?}
+    P2 --> Q2
+    Q2 -->|High| S1[Sampling for traces<br/>Cardinality limits on labels<br/>Tiered log retention]
+    Q2 -->|Moderate| S2[Full RED/USE<br/>SLO-based alerts]
+
+    S1 --> Q3{Regulatory / audit?}
+    S2 --> Q3
+    Q3 -->|Yes| A1[Immutable audit logs<br/>long retention policy<br/>access controls]
+    Q3 -->|No| A2[Cost-optimized retention<br/>debug sampling]
+
+    A1 --> ENDNODE([Articulate SLIs/SLOs<br/>error budget policy<br/>runbooks])
+    A2 --> ENDNODE

@@ -1,0 +1,6 @@
+flowchart TD
+  A[Define SLOs] --> B[Partitioning + replication]
+  B --> C[Eviction + maxmemory policy]
+  C --> D[Client pooling + timeouts + retries]
+  D --> E[Runbooks failover + resharding]
+  E --> F[Dashboards lag + p99 + evictions]

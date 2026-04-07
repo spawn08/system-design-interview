@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant Client as Client/Event
+    participant API as Notification API
+    participant Validator
+    participant Enricher
+    participant Queue as Message Queue
+    participant Worker as Channel Worker
+    participant Provider as External Provider
+    participant History as History DB
+    
+    Client->>API: Send notification request
+    API->>Validator: Validate request
+    Validator->>Validator: Check required fields
+    
+    alt Invalid
+        Validator-->>API: Validation error
+        API-->>Client: 400 Bad Request
+    else Valid
+        Validator->>Enricher: Enrich notification
+        Enricher->>Enricher: Fetch user preferences
+        Enricher->>Enricher: Apply template
+        Enricher->>Enricher: Check opt-out/quiet hours
+        
+        alt User opted out
+            Enricher-->>API: Notification suppressed
+        else Allowed
+            Enricher->>Queue: Enqueue to appropriate channels
+            Queue-->>API: Accepted
+            API-->>Client: 202 Accepted
+            
+            Queue->>Worker: Process notification
+            Worker->>Provider: Send via provider
+            Provider-->>Worker: Delivery status
+            Worker->>History: Log result
+        end
+    end

@@ -389,7 +389,7 @@ Place servers on a virtual ring (0 to 2^32). Hash each request to a point on the
 
 ```mermaid
 flowchart LR
-    subgraph Ring [Consistent Hash Ring]
+    subgraph chr["Consistent Hash Ring"]
         direction TB
         A[Server A] --- B[Server B]
         B --- C[Server C]
@@ -673,7 +673,7 @@ flowchart TD
     LB --> S1[Server 1]
     LB --> S2[Server 2]
     LB --> S3[Server 3]
-    S1 --> Redis[(Redis/Session Store)]
+    S1 --> Redis[("Redis/Session Store")]
     S2 --> Redis
     S3 --> Redis
 ```
@@ -776,12 +776,12 @@ Traditional load balancers work within a single data center. GSLB distributes tr
 
 ```mermaid
 flowchart TD
-    User[User in Tokyo] --> DNS[DNS Query: api.example.com]
-    DNS --> GSLB[GSLB/GeoDNS]
-    GSLB --> DC1[Tokyo DC: 52.0.0.1]
-    GSLB --> DC2[Frankfurt DC: 18.0.0.1]
-    GSLB --> DC3[Virginia DC: 35.0.0.1]
-    GSLB -.->|Returns Tokyo IP| User
+    User[User in Tokyo] --> DNS["DNS Query: api.example.com"]
+    DNS --> GSLB["GSLB/GeoDNS"]
+    GSLB --> DC1["Tokyo DC: 52.0.0.1"]
+    GSLB --> DC2["Frankfurt DC: 18.0.0.1"]
+    GSLB --> DC3["Virginia DC: 35.0.0.1"]
+    GSLB -.->|"Returns Tokyo IP"| User
     User --> TokyoLB[Tokyo Load Balancer]
     TokyoLB --> Servers[Tokyo Servers]
 ```

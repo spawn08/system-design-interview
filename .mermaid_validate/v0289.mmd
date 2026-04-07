@@ -1,0 +1,16 @@
+flowchart TB
+    subgraph failures["Failure modes"]
+        Q[Queue backlog growth]
+        MXF[MX / TLS failures]
+        R[Regional ISP outage]
+    end
+    subgraph mitigations["Mitigations"]
+        SH[Shard by tenant + domain]
+        CB[Circuit breakers per MX]
+        GEO[Multi-region senders with local egress IPs]
+        DLQ[DLQ + replay tooling]
+    end
+    Q --> SH
+    MXF --> CB
+    R --> GEO
+    Q --> DLQ

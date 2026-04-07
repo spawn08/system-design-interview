@@ -1,0 +1,7 @@
+stateDiagram-v2
+  [*] --> available
+  available --> held: hold (TTL starts)
+  held --> sold: payment success
+  held --> available: expiry or release
+  sold --> refunded: refund flow (out of scope detail)
+  refunded --> available: resale rules (optional)

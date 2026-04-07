@@ -1,0 +1,17 @@
+flowchart TB
+    subgraph control[Control Plane]
+        POL[Policy + Budgets]
+        REG[Tool Registry]
+        EV[Evaluator]
+    end
+    subgraph data[Data Plane]
+        PL[Planner LLM]
+        TW[Tool Workers]
+        MEM[Memory]
+    end
+    POL --> PL
+    REG --> TW
+    PL <--> TW
+    TW --> MEM
+    MEM --> PL
+    EV --> PL

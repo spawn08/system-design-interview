@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph Clients
+    API[API Gateway]
+  end
+  subgraph Control
+    SCH[Scheduler fleet]
+    TS[(Task store)]
+    OS[(Object store / blob)]
+  end
+  subgraph Messaging
+    RQ[Ready queue / stream]
+  end
+  subgraph Workers
+    W1[Worker pool]
+    W2[Worker pool]
+  end
+  API --> SCH
+  SCH --> TS
+  SCH --> OS
+  SCH --> RQ
+  W1 --> RQ
+  W2 --> RQ
+  W1 --> SCH
+  W2 --> SCH

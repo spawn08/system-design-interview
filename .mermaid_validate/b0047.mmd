@@ -1,0 +1,17 @@
+flowchart TD
+    subgraph Monolith
+        M[Single Application<br/>Users + Orders + Payments + Notifications]
+        M --> MDB[(Single Database)]
+    end
+    
+    subgraph Microservices
+        GW[API Gateway]
+        GW --> US[User Service]
+        GW --> OS[Order Service]
+        GW --> PS[Payment Service]
+        GW --> NS[Notification Service]
+        US --> USDB[(User DB)]
+        OS --> OSDB[(Order DB)]
+        PS --> PSDB[(Payment DB)]
+        NS --> NSDB[(Notification DB)]
+    end

@@ -1,0 +1,10 @@
+flowchart LR
+  subgraph City["City partitioned into cells"]
+    C1[Cell A1]
+    C2[Cell A2]
+    C3[Cell B1]
+    C4[Cell B2]
+  end
+  R[Rider request] --> C2
+  C2 --> Q[Query drivers in cell + ring of neighbors]
+  Q --> M[Rank + offer]

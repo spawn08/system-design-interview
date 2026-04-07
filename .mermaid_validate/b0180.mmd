@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph DP [Data Parallelism]
+        GPU1_DP[GPU 0<br/>Full Model<br/>Batch 0]
+        GPU2_DP[GPU 1<br/>Full Model<br/>Batch 1]
+        GPU3_DP[GPU 2<br/>Full Model<br/>Batch 2]
+        GPU1_DP <-->|AllReduce<br/>gradients| GPU2_DP
+        GPU2_DP <-->|AllReduce<br/>gradients| GPU3_DP
+    end
+
+    subgraph PP [Pipeline Parallelism]
+        GPU1_PP[GPU 0<br/>Layers 0-19]
+        GPU2_PP[GPU 1<br/>Layers 20-39]
+        GPU3_PP[GPU 2<br/>Layers 40-59]
+        GPU1_PP -->|activations| GPU2_PP
+        GPU2_PP -->|activations| GPU3_PP
+    end
+
+    subgraph TP [Tensor Parallelism]
+        GPU1_TP[GPU 0<br/>Col 0-2047]
+        GPU2_TP[GPU 1<br/>Col 2048-4095]
+        GPU1_TP <-->|AllGather| GPU2_TP
+    end

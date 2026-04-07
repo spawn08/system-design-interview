@@ -174,25 +174,25 @@ CAP is easy to misapply in interviews. For collaborative editors, the nuanced st
 
 ```mermaid
 flowchart TB
-  subgraph cp [Control plane - strong consistency preferred]
-    ACL[ACL / collaborators in DB]
+  subgraph cp["Control plane - strong consistency preferred"]
+    ACL["ACL / collaborators in DB"]
     TOK[Short-lived WS tokens]
   end
 
-  subgraph data [Data plane - per-document ordering]
+  subgraph data_ord["Data plane - per-document ordering"]
     LOG[Op log partition by doc_id]
     SEQ[Monotonic seq per doc]
   end
 
-  subgraph soft [Soft / ephemeral]
+  subgraph soft["Soft / ephemeral"]
     PRES[Presence & cursor]
   end
 
   ACL --> TOK
   LOG --> SEQ
-  PRES -.->|best-effort| clients[Active clients]
-  LOG -->|authoritative| clients
-  TOK -->|authorize| clients
+  PRES -.->|"best-effort"| clients[Active clients]
+  LOG -->|"authoritative"| clients
+  TOK -->|"authorize"| clients
 ```
 
 !!! tip
@@ -355,16 +355,16 @@ flowchart LR
     LB[Load Balancer / TLS]
   end
 
-  subgraph realtime [Realtime Tier]
+  subgraph realtime["Realtime Tier"]
     GW[WebSocket Gateways]
     DS[Document Session Service]
   end
 
-  subgraph data [Data Plane]
-    OL[(Operation Log / Kafka)]
+  subgraph data_plane["Data Plane"]
+    OL["Operation Log / Kafka"]
     DB[(Document Metadata DB)]
     OS[(Object Storage - Snapshots)]
-    CACHE[(Redis - Presence / Sessions)]
+    CACHE["Redis - Presence / Sessions"]
   end
 
   A --> LB --> GW
@@ -442,14 +442,14 @@ A central ordering might process A then B. B's insert must shift to index 1 afte
 
 ```mermaid
 flowchart TB
-  S0[Initial: empty]
-  S1[After A: a]
-  S2[After A then B: ab]
-  S3[After B then transformed A: ab]
+  S0["Initial: empty"]
+  S1["After A: a"]
+  S2["After A then B: ab"]
+  S3["After B then transformed A: ab"]
 
   S0 --> S1
   S1 --> S2
-  S0 --> S4[After B: b]
+  S0 --> S4["After B: b"]
   S4 --> S3
 ```
 
@@ -539,19 +539,19 @@ class RgaDoc:
 
 ```mermaid
 flowchart LR
-  subgraph replicaA [Replica A]
+  subgraph replicaA["Replica A"]
     A1[Insert X id=3a]
     A2[Insert Y after X]
   end
 
-  subgraph replicaB [Replica B]
+  subgraph replicaB["Replica B"]
     B1[Insert Z id=2b]
   end
 
   M[Deterministic merge order by id rules]
   A2 --> M
   B1 --> M
-  M --> F[Final: interleaving per CRDT spec]
+  M --> F["Final: interleaving per CRDT spec"]
 ```
 
 ### 4.4 WebSocket Connection Management
@@ -794,19 +794,19 @@ At L6, don't just list trade-offs. Articulate a **decision framework** based on 
 
 ```mermaid
 flowchart TB
-  subgraph GW1 [Gateway 1 - 50K conns]
-    C1[Client A - doc_123]
-    C2[Client B - doc_456]
+  subgraph GW1["Gateway 1 - 50K conns"]
+    C1["Client A - doc_123"]
+    C2["Client B - doc_456"]
   end
-  subgraph GW2 [Gateway 2 - 50K conns]
-    C3[Client C - doc_123]
-    C4[Client D - doc_789]
+  subgraph GW2["Gateway 2 - 50K conns"]
+    C3["Client C - doc_123"]
+    C4["Client D - doc_789"]
   end
   subgraph Backbone
-    K[Kafka partition: doc_123]
+    K["Kafka partition: doc_123"]
   end
   C1 -->|op| K
-  K -->|fan-out| C3
+  K -->|"fan-out"| C3
 ```
 
 ### Hot Document Problem (Celebrity Document)

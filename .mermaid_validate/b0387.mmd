@@ -1,0 +1,8 @@
+flowchart LR
+    App[Application] --> Primary[(Primary DB)]
+    Primary -->|sync replication| Standby[(Standby DB)]
+    Primary -->|async replication| Replica1[(Read Replica 1)]
+    Primary -->|async replication| Replica2[(Read Replica 2)]
+    
+    App -.->|reads| Replica1
+    App -.->|reads| Replica2

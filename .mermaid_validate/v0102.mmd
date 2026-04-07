@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph Ring [Consistent Hash Ring]
+        direction TB
+        A[Server A] --- B[Server B]
+        B --- C[Server C]
+        C --- A
+    end
+    R1[Request 1] -.-> A
+    R2[Request 2] -.-> B
+    R3[Request 3] -.-> C

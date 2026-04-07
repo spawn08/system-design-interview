@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant C as Client
+    participant CN as Coordinating Node
+    participant S0 as Shard 0
+    participant S1 as Shard 1
+    participant S2 as Shard 2
+
+    C->>CN: GET /products/_search?q=wireless+headphones
+    
+    Note over CN: Scatter phase
+    CN->>S0: Search query
+    CN->>S1: Search query
+    CN->>S2: Search query
+    
+    S0->>CN: Top 10 doc IDs + scores
+    S1->>CN: Top 10 doc IDs + scores
+    S2->>CN: Top 10 doc IDs + scores
+    
+    Note over CN: Gather phase - merge and re-rank
+    CN->>S0: Fetch doc 42
+    CN->>S1: Fetch doc 88, 91
+    CN->>S2: Fetch doc 15
+
+    S0->>CN: doc 42 content
+    S1->>CN: doc 88, 91 content
+    S2->>CN: doc 15 content
+    
+    CN->>C: Final ranked results

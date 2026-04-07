@@ -1,0 +1,17 @@
+flowchart LR
+  LB[Load Balancer]
+  API[Autocomplete API]
+  K[Kafka Topics]
+  F[Flink / Spark Streaming]
+  DW[(Data Warehouse)]
+  OFF[Offline Batch: Daily/hourly)]
+  FS[(Feature Store / Object Store)]
+  JOB[Aggregator Outputs: CSV/Parquet)]
+
+  LB --> API
+  API --> K
+  K --> F
+  F --> DW
+  K --> OFF
+  OFF --> JOB
+  JOB --> FS

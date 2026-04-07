@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph CP["Control plane (metadata)"]
+    M[Namespace + chunkmap]
+    J[Replicated edit log]
+    M --- J
+  end
+  subgraph DP["Data plane (bytes)"]
+    R1[Replica set A]
+    R2[Replica set B]
+    R3[Replica set C]
+  end
+  CP -->|leases / version| DP
+  Clients[Clients] -->|RPC: locations| CP
+  Clients -->|read/write| DP

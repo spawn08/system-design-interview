@@ -1,0 +1,6 @@
+flowchart LR
+  O[Order Created Event] --> I[Inventory Service]
+  I -->|Reserved Event| P[Payment Service]
+  P -->|Payment Failed Event| I
+  I -->|Inventory Released Event| O2[Order Service]
+  O2 -->|Order Cancelled Event| Done

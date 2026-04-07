@@ -47,18 +47,18 @@ Image captioning uses a two-part architecture:
 
 ```mermaid
 flowchart LR
-    subgraph Encoder [Image Encoder]
+    subgraph enc["Image Encoder"]
         Image[Image] --> CNN[CNN/ViT]
         CNN --> Features[Feature Vector]
     end
     
-    subgraph Decoder [Text Decoder]
+    subgraph dec["Text Decoder"]
         Features --> Attention[Attention]
         Attention --> LM[Language Model]
         LM --> Words[Word by Word]
     end
     
-    Words --> Caption[A dog on a beach]
+    Words --> Caption["A dog on a beach"]
 ```
 
 **Step 1: Encode the Image**
@@ -216,28 +216,28 @@ Image storage (if we store temporarily):
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
     
-    subgraph Edge [Edge Layer]
-        CDN[CDN / Image CDN]
+    subgraph edge["Edge Layer"]
+        CDN["CDN / Image CDN"]
         LB[Load Balancer]
     end
     
-    subgraph Gateway [API Layer]
+    subgraph gw["API Layer"]
         APIGw[API Gateway]
     end
     
-    subgraph Processing [Processing Layer]
+    subgraph proc["Processing Layer"]
         Preprocessor[Image Preprocessor]
         Queue[Request Queue]
         Batcher[Dynamic Batcher]
     end
     
-    subgraph Inference [ML Inference Layer]
+    subgraph inf["ML Inference Layer"]
         Triton1[Model Server 1]
         Triton2[Model Server 2]
         Triton3[Model Server N]
@@ -246,12 +246,12 @@ flowchart TB
         GPU3[GPU]
     end
     
-    subgraph Data [Data Layer]
+    subgraph data["Data Layer"]
         Cache[(Redis Cache)]
-        Storage[(S3/GCS)]
+        Storage[("S3/GCS")]
     end
     
-    subgraph Monitor [Observability]
+    subgraph mon["Observability"]
         Metrics[Prometheus]
         Logs[ELK]
         Traces[Jaeger]
@@ -746,8 +746,8 @@ Use different models based on requirements:
 flowchart TD
     Request[Request] --> Classify{Image Type?}
     
-    Classify -->|Simple| Fast[Small/Fast Model<br/>50ms, 90% quality]
-    Classify -->|Complex| Quality[Large/Quality Model<br/>200ms, 99% quality]
+    Classify -->|Simple| Fast["Small/Fast Model<br/>50ms, 90% quality"]
+    Classify -->|Complex| Quality["Large/Quality Model<br/>200ms, 99% quality"]
     
     Fast --> Response[Return Caption]
     Quality --> Response
@@ -779,17 +779,17 @@ Move preprocessing to CPU workers, keep GPUs for inference:
 
 ```mermaid
 flowchart LR
-    subgraph CPU [CPU Workers]
+    subgraph cpu["CPU Workers"]
         P1[Preprocess 1]
         P2[Preprocess 2]
         P3[Preprocess 3]
     end
     
-    subgraph Queue [Preprocessed Queue]
+    subgraph pqueue["Preprocessed Queue"]
         Q[(Queue)]
     end
     
-    subgraph GPU [GPU Workers]
+    subgraph gpuw["GPU Workers"]
         G1[Model 1]
         G2[Model 2]
     end
@@ -1020,21 +1020,21 @@ autoscaling:
 
 ```mermaid
 flowchart LR
-    subgraph Data [Data Pipeline]
+    subgraph dpipe["Data Pipeline"]
         Raw[Raw Images] --> Clean[Cleaning]
         Clean --> Label[Human Labeling]
         Label --> Augment[Augmentation]
         Augment --> Dataset[(Training Dataset)]
     end
     
-    subgraph Training [Training]
+    subgraph trn3["Training"]
         Dataset --> Train[Distributed Training]
         Train --> Eval[Evaluation]
-        Eval --> Metrics[BLEU, CIDEr, METEOR]
+        Eval --> Metrics["BLEU, CIDEr, METEOR"]
     end
     
-    subgraph Deployment [Deployment]
-        Metrics --> |Good| Register[Model Registry]
+    subgraph depl2["Deployment"]
+        Metrics -->|Good| Register[Model Registry]
         Register --> Shadow[Shadow Deployment]
         Shadow --> Canary[Canary Rollout]
         Canary --> Production[Production]

@@ -2936,7 +2936,7 @@
         PUT[PUT Object]
         GET[GET Object]
         LIST[ListObjectsV2]
-        MPU[CreateMultipartUpload / UploadPart / CompleteMultipartUpload]
+        MPU["CreateMultipartUpload / UploadPart / CompleteMultipartUpload"]
     end
 
     subgraph Bucket["Bucket: my-app-media"]
@@ -3010,7 +3010,7 @@
 <h3 id="how-cdns-work-edge-locations-pops-origin-pull-vs-push">How CDNs work: edge locations, PoPs, origin pull vs push<a class="headerlink" href="#how-cdns-work-edge-locations-pops-origin-pull-vs-push" title="Permanent link">&para;</a></h3>
 <p>A <strong>CDN</strong> is a distributed network of <strong>Points of Presence (PoPs)</strong> with <strong>edge caches</strong> that store copies of content closer to end users.</p>
 <div class="mermaid">flowchart LR
-    U[User] --&gt;|DNS / HTTP| EDGE[Edge PoP]
+    U[User] --&gt;|"DNS / HTTP"| EDGE[Edge PoP]
     EDGE --&gt;|cache HIT| U
     EDGE --&gt;|cache MISS| ORIGIN[Origin&lt;br/&gt;Object store or app]
     ORIGIN --&gt; EDGE</div>
@@ -3167,7 +3167,7 @@
     START --&gt; Q1{Structured query,&lt;br/&gt;transactions, joins?}
     Q1 --&gt;|Yes| DB[(Relational or&lt;br/&gt;document DB)]
     Q1 --&gt;|No| Q2{POSIX filesystem,&lt;br/&gt;random writes, low latency&lt;br/&gt;local disk?}
-    Q2 --&gt;|Yes| FS[Block / file storage&lt;br/&gt;attached volume]
+    Q2 --&gt;|Yes| FS["Block / file storage&lt;br/&gt;attached volume"]
     Q2 --&gt;|No| Q3{Huge scale, HTTP access,&lt;br/&gt;immutable or whole-object updates?}
     Q3 --&gt;|Yes| OBJ[Object storage&lt;br/&gt;+ CDN for reads]
     Q3 --&gt;|No| OTHER[Revisit requirements]

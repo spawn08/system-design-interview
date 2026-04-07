@@ -3011,16 +3011,16 @@
 <h3 id="clip-siglip-contrastive-language-image-pre-training">CLIP / SigLIP — Contrastive Language-Image Pre-training<a class="headerlink" href="#clip-siglip-contrastive-language-image-pre-training" title="Permanent link">&para;</a></h3>
 <p>The foundation of multi-modal search. CLIP trains an image encoder and a text encoder <strong>jointly</strong> so that matching image-text pairs have high cosine similarity:</p>
 <div class="mermaid">flowchart LR
-    subgraph Training [Contrastive Training]
-        Img[Image:&lt;br/&gt;"A photo of a cat"]
-        Txt[Text:&lt;br/&gt;"A photo of a cat"]
+    subgraph ctr["Contrastive Training"]
+        Img["Image:&lt;br/&gt;A photo of a cat"]
+        Txt["Text:&lt;br/&gt;A photo of a cat"]
         ImgEnc[Image&lt;br/&gt;Encoder&lt;br/&gt;ViT-L]
         TxtEnc[Text&lt;br/&gt;Encoder&lt;br/&gt;Transformer]
         ImgEmb[Image&lt;br/&gt;Embedding]
         TxtEmb[Text&lt;br/&gt;Embedding]
         Img --&gt; ImgEnc --&gt; ImgEmb
         Txt --&gt; TxtEnc --&gt; TxtEmb
-        ImgEmb &lt;--&gt;|maximize&lt;br/&gt;similarity| TxtEmb
+        ImgEmb &lt;--&gt;|"maximize&lt;br/&gt;similarity"| TxtEmb
     end</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
@@ -3340,38 +3340,38 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TB
-    subgraph Query [Query Pipeline]
+    subgraph qp["Query Pipeline"]
         QU[Query&lt;br/&gt;Understanding]
         ImgEnc[Image&lt;br/&gt;Encoder]
         TxtEnc[Text&lt;br/&gt;Encoder]
         Fusion[Query&lt;br/&gt;Fusion]
     end
 
-    subgraph Retrieval [Retrieval Layer]
+    subgraph retr["Retrieval Layer"]
         ANN[ANN Search&lt;br/&gt;ScaNN]
         MetaFilter[Metadata&lt;br/&gt;Filter]
     end
 
-    subgraph Ranking [Ranking Layer]
+    subgraph rnk["Ranking Layer"]
         Reranker[Cross-Modal&lt;br/&gt;Re-Ranker]
         Diversity[Diversity&lt;br/&gt;Layer]
         Business[Business&lt;br/&gt;Rules]
     end
 
-    subgraph Index [Index Pipeline]
+    subgraph idxp["Index Pipeline"]
         Crawler[Content&lt;br/&gt;Crawler]
         MediaProc[Media&lt;br/&gt;Processor]
         Embedder[Embedding&lt;br/&gt;Generator]
         IndexBuilder[Index&lt;br/&gt;Builder]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VectorIdx[(Vector Index&lt;br/&gt;ScaNN)]
         MetaStore[(Metadata&lt;br/&gt;Bigtable)]
         MediaStore[(Media Store&lt;br/&gt;GCS)]
     end
 
-    Query --&gt; Retrieval --&gt; Ranking
+    qp --&gt; retr --&gt; rnk
 
     Crawler --&gt; MediaProc --&gt; Embedder --&gt; IndexBuilder
     IndexBuilder --&gt; VectorIdx
@@ -3530,30 +3530,30 @@
 - 256 × 3 = 768 machines for the vector index</p>
 <h3 id="43-indexing-pipeline">4.3 Indexing Pipeline<a class="headerlink" href="#43-indexing-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Ingest [Content Ingestion]
-        Crawl[Web Crawler /&lt;br/&gt;Product Feed]
+    subgraph ing["Content Ingestion"]
+        Crawl["Web Crawler /&lt;br/&gt;Product Feed"]
         Dedup[Deduplication&lt;br/&gt;Content Hash]
     end
 
-    subgraph Process [Processing]
+    subgraph proc["Processing"]
         ImgProc[Image Processing&lt;br/&gt;Resize, Normalize]
         OCR[OCR Extraction]
         ObjDet[Object Detection]
         MetaExtract[Metadata&lt;br/&gt;Extraction]
     end
 
-    subgraph Embed [Embedding]
+    subgraph emb["Embedding"]
         BatchEmbed[Batch Embedding&lt;br/&gt;GPU Cluster]
-        QualityCheck[Quality Check&lt;br/&gt;&amp; Filtering]
+        QualityCheck["Quality Check&lt;br/&gt;&amp; Filtering"]
     end
 
-    subgraph Index [Index Build]
+    subgraph idxb["Index Build"]
         Partitioner[Vector&lt;br/&gt;Partitioner]
         Quantizer[Product&lt;br/&gt;Quantization]
         IndexWriter[Index&lt;br/&gt;Writer]
     end
 
-    Ingest --&gt; Process --&gt; Embed --&gt; Index</div>
+    ing --&gt; proc --&gt; emb --&gt; idxb</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IndexingPipeline</span><span class="p">:</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process and index new content for multi-modal search.&quot;&quot;&quot;</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>

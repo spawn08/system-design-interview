@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph Concurrent [Concurrency - Single Core]
+        C1[Task A] --> C2[Task B] --> C3[Task A] --> C4[Task B]
+    end
+    
+    subgraph Parallel [Parallelism - Multi Core]
+        direction TB
+        P1[Task A] --> P2[Task A cont.]
+        P3[Task B] --> P4[Task B cont.]
+    end

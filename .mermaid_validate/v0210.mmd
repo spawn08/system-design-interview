@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph Data [Data Pipeline]
+        Raw[Raw Images] --> Clean[Cleaning]
+        Clean --> Label[Human Labeling]
+        Label --> Augment[Augmentation]
+        Augment --> Dataset[(Training Dataset)]
+    end
+    
+    subgraph Training [Training]
+        Dataset --> Train[Distributed Training]
+        Train --> Eval[Evaluation]
+        Eval --> Metrics[BLEU, CIDEr, METEOR]
+    end
+    
+    subgraph Deployment [Deployment]
+        Metrics --> |Good| Register[Model Registry]
+        Register --> Shadow[Shadow Deployment]
+        Shadow --> Canary[Canary Rollout]
+        Canary --> Production[Production]
+    end

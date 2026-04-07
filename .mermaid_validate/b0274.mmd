@@ -1,0 +1,13 @@
+flowchart LR
+  subgraph Ring["Consistent Hash Ring 0..2^32-1"]
+    direction clockwise
+    V1((v1))
+    V2((v2))
+    V3((v3))
+    V4((v4))
+    V1 --> V2 --> V3 --> V4 --> V1
+  end
+  V1 -.-> N1[Node A]
+  V2 -.-> N1
+  V3 -.-> N2[Node B]
+  V4 -.-> N2

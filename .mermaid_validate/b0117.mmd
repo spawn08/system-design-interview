@@ -1,0 +1,15 @@
+flowchart TD
+    DNS[Global DNS<br/>Route 53 / CloudFlare] -->|US users| R1
+    DNS -->|EU users| R2
+    
+    subgraph R1[US-East Region]
+        LB1[Load Balancer] --> S1[Services]
+        S1 --> DB1[(Primary DB)]
+    end
+    
+    subgraph R2[EU-West Region]
+        LB2[Load Balancer] --> S2[Services]
+        S2 --> DB2[(Secondary DB)]
+    end
+    
+    DB1 <-->|Cross-region<br/>replication| DB2

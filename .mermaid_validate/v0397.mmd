@@ -1,0 +1,13 @@
+flowchart LR
+    subgraph Normal [Normal: 100 votes/sec]
+        N1[3 API pods]
+        N2[3 workers]
+    end
+    
+    subgraph Viral [Viral: 10K votes/sec]
+        V1[30 API pods]
+        V2[30 workers]
+    end
+    
+    Monitor[Metrics] --> HPA[HPA / Auto-scaler]
+    HPA --> |scale up| Viral

@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph Goals [Advertiser goals]
+        T[tCPA / tROAS target]
+        B[Budget + schedule]
+    end
+
+    subgraph Control [Bid control]
+        L[Bid landscape / response model]
+        PID[Controller e.g. PID or online learner]
+        EB[Effective bid multiplier]
+    end
+
+    subgraph Auction [Live auction]
+        R[Ranker + pCTR/pCVR]
+        AUC[Auction + pricing]
+        SP[Spend + outcomes]
+    end
+
+    subgraph Pace [Pacing]
+        P[Pacing state vs curve]
+    end
+
+    T --> PID
+    B --> P
+    L --> PID
+    PID --> EB
+    EB --> AUC
+    R --> AUC
+    AUC --> SP
+    SP --> L
+    SP --> PID
+    P --> EB
+    SP --> P

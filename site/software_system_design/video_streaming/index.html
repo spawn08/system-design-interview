@@ -3480,8 +3480,8 @@
   U --&gt; M
   M --&gt; J
   J --&gt; C
-  M -.-&gt;|eventual| R
-  M -.-&gt;|async| V</div>
+  M -.-&gt;|"eventual"| R
+  M -.-&gt;|"async"| V</div>
 <p><strong>Why this split wins interviews:</strong> <strong>Immutability</strong> of packaged segments makes playback <strong>highly available</strong> without coordination; <strong>upload and processing</strong> use <strong>queues + durable storage</strong> so you <strong>don’t lose work</strong>; <strong>counters and ML</strong> move to <strong>async</strong> paths so spikes don’t <strong>brick</strong> the OLTP database.</p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p>Define <strong>SLI → SLO → error budget</strong> so you can talk about <strong>on-call</strong>, <strong>prioritization</strong>, and <strong>throttling</strong> coherently.</p>
@@ -3778,13 +3778,13 @@
 </table>
 <h3 id="high-level-architecture-mermaid">High-Level Architecture (Mermaid)<a class="headerlink" href="#high-level-architecture-mermaid" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph UploadPath[Upload path]
+    subgraph UploadPath["Upload path"]
         C[Client] --&gt; APIGW[API Gateway]
         APIGW --&gt; US[Upload service]
-        US --&gt;|presigned| S3[(Object storage)]
-        US --&gt;|enqueue| K[Kafka topics]
+        US --&gt;|"presigned"| S3[(Object storage)]
+        US --&gt;|"enqueue"| K[Kafka topics]
     end
-    subgraph ProcessPath[Processing]
+    subgraph ProcessPath["Processing"]
         K --&gt; ORC[Orchestrator / DAG]
         ORC --&gt; TC[Transcode pool]
         TC --&gt; S3
@@ -3792,7 +3792,7 @@
         TH2 --&gt; S3
         ORC --&gt; META2[Metadata indexer]
     end
-    subgraph ReadPath[Read path]
+    subgraph ReadPath["Read path"]
         V2[Viewer] --&gt; CDN2[CDN]
         CDN2 --&gt;|miss| S3
         V2 --&gt; APIGW2[API Gateway]

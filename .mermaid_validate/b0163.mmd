@@ -1,0 +1,48 @@
+flowchart TB
+    subgraph IDE [IDE Plugin Layer]
+        VSCode[VS Code<br/>Extension]
+        JetBrains[JetBrains<br/>Plugin]
+        Vim[Vim/Neovim<br/>Plugin]
+    end
+
+    subgraph Gateway [API Gateway]
+        LB[Load Balancer]
+        Auth[Auth + Rate Limit]
+        Router[Model Router]
+    end
+
+    subgraph Context [Context Engine]
+        LocalCtx[Local Context<br/>Assembler]
+        RepoIndex[Repository<br/>Index Service]
+        SnippetRetriever[Snippet<br/>Retriever]
+    end
+
+    subgraph Serving [Model Serving]
+        subgraph CompletionCluster [Completion Cluster]
+            Draft[Draft Model<br/>150M]
+            Target[Target Model<br/>7B]
+        end
+        subgraph ChatCluster [Chat Cluster]
+            ChatLLM[Chat Model<br/>70B]
+        end
+    end
+
+    subgraph PostProcess [Post-Processing]
+        Filter[Code Filter<br/>Syntax Check]
+        Dedup[Deduplication]
+        License[License<br/>Scanner]
+    end
+
+    subgraph Telemetry [Telemetry & Evaluation]
+        AcceptTracker[Acceptance<br/>Tracker]
+        QualityEval[Quality<br/>Evaluation]
+        ABTest[A/B Testing]
+    end
+
+    IDE --> Gateway
+    Gateway --> Context
+    Context --> Serving
+    Serving --> PostProcess
+    PostProcess --> Gateway
+    Gateway --> IDE
+    IDE --> Telemetry

@@ -60,9 +60,9 @@ gantt
   dateFormat X
   axisFormat %s
   section Events
-  e1 (t=10) arrives t=12 :a1, 12, 13
-  e2 (t=11) arrives t=14 :a2, 14, 15
-  e3 (t=9)  arrives t=16 :a3, 16, 17
+  "e1 (t=10) arrives t=12" :a1, 12, 13
+  "e2 (t=11) arrives t=14" :a2, 14, 15
+  "e3 (t=9) arrives t=16" :a3, 16, 17
 ```
 
 !!! tip
@@ -519,25 +519,25 @@ Compression (Kafka **zstd**, columnar **Parquet**) often yields **3–10×** red
 
 ```mermaid
 flowchart LR
-  subgraph producers[Event Producers]
+  subgraph producers["Event Producers"]
     P1[Web / SDK]
     P2[Mobile SDK]
     P3[Ad Server Beacons]
   end
 
-  subgraph ingest[Ingestion]
+  subgraph ingest["Ingestion"]
     GW[Ingest API + Schema Registry]
   end
 
   producers --> GW
   GW --> K[Kafka / Pulsar / Kinesis]
 
-  subgraph stream[Stream Processing]
+  subgraph stream["Stream Processing"]
     F[Flink / Beam on Flink]
   end
 
-  subgraph rt[Real-Time Serving]
-    CH[(ClickHouse / Druid / Pinot)]
+  subgraph rt["Real-Time Serving"]
+    CH[("ClickHouse / Druid / Pinot")]
     Q[Query API + Cache]
   end
 
@@ -545,7 +545,7 @@ flowchart LR
   F --> CH
   CH --> Q
 
-  subgraph batch[Batch & Reconciliation]
+  subgraph batch["Batch & Reconciliation"]
     S3[(Data Lake S3 / GCS)]
     SP[Spark Aggregation]
     R[Reconciliation Service]

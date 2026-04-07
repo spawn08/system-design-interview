@@ -1,0 +1,7 @@
+flowchart LR
+    C[Candidates from Redis + retrieval] --> F[Feature joiner]
+    F --> M[Model ensemble]
+    M --> R[Re-rank top K]
+    R --> Out[Response]
+    L[Logging] --> T[Offline training]
+    T --> M

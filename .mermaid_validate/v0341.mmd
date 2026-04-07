@@ -1,0 +1,8 @@
+flowchart LR
+  subgraph Transaction
+    DB[(Orders DB)]
+    OB[(Outbox Table)]
+  end
+  CDC[CDC / Poller] --> OB
+  CDC --> K[Kafka]
+  K --> NW[Notification Worker]

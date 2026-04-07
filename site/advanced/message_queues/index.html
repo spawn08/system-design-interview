@@ -2946,18 +2946,18 @@
 <p>Kafka is a distributed event streaming platform built around an immutable, append-only <strong>log</strong>. It is the backbone of event-driven architectures at LinkedIn, Netflix, Uber, and most large-scale systems.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    subgraph Kafka Cluster
-        subgraph Broker 1
-            TP0[Topic-A&lt;br/&gt;Partition 0&lt;br/&gt;Leader]
-            TP2[Topic-A&lt;br/&gt;Partition 2&lt;br/&gt;Follower]
+    subgraph kc["Kafka Cluster"]
+        subgraph b1["Broker 1"]
+            TP0["Topic-A&lt;br/&gt;Partition 0&lt;br/&gt;Leader"]
+            TP2["Topic-A&lt;br/&gt;Partition 2&lt;br/&gt;Follower"]
         end
-        subgraph Broker 2
-            TP1[Topic-A&lt;br/&gt;Partition 1&lt;br/&gt;Leader]
-            TP0F[Topic-A&lt;br/&gt;Partition 0&lt;br/&gt;Follower]
+        subgraph b2["Broker 2"]
+            TP1["Topic-A&lt;br/&gt;Partition 1&lt;br/&gt;Leader"]
+            TP0F["Topic-A&lt;br/&gt;Partition 0&lt;br/&gt;Follower"]
         end
-        subgraph Broker 3
-            TP2L[Topic-A&lt;br/&gt;Partition 2&lt;br/&gt;Leader]
-            TP1F[Topic-A&lt;br/&gt;Partition 1&lt;br/&gt;Follower]
+        subgraph b3["Broker 3"]
+            TP2L["Topic-A&lt;br/&gt;Partition 2&lt;br/&gt;Leader"]
+            TP1F["Topic-A&lt;br/&gt;Partition 1&lt;br/&gt;Follower"]
         end
     end
 
@@ -2965,15 +2965,15 @@
     P --&gt;|key-based routing| TP1
     P --&gt;|key-based routing| TP2L
 
-    subgraph Consumer Group A
+    subgraph cga["Consumer Group A"]
         C1[Consumer 1] --&gt; TP0
         C2[Consumer 2] --&gt; TP1
         C3[Consumer 3] --&gt; TP2L
     end
 
-    ZK[ZooKeeper / KRaft] --&gt; Broker 1
-    ZK --&gt; Broker 2
-    ZK --&gt; Broker 3</div>
+    ZK["ZooKeeper / KRaft"] --&gt; b1
+    ZK --&gt; b2
+    ZK --&gt; b3</div>
 <h3 id="core-concepts">Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3383,10 +3383,10 @@
 <div class="mermaid">flowchart LR
     P[Producer] --&gt; EX[Exchange] --&gt; Q[Main Queue]
     Q --&gt; C[Consumer]
-    C --&gt;|reject/nack| Q
-    Q --&gt;|max retries exceeded&lt;br/&gt;or TTL expired| DLX[Dead-Letter Exchange]
+    C --&gt;|"reject/nack"| Q
+    Q --&gt;|"max retries exceeded&lt;br/&gt;or TTL expired"| DLX[Dead-Letter Exchange]
     DLX --&gt; DLQ[Dead-Letter Queue]
-    DLQ --&gt; RETRY[Retry Worker&lt;br/&gt;or Manual Review]</div>
+    DLQ --&gt; RETRY["Retry Worker&lt;br/&gt;or Manual Review"]</div>
 <h3 id="kafka-vs-rabbitmq-decision-matrix">Kafka vs RabbitMQ Decision Matrix<a class="headerlink" href="#kafka-vs-rabbitmq-decision-matrix" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3491,18 +3491,18 @@
 <h3 id="apache-flink">Apache Flink<a class="headerlink" href="#apache-flink" title="Permanent link">&para;</a></h3>
 <p>Flink is the leading stream processing framework, designed for stateful computations over unbounded and bounded data streams.</p>
 <div class="mermaid">flowchart LR
-    subgraph Sources
+    subgraph src["Sources"]
         K[Kafka Topic]
         F[File System]
     end
 
-    subgraph Flink Cluster
-        SM[Source&lt;br/&gt;Operator] --&gt; TR[Transform&lt;br/&gt;Operator]
-        TR --&gt; AGG[Aggregate&lt;br/&gt;Operator]
-        AGG --&gt; WIN[Window&lt;br/&gt;Operator]
+    subgraph fc["Flink Cluster"]
+        SM["Source&lt;br/&gt;Operator"] --&gt; TR["Transform&lt;br/&gt;Operator"]
+        TR --&gt; AGG["Aggregate&lt;br/&gt;Operator"]
+        AGG --&gt; WIN["Window&lt;br/&gt;Operator"]
     end
 
-    subgraph Sinks
+    subgraph snk["Sinks"]
         DB[(Database)]
         K2[Kafka Topic]
         ES[Elasticsearch]
@@ -3555,18 +3555,18 @@
     axisFormat %s
 
     section Tumbling
-    Window 1 :0, 5
-    Window 2 :5, 10
-    Window 3 :10, 15
+    Window 1 :w1, 0, 5
+    Window 2 :w2, 5, 10
+    Window 3 :w3, 10, 15
 
-    section Sliding size5 slide2
-    Window 1 :0, 5
-    Window 2 :2, 7
-    Window 3 :4, 9
+    section Sliding (size 5, slide 2)
+    Window 1 :sw1, 0, 5
+    Window 2 :sw2, 2, 7
+    Window 3 :sw3, 4, 9
 
-    section Session gap3
-    Session 1 :0, 4
-    Session 2 :8, 13</div>
+    section Session (gap 3)
+    Session 1 :ss1, 0, 4
+    Session 2 :ss2, 8, 13</div>
 <table>
 <thead>
 <tr>
@@ -3660,13 +3660,13 @@
 <h3 id="event-sourcing">Event Sourcing<a class="headerlink" href="#event-sourcing" title="Permanent link">&para;</a></h3>
 <p>Instead of storing current state, store the sequence of events that led to the current state. The state is derived by replaying events.</p>
 <div class="mermaid">flowchart LR
-    CMD[Command:&lt;br/&gt;PlaceOrder] --&gt; ES[Event Store]
+    CMD["Command:&lt;br/&gt;PlaceOrder"] --&gt; ES[Event Store]
     ES --&gt;|append| E1[OrderCreated]
     ES --&gt;|append| E2[PaymentReceived]
     ES --&gt;|append| E3[OrderShipped]
 
-    ES --&gt;|replay| STATE[Current State:&lt;br/&gt;Order is Shipped]
-    ES --&gt;|project| READ[Read Model&lt;br/&gt;Materialized View]</div>
+    ES --&gt;|replay| STATE["Current State:&lt;br/&gt;Order is Shipped"]
+    ES --&gt;|project| READ["Read Model&lt;br/&gt;Materialized View"]</div>
 <p><strong>Benefits:</strong>
 - Complete audit trail
 - Temporal queries ("what was the state at time T?")
@@ -3811,23 +3811,23 @@
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q["Need async communication?"] --&gt; MODEL{"What model?"}
-    MODEL --&gt;|One consumer per message| QUEUE[Point-to-Point Queue]
-    MODEL --&gt;|Multiple consumers per message| PUBSUB[Publish-Subscribe]
+    MODEL --&gt;|"One consumer per message"| QUEUE[Point-to-Point Queue]
+    MODEL --&gt;|"Multiple consumers per message"| PUBSUB[Publish-Subscribe]
 
     QUEUE --&gt; TECH1{"Requirements?"}
-    TECH1 --&gt;|Complex routing, RPC| RMQ[RabbitMQ]
-    TECH1 --&gt;|High throughput, replay| KAFKA[Kafka]
-    TECH1 --&gt;|Managed, simple| SQS[Amazon SQS]
+    TECH1 --&gt;|"Complex routing, RPC"| RMQ[RabbitMQ]
+    TECH1 --&gt;|"High throughput, replay"| KAFKA[Kafka]
+    TECH1 --&gt;|"Managed, simple"| SQS[Amazon SQS]
 
     PUBSUB --&gt; TECH2{"Requirements?"}
-    TECH2 --&gt;|Event streaming, replay| KAFKA2[Kafka]
-    TECH2 --&gt;|Managed pub/sub| SNS[SNS + SQS / Pub/Sub]
-    TECH2 --&gt;|Real-time fan-out| REDIS[Redis Pub/Sub]
+    TECH2 --&gt;|"Event streaming, replay"| KAFKA2[Kafka]
+    TECH2 --&gt;|"Managed pub/sub"| SNS["SNS + SQS / Pub/Sub"]
+    TECH2 --&gt;|"Real-time fan-out"| REDIS["Redis Pub/Sub"]
 
     KAFKA --&gt; PROC{"Need processing?"}
-    PROC --&gt;|Simple transforms| KS[Kafka Streams]
-    PROC --&gt;|Complex, stateful| FLINK[Apache Flink]
-    PROC --&gt;|Micro-batch OK| SPARK[Spark Streaming]</div>
+    PROC --&gt;|"Simple transforms"| KS[Kafka Streams]
+    PROC --&gt;|"Complex, stateful"| FLINK[Apache Flink]
+    PROC --&gt;|"Micro-batch OK"| SPARK[Spark Streaming]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, always state your delivery guarantee requirement (at-most-once, at-least-once, exactly-once) and explain why. Most systems use <strong>at-least-once with idempotent consumers</strong> — it gives reliability without the complexity of exactly-once.</p>

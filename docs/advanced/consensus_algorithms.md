@@ -65,14 +65,14 @@ sequenceDiagram
   participant A2 as Acceptor 2
   participant A3 as Acceptor 3
 
-  P->>A1: Prepare(n=1)
-  P->>A2: Prepare(n=1)
-  P->>A3: Prepare(n=1)
-  A1-->>P: Promise(n=1, none)
-  A2-->>P: Promise(n=1, none)
+  P->>A1: "Prepare(n=1)"
+  P->>A2: "Prepare(n=1)"
+  P->>A3: "Prepare(n=1)"
+  A1-->>P: "Promise(n=1, none)"
+  A2-->>P: "Promise(n=1, none)"
   Note over P: Majority promised
-  P->>A1: Accept(n=1, value=X)
-  P->>A2: Accept(n=1, value=X)
+  P->>A1: "Accept(n=1, value=X)"
+  P->>A2: "Accept(n=1, value=X)"
   A1-->>P: Accepted
   A2-->>P: Accepted
   Note over P: Value X is chosen
@@ -144,9 +144,9 @@ sequenceDiagram
   participant F2 as Follower 2
 
   C->>L: Command X
-  L->>L: Append to log (index 5, term 3)
-  L->>F1: AppendEntries(index 5, term 3, X)
-  L->>F2: AppendEntries(index 5, term 3, X)
+  L->>L: "Append to log (index 5, term 3)"
+  L->>F1: "AppendEntries(index 5, term 3, X)"
+  L->>F2: "AppendEntries(index 5, term 3, X)"
   F1-->>L: Success
   F2-->>L: Success
   Note over L: Majority replicated; commit index 5

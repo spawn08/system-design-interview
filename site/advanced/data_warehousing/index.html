@@ -2804,10 +2804,10 @@
         APP[Application] --&gt; DB[(Operational DB&lt;br/&gt;MySQL, PostgreSQL)]
     end
 
-    subgraph Analytics Infrastructure
-        DB --&gt;|ETL / CDC| WH[(Data Warehouse&lt;br/&gt;Redshift, BigQuery)]
-        DB --&gt;|Raw dump| DL[(Data Lake&lt;br/&gt;S3 / HDFS)]
-        DL --&gt;|Structured queries| LH[(Lakehouse&lt;br/&gt;Delta Lake, Iceberg)]
+    subgraph ai["Analytics Infrastructure"]
+        DB --&gt;|"ETL / CDC"| WH["Data Warehouse&lt;br/&gt;Redshift, BigQuery"]
+        DB --&gt;|Raw dump| DL["Data Lake&lt;br/&gt;S3 / HDFS"]
+        DL --&gt;|Structured queries| LH["Lakehouse&lt;br/&gt;Delta Lake, Iceberg"]
     end
 
     WH --&gt; BI[BI Dashboards&lt;br/&gt;Tableau, Looker]
@@ -3295,11 +3295,11 @@
 <p>The lakehouse combines the best of warehouses and lakes: cheap storage (lake) with ACID transactions, schema enforcement, and fast queries (warehouse).</p>
 <div class="mermaid">flowchart TD
     subgraph Traditional
-        DL[Data Lake&lt;br/&gt;S3/HDFS] --&gt;|ETL| DW[Data Warehouse&lt;br/&gt;Redshift/BQ]
+        DL["Data Lake&lt;br/&gt;S3/HDFS"] --&gt;|ETL| DW["Data Warehouse&lt;br/&gt;Redshift/BQ"]
     end
 
     subgraph Lakehouse
-        LH[(Lakehouse&lt;br/&gt;Delta Lake / Iceberg / Hudi)]
+        LH["Lakehouse&lt;br/&gt;Delta Lake / Iceberg / Hudi"]
         LH --&gt;|Fast SQL| ANALYTICS[Analytics]
         LH --&gt;|Direct access| ML[ML Training]
         LH --&gt;|Streaming| STREAM[Real-time]
@@ -3596,7 +3596,7 @@
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
-    Q[Analytics / Data Question] --&gt; NEED{What do you need?}
+    Q["Analytics / Data Question"] --&gt; NEED{What do you need?}
     NEED --&gt;|Fast SQL on structured data| WH[Data Warehouse]
     NEED --&gt;|Store everything cheaply| LAKE[Data Lake]
     NEED --&gt;|Both + ACID| LH[Lakehouse]
@@ -3608,8 +3608,8 @@
 
     LAKE --&gt; PROC{Processing needs?}
     PROC --&gt;|Batch ETL| SPARK[Apache Spark]
-    PROC --&gt;|SQL queries| PRESTO[Presto / Athena]
-    PROC --&gt;|Streaming| FLINK[Flink + Delta/Iceberg]
+    PROC --&gt;|SQL queries| PRESTO["Presto / Athena"]
+    PROC --&gt;|Streaming| FLINK["Flink + Delta/Iceberg"]
 
     LH --&gt; FORMAT{Table format?}
     FORMAT --&gt;|Databricks ecosystem| DELTA[Delta Lake]

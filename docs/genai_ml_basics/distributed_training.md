@@ -98,20 +98,20 @@ Communication-to-compute ratio:
 
 ```mermaid
 graph TB
-    subgraph Training Cluster
-        subgraph Node 1
+    subgraph tc["Training Cluster"]
+        subgraph n1["Node 1"]
             GPU0[GPU 0<br/>Worker]
             GPU1[GPU 1<br/>Worker]
             GPU0 <-->|NVLink| GPU1
         end
 
-        subgraph Node 2
+        subgraph n2["Node 2"]
             GPU2[GPU 2<br/>Worker]
             GPU3[GPU 3<br/>Worker]
             GPU2 <-->|NVLink| GPU3
         end
 
-        Node1 <-->|InfiniBand| Node2
+        n1 <-->|InfiniBand| n2
     end
 
     subgraph Orchestration
@@ -120,17 +120,17 @@ graph TB
         CKPT[(Checkpoint Store<br/>S3 / HDFS)]
     end
 
-    subgraph Data Pipeline
+    subgraph dp["Data Pipeline"]
         DATA[(Training Data<br/>S3 / HDFS)]
         LOADER[Distributed DataLoader<br/>Sharded by worker]
     end
 
-    subgraph Experiment Tracking
+    subgraph et["Experiment Tracking"]
         TRACK[MLflow / W&B]
     end
 
-    SCHED --> Node1
-    SCHED --> Node2
+    SCHED --> n1
+    SCHED --> n2
     DATA --> LOADER
     LOADER --> GPU0
     LOADER --> GPU1
@@ -321,25 +321,25 @@ ZeRO eliminates memory redundancy by partitioning optimizer states, gradients, a
 
 ```mermaid
 graph LR
-    subgraph "Stage 0: DDP"
+    subgraph s0["Stage 0: DDP"]
         G0_M[Model ✓]
         G0_O[Optimizer ✓]
         G0_G[Gradients ✓]
     end
 
-    subgraph "Stage 1: Partition Optimizer"
+    subgraph s1["Stage 1: Partition Optimizer"]
         G1_M[Model ✓]
         G1_O[Optimizer ⅛]
         G1_G[Gradients ✓]
     end
 
-    subgraph "Stage 2: + Partition Gradients"
+    subgraph s2["Stage 2: + Partition Gradients"]
         G2_M[Model ✓]
         G2_O[Optimizer ⅛]
         G2_G[Gradients ⅛]
     end
 
-    subgraph "Stage 3: + Partition Parameters"
+    subgraph s3["Stage 3: + Partition Parameters"]
         G3_M[Model ⅛]
         G3_O[Optimizer ⅛]
         G3_G[Gradients ⅛]
@@ -490,12 +490,12 @@ When a model is too large for a single GPU (even with ZeRO), we split the model 
 
 ```mermaid
 graph LR
-    subgraph "GPU 0"
+    subgraph g0["GPU 0"]
         ATT_0[Attention Heads 0-15]
         MLP_0[MLP Column 0]
     end
 
-    subgraph "GPU 1"
+    subgraph g1["GPU 1"]
         ATT_1[Attention Heads 16-31]
         MLP_1[MLP Column 1]
     end
@@ -635,8 +635,8 @@ class TensorParallelTransformerLayer(nn.Module):
 
 ```mermaid
 graph TB
-    subgraph "Time →"
-        subgraph "GPU 0 (Layers 0-7)"
+    subgraph tdir["Time →"]
+        subgraph gpu0st["GPU 0 (Layers 0-7)"]
             MB1_S0[μ-batch 1<br/>Forward]
             MB2_S0[μ-batch 2<br/>Forward]
             MB3_S0[μ-batch 3<br/>Forward]
@@ -646,7 +646,7 @@ graph TB
             MB2_S0B[μ-batch 2<br/>Backward]
             MB1_S0B[μ-batch 1<br/>Backward]
         end
-        subgraph "GPU 1 (Layers 8-15)"
+        subgraph gpu1st["GPU 1 (Layers 8-15)"]
             IDLE1[Idle]
             MB1_S1[μ-batch 1<br/>Forward]
             MB2_S1[μ-batch 2<br/>Forward]

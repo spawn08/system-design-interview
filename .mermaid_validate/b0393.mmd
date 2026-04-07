@@ -1,0 +1,21 @@
+flowchart TB
+    subgraph CP_Path [CP-oriented: vote integrity]
+        VS[Vote submission path]
+        UC[(DB UNIQUE / conditional write)]
+        VS --> UC
+    end
+
+    subgraph AP_Path [AP-oriented: read scaling]
+        RC[Results / counts read path]
+        CACHE[(Redis / read replicas)]
+        RC --> CACHE
+    end
+
+    subgraph Eventual [Eventual: display freshness]
+        LB[Leaderboard / live ticker]
+        Q[Stream / worker updates]
+        LB --> Q
+        Q --> CACHE
+    end
+
+    UC -.->|reconcile / async projection| CACHE

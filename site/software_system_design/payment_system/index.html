@@ -3287,10 +3287,10 @@
 
   PI --&gt; IDEM
   LD --&gt; IDEM
-  QS -.-&gt;|stale OK with TTL| PI
+  QS -.-&gt;|"stale OK with TTL"| PI
   NOTIF --&gt; MERCH_WH
-  P --&gt;|prefer errors or queued work| PI
-  P --&gt;|do not serve wrong balance| LD</div>
+  P --&gt;|"prefer errors or queued work"| PI
+  P --&gt;|"do not serve wrong balance"| LD</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>PSPs are <strong>external CP-ish systems</strong> with their own failure modes: your design must <strong>reconcile</strong> and <strong>never assume</strong> your DB and Stripe agree without verification.</p>
@@ -3493,14 +3493,14 @@
   end
 
   subgraph external["External"]
-    PSP[PSP - Stripe / PayPal]
-    BANK[Issuing / Acquiring Networks]
+    PSP["PSP - Stripe / PayPal"]
+    BANK["Issuing / Acquiring Networks"]
   end
 
   subgraph data["Data Stores"]
     PAYDB[(Payment DB)]
     LEDDB[(Ledger DB)]
-    REDIS[(Redis - locks / cache)]
+    REDIS["Redis - locks / cache"]
   end
 
   WEB --&gt; GW

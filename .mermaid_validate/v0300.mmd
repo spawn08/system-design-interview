@@ -1,0 +1,25 @@
+flowchart TB
+  subgraph Healthy["Network: no partition"]
+    H1[Client]
+    H2[Coordinator]
+    H3[N replicas with overlap W+R > N]
+    H1 --> H2 --> H3
+  end
+
+  subgraph PartAP["Partition: AP / Dynamo-style"]
+    P1[Minority side]
+    P2[Majority side]
+    P3[Writes may complete via sloppy quorum on majority]
+    P4[Reads may be stale; repair later]
+    P1 -.->|isolated| P2
+    P2 --> P3
+    P2 --> P4
+  end
+
+  subgraph PartCP["Partition: CP / Raft shard"]
+    R1[Minority: no leader]
+    R2[Majority: leader accepts writes]
+    R3[Reads/writes fail or stale on minority]
+    R1 -.->|no quorum| R2
+    R2 --> R3
+  end

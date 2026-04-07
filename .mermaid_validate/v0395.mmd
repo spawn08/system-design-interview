@@ -1,0 +1,8 @@
+flowchart TD
+    Vote[Vote Request] --> L1{Layer 1:<br/>Redis Check}
+    L1 -->|Already voted| Reject1[Reject]
+    L1 -->|Not found| L2[Layer 2:<br/>Kafka Dedup]
+    L2 --> L3{Layer 3:<br/>DB Constraint}
+    L3 -->|Constraint violation| Reject2[Log & Ignore]
+    L3 -->|Success| Store[Vote Stored]
+    Store --> UpdateCache[Update Redis]

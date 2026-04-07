@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C->>S: ClientHello<br/>(supported cipher suites, random, key share)
+    S->>C: ServerHello<br/>(chosen cipher suite, random, key share)<br/>+ Certificate<br/>+ CertificateVerify<br/>+ Finished
+    
+    Note over C: Verify server certificate<br/>Derive session keys
+    
+    C->>S: Finished
+    
+    Note over C,S: Encrypted application data<br/>(symmetric encryption with derived keys)
+    
+    C->>S: Application Data (encrypted)
+    S->>C: Application Data (encrypted)

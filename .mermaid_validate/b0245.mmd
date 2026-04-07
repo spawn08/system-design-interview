@@ -1,0 +1,9 @@
+sequenceDiagram
+  participant Src as Producers
+  participant Log as Kafka
+  participant Flink as Flink
+  participant OLAP as ClickHouse
+  Src->>Log: append(event)
+  Log->>Flink: poll(partitions)
+  Flink->>Flink: assign windows + watermarks
+  Flink->>OLAP: upsert(rollup rows)

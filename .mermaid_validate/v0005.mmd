@@ -1,0 +1,16 @@
+flowchart TD
+    subgraph Write Quorum (W=2, N=3)
+        W_CLIENT[Client Write] --> WN1[Node 1 ✓]
+        W_CLIENT --> WN2[Node 2 ✓]
+        W_CLIENT --> WN3[Node 3 ✗ slow]
+        WN1 -->|ack| W_CLIENT
+        WN2 -->|ack| W_CLIENT
+    end
+    
+    subgraph Read Quorum (R=2, N=3)
+        R_CLIENT[Client Read] --> RN1[Node 1: v=5]
+        R_CLIENT --> RN2[Node 2: v=5]
+        R_CLIENT --> RN3[Node 3: v=3 stale]
+        RN1 -->|v=5| R_CLIENT
+        RN2 -->|v=5| R_CLIENT
+    end

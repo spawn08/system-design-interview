@@ -1,0 +1,7 @@
+flowchart TB
+    subgraph Index [Vector Index Architecture]
+        Query[Query Vector] --> Coarse[Coarse Quantizer<br/>Find clusters]
+        Coarse --> Clusters[Search relevant clusters]
+        Clusters --> Fine[Fine-grained search<br/>within clusters]
+        Fine --> TopK[Top-K results]
+    end

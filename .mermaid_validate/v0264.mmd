@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant CA as Client A
+  participant GW as Gateway
+  participant S as Doc Service
+  participant Log as Op Log
+  participant CB as Client B
+
+  CA->>GW: op insert @ rev N
+  GW->>S: validate ACL + doc shard
+  S->>Log: append op (seq N+1)
+  S->>GW: ack + ordered op
+  GW->>CA: ack N+1
+  S->>GW: broadcast op N+1
+  GW->>CB: remote op N+1

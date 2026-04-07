@@ -1,0 +1,5 @@
+flowchart TD
+    ES[(Event store)] -->|stream events| REPLAY[Replay / fold]
+    REPLAY --> S1[State at t1]
+    REPLAY --> S2[State at t2]
+    REPLAY --> SN[State now]

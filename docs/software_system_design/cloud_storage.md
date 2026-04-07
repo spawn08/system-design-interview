@@ -170,24 +170,24 @@ For **cloud storage**:
 
 ```mermaid
 flowchart TB
-  subgraph cp [CP-leaning paths]
+  subgraph cp["CP-leaning paths"]
     M[Metadata commit\nfile tree + revision]
     A[ACL grant/revoke]
   end
 
-  subgraph ap [AP-leaning paths]
+  subgraph ap["AP-leaning paths"]
     B[Block read by hash\nreplicated objects]
     N[Notify / change feed delivery]
   end
 
-  subgraph part [Partition]
+  subgraph part["Partition"]
     P[Network split\nclients cannot reach all replicas]
   end
 
   P -->|choose| M
   P -->|choose| B
-  M -->|may fail closed\nreject ambiguous commits| X[Consistent tree]
-  B -->|still serve\nknown hashes| Y[Available reads]
+  M -->|"may fail closed\nreject ambiguous commits"| X[Consistent tree]
+  B -->|"still serve\nknown hashes"| Y[Available reads]
 ```
 
 !!! note
@@ -327,25 +327,25 @@ At a high level: **clients** talk to **API / sync services**, which persist **me
 
 ```mermaid
 flowchart LR
-  subgraph clients [Clients]
+  subgraph clients["Clients"]
     C1[Desktop sync]
     C2[Mobile]
     C3[Web]
   end
 
-  subgraph edge [Edge]
+  subgraph edge["Edge"]
     LB[Load balancers]
     API[API Gateway]
   end
 
-  subgraph services [Core services]
+  subgraph services["Core services"]
     MS[Metadata service]
     BS[Block service]
     NS[Notification service]
     CF[Change feed]
   end
 
-  subgraph data [Data stores]
+  subgraph data["Data stores"]
     MD[(Metadata DB)]
     OS[(Object / block store)]
     CACHE[(Redis cache)]

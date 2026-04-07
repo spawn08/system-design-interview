@@ -3149,18 +3149,18 @@
 <h3 id="how-image-captioning-works">How Image Captioning Works<a class="headerlink" href="#how-image-captioning-works" title="Permanent link">&para;</a></h3>
 <p>Image captioning uses a two-part architecture:</p>
 <div class="mermaid">flowchart LR
-    subgraph Encoder [Image Encoder]
+    subgraph enc["Image Encoder"]
         Image[Image] --&gt; CNN[CNN/ViT]
         CNN --&gt; Features[Feature Vector]
     end
 
-    subgraph Decoder [Text Decoder]
+    subgraph dec["Text Decoder"]
         Features --&gt; Attention[Attention]
         Attention --&gt; LM[Language Model]
         LM --&gt; Words[Word by Word]
     end
 
-    Words --&gt; Caption[A dog on a beach]</div>
+    Words --&gt; Caption["A dog on a beach"]</div>
 <p><strong>Step 1: Encode the Image</strong></p>
 <p>A Convolutional Neural Network (CNN) or Vision Transformer (ViT) processes the image and produces a "feature vector"—a numerical representation capturing what's in the image.</p>
 <p>Think of it like this: the encoder looks at the image and creates a 2048-dimensional summary (just a list of 2048 numbers) that encodes "there's a dog, it's brown, there's sand, there's water, it's sunny."</p>
@@ -3455,28 +3455,28 @@
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
 
-    subgraph Edge [Edge Layer]
-        CDN[CDN / Image CDN]
+    subgraph edge["Edge Layer"]
+        CDN["CDN / Image CDN"]
         LB[Load Balancer]
     end
 
-    subgraph Gateway [API Layer]
+    subgraph gw["API Layer"]
         APIGw[API Gateway]
     end
 
-    subgraph Processing [Processing Layer]
+    subgraph proc["Processing Layer"]
         Preprocessor[Image Preprocessor]
         Queue[Request Queue]
         Batcher[Dynamic Batcher]
     end
 
-    subgraph Inference [ML Inference Layer]
+    subgraph inf["ML Inference Layer"]
         Triton1[Model Server 1]
         Triton2[Model Server 2]
         Triton3[Model Server N]
@@ -3485,12 +3485,12 @@
         GPU3[GPU]
     end
 
-    subgraph Data [Data Layer]
+    subgraph data["Data Layer"]
         Cache[(Redis Cache)]
-        Storage[(S3/GCS)]
+        Storage[("S3/GCS")]
     end
 
-    subgraph Monitor [Observability]
+    subgraph mon["Observability"]
         Metrics[Prometheus]
         Logs[ELK]
         Traces[Jaeger]
@@ -4045,8 +4045,8 @@
 <div class="mermaid">flowchart TD
     Request[Request] --&gt; Classify{Image Type?}
 
-    Classify --&gt;|Simple| Fast[Small/Fast Model&lt;br/&gt;50ms, 90% quality]
-    Classify --&gt;|Complex| Quality[Large/Quality Model&lt;br/&gt;200ms, 99% quality]
+    Classify --&gt;|Simple| Fast["Small/Fast Model&lt;br/&gt;50ms, 90% quality"]
+    Classify --&gt;|Complex| Quality["Large/Quality Model&lt;br/&gt;200ms, 99% quality"]
 
     Fast --&gt; Response[Return Caption]
     Quality --&gt; Response</div>
@@ -4071,17 +4071,17 @@
 <h3 id="53-preprocessing-pipeline-optimization">5.3 Preprocessing Pipeline Optimization<a class="headerlink" href="#53-preprocessing-pipeline-optimization" title="Permanent link">&para;</a></h3>
 <p>Move preprocessing to CPU workers, keep GPUs for inference:</p>
 <div class="mermaid">flowchart LR
-    subgraph CPU [CPU Workers]
+    subgraph cpu["CPU Workers"]
         P1[Preprocess 1]
         P2[Preprocess 2]
         P3[Preprocess 3]
     end
 
-    subgraph Queue [Preprocessed Queue]
+    subgraph pqueue["Preprocessed Queue"]
         Q[(Queue)]
     end
 
-    subgraph GPU [GPU Workers]
+    subgraph gpuw["GPU Workers"]
         G1[Model 1]
         G2[Model 2]
     end
@@ -4300,21 +4300,21 @@
 <h2 id="step-8-training-pipeline-and-model-updates">Step 8: Training Pipeline and Model Updates<a class="headerlink" href="#step-8-training-pipeline-and-model-updates" title="Permanent link">&para;</a></h2>
 <h3 id="training-infrastructure">Training Infrastructure<a class="headerlink" href="#training-infrastructure" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Data [Data Pipeline]
+    subgraph dpipe["Data Pipeline"]
         Raw[Raw Images] --&gt; Clean[Cleaning]
         Clean --&gt; Label[Human Labeling]
         Label --&gt; Augment[Augmentation]
         Augment --&gt; Dataset[(Training Dataset)]
     end
 
-    subgraph Training [Training]
+    subgraph trn3["Training"]
         Dataset --&gt; Train[Distributed Training]
         Train --&gt; Eval[Evaluation]
-        Eval --&gt; Metrics[BLEU, CIDEr, METEOR]
+        Eval --&gt; Metrics["BLEU, CIDEr, METEOR"]
     end
 
-    subgraph Deployment [Deployment]
-        Metrics --&gt; |Good| Register[Model Registry]
+    subgraph depl2["Deployment"]
+        Metrics --&gt;|Good| Register[Model Registry]
         Register --&gt; Shadow[Shadow Deployment]
         Shadow --&gt; Canary[Canary Rollout]
         Canary --&gt; Production[Production]

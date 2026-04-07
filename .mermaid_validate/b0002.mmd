@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant C as Client
+  participant L as Leader
+  participant F1 as Follower 1
+  participant F2 as Follower 2
+
+  C->>L: Command X
+  L->>L: Append to log (index 5, term 3)
+  L->>F1: AppendEntries(index 5, term 3, X)
+  L->>F2: AppendEntries(index 5, term 3, X)
+  F1-->>L: Success
+  F2-->>L: Success
+  Note over L: Majority replicated; commit index 5
+  L->>L: Apply X to state machine
+  L-->>C: Result

@@ -1,0 +1,13 @@
+flowchart LR
+  subgraph daily["Daily reconciliation job"]
+    A[Download PSP report CSV / API]
+    B[Normalize to canonical rows]
+    C[Match by PSP reference + amount + date]
+    D{Matched?}
+    E[Mark settled / flag OK]
+    F[Exception queue]
+  end
+
+  A --> B --> C --> D
+  D -->|yes| E
+  D -->|no| F

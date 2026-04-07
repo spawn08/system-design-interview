@@ -1,0 +1,18 @@
+flowchart TB
+    subgraph Collect [Collection]
+        IMP[Impression Logs]
+        CLK[Click Stream]
+    end
+    subgraph Prep [Preparation]
+        SESS[Sessionize]
+        JOIN[Join Features]
+        PROP[Propensity Model]
+        WG[Weighted Labels]
+    end
+    subgraph Train [Training]
+        LTR[LambdaMART / Neural LTR]
+        OFF[Offline NDCG]
+    end
+    IMP --> SESS
+    CLK --> SESS
+    SESS --> JOIN --> PROP --> WG --> LTR --> OFF

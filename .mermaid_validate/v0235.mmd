@@ -1,0 +1,9 @@
+flowchart TB
+    subgraph Enc[Encoder]
+        M[Log-mel spectrogram patches] --> T[Transformer encoder]
+    end
+    subgraph Dec[Decoder]
+        T --> TD[Transformer decoder]
+        TD --> O[Token outputs]
+    end
+    MT[Special tokens: transcribe / translate<br/>language id, timestamps] --> Dec

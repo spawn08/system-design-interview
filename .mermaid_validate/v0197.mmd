@@ -1,0 +1,9 @@
+sequenceDiagram
+    participant L as Label row (decision_time = t)
+    participant PIT as PIT join engine
+    participant F as Feature history
+    L->>PIT: entity_id, decision_time=t
+    PIT->>F: filter feature_time <= t
+    F-->>PIT: candidate rows (possibly many)
+    PIT->>PIT: pick latest per feature version
+    PIT-->>L: training row with no future info

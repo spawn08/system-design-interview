@@ -1,0 +1,28 @@
+flowchart TB
+  subgraph data["Data"]
+    RAW[Web crawl / licensed sets]
+    DEDUP[pHash + CLIP dedup]
+    FILTER[NSFW / quality / policy filters]
+    SHARD[Sharded TFRecord / WebDataset]
+  end
+  subgraph train["Training"]
+    AE[VAE frozen or co-trained stage]
+    DM[Latent diffusion training\nnoise / v-pred loss]
+    FT[Optional: LoRA / DreamBooth\nadapter jobs]
+    RM[Reward model\nhuman pairwise]
+    RL[DPO / RLHF fine-tune]
+  end
+  subgraph ship["Release"]
+    CKPT[Checkpoints + EMA]
+    EVAL[FID / CLIP / safety gates]
+    SRV[Serving bundle\nFP16 + schedulers]
+  end
+  RAW --> DEDUP --> FILTER --> SHARD
+  SHARD --> DM
+  AE -.-> DM
+  DM --> CKPT
+  DM --> FT
+  SHARD --> RM
+  RM --> RL
+  DM --> RL
+  CKPT --> EVAL --> SRV

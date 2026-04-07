@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant R as Rider
+  participant T as Trip service
+  participant M as Matching
+  participant G as Geo index
+  participant D as Driver
+
+  R->>T: POST /trips
+  T->>M: match_request(pickup, constraints)
+  M->>G: nearby_drivers(cell, k)
+  G-->>M: candidate list
+  M->>M: rank by ETA + rules
+  M->>D: push offer (trip_id, ttl)
+  D-->>M: accept / timeout
+  M->>T: assign(driver_id)

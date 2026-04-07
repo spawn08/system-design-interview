@@ -1,0 +1,13 @@
+flowchart LR
+    GW[API Gateway<br/>Span A] --> US[User Service<br/>Span B]
+    US --> OS[Order Service<br/>Span C]
+    OS --> PS[Payment Service<br/>Span D]
+    OS --> IS[Inventory Service<br/>Span E]
+    
+    subgraph Trace ID: abc-123
+        GW
+        US
+        OS
+        PS
+        IS
+    end

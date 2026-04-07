@@ -1,0 +1,12 @@
+graph TD
+    CAP[CAP Theorem] --> C[Consistency]
+    CAP --> A[Availability]
+    CAP --> P[Partition Tolerance]
+    
+    C --> CP[CP Systems]
+    A --> AP[AP Systems]
+    P --> CP
+    P --> AP
+    
+    CP --> |Examples| CP_EX[HBase, MongoDB, Redis Cluster]
+    AP --> |Examples| AP_EX[Cassandra, DynamoDB, CouchDB]

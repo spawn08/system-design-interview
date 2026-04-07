@@ -3511,7 +3511,7 @@ L^{\text{CLIP}}(\theta) = \mathbb{E}_t\left[
     PiSFT --&gt; Roll
     Rphi --&gt; Roll
     Roll --&gt; Adv --&gt; PPOupd
-    PiSFT -. reference π_ref .-&gt; PPOupd
+    PiSFT -. "reference π_ref" .-&gt; PPOupd
     PPOupd --&gt; PiAligned[Aligned policy π*]
   end</div>
 <hr />
@@ -4197,7 +4197,7 @@ r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta
 
   Users((Users)) --&gt; GW --&gt; MOD --&gt; RAG --&gt; AL
   AL --&gt; RM
-  RM -. evaluation / routing .-&gt; GW</div>
+  RM -. "evaluation / routing" .-&gt; GW</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Alignment is <strong>not</strong> a single offline step—it’s a <strong>lifecycle</strong> tied to evaluation, data governance, and release discipline.</p>

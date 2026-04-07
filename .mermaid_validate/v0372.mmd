@@ -1,0 +1,15 @@
+flowchart TB
+  R[Shard Router]
+  S1[Shard: A-F]
+  S2[Shard: G-M]
+  S3[Shard: N-Z]
+  LB1[LB]
+  LB2[LB]
+  LB3[LB]
+
+  R -->|prefix range| S1
+  R --> S2
+  R --> S3
+  S1 --> LB1
+  S2 --> LB2
+  S3 --> LB3

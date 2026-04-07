@@ -1,0 +1,17 @@
+flowchart TD
+    subgraph Vertical Scaling
+        V1[Small Server<br/>4 CPU, 8GB RAM] --> V2[Bigger Server<br/>32 CPU, 128GB RAM]
+        V2 --> V3[Biggest Server<br/>128 CPU, 1TB RAM]
+        V3 --> LIMIT[Hard limit reached!]
+    end
+    
+    subgraph Horizontal Scaling
+        H1[Server 1] 
+        H2[Server 2]
+        H3[Server 3]
+        H4[Server N...]
+        LB[Load Balancer] --> H1
+        LB --> H2
+        LB --> H3
+        LB --> H4
+    end

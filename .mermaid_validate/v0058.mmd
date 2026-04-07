@@ -1,0 +1,5 @@
+flowchart LR
+    U[User] -->|DNS / HTTP| EDGE[Edge PoP]
+    EDGE -->|cache HIT| U
+    EDGE -->|cache MISS| ORIGIN[Origin<br/>Object store or app]
+    ORIGIN --> EDGE

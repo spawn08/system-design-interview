@@ -1,0 +1,9 @@
+flowchart TB
+  subgraph cap["CAP Classification"]
+    NH["Notification history<br/>(Cassandra) — AP"]
+    UP["User preferences<br/>(PostgreSQL) — CP"]
+    ID["Idempotency<br/>(Redis) — AP"]
+    RL["Rate limits<br/>(Redis) — AP"]
+    TM["Templates<br/>(PostgreSQL) — CP"]
+    KF["Message queue<br/>(Kafka) — AP"]
+  end

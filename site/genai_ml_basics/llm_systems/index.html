@@ -3068,33 +3068,33 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <div class="mermaid">graph TB
-    subgraph Client Layer
+    subgraph cl["Client Layer"]
         WEB[Web App]
         API_C[API Client]
         MOBILE[Mobile]
     end
 
-    subgraph API Layer
+    subgraph al["API Layer"]
         GW[API Gateway]
         GUARD[Guardrails&lt;br/&gt;Input Filter]
     end
 
-    subgraph RAG Pipeline
+    subgraph rag["RAG Pipeline"]
         EMBED_Q[Query Encoder]
         VECTOR[(Vector DB&lt;br/&gt;Pinecone / Weaviate)]
         RERANK[Re-ranker]
         CONTEXT[Context Builder]
     end
 
-    subgraph LLM Serving
+    subgraph lls["LLM Serving"]
         PROMPT[Prompt Manager]
         ROUTER[Model Router]
-        LLM1[LLM - GPT-4o&lt;br/&gt;Complex queries]
-        LLM2[LLM - 7B Model&lt;br/&gt;Simple queries]
+        LLM1["LLM - GPT-4o&lt;br/&gt;Complex queries"]
+        LLM2["LLM - 7B Model&lt;br/&gt;Simple queries"]
         CACHE[(Semantic Cache&lt;br/&gt;Redis)]
     end
 
-    subgraph Post-Processing
+    subgraph pp["Post-Processing"]
         FILTER[Output Filter&lt;br/&gt;PII, Safety]
         CITE[Citation Generator]
         STREAM[SSE Streamer]

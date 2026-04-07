@@ -104,20 +104,20 @@ Content-Type: application/json
 
 ```mermaid
 flowchart TB
-  subgraph ap_path [AP: serving path]
+  subgraph ap_path["AP: serving path"]
     Q[Nearby query]
     IX[(Geospatial shards / Redis GEO)]
     CA[Optional cache]
     Q --> IX --> CA
   end
 
-  subgraph cp_path [CP: authoritative writes]
+  subgraph cp_path["CP: authoritative writes"]
     ADM[Admin / ingest]
-    OLTP[(OLTP: place row + geometry)]
+    OLTP[("OLTP: place row + geometry")]
     ADM --> OLTP
   end
 
-  subgraph ev_path [Eventual: aggregates]
+  subgraph ev_path["Eventual: aggregates"]
     RV[Reviews stream]
     AGG[Aggregator / materializer]
     SUM[(Denormalized rating_sum, count)]
@@ -294,14 +294,14 @@ flowchart TB
     RS[Ranking / Relevance]
   end
 
-  subgraph data [Data Plane]
+  subgraph data_plane["Data Plane"]
     GS[(Geospatial Index Shard)]
     PG[(PostGIS / Primary Store)]
     RD[(Redis GEO Cache)]
-    OS[(Object Store: Bulk Ingest)]
+    OS[("Object Store: Bulk Ingest")]
   end
 
-  subgraph async [Async]
+  subgraph async_ingest["Async"]
     Q[Ingest Queue]
     IDX[Index Builder]
   end
@@ -372,7 +372,7 @@ A **geohash** maps a 2D point to a **base-32 string** by interleaving bits of lo
 
 ```mermaid
 flowchart LR
-  subgraph grid [Geohash cells conceptual]
+  subgraph grid["Geohash cells conceptual"]
     A["9q8yy"]
     B["9q8yz"]
     C["9q8yp"]
@@ -386,10 +386,10 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  subgraph l4 [Prefix length 4 — large cell]
+  subgraph l4["Prefix length 4 — large cell"]
     W[Whole metro area]
   end
-  subgraph l6 [Length 6 — finer]
+  subgraph l6["Length 6 — finer"]
     C1[Cell ...0]
     C2[Cell ...1]
     C3[Cell ...2]
@@ -412,7 +412,7 @@ A **quadtree** recursively subdivides 2D space into four quadrants until each le
 
 ```mermaid
 flowchart TD
-  R[Root: world bbox]
+  R["Root: world bbox"]
   R --> NW[NW quadrant]
   R --> NE[NE quadrant]
   R --> SW[SW quadrant]

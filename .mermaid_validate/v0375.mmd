@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph client [Client]
+    D[Debounce 100ms]
+    BC[Browser cache]
+  end
+  subgraph edge [Edge]
+    CDN[CDN]
+  end
+  subgraph origin [Origin]
+    R[Redis]
+    T[Trie snapshot]
+  end
+  D --> BC
+  BC -->|miss| CDN
+  CDN -->|miss| R
+  R -->|miss| T

@@ -1,0 +1,5 @@
+flowchart LR
+    subgraph OnRead [Fan-out on read]
+        L[Load followee ids] --> Q[Parallel fetch recent posts]
+        Q --> M[Merge + truncate]
+    end

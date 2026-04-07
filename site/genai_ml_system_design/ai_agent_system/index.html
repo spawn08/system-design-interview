@@ -4579,19 +4579,19 @@
 <p><strong>Regression gates:</strong> ship planner/router changes only if <strong>offline</strong> suite and <strong>shadow</strong> traffic show <strong>no</strong> degradation on <strong>success rate</strong> and <strong>safety</strong> metrics.</p>
 <h3 id="deployment-topology-multi-region-sketch">Deployment Topology (Multi-Region Sketch)<a class="headerlink" href="#deployment-topology-multi-region-sketch" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph region_eu[Region EU]
+    subgraph region_eu["Region EU"]
         OE[Orchestrator]
         PE[Planner pool]
         TE[Tool workers]
         ME[(Memory EU)]
     end
-    subgraph region_us[Region US]
+    subgraph region_us["Region US"]
         OU[Orchestrator]
         PU[Planner pool]
         TU[Tool workers]
         MU[(Memory US)]
     end
-    G[Global DNS / LB] --&gt; region_eu
+    G["Global DNS / LB"] --&gt; region_eu
     G --&gt; region_us</div>
 <p><strong>Sticky routing</strong> per tenant keeps <strong>memory</strong> and <strong>compliance</strong> coherent; <strong>async</strong> cross-region replication only where policy allows.</p>
 <hr />
@@ -4802,12 +4802,12 @@ We’re at time. Thanks — this was a strong <strong>systems</strong> discussio
 </ul>
 <h3 id="mental-model-one-diagram">Mental Model (One Diagram)<a class="headerlink" href="#mental-model-one-diagram" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph control[Control Plane]
-        POL[Policy + Budgets]
+    subgraph ctrl["Control Plane"]
+        POL["Policy + Budgets"]
         REG[Tool Registry]
         EV[Evaluator]
     end
-    subgraph data[Data Plane]
+    subgraph dplane["Data Plane"]
         PL[Planner LLM]
         TW[Tool Workers]
         MEM[Memory]

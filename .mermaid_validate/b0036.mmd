@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph Synchronous
+        A1[Order Service] -->|HTTP POST /charge| B1[Payment Service]
+        B1 -->|"slow or down?"| A1
+    end
+
+    subgraph Asynchronous
+        A2[Order Service] -->|publish| Q[Message Queue]
+        Q -->|consume| B2[Payment Service]
+    end

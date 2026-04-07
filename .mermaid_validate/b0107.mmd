@@ -1,0 +1,6 @@
+flowchart LR
+    Client1[Client] --> Proxy[Forward Proxy]
+    Client2[Client] --> Proxy
+    Proxy --> Internet[Internet]
+    Internet --> Server1[Server]
+    Internet --> Server2[Server]

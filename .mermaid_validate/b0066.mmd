@@ -1,0 +1,6 @@
+flowchart TD
+    DOC[Raw Document] --> TOK[Tokenizer<br/>Split into words]
+    TOK --> NORM[Normalizer<br/>Lowercase, stemming]
+    NORM --> STOP[Stop Word Removal<br/>Remove 'the', 'is', 'a']
+    STOP --> POST[Build Postings List<br/>Term → Doc IDs + positions]
+    POST --> IDX[(Inverted Index)]

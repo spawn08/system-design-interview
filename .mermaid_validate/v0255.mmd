@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph Triggers
+        MSG[New message]
+        MEN[Membership change]
+    end
+
+    subgraph Policy
+        PRIV[Privacy filter]
+        RATE[Rate limiter]
+        COLLAPSE[Notification collapse]
+    end
+
+    FCM[FCM]
+    APN[APNs]
+
+    MSG --> PRIV --> RATE --> COLLAPSE --> FCM
+    COLLAPSE --> APN

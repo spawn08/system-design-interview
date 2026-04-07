@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph AP["AP-biased — under partition: keep serving; location may briefly disagree"]
+    L[Driver location stream]
+    M[Map / ETA display]
+    H[Heartbeats]
+  end
+
+  subgraph CP["CP-biased — under partition: serialize; no double-dispatch or double-capture"]
+    A[Offer accept / assign driver]
+    T[Trip state transitions]
+    P[Payment authorize / capture]
+  end
+
+  L --> M
+  A --> T
+  T --> P

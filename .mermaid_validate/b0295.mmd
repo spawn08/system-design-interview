@@ -1,0 +1,13 @@
+flowchart TB
+  subgraph Ingress["Ingress"]
+    R[Requests]
+    T[Token bucket admit/sec]
+  end
+  subgraph Store["Redis"]
+    Q[(sorted set: queue)]
+    A[(set: admitted session ids)]
+  end
+  R --> T
+  T -->|allowed| Q
+  Q -->|promotion job| A
+  A -->|signed cookie| Shop[Checkout tier]

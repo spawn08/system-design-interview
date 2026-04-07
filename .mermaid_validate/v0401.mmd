@@ -1,0 +1,25 @@
+flowchart TB
+    subgraph Frontier [URL Frontier]
+        Input[New URLs]
+        Prioritizer[Prioritizer]
+        
+        subgraph Queues [Per-Host Queues]
+            Q1[example.com queue]
+            Q2[other.com queue]
+            QN[... queues]
+        end
+        
+        Selector[Host Selector<br/>Round Robin]
+        Output[Next URL]
+    end
+    
+    Input --> Prioritizer
+    Prioritizer --> Q1
+    Prioritizer --> Q2
+    Prioritizer --> QN
+    
+    Q1 --> Selector
+    Q2 --> Selector
+    QN --> Selector
+    
+    Selector --> Output

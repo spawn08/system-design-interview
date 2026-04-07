@@ -1,0 +1,9 @@
+flowchart LR
+    subgraph Without Queue
+        A1[Service A] -->|direct call| B1[Service B]
+    end
+    
+    subgraph With Queue
+        A2[Service A] -->|publish| Q[Message Queue]
+        Q -->|consume| B2[Service B]
+    end

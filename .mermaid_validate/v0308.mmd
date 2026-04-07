@@ -1,0 +1,15 @@
+flowchart TB
+  subgraph Healthy["Healthy ISR"]
+    L[Leader LEO advances]
+    F1[Follower 1 in ISR]
+    F2[Follower 2 in ISR]
+    L -->|replicate| F1
+    L -->|replicate| F2
+  end
+  subgraph Partition["Network partition"]
+    L2[Leader isolated or min ISR not met]
+    P[Producer]
+    P -->|acks=all| L2
+    L2 -.->|cannot replicate| F3[Followers unreachable]
+  end
+  Healthy -->|split-brain risk if two leaders| Partition

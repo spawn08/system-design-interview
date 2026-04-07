@@ -1,0 +1,50 @@
+graph TB
+    subgraph Data Sources
+        DB[(Operational DBs)]
+        API[External APIs]
+        KAFKA[Event Streams<br/>Kafka]
+        FILES[File Drops<br/>S3 / GCS]
+    end
+
+    subgraph Ingestion Layer
+        CDC[CDC<br/>Debezium]
+        PULL[Pull Connectors<br/>Airbyte / Fivetran]
+        STREAM[Stream Ingestion]
+    end
+
+    subgraph Processing Layer
+        RAW[(Raw / Bronze<br/>S3 Parquet)]
+        TRANSFORM[Transformation<br/>Spark / dbt]
+        VALIDATE[Data Validation<br/>Great Expectations]
+        CLEAN[(Clean / Silver<br/>Delta Lake)]
+        FEATURE[Feature Engineering<br/>Spark / Flink]
+        GOLD[(Gold / Features<br/>Feature Store)]
+    end
+
+    subgraph Orchestration
+        AIRFLOW[Apache Airflow]
+        MONITOR[Pipeline Monitor]
+    end
+
+    subgraph Consumers
+        TRAIN[Training Pipeline<br/>PyTorch / TF]
+        SERVE[Feature Store<br/>Online Serving]
+        ANALYTICS[Analytics<br/>BI Tools]
+    end
+
+    DB --> CDC --> RAW
+    API --> PULL --> RAW
+    KAFKA --> STREAM --> RAW
+    FILES --> PULL --> RAW
+
+    RAW --> TRANSFORM --> VALIDATE --> CLEAN
+    CLEAN --> FEATURE --> GOLD
+
+    GOLD --> TRAIN
+    GOLD --> SERVE
+    CLEAN --> ANALYTICS
+
+    AIRFLOW --> TRANSFORM
+    AIRFLOW --> VALIDATE
+    AIRFLOW --> FEATURE
+    AIRFLOW --> MONITOR

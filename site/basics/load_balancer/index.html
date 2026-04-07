@@ -3357,7 +3357,7 @@
 <p><strong>Consistent hashing solution:</strong></p>
 <p>Place servers on a virtual ring (0 to 2^32). Hash each request to a point on the ring, then walk clockwise to find the first server.</p>
 <div class="mermaid">flowchart LR
-    subgraph Ring [Consistent Hash Ring]
+    subgraph chr["Consistent Hash Ring"]
         direction TB
         A[Server A] --- B[Server B]
         B --- C[Server C]
@@ -3576,7 +3576,7 @@
     LB --&gt; S1[Server 1]
     LB --&gt; S2[Server 2]
     LB --&gt; S3[Server 3]
-    S1 --&gt; Redis[(Redis/Session Store)]
+    S1 --&gt; Redis[("Redis/Session Store")]
     S2 --&gt; Redis
     S3 --&gt; Redis</div>
 <p><strong>Implementation:</strong></p>
@@ -3665,12 +3665,12 @@
 <p>Traditional load balancers work within a single data center. GSLB distributes traffic globally across multiple data centers.</p>
 <h3 id="how-gslb-works">How GSLB Works<a class="headerlink" href="#how-gslb-works" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    User[User in Tokyo] --&gt; DNS[DNS Query: api.example.com]
-    DNS --&gt; GSLB[GSLB/GeoDNS]
-    GSLB --&gt; DC1[Tokyo DC: 52.0.0.1]
-    GSLB --&gt; DC2[Frankfurt DC: 18.0.0.1]
-    GSLB --&gt; DC3[Virginia DC: 35.0.0.1]
-    GSLB -.-&gt;|Returns Tokyo IP| User
+    User[User in Tokyo] --&gt; DNS["DNS Query: api.example.com"]
+    DNS --&gt; GSLB["GSLB/GeoDNS"]
+    GSLB --&gt; DC1["Tokyo DC: 52.0.0.1"]
+    GSLB --&gt; DC2["Frankfurt DC: 18.0.0.1"]
+    GSLB --&gt; DC3["Virginia DC: 35.0.0.1"]
+    GSLB -.-&gt;|"Returns Tokyo IP"| User
     User --&gt; TokyoLB[Tokyo Load Balancer]
     TokyoLB --&gt; Servers[Tokyo Servers]</div>
 <ol>

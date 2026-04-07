@@ -1,0 +1,12 @@
+flowchart TD
+  Users[Users / Apps] --> Logs[Interaction logs\nfeedback signals]
+  Logs --> Filter[Privacy + PII scrubbing]
+  Filter --> Store[(Preference / SFT dataset)]
+  Store --> Train[Periodic training\nDPO / SFT / small PPO]
+  Train --> Canary[Canary rollout]
+  Canary --> Metrics[Safety + quality metrics]
+  Metrics -->|pass| Prod[Production model version]
+  Metrics -->|fail| Rollback[Rollback + RCA]
+  Prod --> Users
+  Metrics --> RedTeam[Red team backlog]
+  RedTeam --> Store

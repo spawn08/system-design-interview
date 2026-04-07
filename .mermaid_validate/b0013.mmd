@@ -1,0 +1,8 @@
+flowchart LR
+    subgraph ETL
+        S1[Sources] --> T1[Transform<br/>Outside warehouse] --> L1[Load into<br/>Warehouse]
+    end
+    
+    subgraph ELT
+        S2[Sources] --> L2[Load raw<br/>into Warehouse] --> T2[Transform<br/>Inside warehouse]
+    end

@@ -1,0 +1,10 @@
+flowchart TB
+    Q[User query] --> R[Retriever]
+    R --> C[Contexts]
+    Q --> G[Generator]
+    C --> G
+    G --> A[Answer]
+
+    C --> MF[Faithfulness<br/>vs contexts]
+    A --> MA[Answer relevance<br/>vs query]
+    R --> MR[Context relevance<br/>/ recall / precision]

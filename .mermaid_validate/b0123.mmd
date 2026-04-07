@@ -1,0 +1,9 @@
+flowchart TD
+    ROOT[Root CA<br/>Self-signed<br/>Pre-installed in OS/browser] --> INT[Intermediate CA<br/>Signed by Root CA]
+    INT --> LEAF[Server Certificate<br/>Signed by Intermediate CA<br/>Contains server's public key]
+    
+    LEAF --> V{Client validates}
+    V --> V1[Signature valid?]
+    V --> V2[Not expired?]
+    V --> V3[Domain matches?]
+    V --> V4[Not revoked?]

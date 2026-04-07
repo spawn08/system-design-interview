@@ -1,0 +1,7 @@
+flowchart LR
+    Queue[Main Queue] --> Worker[Worker]
+    Worker -->|Success| Done[Done]
+    Worker -->|Retry| Queue
+    Worker -->|Max Retries| DLQ[Dead Letter Queue]
+    DLQ --> Alert[Alert Ops]
+    DLQ --> Manual[Manual Review]

@@ -1,0 +1,13 @@
+flowchart TD
+    C[Client] --> N1[Redis 1]
+    C --> N2[Redis 2]
+    C --> N3[Redis 3]
+    C --> N4[Redis 4]
+    C --> N5[Redis 5]
+    N1 --> Q{Majority acquired<br/>in time window?}
+    N2 --> Q
+    N3 --> Q
+    N4 --> Q
+    N5 --> Q
+    Q -->|yes| OK[Lock considered held]
+    Q -->|no| ROLL[Rollback partial sets]

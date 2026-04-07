@@ -1,0 +1,6 @@
+sequenceDiagram
+  participant A as App / Agent
+  participant C as Collector / Gateway
+  participant I as Ingester
+  A->>C: gRPC/HTTP batch (samples)
+  C->>I: route(shard), ack after WAL

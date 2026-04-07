@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant Player
+    participant CDN as CDN Edge
+    participant Origin as Origin / Packager
+
+    Player->>CDN: GET manifest.m3u8
+    CDN->>Origin: MISS: fetch manifest
+    Origin-->>CDN: manifest
+    CDN-->>Player: manifest
+    Player->>CDN: GET segment_00001.ts
+    CDN-->>Player: segment (HIT after first user)

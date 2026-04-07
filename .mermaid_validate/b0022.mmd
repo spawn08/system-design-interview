@@ -1,0 +1,6 @@
+flowchart LR
+    L[Lock service] -->|token 5| A[Client A]
+    L -->|token 6| B[Client B]
+    A -->|write token 5| S[(Storage)]
+    B -->|write token 6| S
+    A -->|late write token 5| X[Rejected]

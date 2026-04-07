@@ -3288,7 +3288,7 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
     Node2 &lt;--&gt; Node3
     Node3 &lt;--&gt; Node1
 
-    subgraph Ring [Cassandra Ring]
+    subgraph cring["Cassandra Ring"]
         Node1
         Node2
         Node3
@@ -3368,15 +3368,15 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
 <p>In a distributed system, network partitions (nodes can't communicate) WILL happen. It's not if, but when.</p>
 <p><strong>Scenario: Two database nodes, network partition occurs</strong></p>
 <div class="mermaid">flowchart LR
-    subgraph DC1 [Data Center 1]
+    subgraph dc1["Data Center 1"]
         Client1[Client] --&gt; Node1[(Node A)]
     end
 
-    subgraph DC2 [Data Center 2]
+    subgraph dc2["Data Center 2"]
         Client2[Client] --&gt; Node2[(Node B)]
     end
 
-    Node1 -.-x|Network Partition| Node2</div>
+    Node1 -.-x|"Network Partition"| Node2</div>
 <p>Client 1 writes <code>x = 1</code> to Node A. But Node A can't replicate to Node B due to the partition.</p>
 <p>Now Client 2 reads from Node B. What should happen?</p>
 <p><strong>Option 1: Choose Consistency (CP)</strong>
@@ -3726,17 +3726,17 @@ The <code>user_id</code> in orders references <code>id</code> in users. This is 
     Q1 --&gt;|Yes| Q2{Complex relationships?}
     Q1 --&gt;|No| Q3{Data structure?}
 
-    Q2 --&gt;|Yes| SQL[PostgreSQL/MySQL]
+    Q2 --&gt;|Yes| SQL["PostgreSQL/MySQL"]
     Q2 --&gt;|No| SQL
 
-    Q3 --&gt;|Key-Value| KV[Redis/DynamoDB]
+    Q3 --&gt;|Key-Value| KV["Redis/DynamoDB"]
     Q3 --&gt;|Documents| Doc[MongoDB]
     Q3 --&gt;|Wide Column| WC[Cassandra]
     Q3 --&gt;|Graph| Graph[Neo4j]
 
     SQL --&gt; Q4{Scale requirements?}
     Q4 --&gt;|Single region| SQL2[Single PostgreSQL]
-    Q4 --&gt;|Multi-region| SQL3[CockroachDB/Spanner]</div>
+    Q4 --&gt;|Multi-region| SQL3["CockroachDB/Spanner"]</div>
 <h3 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

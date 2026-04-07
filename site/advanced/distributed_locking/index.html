@@ -2921,7 +2921,7 @@
 <p>Distributed locks are <strong>not</strong> the same as consensus. A lock service can help you serialize access, but you must still reason about failures, clock skew, storage delays, and what happens when a lock holder crashes or runs slowly.</p>
 </div>
 <div class="mermaid">flowchart LR
-    subgraph Single machine
+    subgraph sm["Single machine"]
         P1[Process A] --&gt; M[Mutex]
         P2[Process B] --&gt; M
     end
@@ -3235,8 +3235,8 @@
     START([Need mutual exclusion&lt;br/&gt;across services?]) --&gt; SAME{Same database&lt;br/&gt;transaction possible?}
     SAME --&gt;|yes| DB[Use row locks&lt;br/&gt;SELECT FOR UPDATE&lt;br/&gt;or serializable txn]
     SAME --&gt;|no| CP{Need linearizable&lt;br/&gt;coordination store?}
-    CP --&gt;|yes, K8s / infra| ETCD[etcd lease + txn&lt;br/&gt;or ZK recipe]
-    CP --&gt;|no, cache tier OK| REDIS[Redis SET NX + unique token&lt;br/&gt;short TTL + renew]
+    CP --&gt;|"yes, K8s / infra"| ETCD[etcd lease + txn&lt;br/&gt;or ZK recipe]
+    CP --&gt;|"no, cache tier OK"| REDIS[Redis SET NX + unique token&lt;br/&gt;short TTL + renew]
     REDIS --&gt; FENCE{Stale writes&lt;br/&gt;to storage possible?}
     FENCE --&gt;|yes| FT[Add fencing tokens&lt;br/&gt;at resource layer]
     FENCE --&gt;|no| DONE[Document failure cases]

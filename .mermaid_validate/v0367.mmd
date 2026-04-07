@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> REQUESTED
+  REQUESTED --> MATCHED : driver assigned
+  REQUESTED --> CANCELLED : no driver / rider cancel
+  MATCHED --> DRIVER_ARRIVED : driver at pickup
+  MATCHED --> CANCELLED : timeout / cancel
+  DRIVER_ARRIVED --> IN_PROGRESS : trip start
+  IN_PROGRESS --> COMPLETED : trip end
+  IN_PROGRESS --> CANCELLED : support / fraud (rare)
+  COMPLETED --> [*]
+  CANCELLED --> [*]

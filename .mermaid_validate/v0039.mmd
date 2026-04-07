@@ -1,0 +1,29 @@
+flowchart TD
+    subgraph Kafka Cluster
+        subgraph Broker 1
+            TP0[Topic-A<br/>Partition 0<br/>Leader]
+            TP2[Topic-A<br/>Partition 2<br/>Follower]
+        end
+        subgraph Broker 2
+            TP1[Topic-A<br/>Partition 1<br/>Leader]
+            TP0F[Topic-A<br/>Partition 0<br/>Follower]
+        end
+        subgraph Broker 3
+            TP2L[Topic-A<br/>Partition 2<br/>Leader]
+            TP1F[Topic-A<br/>Partition 1<br/>Follower]
+        end
+    end
+
+    P[Producer] -->|key-based routing| TP0
+    P -->|key-based routing| TP1
+    P -->|key-based routing| TP2L
+
+    subgraph Consumer Group A
+        C1[Consumer 1] --> TP0
+        C2[Consumer 2] --> TP1
+        C3[Consumer 3] --> TP2L
+    end
+
+    ZK[ZooKeeper / KRaft] --> Broker 1
+    ZK --> Broker 2
+    ZK --> Broker 3

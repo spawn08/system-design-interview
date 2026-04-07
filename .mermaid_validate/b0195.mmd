@@ -1,0 +1,14 @@
+flowchart TB
+    subgraph SLI [SLOs]
+        L[Latency P99]
+        Q[Quality score]
+        R[Revenue RPM]
+    end
+
+    subgraph Ops [Ops loops]
+        M[Monitor drift]
+        A[Auto rollback model]
+        E[Incident: degrade path]
+    end
+
+    SLI --> Ops

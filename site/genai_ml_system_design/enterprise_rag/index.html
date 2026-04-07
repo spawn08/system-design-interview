@@ -3313,7 +3313,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TB
-    subgraph Ingestion [Ingestion Pipeline]
+    subgraph ingest["Ingestion Pipeline"]
         Connectors[Source Connectors&lt;br/&gt;Drive, Confluence, Slack]
         Parser[Document Parser&lt;br/&gt;PDF, HTML, Markdown]
         Chunker[Chunking Engine]
@@ -3321,14 +3321,14 @@
         ACLSync[ACL Sync Service]
     end
 
-    subgraph Index [Index Layer]
+    subgraph idxlay["Index Layer"]
         VectorDB[(Vector Index&lt;br/&gt;HNSW / ScaNN)]
         BM25Idx[(BM25 Index&lt;br/&gt;Elasticsearch)]
         DocStore[(Document Store&lt;br/&gt;Bigtable)]
         ACLStore[(ACL Store&lt;br/&gt;Spanner)]
     end
 
-    subgraph Query [Query Pipeline]
+    subgraph qpipe["Query Pipeline"]
         QU[Query Understanding]
         Retriever[Hybrid Retriever]
         Reranker[Cross-Encoder&lt;br/&gt;Re-Ranker]
@@ -3337,7 +3337,7 @@
         CitationEngine[Citation Engine]
     end
 
-    subgraph Feedback [Feedback &amp; Eval]
+    subgraph fbeval["Feedback &amp; Eval"]
         FeedbackAPI[Feedback API]
         EvalPipeline[Evaluation Pipeline]
         Analytics[Query Analytics]
@@ -3364,7 +3364,7 @@
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-ingestion-pipeline">4.1 Ingestion Pipeline<a class="headerlink" href="#41-ingestion-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Sources [Data Sources]
+    subgraph src["Data Sources"]
         GDrive[Google Drive]
         Confluence[Confluence]
         Slack[Slack]
@@ -3372,13 +3372,13 @@
         Jira[Jira]
     end
 
-    subgraph Connectors [Connector Layer]
+    subgraph conn["Connector Layer"]
         CDC[Change Data&lt;br/&gt;Capture]
         Webhook[Webhook&lt;br/&gt;Listeners]
         Poller[Periodic&lt;br/&gt;Poller]
     end
 
-    subgraph Processing [Processing Pipeline]
+    subgraph proc["Processing Pipeline"]
         Extract[Text&lt;br/&gt;Extraction]
         Dedup[Deduplication]
         Chunk[Chunking]
@@ -3386,13 +3386,13 @@
         ACL[ACL&lt;br/&gt;Resolution]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VDB[(Vector DB)]
         Search[(Search Index)]
         Meta[(Metadata Store)]
     end
 
-    Sources --&gt; Connectors --&gt; Processing --&gt; Storage</div>
+    src --&gt; conn --&gt; proc --&gt; stor</div>
 <p><strong>Connector design per source:</strong></p>
 <table>
 <thead>
@@ -3740,30 +3740,30 @@
 </table>
 <h3 id="46-incremental-index-updates">4.6 Incremental Index Updates<a class="headerlink" href="#46-incremental-index-updates" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Events [Change Events]
+    subgraph evts["Change Events"]
         Create[Doc Created]
         Update[Doc Updated]
         Delete[Doc Deleted]
         ACLChange[ACL Changed]
     end
 
-    subgraph Queue [Event Queue]
+    subgraph qu["Event Queue"]
         Kafka[Kafka Topic&lt;br/&gt;doc-changes]
     end
 
-    subgraph Workers [Index Workers]
+    subgraph wrk["Index Workers"]
         W1[Worker 1]
         W2[Worker 2]
         WN[Worker N]
     end
 
-    subgraph Indexes [Indexes]
+    subgraph indx["Indexes"]
         Vector[(Vector Index)]
         BM25[(BM25 Index)]
         ACL[(ACL Index)]
     end
 
-    Events --&gt; Queue --&gt; Workers --&gt; Indexes</div>
+    evts --&gt; qu --&gt; wrk --&gt; indx</div>
 <p><strong>Update strategies:</strong></p>
 <table>
 <thead>

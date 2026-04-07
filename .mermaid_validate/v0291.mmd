@@ -1,0 +1,44 @@
+flowchart TB
+  subgraph Clients["Clients"]
+    W[Web]
+    M[Mobile apps]
+  end
+
+  subgraph Edge["Edge"]
+    CDN[CDN / static map assets]
+    GW[API Gateway + WAF + Auth]
+    WR[Waiting room service]
+  end
+
+  subgraph Core["Core services"]
+    CS[Catalog service]
+    IS[Inventory service]
+    HS[Hold service]
+    OS[Order service]
+    PS[Payment orchestrator]
+    NS[Notification service]
+  end
+
+  subgraph Data["Data stores"]
+    PG[(OLTP: Postgres / Cockroach)]
+    RD[(Redis: holds, rate limits, queue)]
+    ES[(Search index: events)]
+    OBJ[(Object storage: tickets/PDF)]
+    KQ[[Kafka: events]]
+  end
+
+  W --> CDN
+  W --> GW
+  M --> GW
+  GW --> WR
+  GW --> CS
+  GW --> IS
+  GW --> HS
+  GW --> OS
+  OS --> PS
+  PS --> KQ
+  HS --> RD
+  HS --> PG
+  IS --> PG
+  OS --> PG
+  NS --> KQ

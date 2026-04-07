@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph File tail
+    A[Defined: single writer serialized by primary]
+    B[Consistent but undefined: concurrent writers interleave]
+    C[Inconsistent: partial replica visibility during failure]
+  end
+  A --> B
+  B --> C

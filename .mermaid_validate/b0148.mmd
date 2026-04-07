@@ -1,0 +1,12 @@
+graph LR
+    subgraph Model Registry
+        META[(Metadata DB)]
+        ARTIFACTS[(Artifact Store<br/>S3 / GCS)]
+    end
+
+    TRAIN[Training Job] -->|register| META
+    TRAIN -->|upload| ARTIFACTS
+
+    META -->|promote to prod| DEPLOY[Deployment Pipeline]
+    ARTIFACTS -->|pull model| DEPLOY
+    DEPLOY --> SERVING[Serving Cluster]

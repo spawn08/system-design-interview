@@ -3416,8 +3416,8 @@ This adds 1 round-trip before any data can flow.</p>
 <div class="mermaid">flowchart LR
     Browser[Browser] --&gt; Resolver[DNS Resolver]
     Resolver --&gt; Root[Root DNS Server]
-    Root --&gt; TLD[.com TLD Server]
-    TLD --&gt; Auth[example.com Authoritative Server]
+    Root --&gt; TLD[".com TLD Server"]
+    TLD --&gt; Auth["example.com Authoritative Server"]
     Auth --&gt; Resolver
     Resolver --&gt; Browser</div>
 <p><strong>Step by step:</strong></p>

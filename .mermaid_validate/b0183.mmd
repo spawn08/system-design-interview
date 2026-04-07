@@ -1,0 +1,38 @@
+flowchart TB
+    subgraph Query [Query Pipeline]
+        QU[Query<br/>Understanding]
+        ImgEnc[Image<br/>Encoder]
+        TxtEnc[Text<br/>Encoder]
+        Fusion[Query<br/>Fusion]
+    end
+
+    subgraph Retrieval [Retrieval Layer]
+        ANN[ANN Search<br/>ScaNN]
+        MetaFilter[Metadata<br/>Filter]
+    end
+
+    subgraph Ranking [Ranking Layer]
+        Reranker[Cross-Modal<br/>Re-Ranker]
+        Diversity[Diversity<br/>Layer]
+        Business[Business<br/>Rules]
+    end
+
+    subgraph Index [Index Pipeline]
+        Crawler[Content<br/>Crawler]
+        MediaProc[Media<br/>Processor]
+        Embedder[Embedding<br/>Generator]
+        IndexBuilder[Index<br/>Builder]
+    end
+
+    subgraph Storage [Storage]
+        VectorIdx[(Vector Index<br/>ScaNN)]
+        MetaStore[(Metadata<br/>Bigtable)]
+        MediaStore[(Media Store<br/>GCS)]
+    end
+
+    Query --> Retrieval --> Ranking
+
+    Crawler --> MediaProc --> Embedder --> IndexBuilder
+    IndexBuilder --> VectorIdx
+    MediaProc --> MetaStore
+    MediaProc --> MediaStore

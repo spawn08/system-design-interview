@@ -1,0 +1,6 @@
+flowchart TD
+  Q[Kafka Queue] --> W{Worker}
+  W -->|FCM healthy| FCM[FCM Provider]
+  W -->|FCM circuit open| DQ[Delayed Retry Queue]
+  W -->|Max retries| DLQ[Dead Letter Queue]
+  DQ -->|After cooldown| W

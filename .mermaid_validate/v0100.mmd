@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph S1["Step 1: Clarify"]
+        A[Requirements<br/>constraints<br/>scale]
+    end
+    subgraph S2["Step 2: High-level"]
+        B[Components<br/>data flow<br/>APIs]
+    end
+    subgraph S3["Step 3: Deep dive"]
+        C[2–3 critical<br/>areas in detail]
+    end
+    subgraph S4["Step 4: Close"]
+        D[Bottlenecks<br/>alternatives<br/>next steps]
+    end
+    S1 -->|~5 min| S2
+    S2 -->|~10 min| S3
+    S3 -->|~15–20 min| S4
+    S4 -->|~5 min| E[End]

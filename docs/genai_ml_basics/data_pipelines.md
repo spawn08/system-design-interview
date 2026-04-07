@@ -70,20 +70,20 @@ Orchestration:
 
 ```mermaid
 graph TB
-    subgraph Data Sources
+    subgraph ds["Data Sources"]
         DB[(Operational DBs)]
         API[External APIs]
         KAFKA[Event Streams<br/>Kafka]
         FILES[File Drops<br/>S3 / GCS]
     end
 
-    subgraph Ingestion Layer
+    subgraph il["Ingestion Layer"]
         CDC[CDC<br/>Debezium]
         PULL[Pull Connectors<br/>Airbyte / Fivetran]
         STREAM[Stream Ingestion]
     end
 
-    subgraph Processing Layer
+    subgraph pl["Processing Layer"]
         RAW[(Raw / Bronze<br/>S3 Parquet)]
         TRANSFORM[Transformation<br/>Spark / dbt]
         VALIDATE[Data Validation<br/>Great Expectations]
@@ -928,7 +928,7 @@ graph TB
     PROM --> GRAFANA[Grafana Dashboard]
     PROM --> ALERT[AlertManager]
 
-    subgraph Key Metrics
+    subgraph km["Key Metrics"]
         FRESHNESS[Data Freshness<br/>time since last successful run]
         VOLUME[Row Count<br/>vs historical baseline]
         QUALITY[Validation Pass Rate]

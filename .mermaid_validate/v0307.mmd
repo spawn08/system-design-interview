@@ -1,0 +1,5 @@
+flowchart LR
+  IP[Idempotent producer]
+  TX[Transactions / atomic read-process-write]
+  IC[Idempotent consumer or sink]
+  IP --> TX --> IC

@@ -373,7 +373,7 @@ flowchart LR
     PiSFT --> Roll
     Rphi --> Roll
     Roll --> Adv --> PPOupd
-    PiSFT -. reference π_ref .-> PPOupd
+    PiSFT -. "reference π_ref" .-> PPOupd
     PPOupd --> PiAligned[Aligned policy π*]
   end
 ```
@@ -799,7 +799,7 @@ flowchart LR
 
   Users((Users)) --> GW --> MOD --> RAG --> AL
   AL --> RM
-  RM -. evaluation / routing .-> GW
+  RM -. "evaluation / routing" .-> GW
 ```
 
 !!! note

@@ -1,0 +1,16 @@
+flowchart TB
+    subgraph Data[Data plane]
+        RAW[Raw corpora + user opt-in] --> LIC[License & PII scrub]
+        LIC --> VER[Versioned datasets]
+    end
+    subgraph Train[Training]
+        VER --> AUG[Augmentation + SpecAugment]
+        AUG --> SSL[Optional SSL pretrain]
+        SSL --> FT[Supervised fine-tune]
+    end
+    subgraph Ship[Shipping]
+        FT --> EVAL[Eval: WER + robustness suites]
+        EVAL --> SHADOW[Shadow traffic]
+        SHADOW --> CAN[Canary]
+        CAN --> ROLL[Rollout + rollback hooks]
+    end

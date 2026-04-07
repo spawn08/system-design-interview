@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Lex [Lexical]
+        II[Inverted Index]
+        BM[BM25 Scoring]
+    end
+    subgraph Den [Dense]
+        EQ[Query Encoder]
+        ED[Doc Embeddings]
+        ANN[ANN Index]
+    end
+    II --> BM
+    EQ --> ANN
+    ED --> ANN
+    BM --> FUS[Fusion / RRF]
+    ANN --> FUS
+    FUS --> OUT[Top-K Candidates]

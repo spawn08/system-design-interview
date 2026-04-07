@@ -1,0 +1,15 @@
+flowchart TB
+    subgraph region_eu[Region EU]
+        OE[Orchestrator]
+        PE[Planner pool]
+        TE[Tool workers]
+        ME[(Memory EU)]
+    end
+    subgraph region_us[Region US]
+        OU[Orchestrator]
+        PU[Planner pool]
+        TU[Tool workers]
+        MU[(Memory US)]
+    end
+    G[Global DNS / LB] --> region_eu
+    G --> region_us

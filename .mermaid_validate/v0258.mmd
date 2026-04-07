@@ -1,0 +1,40 @@
+flowchart LR
+  subgraph clients [Clients]
+    C1[Desktop sync]
+    C2[Mobile]
+    C3[Web]
+  end
+
+  subgraph edge [Edge]
+    LB[Load balancers]
+    API[API Gateway]
+  end
+
+  subgraph services [Core services]
+    MS[Metadata service]
+    BS[Block service]
+    NS[Notification service]
+    CF[Change feed]
+  end
+
+  subgraph data [Data stores]
+    MD[(Metadata DB)]
+    OS[(Object / block store)]
+    CACHE[(Redis cache)]
+    Q[[Message queue]]
+  end
+
+  C1 --> LB
+  C2 --> LB
+  C3 --> LB
+  LB --> API
+  API --> MS
+  API --> BS
+  MS --> MD
+  MS --> Q
+  Q --> NS
+  Q --> CF
+  BS --> OS
+  MS --> CACHE
+  NS --> C1
+  NS --> C2

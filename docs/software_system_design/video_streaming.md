@@ -223,8 +223,8 @@ flowchart TB
   U --> M
   M --> J
   J --> C
-  M -.->|eventual| R
-  M -.->|async| V
+  M -.->|"eventual"| R
+  M -.->|"async"| V
 ```
 
 **Why this split wins interviews:** **Immutability** of packaged segments makes playback **highly available** without coordination; **upload and processing** use **queues + durable storage** so you **don’t lose work**; **counters and ML** move to **async** paths so spikes don’t **brick** the OLTP database.
@@ -415,13 +415,13 @@ CPU-hours ≈ (2×10^8 / 20) = 10^7 CPU-hours/day
 
 ```mermaid
 flowchart LR
-    subgraph UploadPath[Upload path]
+    subgraph UploadPath["Upload path"]
         C[Client] --> APIGW[API Gateway]
         APIGW --> US[Upload service]
-        US -->|presigned| S3[(Object storage)]
-        US -->|enqueue| K[Kafka topics]
+        US -->|"presigned"| S3[(Object storage)]
+        US -->|"enqueue"| K[Kafka topics]
     end
-    subgraph ProcessPath[Processing]
+    subgraph ProcessPath["Processing"]
         K --> ORC[Orchestrator / DAG]
         ORC --> TC[Transcode pool]
         TC --> S3
@@ -429,7 +429,7 @@ flowchart LR
         TH2 --> S3
         ORC --> META2[Metadata indexer]
     end
-    subgraph ReadPath[Read path]
+    subgraph ReadPath["Read path"]
         V2[Viewer] --> CDN2[CDN]
         CDN2 -->|miss| S3
         V2 --> APIGW2[API Gateway]

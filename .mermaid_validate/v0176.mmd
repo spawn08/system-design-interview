@@ -1,0 +1,26 @@
+flowchart TB
+    subgraph Online [Online Signals]
+        ThumbsUp[Thumbs Up / Down]
+        Regen[Regenerate Clicks]
+        Abandon[Session Abandonment]
+        CopyPaste[Copy/Paste Rate]
+    end
+
+    subgraph Offline [Offline Evaluation]
+        HumanEval[Human Eval<br/>Side-by-side rating]
+        AutoEval[Auto Eval<br/>LLM-as-Judge]
+        Benchmark[Benchmark Suite<br/>MMLU, HumanEval, etc.]
+    end
+
+    subgraph Training [Training Pipeline]
+        RLHF[RLHF / DPO<br/>Training]
+        SFT[Supervised<br/>Fine-tuning]
+        Safety_T[Safety<br/>Tuning]
+    end
+
+    Online --> DataPipeline[Data Pipeline]
+    DataPipeline --> Training
+    Offline --> Training
+    Training --> NewModel[New Model<br/>Candidate]
+    NewModel --> ABTest[A/B Test]
+    ABTest --> Production[Promote to<br/>Production]

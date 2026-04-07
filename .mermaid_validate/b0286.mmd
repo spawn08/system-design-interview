@@ -1,0 +1,7 @@
+flowchart LR
+    ISP[ISP mailbox] --> ARF[Inbound ARF email]
+    ARF --> PARSE[ARF + DSN parser]
+    PARSE --> ID[Resolve internal message / tenant]
+    ID --> SUP[Suppression store]
+    SUP --> WH[Webhook: complaint event]
+    WH --> DASH[Customer dashboard + API]

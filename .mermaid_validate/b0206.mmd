@@ -1,0 +1,66 @@
+flowchart TB
+    subgraph Clients [Client Layer]
+        Web[Web App]
+        Mobile[Mobile App]
+        API[API Clients]
+    end
+    
+    subgraph Edge [Edge Layer]
+        CDN[CDN / Image CDN]
+        LB[Load Balancer]
+    end
+    
+    subgraph Gateway [API Layer]
+        APIGw[API Gateway]
+    end
+    
+    subgraph Processing [Processing Layer]
+        Preprocessor[Image Preprocessor]
+        Queue[Request Queue]
+        Batcher[Dynamic Batcher]
+    end
+    
+    subgraph Inference [ML Inference Layer]
+        Triton1[Model Server 1]
+        Triton2[Model Server 2]
+        Triton3[Model Server N]
+        GPU1[GPU]
+        GPU2[GPU]
+        GPU3[GPU]
+    end
+    
+    subgraph Data [Data Layer]
+        Cache[(Redis Cache)]
+        Storage[(S3/GCS)]
+    end
+    
+    subgraph Monitor [Observability]
+        Metrics[Prometheus]
+        Logs[ELK]
+        Traces[Jaeger]
+    end
+    
+    Web --> CDN
+    Mobile --> LB
+    API --> LB
+    CDN --> LB
+    LB --> APIGw
+    
+    APIGw --> Preprocessor
+    Preprocessor --> Cache
+    Preprocessor --> Queue
+    
+    Queue --> Batcher
+    Batcher --> Triton1
+    Batcher --> Triton2
+    Batcher --> Triton3
+    
+    Triton1 --> GPU1
+    Triton2 --> GPU2
+    Triton3 --> GPU3
+    
+    Triton1 --> Cache
+    Preprocessor --> Storage
+    
+    Triton1 --> Metrics
+    APIGw --> Logs

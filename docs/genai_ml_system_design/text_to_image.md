@@ -977,7 +977,7 @@ flowchart TB
   subgraph train["Training"]
     AE[VAE frozen or co-trained stage]
     DM[Latent diffusion training\nnoise / v-pred loss]
-    FT[Optional: LoRA / DreamBooth\nadapter jobs]
+    FT["Optional: LoRA / DreamBooth\nadapter jobs"]
     RM[Reward model\nhuman pairwise]
     RL[DPO / RLHF fine-tune]
   end

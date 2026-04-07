@@ -1,0 +1,27 @@
+sequenceDiagram
+    participant Frontier as URL Frontier
+    participant Scheduler as Politeness Scheduler
+    participant Fetcher
+    participant DNS as DNS Resolver
+    participant Web as Web Server
+    participant Parser
+    participant Storage as Content Store
+    participant Dedup as Deduplication
+    
+    Frontier->>Scheduler: Get next URL
+    Scheduler->>Scheduler: Check politeness (can we crawl this host now?)
+    Scheduler->>Fetcher: URL to fetch
+    
+    Fetcher->>DNS: Resolve domain
+    DNS-->>Fetcher: IP address
+    
+    Fetcher->>Web: HTTP GET
+    Web-->>Fetcher: HTML content
+    
+    Fetcher->>Parser: Parse content
+    Parser->>Parser: Extract text, links
+    Parser->>Storage: Store content
+    
+    Parser->>Dedup: Check new URLs
+    Dedup->>Dedup: Filter seen URLs
+    Dedup->>Frontier: Add new URLs

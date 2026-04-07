@@ -63,7 +63,7 @@ Strong consistency requires: W + R > N
 
 ```mermaid
 flowchart TD
-    subgraph Write Quorum (W=2, N=3)
+    subgraph wq["Write Quorum (W=2, N=3)"]
         W_CLIENT[Client Write] --> WN1[Node 1 ✓]
         W_CLIENT --> WN2[Node 2 ✓]
         W_CLIENT --> WN3[Node 3 ✗ slow]
@@ -71,10 +71,10 @@ flowchart TD
         WN2 -->|ack| W_CLIENT
     end
     
-    subgraph Read Quorum (R=2, N=3)
-        R_CLIENT[Client Read] --> RN1[Node 1: v=5]
-        R_CLIENT --> RN2[Node 2: v=5]
-        R_CLIENT --> RN3[Node 3: v=3 stale]
+    subgraph rq["Read Quorum (R=2, N=3)"]
+        R_CLIENT[Client Read] --> RN1["Node 1: v=5"]
+        R_CLIENT --> RN2["Node 2: v=5"]
+        R_CLIENT --> RN3["Node 3: v=3 stale"]
         RN1 -->|v=5| R_CLIENT
         RN2 -->|v=5| R_CLIENT
     end
@@ -285,13 +285,13 @@ public class LWWRegister<T> {
 
 ```mermaid
 flowchart TD
-    ROOT[Root Hash: abc123]
-    ROOT --> L[Left: def456]
-    ROOT --> R[Right: ghi789]
-    L --> LL[Range 0-25: hash1]
-    L --> LR[Range 26-50: hash2]
-    R --> RL[Range 51-75: hash3]
-    R --> RR[Range 76-100: hash4]
+    ROOT["Root Hash: abc123"]
+    ROOT --> L["Left: def456"]
+    ROOT --> R["Right: ghi789"]
+    L --> LL["Range 0-25: hash1"]
+    L --> LR["Range 26-50: hash2"]
+    R --> RL["Range 51-75: hash3"]
+    R --> RR["Range 76-100: hash4"]
 ```
 
 ---
@@ -884,15 +884,15 @@ func (r *OutboxRelay) PollAndPublish(ctx context.Context) (int, error) {
 ```mermaid
 flowchart TD
     Q[Consistency Requirement] --> DATA{What kind of data?}
-    DATA -->|Financial / inventory| STRONG[Strong Consistency<br/>Quorum W+R>N or 2PC]
+    DATA -->|"Financial / inventory"| STRONG[Strong Consistency<br/>Quorum W+R>N or 2PC]
     DATA -->|User-facing counters| EVENTUAL_CRDT[Eventual + CRDT<br/>G-Counter, PN-Counter]
     DATA -->|Social features| EVENTUAL[Eventual Consistency<br/>LWW or merge function]
-    DATA -->|Chat / collaboration| CAUSAL[Causal Consistency<br/>Vector clocks]
+    DATA -->|"Chat / collaboration"| CAUSAL[Causal Consistency<br/>Vector clocks]
     
     STRONG --> SCOPE{Scope?}
     SCOPE -->|Single database| TXN[Database Transactions<br/>SERIALIZABLE isolation]
     SCOPE -->|Multiple services| SAGA[Saga Pattern<br/>+ Outbox]
-    SCOPE -->|Multiple databases| QUORUM[Quorum Reads/Writes]
+    SCOPE -->|Multiple databases| QUORUM["Quorum Reads/Writes"]
     
     EVENTUAL --> CONFLICT{Conflicts likely?}
     CONFLICT -->|Rare| LWW[Last-Writer-Wins]

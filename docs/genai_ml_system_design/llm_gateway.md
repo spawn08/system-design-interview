@@ -801,11 +801,11 @@ class CostTracker:
 ```mermaid
 stateDiagram-v2
     [*] --> Closed
-    Closed --> Open : failures >= threshold\nor error_rate > limit
-    Open --> HalfOpen : cooldown elapsed
-    HalfOpen --> Closed : probe success
-    HalfOpen --> Open : probe failure
-    Closed --> Closed : success resets failure window
+    Closed --> Open : "failures >= threshold\nor error_rate > limit"
+    Open --> HalfOpen : "cooldown elapsed"
+    HalfOpen --> Closed : "probe success"
+    HalfOpen --> Open : "probe failure"
+    Closed --> Closed : "success resets failure window"
 ```
 
 #### Provider health scoring (weighted error rate + latency)

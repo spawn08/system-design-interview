@@ -1,0 +1,8 @@
+flowchart LR
+    Q[User Query] --> QU[Query<br/>Understanding]
+    QU --> Retrieval[Retrieval<br/>BM25 + Dense]
+    Retrieval --> Rerank[Re-Ranking<br/>Cross-Encoder]
+    Rerank --> Prompt[Prompt<br/>Assembly]
+    Prompt --> LLM[LLM<br/>Generation]
+    LLM --> Citation[Citation<br/>Injection]
+    Citation --> Answer[Cited<br/>Answer]

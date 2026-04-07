@@ -3278,27 +3278,27 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
 
-    subgraph Gateway [API Gateway]
+    subgraph gtw["API Gateway"]
         LB[Load Balancer]
-        Auth[Auth &amp; Rate Limit]
+        Auth["Auth &amp; Rate Limit"]
         Router[Request Router]
     end
 
-    subgraph Safety [Safety Pipeline]
+    subgraph safe["Safety Pipeline"]
         InputFilter[Input Classifier]
         OutputFilter[Output Classifier]
         PII[PII Detector]
     end
 
-    subgraph Serving [LLM Serving Cluster]
+    subgraph serve["LLM Serving Cluster"]
         Scheduler[Request Scheduler]
-        subgraph GPUPool [GPU Pool]
+        subgraph gpool["GPU Pool"]
             GPU1[GPU Replica 1&lt;br/&gt;vLLM]
             GPU2[GPU Replica 2&lt;br/&gt;vLLM]
             GPUN[GPU Replica N&lt;br/&gt;vLLM]
@@ -3306,37 +3306,37 @@
         KVStore[KV-Cache&lt;br/&gt;Manager]
     end
 
-    subgraph Context [Context Assembly]
+    subgraph ctx["Context Assembly"]
         ConvMgr[Conversation&lt;br/&gt;Manager]
         SysPrompt[System Prompt&lt;br/&gt;Store]
         ToolRouter[Tool Router]
     end
 
-    subgraph Storage [Storage Layer]
+    subgraph stor["Storage Layer"]
         ConvDB[(Conversation DB&lt;br/&gt;Spanner/Bigtable)]
         UserDB[(User Store&lt;br/&gt;Spanner)]
         AuditLog[(Safety Audit Log&lt;br/&gt;BigQuery)]
     end
 
-    subgraph Feedback [Feedback &amp; Evaluation]
-        ThumbsUD[Thumbs Up/Down]
+    subgraph fb["Feedback &amp; Evaluation"]
+        ThumbsUD["Thumbs Up/Down"]
         Eval[Evaluation Pipeline]
         ABTest[A/B Testing]
     end
 
-    Clients --&gt; Gateway
-    Gateway --&gt; Safety
-    Safety --&gt;|clean input| Context
-    Context --&gt;|assembled prompt| Serving
-    Serving --&gt;|raw output| Safety
-    Safety --&gt;|filtered output| Gateway
-    Gateway --&gt;|SSE stream| Clients
+    cli --&gt; gtw
+    gtw --&gt; safe
+    safe --&gt;|"clean input"| ctx
+    ctx --&gt;|"assembled prompt"| serve
+    serve --&gt;|"raw output"| safe
+    safe --&gt;|"filtered output"| gtw
+    gtw --&gt;|"SSE stream"| cli
 
-    Context --&gt; Storage
-    Serving --&gt; Storage
-    Safety --&gt; AuditLog
-    Clients --&gt; Feedback
-    Feedback --&gt; Eval</div>
+    ctx --&gt; stor
+    serve --&gt; stor
+    safe --&gt; AuditLog
+    cli --&gt; fb
+    fb --&gt; Eval</div>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3569,7 +3569,7 @@
         Gateway--&gt;&gt;Client: SSE: data: {"delta": "token"}
     end
 
-    LLM--&gt;&gt;Gateway: finish_reason: stop
+    LLM--&gt;&gt;Gateway: "finish_reason: stop"
     Gateway-&gt;&gt;Safety: classify_output(full_response)
 
     alt Output SAFE
@@ -3613,25 +3613,25 @@
 </table>
 <h3 id="44-safety-pipeline">4.4 Safety Pipeline<a class="headerlink" href="#44-safety-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Input [Input Safety - Pre-Generation]
+    subgraph inp["Input Safety - Pre-Generation"]
         I1[Keyword&lt;br/&gt;Blocklist] --&gt; I2[ML Classifier&lt;br/&gt;FastText]
         I2 --&gt; I3[LLM Safety&lt;br/&gt;Classifier]
         I3 --&gt; I4[PII&lt;br/&gt;Detector]
     end
 
-    subgraph Generation [Generation]
+    subgraph gen["Generation"]
         G[LLM&lt;br/&gt;Inference]
     end
 
-    subgraph Output [Output Safety - Post-Generation]
+    subgraph out["Output Safety - Post-Generation"]
         O1[Toxicity&lt;br/&gt;Classifier] --&gt; O2[Factuality&lt;br/&gt;Check]
         O2 --&gt; O3[PII&lt;br/&gt;Scrubber]
         O3 --&gt; O4[Citation&lt;br/&gt;Injector]
     end
 
-    Input --&gt;|SAFE| Generation
-    Generation --&gt; Output
-    Input --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</div>
+    inp --&gt;|SAFE| gen
+    gen --&gt; out
+    inp --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</div>
 <p><strong>Cascade design — fast filters first:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SafetyPipeline</span><span class="p">:</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-stage safety pipeline. Fast checks first, expensive checks last.&quot;&quot;&quot;</span>
@@ -3773,9 +3773,9 @@
 <h3 id="46-model-routing-and-ab-testing">4.6 Model Routing and A/B Testing<a class="headerlink" href="#46-model-routing-and-ab-testing" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
     Request[User Request] --&gt; Router{Model Router}
-    Router --&gt;|90%| ModelA[Gemini Pro&lt;br/&gt;Production]
-    Router --&gt;|5%| ModelB[Gemini Pro v2&lt;br/&gt;Experiment A]
-    Router --&gt;|5%| ModelC[Fine-tuned&lt;br/&gt;Experiment B]
+    Router --&gt;|"90%"| ModelA[Gemini Pro&lt;br/&gt;Production]
+    Router --&gt;|"5%"| ModelB[Gemini Pro v2&lt;br/&gt;Experiment A]
+    Router --&gt;|"5%"| ModelC[Fine-tuned&lt;br/&gt;Experiment B]
 
     ModelA --&gt; Logger[Metrics Logger]
     ModelB --&gt; Logger
@@ -3844,29 +3844,29 @@
 </span></code></pre></div>
 <h3 id="48-evaluation-and-feedback-loop">4.8 Evaluation and Feedback Loop<a class="headerlink" href="#48-evaluation-and-feedback-loop" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Online [Online Signals]
-        ThumbsUp[Thumbs Up / Down]
+    subgraph onl["Online Signals"]
+        ThumbsUp["Thumbs Up / Down"]
         Regen[Regenerate Clicks]
         Abandon[Session Abandonment]
-        CopyPaste[Copy/Paste Rate]
+        CopyPaste["Copy/Paste Rate"]
     end
 
-    subgraph Offline [Offline Evaluation]
+    subgraph offl["Offline Evaluation"]
         HumanEval[Human Eval&lt;br/&gt;Side-by-side rating]
         AutoEval[Auto Eval&lt;br/&gt;LLM-as-Judge]
-        Benchmark[Benchmark Suite&lt;br/&gt;MMLU, HumanEval, etc.]
+        Benchmark["Benchmark Suite&lt;br/&gt;MMLU, HumanEval, etc."]
     end
 
-    subgraph Training [Training Pipeline]
-        RLHF[RLHF / DPO&lt;br/&gt;Training]
+    subgraph trainp["Training Pipeline"]
+        RLHF["RLHF / DPO&lt;br/&gt;Training"]
         SFT[Supervised&lt;br/&gt;Fine-tuning]
         Safety_T[Safety&lt;br/&gt;Tuning]
     end
 
-    Online --&gt; DataPipeline[Data Pipeline]
-    DataPipeline --&gt; Training
-    Offline --&gt; Training
-    Training --&gt; NewModel[New Model&lt;br/&gt;Candidate]
+    onl --&gt; DataPipeline[Data Pipeline]
+    DataPipeline --&gt; trainp
+    offl --&gt; trainp
+    trainp --&gt; NewModel[New Model&lt;br/&gt;Candidate]
     NewModel --&gt; ABTest[A/B Test]
     ABTest --&gt; Production[Promote to&lt;br/&gt;Production]</div>
 <p><strong>Evaluation dimensions:</strong></p>

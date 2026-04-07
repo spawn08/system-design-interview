@@ -1,0 +1,11 @@
+sequenceDiagram
+  participant T as Ticker
+  participant W as Timing Wheel
+  participant H as Ready Heap
+  participant Q as Ready Queue
+  participant WK as Worker
+  T->>W: tick(now)
+  W->>H: promote due tasks
+  H->>Q: push(task_id, priority)
+  WK->>Q: dequeue / poll
+  WK->>WK: lease(task_id)

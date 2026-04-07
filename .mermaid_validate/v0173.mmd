@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Client
+    participant Gateway
+    participant Safety
+    participant LLM as LLM Engine
+
+    Client->>Gateway: POST /chat (stream=true)
+    Gateway->>Safety: classify_input(message)
+    Safety-->>Gateway: SAFE
+    Gateway->>LLM: schedule_request(prompt)
+    
+    loop Every token
+        LLM-->>Gateway: token
+        Gateway-->>Client: SSE: data: {"delta": "token"}
+    end
+    
+    LLM-->>Gateway: finish_reason: stop
+    Gateway->>Safety: classify_output(full_response)
+    
+    alt Output SAFE
+        Gateway-->>Client: SSE: data: [DONE]
+    else Output UNSAFE
+        Gateway-->>Client: SSE: data: {"error": "response_filtered"}
+    end
+    
+    Gateway->>Gateway: log(audit_record)

@@ -1,0 +1,7 @@
+flowchart LR
+    DB[(Primary DB)] -->|CDC stream| KAFKA[Kafka]
+    KAFKA --> INDEXER[Indexing Service]
+    INDEXER --> ES[(Elasticsearch)]
+    
+    APP[Application] -->|reads| DB
+    APP -->|search queries| ES

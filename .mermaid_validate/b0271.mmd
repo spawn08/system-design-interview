@@ -1,0 +1,12 @@
+sequenceDiagram
+  participant U as User
+  participant E as Edge (PoP A)
+  participant O as Origin
+  Note over U,O: Network split: shield cannot reach origin
+  U->>E: GET /product/1.json
+  E->>E: miss + cannot refresh
+  alt stale-while-revalidate + cached stale
+    E-->>U: 200 stale body (AP)
+  else no stale copy
+    E-->>U: 502 or 504 (degraded)
+  end

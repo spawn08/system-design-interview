@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph replicaA [Replica A]
+    A1[Insert X id=3a]
+    A2[Insert Y after X]
+  end
+
+  subgraph replicaB [Replica B]
+    B1[Insert Z id=2b]
+  end
+
+  M[Deterministic merge order by id rules]
+  A2 --> M
+  B1 --> M
+  M --> F[Final: interleaving per CRDT spec]

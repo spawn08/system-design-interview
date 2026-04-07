@@ -4002,7 +4002,7 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
   subgraph train["Training"]
     AE[VAE frozen or co-trained stage]
     DM[Latent diffusion training\nnoise / v-pred loss]
-    FT[Optional: LoRA / DreamBooth\nadapter jobs]
+    FT["Optional: LoRA / DreamBooth\nadapter jobs"]
     RM[Reward model\nhuman pairwise]
     RL[DPO / RLHF fine-tune]
   end

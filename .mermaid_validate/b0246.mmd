@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant C as Client
+  participant G as Gateway
+  participant R as Redis
+  participant U as Upstream
+  participant O as OTel
+  C->>G: TLS + HTTP request
+  G->>G: route + auth + authz
+  G->>R: RL token bucket (Lua)
+  R-->>G: allow + remaining
+  G->>U: proxied request + trace headers
+  U-->>G: response
+  G->>O: span + metrics
+  G-->>C: response

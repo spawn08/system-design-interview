@@ -1,0 +1,7 @@
+flowchart TD
+    App[Application] --> Primary[(Primary)]
+    Primary --> Replica1[(Replica 1)]
+    Primary --> Replica2[(Replica 2)]
+    
+    App -.->|Reads| Replica1
+    App -.->|Reads| Replica2

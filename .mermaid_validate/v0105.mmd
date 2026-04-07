@@ -1,0 +1,7 @@
+flowchart LR
+    Browser[Browser] --> Resolver[DNS Resolver]
+    Resolver --> Root[Root DNS Server]
+    Root --> TLD[.com TLD Server]
+    TLD --> Auth[example.com Authoritative Server]
+    Auth --> Resolver
+    Resolver --> Browser

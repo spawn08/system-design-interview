@@ -1,0 +1,6 @@
+flowchart TD
+    A[Application needs data] --> B{Check Cache}
+    B -->|Cache Hit| C[Return cached data]
+    B -->|Cache Miss| D[Query Database]
+    D --> E[Store in Cache]
+    E --> F[Return data]

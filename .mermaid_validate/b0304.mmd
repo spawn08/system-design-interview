@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant Client
+  participant Coord as Coordinator
+  participant R1 as Replica A
+  participant R2 as Replica B
+  participant R3 as Replica C
+  Client->>Coord: put(key, value, context)
+  Coord->>R1: replicate write
+  Coord->>R2: replicate write
+  Coord->>R3: replicate write
+  R1-->>Coord: ack
+  R2-->>Coord: ack
+  Note over Coord: wait for W acks
+  Coord-->>Client: success + version

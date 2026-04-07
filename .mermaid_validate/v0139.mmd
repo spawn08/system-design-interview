@@ -1,0 +1,18 @@
+flowchart LR
+    subgraph Dev["Development"]
+        D1[Curate eval sets]
+        D2[Automated metrics]
+        D3[Human spot checks]
+    end
+
+    subgraph Staging["Pre-production"]
+        S1[Shadow traffic]
+        S2[Canary + guardrails]
+    end
+
+    subgraph Prod["Production"]
+        P1[A/B experiments]
+        P2[Monitoring + alerts]
+    end
+
+    Dev --> Staging --> Prod

@@ -48,15 +48,15 @@ A managed ML training platform — like Google Vertex AI, AWS SageMaker, or an i
 
 ```mermaid
 flowchart LR
-    subgraph DP [Data Parallelism]
+    subgraph dpar["Data Parallelism"]
         GPU1_DP[GPU 0<br/>Full Model<br/>Batch 0]
         GPU2_DP[GPU 1<br/>Full Model<br/>Batch 1]
         GPU3_DP[GPU 2<br/>Full Model<br/>Batch 2]
-        GPU1_DP <-->|AllReduce<br/>gradients| GPU2_DP
-        GPU2_DP <-->|AllReduce<br/>gradients| GPU3_DP
+        GPU1_DP <-->|"AllReduce<br/>gradients"| GPU2_DP
+        GPU2_DP <-->|"AllReduce<br/>gradients"| GPU3_DP
     end
 
-    subgraph PP [Pipeline Parallelism]
+    subgraph ppar["Pipeline Parallelism"]
         GPU1_PP[GPU 0<br/>Layers 0-19]
         GPU2_PP[GPU 1<br/>Layers 20-39]
         GPU3_PP[GPU 2<br/>Layers 40-59]
@@ -64,7 +64,7 @@ flowchart LR
         GPU2_PP -->|activations| GPU3_PP
     end
 
-    subgraph TP [Tensor Parallelism]
+    subgraph tpar["Tensor Parallelism"]
         GPU1_TP[GPU 0<br/>Col 0-2047]
         GPU2_TP[GPU 1<br/>Col 2048-4095]
         GPU1_TP <-->|AllGather| GPU2_TP
@@ -242,52 +242,52 @@ Checkpoint write:             420 GB in < 5 min → 1.4 GB/s to storage
 
 ```mermaid
 flowchart TB
-    subgraph Users [Users]
-        CLI[CLI / SDK]
+    subgraph users["Users"]
+        CLI["CLI / SDK"]
         WebUI[Web UI]
         Notebooks[Notebooks]
     end
 
-    subgraph ControlPlane [Control Plane]
+    subgraph cplane["Control Plane"]
         API[Training API]
         Scheduler[Job Scheduler<br/>Gang Scheduling]
         QuotaMgr[Quota Manager]
         ExperimentDB[(Experiment<br/>Registry)]
     end
 
-    subgraph DataPlane [Data Plane - GPU Cluster]
-        subgraph Node1 [Node 1]
+    subgraph dplane["Data Plane - GPU Cluster"]
+        subgraph n1["Node 1"]
             G1[GPU 0-7]
             Agent1[Node Agent]
         end
-        subgraph Node2 [Node 2]
+        subgraph n2["Node 2"]
             G2[GPU 0-7]
             Agent2[Node Agent]
         end
-        subgraph NodeN [Node N]
+        subgraph nn["Node N"]
             GN[GPU 0-7]
             AgentN[Node Agent]
         end
     end
 
-    subgraph Storage [Storage Layer]
+    subgraph storl["Storage Layer"]
         DataStore[(Training Data<br/>GCS / HDFS)]
         CheckpointStore[(Checkpoint Store<br/>GCS)]
         ArtifactStore[(Model Artifacts<br/>Registry)]
     end
 
-    subgraph Observability [Observability]
+    subgraph obs["Observability"]
         Logs[Log Aggregator]
-        Metrics[Metrics + Alerts]
+        Metrics["Metrics + Alerts"]
         TB[TensorBoard<br/>Service]
         Dashboard[Cluster<br/>Dashboard]
     end
 
-    Users --> ControlPlane
-    ControlPlane --> DataPlane
-    DataPlane --> Storage
-    DataPlane --> Observability
-    ControlPlane --> Observability
+    users --> cplane
+    cplane --> dplane
+    dplane --> storl
+    dplane --> obs
+    cplane --> obs
 ```
 
 ---

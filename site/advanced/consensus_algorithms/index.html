@@ -2822,14 +2822,14 @@
   participant A2 as Acceptor 2
   participant A3 as Acceptor 3
 
-  P-&gt;&gt;A1: Prepare(n=1)
-  P-&gt;&gt;A2: Prepare(n=1)
-  P-&gt;&gt;A3: Prepare(n=1)
-  A1--&gt;&gt;P: Promise(n=1, none)
-  A2--&gt;&gt;P: Promise(n=1, none)
+  P-&gt;&gt;A1: "Prepare(n=1)"
+  P-&gt;&gt;A2: "Prepare(n=1)"
+  P-&gt;&gt;A3: "Prepare(n=1)"
+  A1--&gt;&gt;P: "Promise(n=1, none)"
+  A2--&gt;&gt;P: "Promise(n=1, none)"
   Note over P: Majority promised
-  P-&gt;&gt;A1: Accept(n=1, value=X)
-  P-&gt;&gt;A2: Accept(n=1, value=X)
+  P-&gt;&gt;A1: "Accept(n=1, value=X)"
+  P-&gt;&gt;A2: "Accept(n=1, value=X)"
   A1--&gt;&gt;P: Accepted
   A2--&gt;&gt;P: Accepted
   Note over P: Value X is chosen</div>
@@ -2923,9 +2923,9 @@
   participant F2 as Follower 2
 
   C-&gt;&gt;L: Command X
-  L-&gt;&gt;L: Append to log (index 5, term 3)
-  L-&gt;&gt;F1: AppendEntries(index 5, term 3, X)
-  L-&gt;&gt;F2: AppendEntries(index 5, term 3, X)
+  L-&gt;&gt;L: "Append to log (index 5, term 3)"
+  L-&gt;&gt;F1: "AppendEntries(index 5, term 3, X)"
+  L-&gt;&gt;F2: "AppendEntries(index 5, term 3, X)"
   F1--&gt;&gt;L: Success
   F2--&gt;&gt;L: Success
   Note over L: Majority replicated; commit index 5

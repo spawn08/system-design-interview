@@ -4420,19 +4420,19 @@
 </table>
 <h3 id="priority-queues">Priority Queues<a class="headerlink" href="#priority-queues" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Input [Notification Input]
+    subgraph Input["Notification Input"]
         Trans[Transactional&lt;br/&gt;OTPs, Alerts]
         Engage[Engagement&lt;br/&gt;Likes, Comments]
         Promo[Promotional&lt;br/&gt;Marketing]
     end
 
-    subgraph Queues [Priority Queues]
+    subgraph PrioQueues["Priority Queues"]
         Q1[Critical Queue&lt;br/&gt;Processed First]
         Q2[High Queue]
         Q3[Low Queue&lt;br/&gt;Processed Last]
     end
 
-    subgraph Workers [Workers]
+    subgraph Workers["Workers"]
         W1[Worker Pool]
     end
 
@@ -4447,40 +4447,40 @@
 <h3 id="32-architecture-overview">3.2 Architecture Overview<a class="headerlink" href="#32-architecture-overview" title="Permanent link">&para;</a></h3>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Sources [Notification Sources]
+    subgraph Sources["Notification Sources"]
         API[API Calls]
         Events[Event Triggers]
         Scheduled[Scheduled Jobs]
     end
 
-    subgraph Gateway [Notification Gateway]
+    subgraph Gateway["Notification Gateway"]
         Validator[Validator]
         Enricher[Enricher]
         Router[Channel Router]
     end
 
-    subgraph Queues [Message Queues]
+    subgraph MsgQueues["Message Queues"]
         PushQ[(Push Queue)]
         EmailQ[(Email Queue)]
         SMSQ[(SMS Queue)]
         InAppQ[(In-App Queue)]
     end
 
-    subgraph Workers [Channel Workers]
+    subgraph ChWorkers["Channel Workers"]
         PushW[Push Worker]
         EmailW[Email Worker]
         SMSW[SMS Worker]
         InAppW[In-App Worker]
     end
 
-    subgraph Providers [External Providers]
+    subgraph Providers["External Providers"]
         APNS[APNS&lt;br/&gt;iOS]
         FCM[FCM&lt;br/&gt;Android]
         SES[AWS SES&lt;br/&gt;Email]
         Twilio[Twilio&lt;br/&gt;SMS]
     end
 
-    subgraph Storage [Storage]
+    subgraph Storage["Storage"]
         UserDB[(User Preferences)]
         TemplateDB[(Templates)]
         HistoryDB[(Notification History)]
@@ -5377,25 +5377,25 @@
 <h3 id="51-scaling-strategies">5.1 Scaling Strategies<a class="headerlink" href="#51-scaling-strategies" title="Permanent link">&para;</a></h3>
 <h3 id="horizontal-scaling">Horizontal Scaling<a class="headerlink" href="#horizontal-scaling" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph API [API Layer - Stateless]
+    subgraph API["API Layer - Stateless"]
         API1[API 1]
         API2[API 2]
         API3[API N]
     end
 
-    subgraph Queue [Message Queues]
+    subgraph Queue["Message Queues"]
         PushQ[(Push Queue&lt;br/&gt;Partitioned)]
         EmailQ[(Email Queue&lt;br/&gt;Partitioned)]
     end
 
-    subgraph Workers [Worker Pools]
-        subgraph PushPool [Push Workers]
+    subgraph WorkerPools["Worker Pools"]
+        subgraph PushPool["Push Workers"]
             PW1[Worker 1]
             PW2[Worker 2]
             PWN[Worker N]
         end
 
-        subgraph EmailPool [Email Workers]
+        subgraph EmailPool["Email Workers"]
             EW1[Worker 1]
             EW2[Worker 2]
             EWN[Worker N]
@@ -6074,10 +6074,10 @@
 </table>
 <div class="mermaid">flowchart TD
   Q[Kafka Queue] --&gt; W{Worker}
-  W --&gt;|FCM healthy| FCM[FCM Provider]
-  W --&gt;|FCM circuit open| DQ[Delayed Retry Queue]
-  W --&gt;|Max retries| DLQ[Dead Letter Queue]
-  DQ --&gt;|After cooldown| W</div>
+  W --&gt;|"FCM healthy"| FCM[FCM Provider]
+  W --&gt;|"FCM circuit open"| DQ[Delayed Retry Queue]
+  W --&gt;|"Max retries"| DLQ[Dead Letter Queue]
+  DQ --&gt;|"After cooldown"| W</div>
 <h3 id="multi-region-notification-delivery">Multi-Region Notification Delivery<a class="headerlink" href="#multi-region-notification-delivery" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

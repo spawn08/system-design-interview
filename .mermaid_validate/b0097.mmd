@@ -1,0 +1,10 @@
+graph TD
+    subgraph Hash Ring
+        N1[Node A<br/>Position: 50] 
+        N2[Node B<br/>Position: 150]
+        N3[Node C<br/>Position: 250]
+    end
+    
+    K1[Key 'user1'<br/>Hash: 80] -->|clockwise to| N2
+    K2[Key 'user2'<br/>Hash: 200] -->|clockwise to| N3
+    K3[Key 'user3'<br/>Hash: 30] -->|clockwise to| N1

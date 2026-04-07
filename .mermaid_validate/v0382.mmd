@@ -1,0 +1,51 @@
+flowchart TB
+    subgraph Clients [Client Layer]
+        Web[Web Browser]
+        Mobile[Mobile App]
+        API[API Client]
+    end
+    
+    subgraph Edge [Edge Layer]
+        CDN[CDN / Edge Cache]
+        LB[Load Balancer]
+    end
+    
+    subgraph App [Application Layer]
+        APIGw[API Gateway]
+        ShortenSvc[Shortening Service]
+        RedirectSvc[Redirect Service]
+        AnalyticsSvc[Analytics Service]
+    end
+    
+    subgraph Data [Data Layer]
+        Cache[(Redis Cache)]
+        DB[(PostgreSQL)]
+        Analytics[(ClickHouse)]
+    end
+    
+    subgraph Async [Async Processing]
+        Queue[Kafka]
+        Worker[Analytics Worker]
+    end
+    
+    Web --> CDN
+    Mobile --> LB
+    API --> LB
+    CDN --> LB
+    LB --> APIGw
+    
+    APIGw --> ShortenSvc
+    APIGw --> RedirectSvc
+    APIGw --> AnalyticsSvc
+    
+    ShortenSvc --> DB
+    ShortenSvc --> Cache
+    
+    RedirectSvc --> Cache
+    RedirectSvc --> DB
+    RedirectSvc --> Queue
+    
+    Queue --> Worker
+    Worker --> Analytics
+    
+    AnalyticsSvc --> Analytics

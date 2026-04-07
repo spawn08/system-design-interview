@@ -3253,20 +3253,20 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph HighResource [High-resource pairs]
+    subgraph hire["High-resource pairs"]
         A[Large parallel corpora]
     end
 
-    subgraph LowResource [Low-resource pair X→Y]
+    subgraph lowr["Low-resource pair X→Y"]
         B[Small parallel seed]
         C[Monolingual data in X and Y]
     end
 
     A --&gt; D[Multilingual backbone model]
     B --&gt; D
-    C --&gt; E[Back-translation &amp; denoising]
+    C --&gt; E["Back-translation &amp; denoising"]
     E --&gt; D
-    D --&gt; F[Pivot: X→EN→Y as fallback]</div>
+    D --&gt; F["Pivot: X→EN→Y as fallback"]</div>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3450,25 +3450,25 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-flow">End-to-end flow<a class="headerlink" href="#end-to-end-flow" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Inputs [Inputs]
+    subgraph inp["Inputs"]
         T[Text]
-        I[Image / OCR]
+        I["Image / OCR"]
         S[Speech ASR stream]
     end
 
     LD[Language Detection]
     PRE[Preprocessing&lt;br/&gt;normalize + tokenize]
-    ROUTE[Model Router&lt;br/&gt;pair / modality / SLA]
+    ROUTE["Model Router&lt;br/&gt;pair / modality / SLA"]
     MT[Translation Model&lt;br/&gt;GPU workers]
     POST[Post-processing&lt;br/&gt;detokenize + casing + placeholders]
     QE[Quality Estimation]
-    OUT[Response + warnings + alternatives]
+    OUT["Response + warnings + alternatives"]
 
     T --&gt; LD --&gt; PRE --&gt; ROUTE --&gt; MT --&gt; POST --&gt; QE --&gt; OUT
-    I --&gt; OCR[OCR + script detection] --&gt; LD
+    I --&gt; OCR["OCR + script detection"] --&gt; LD
     S --&gt; ASR[ASR] --&gt; LD
 
-    BATCH[Batch / Document Pipeline] --&gt; SEG[Segmentation + doc context cache] --&gt; ROUTE</div>
+    BATCH["Batch / Document Pipeline"] --&gt; SEG["Segmentation + doc context cache"] --&gt; ROUTE</div>
 <h3 id="batch-and-document-path">Batch and document path<a class="headerlink" href="#batch-and-document-path" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
     DOC[User uploads 40-page PDF] --&gt; EXTRACT[Extract text + layout]
@@ -4232,13 +4232,13 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tbody>
 </table>
 <div class="mermaid">flowchart TB
-    subgraph OfflineEval [Offline regression]
+    subgraph offev["Offline regression"]
         G[Golden parallel sets per pair]
-        M[Metrics: BLEU/chrF/COMET]
+        M["Metrics: BLEU/chrF/COMET"]
     end
 
-    subgraph OnlineMon [Online monitoring]
-        L[Latency + error rates]
+    subgraph onmon["Online monitoring"]
+        L["Latency + error rates"]
         Q[QE distribution shifts]
         U[User feedback volume]
     end

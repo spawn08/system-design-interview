@@ -3263,17 +3263,17 @@
 <p>A distributed cache is a separate caching service that multiple application servers can access. This solves the main limitations of in-process caching.</p>
 <p><strong>How it works:</strong></p>
 <div class="mermaid">flowchart TD
-    subgraph Servers [Application Servers]
+    subgraph srv["Application Servers"]
         S1[Server 1]
         S2[Server 2]
         S3[Server 3]
     end
 
-    subgraph Cache [Distributed Cache]
+    subgraph dcache["Distributed Cache"]
         Redis[(Redis)]
     end
 
-    subgraph Database [Database]
+    subgraph dbsub["Database"]
         DB[(PostgreSQL)]
     end
 
@@ -3875,7 +3875,7 @@
     Expire[Cache Entry Expires] --&gt; R1[Request 1]
     Expire --&gt; R2[Request 2]
     Expire --&gt; R3[Request 3]
-    Expire --&gt; R100[Request 100...]
+    Expire --&gt; R100["Request 100..."]
     R1 --&gt; DB[(Database)]
     R2 --&gt; DB
     R3 --&gt; DB

@@ -1,0 +1,18 @@
+flowchart TD
+    Q[Search Requirement] --> TYPE{Search type?}
+    TYPE -->|Full-text search| FTS[Elasticsearch / Solr]
+    TYPE -->|Autocomplete| AC{Scale?}
+    TYPE -->|Vector/semantic| VS[Vector DB + ANN]
+    TYPE -->|Log search| LOG[ELK Stack]
+    
+    AC -->|< 1M terms| TRIE[In-memory Trie]
+    AC -->|> 1M terms| ESAC[ES Completion Suggester]
+    
+    FTS --> RANK{Ranking needs?}
+    RANK -->|Text relevance| BM25[BM25 - default]
+    RANK -->|Personalized| LTR[Learning to Rank]
+    RANK -->|Semantic| HYBRID[BM25 + vector reranking]
+    
+    FTS --> IDX{Indexing latency?}
+    IDX -->|Real-time| CDC[CDC → Kafka → ES]
+    IDX -->|Minutes OK| BATCH[Periodic batch reindex]

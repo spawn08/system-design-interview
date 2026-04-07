@@ -1,0 +1,19 @@
+flowchart TD
+    Q[Architecture Question] --> SIZE{Team & scale?}
+    SIZE -->|Small team, MVP| MONO[Modular Monolith]
+    SIZE -->|Large team, established| MICRO[Microservices]
+    
+    MICRO --> COMM{Communication?}
+    COMM -->|Low latency, internal| GRPC[gRPC]
+    COMM -->|External, CRUD| REST[REST]
+    COMM -->|Async, decoupled| MQ[Message Queue]
+    
+    MICRO --> DISC{Discovery?}
+    DISC -->|Kubernetes| DNS[K8s DNS + Services]
+    DISC -->|VM-based| CONSUL[Consul / Eureka]
+    DISC -->|Service mesh| MESH[Istio + Envoy]
+    
+    MICRO --> GW{API Gateway?}
+    GW -->|AWS| APIGW[AWS API Gateway]
+    GW -->|K8s| ING[Nginx Ingress / Traefik]
+    GW -->|Feature-rich| KONG[Kong / Envoy]

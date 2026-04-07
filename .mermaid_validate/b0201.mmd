@@ -1,0 +1,29 @@
+flowchart TB
+    subgraph BatchPath [Batch path]
+        DW[(Data Warehouse / Lake)]
+        SP[Batch Compute Spark SQL]
+        OFF[(Offline Feature Store)]
+        DW --> SP --> OFF
+    end
+
+    subgraph StreamPath [Streaming path]
+        K[[Kafka / Event Bus]]
+        FL[Flink / Stream Processor]
+        ON[(Online Store Redis / DynamoDB)]
+        K --> FL --> ON
+    end
+
+    subgraph ServePath [Serving path]
+        M[Model Service]
+        FS[Feature Server]
+        ON --> FS
+        FS --> M
+    end
+
+    subgraph TrainPath [Training path]
+        TJ[Training Job]
+        OFF --> TJ
+        TJ --> DS[Training Dataset PIT joins]
+    end
+
+    SP -. backfill .-> ON

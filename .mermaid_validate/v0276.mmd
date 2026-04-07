@@ -1,0 +1,8 @@
+sequenceDiagram
+  participant C as Client
+  participant N1 as Node A stale route
+  participant N2 as Node B owner
+  C->>N1: GET foo
+  N1-->>C: MOVED 3999 10.0.0.12:6379
+  C->>N2: GET foo
+  N2-->>C: value

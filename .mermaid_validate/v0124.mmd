@@ -1,0 +1,5 @@
+flowchart TD
+    INPUT[User Input] --> L1[Layer 1: Client-side validation<br/>UX only, not security]
+    L1 --> L2[Layer 2: API Gateway<br/>Schema validation, rate limiting]
+    L2 --> L3[Layer 3: Application<br/>Business rule validation]
+    L3 --> L4[Layer 4: Database<br/>Constraints, triggers]

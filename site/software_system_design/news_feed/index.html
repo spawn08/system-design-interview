@@ -3111,12 +3111,12 @@
 </div>
 <h3 id="feed-generation-and-ranking-pipeline-conceptual">Feed Generation and Ranking Pipeline (Conceptual)<a class="headerlink" href="#feed-generation-and-ranking-pipeline-conceptual" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Write [Write path]
+    subgraph Write["Write path"]
         P[Post created] --&gt; FS[Fan-out / graph]
         FS --&gt; Cache[Per-user feed cache]
         FS --&gt; Idx[Search / index optional]
     end
-    subgraph Read [Read path]
+    subgraph Read["Read path"]
         R[GET /feed] --&gt; Rank[Ranking]
         Cache --&gt; Rank
         Rank --&gt; Resp[JSON + cursors]
@@ -3861,11 +3861,11 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph Push [Fan-out on write]
+    subgraph Push["Fan-out on write"]
         A1[New post] --&gt; W1[Write N follower caches]
         R1[Read feed] --&gt; F1[Read 1 key]
     end
-    subgraph Pull [Fan-out on read]
+    subgraph Pull["Fan-out on read"]
         A2[New post] --&gt; W2[Write 1 row]
         R2[Read feed] --&gt; F2[Query K users + merge]
     end</div>
@@ -4177,7 +4177,7 @@
     S --&gt; R[Followers merge at read]
     P --&gt; R</div>
 <div class="mermaid">flowchart LR
-    subgraph OnRead [Fan-out on read]
+    subgraph OnRead["Fan-out on read"]
         L[Load followee ids] --&gt; Q[Parallel fetch recent posts]
         Q --&gt; M[Merge + truncate]
     end</div>

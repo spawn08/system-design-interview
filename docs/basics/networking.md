@@ -281,8 +281,8 @@ When you type `www.example.com` in your browser:
 flowchart LR
     Browser[Browser] --> Resolver[DNS Resolver]
     Resolver --> Root[Root DNS Server]
-    Root --> TLD[.com TLD Server]
-    TLD --> Auth[example.com Authoritative Server]
+    Root --> TLD[".com TLD Server"]
+    TLD --> Auth["example.com Authoritative Server"]
     Auth --> Resolver
     Resolver --> Browser
 ```

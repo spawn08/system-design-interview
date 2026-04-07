@@ -12,10 +12,10 @@ flowchart LR
         APP[Application] --> DB[(Operational DB<br/>MySQL, PostgreSQL)]
     end
     
-    subgraph Analytics Infrastructure
-        DB -->|ETL / CDC| WH[(Data Warehouse<br/>Redshift, BigQuery)]
-        DB -->|Raw dump| DL[(Data Lake<br/>S3 / HDFS)]
-        DL -->|Structured queries| LH[(Lakehouse<br/>Delta Lake, Iceberg)]
+    subgraph ai["Analytics Infrastructure"]
+        DB -->|"ETL / CDC"| WH["Data Warehouse<br/>Redshift, BigQuery"]
+        DB -->|Raw dump| DL["Data Lake<br/>S3 / HDFS"]
+        DL -->|Structured queries| LH["Lakehouse<br/>Delta Lake, Iceberg"]
     end
     
     WH --> BI[BI Dashboards<br/>Tableau, Looker]
@@ -337,11 +337,11 @@ The lakehouse combines the best of warehouses and lakes: cheap storage (lake) wi
 ```mermaid
 flowchart TD
     subgraph Traditional
-        DL[Data Lake<br/>S3/HDFS] -->|ETL| DW[Data Warehouse<br/>Redshift/BQ]
+        DL["Data Lake<br/>S3/HDFS"] -->|ETL| DW["Data Warehouse<br/>Redshift/BQ"]
     end
     
     subgraph Lakehouse
-        LH[(Lakehouse<br/>Delta Lake / Iceberg / Hudi)]
+        LH["Lakehouse<br/>Delta Lake / Iceberg / Hudi"]
         LH -->|Fast SQL| ANALYTICS[Analytics]
         LH -->|Direct access| ML[ML Training]
         LH -->|Streaming| STREAM[Real-time]
@@ -592,7 +592,7 @@ Partition pruning: a query with `WHERE year = 2025` only reads files under `year
 
 ```mermaid
 flowchart TD
-    Q[Analytics / Data Question] --> NEED{What do you need?}
+    Q["Analytics / Data Question"] --> NEED{What do you need?}
     NEED -->|Fast SQL on structured data| WH[Data Warehouse]
     NEED -->|Store everything cheaply| LAKE[Data Lake]
     NEED -->|Both + ACID| LH[Lakehouse]
@@ -604,8 +604,8 @@ flowchart TD
     
     LAKE --> PROC{Processing needs?}
     PROC -->|Batch ETL| SPARK[Apache Spark]
-    PROC -->|SQL queries| PRESTO[Presto / Athena]
-    PROC -->|Streaming| FLINK[Flink + Delta/Iceberg]
+    PROC -->|SQL queries| PRESTO["Presto / Athena"]
+    PROC -->|Streaming| FLINK["Flink + Delta/Iceberg"]
     
     LH --> FORMAT{Table format?}
     FORMAT -->|Databricks ecosystem| DELTA[Delta Lake]

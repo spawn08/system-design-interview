@@ -1,0 +1,20 @@
+flowchart TB
+  subgraph cp [Control plane - strong consistency preferred]
+    ACL[ACL / collaborators in DB]
+    TOK[Short-lived WS tokens]
+  end
+
+  subgraph data [Data plane - per-document ordering]
+    LOG[Op log partition by doc_id]
+    SEQ[Monotonic seq per doc]
+  end
+
+  subgraph soft [Soft / ephemeral]
+    PRES[Presence & cursor]
+  end
+
+  ACL --> TOK
+  LOG --> SEQ
+  PRES -.->|best-effort| clients[Active clients]
+  LOG -->|authoritative| clients
+  TOK -->|authorize| clients

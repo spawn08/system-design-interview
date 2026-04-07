@@ -140,14 +140,14 @@ Rate limiters sit in an interesting CAP position: the **counter store** is effec
 
 ```mermaid
 flowchart TB
-  subgraph CP [Consistency vs availability under partition]
+  subgraph CP["Consistency vs availability under partition"]
     W[Writers to single Redis primary per shard]
     R[Reads from primary for limit checks]
     P[Network partition]
     W --> P
     R --> P
-    P -->|minority partition| FO[Fail open OR queue checks]
-    P -->|healed| REC[Reconcile counters / accept over-count]
+    P -->|"minority partition"| FO[Fail open OR queue checks]
+    P -->|healed| REC["Reconcile counters / accept over-count"]
   end
 ```
 
@@ -810,28 +810,28 @@ For a distributed system, we need a centralized store for rate limit state.
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Clients]
+    subgraph Clients["Clients"]
         C1[Client 1]
         C2[Client 2]
         C3[Client N]
     end
     
-    subgraph Edge [Edge Layer]
+    subgraph Edge["Edge Layer"]
         LB[Load Balancer]
     end
     
-    subgraph App [Application Layer]
+    subgraph App["Application Layer"]
         API1[API Server 1]
         API2[API Server 2]
         API3[API Server N]
     end
     
-    subgraph RateLimit [Rate Limiting Layer]
+    subgraph RateLimit["Rate Limiting Layer"]
         RL[Rate Limiter Service]
         Redis[(Redis Cluster)]
     end
     
-    subgraph Backend [Backend Services]
+    subgraph Backend["Backend Services"]
         Svc[Backend Services]
     end
     
@@ -1650,18 +1650,18 @@ Same pattern as **HTTP Response Headers** in section 4.3 (`rate_limit_middleware
 
 ```mermaid
 flowchart TB
-    subgraph Cluster [Redis Cluster]
-        subgraph Shard1 [Shard 1]
+    subgraph Cluster["Redis Cluster"]
+        subgraph Shard1["Shard 1"]
             M1[Master 1]
             S1[Replica 1]
         end
         
-        subgraph Shard2 [Shard 2]
+        subgraph Shard2["Shard 2"]
             M2[Master 2]
             S2[Replica 2]
         end
         
-        subgraph Shard3 [Shard 3]
+        subgraph Shard3["Shard 3"]
             M3[Master 3]
             S3[Replica 3]
         end
@@ -1791,13 +1791,13 @@ At L6, connect rate limiting to broader system resilience:
 
 ```mermaid
 flowchart TD
-  RL[Rate Limiter] -->|Rejects excess| Client
-  RL -->|Admits requests| API[API Server]
+  RL[Rate Limiter] -->|"Rejects excess"| Client
+  RL -->|"Admits requests"| API[API Server]
   API -->|Overloaded| CB[Circuit Breaker]
   CB -->|Open| Fallback[Degraded Response]
   CB -->|Closed| Backend[Backend Service]
-  Backend -->|Backpressure signal| API
-  API -->|Adaptive limit| RL
+  Backend -->|"Backpressure signal"| API
+  API -->|"Adaptive limit"| RL
 ```
 
 | Concept | How It Applies |

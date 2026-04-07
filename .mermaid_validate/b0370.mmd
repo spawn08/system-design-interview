@@ -1,0 +1,23 @@
+flowchart LR
+  Client[Browser / App]
+  CDN[CDN / Edge Cache]
+  GW[API Gateway]
+  AC[Autocomplete Service]
+  Trie[(In-memory Trie / Radix Structure)]
+  Redis[(Redis Cache)]
+  K[Kafka: Query Logs]
+  SP[Spark / Flink Aggregator]
+  TB[Trie Builder Job]
+  Obj[(Object Store: Snapshots)]
+
+  Client --> CDN
+  CDN --> GW
+  GW --> AC
+  AC --> Trie
+  AC --> Redis
+  AC --> K
+  K --> SP
+  SP --> Obj
+  SP --> TB
+  TB --> Obj
+  TB --> Trie

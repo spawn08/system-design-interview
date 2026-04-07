@@ -1,0 +1,6 @@
+sequenceDiagram
+  participant S as Scraper / Prometheus
+  participant T as Target /metrics
+  S->>T: GET /metrics (interval)
+  T-->>S: text exposition
+  Note over S: parse, relabel, TSDB append

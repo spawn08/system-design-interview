@@ -1,0 +1,37 @@
+flowchart TB
+    subgraph API [API Layer - Stateless]
+        API1[API 1]
+        API2[API 2]
+        API3[API N]
+    end
+    
+    subgraph Queue [Message Queues]
+        PushQ[(Push Queue<br/>Partitioned)]
+        EmailQ[(Email Queue<br/>Partitioned)]
+    end
+    
+    subgraph Workers [Worker Pools]
+        subgraph PushPool [Push Workers]
+            PW1[Worker 1]
+            PW2[Worker 2]
+            PWN[Worker N]
+        end
+        
+        subgraph EmailPool [Email Workers]
+            EW1[Worker 1]
+            EW2[Worker 2]
+            EWN[Worker N]
+        end
+    end
+    
+    API1 --> PushQ
+    API2 --> EmailQ
+    API3 --> PushQ
+    
+    PushQ --> PW1
+    PushQ --> PW2
+    PushQ --> PWN
+    
+    EmailQ --> EW1
+    EmailQ --> EW2
+    EmailQ --> EWN

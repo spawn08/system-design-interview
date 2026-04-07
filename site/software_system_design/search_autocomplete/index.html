@@ -3618,10 +3618,10 @@
   AC[Autocomplete Service]
   Trie[(In-memory Trie / Radix Structure)]
   Redis[(Redis Cache)]
-  K[Kafka: Query Logs]
+  K["Kafka: Query Logs"]
   SP[Spark / Flink Aggregator]
   TB[Trie Builder Job]
-  Obj[(Object Store: Snapshots)]
+  Obj[("Object Store: Snapshots")]
 
   Client --&gt; CDN
   CDN --&gt; GW
@@ -4034,9 +4034,9 @@
   K[Kafka Topics]
   F[Flink / Spark Streaming]
   DW[(Data Warehouse)]
-  OFF[Offline Batch: Daily/hourly)]
+  OFF["Offline Batch: Daily/hourly)"]
   FS[(Feature Store / Object Store)]
-  JOB[Aggregator Outputs: CSV/Parquet)]
+  JOB["Aggregator Outputs: CSV/Parquet)"]
 
   LB --&gt; API
   API --&gt; K
@@ -4215,14 +4215,14 @@
 <p><strong>Replication:</strong> each shard has <strong>N replicas</strong> behind a load balancer for availability.</p>
 <div class="mermaid">flowchart TB
   R[Shard Router]
-  S1[Shard: A-F]
-  S2[Shard: G-M]
-  S3[Shard: N-Z]
+  S1["Shard: A-F"]
+  S2["Shard: G-M"]
+  S3["Shard: N-Z"]
   LB1[LB]
   LB2[LB]
   LB3[LB]
 
-  R --&gt;|prefix range| S1
+  R --&gt;|"prefix range"| S1
   R --&gt; S2
   R --&gt; S3
   S1 --&gt; LB1

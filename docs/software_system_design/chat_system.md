@@ -219,7 +219,7 @@ flowchart LR
   end
 
   AP_paths --> UX[Best-effort UX]
-  CP_paths --> INV[Invariant: who is in the group / what is persisted]
+  CP_paths --> INV["Invariant: who is in the group / what is persisted"]
   Mixed --> EVC[Eventually consistent across viewers]
 ```
 
@@ -337,7 +337,7 @@ flowchart TB
 
     LB[Load Balancer / TLS Termination]
 
-    subgraph Edge [WebSocket Tier]
+    subgraph Edge["WebSocket Tier"]
         WG1[WebSocket Gateway]
         WG2[WebSocket Gateway]
         WG3[WebSocket Gateway]
@@ -347,7 +347,7 @@ flowchart TB
 
     MQ[[Message Queue<br/>Kafka / Pulsar]]
 
-    subgraph Data [Data Stores]
+    subgraph Data["Data Stores"]
         CAS[(Message Store<br/>Cassandra / Scylla)]
         RD[(Redis Cluster<br/>Presence / Sessions / Cache)]
         OBJ[(Object Storage<br/>S3 / GCS)]

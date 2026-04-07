@@ -4302,10 +4302,10 @@
     U[Purge fan-out]
     D[DNS TTL]
   end
-  P --&gt;|publish| E
-  C --&gt;|deploy| E
-  U -.-&gt;|seconds lag| E
-  D -.-&gt;|resolver cache| Clients[Clients]</div>
+  P --&gt;|"publish"| E
+  C --&gt;|"deploy"| E
+  U -.-&gt;|"seconds lag"| E
+  D -.-&gt;|"resolver cache"| Clients[Clients]</div>
 <p><strong>Interview punchline:</strong> <strong>Immutability</strong> (versioned asset URLs) avoids <strong>coordination</strong>; <strong>mutable</strong> APIs need <strong>purge</strong> or <strong>short TTL</strong> — there is <strong>no global linearizable cache</strong> at CDN scale for all keys.</p>
 <h3 id="read-path-under-partition-conceptual">Read path under partition (conceptual)<a class="headerlink" href="#read-path-under-partition-conceptual" title="Permanent link">&para;</a></h3>
 <div class="mermaid">sequenceDiagram

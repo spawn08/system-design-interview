@@ -1,0 +1,15 @@
+flowchart TB
+    subgraph cp["CP-biased (strong guarantees)"]
+        Q[Replicated queue / WAL<br/>accept before ACK]
+        M[Metadata primary + sync replica<br/>or quorum writes]
+    end
+    subgraph ap["AP-biased (availability first)"]
+        R[Mailbox read replicas<br/>cached threads]
+        S[Search index<br/>eventual]
+        F[Spam scores<br/>stale OK / policy fallback]
+    end
+    CLIENT[Client / MTA] --> Q
+    Q --> M
+    M --> R
+    M --> S
+    M --> F

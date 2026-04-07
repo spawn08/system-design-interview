@@ -1,0 +1,7 @@
+flowchart LR
+  REQ[Incoming request]
+  H[Hash user_id or api_key_id]
+  P[Bucket 0..99]
+  REQ --> H --> P
+  P -->|0-94 stable| ST[upstream v1]
+  P -->|95-99 canary| CA[upstream v2]

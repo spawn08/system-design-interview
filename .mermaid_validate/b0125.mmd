@@ -1,0 +1,12 @@
+flowchart TD
+    subgraph Traditional
+        FW[Firewall] --> INT[Internal Network<br/>Everything trusted]
+    end
+    
+    subgraph Zero Trust
+        R[Request] --> V{Verify Identity}
+        V --> A{Authorize Action}
+        A --> E{Encrypt Always}
+        E --> L[Log Everything]
+        L --> M{Monitor Anomalies}
+    end

@@ -1,0 +1,7 @@
+flowchart LR
+    EXT[Extract<br/>from Sources] --> VAL[Validate<br/>Data Quality]
+    VAL --> TRANS[Transform<br/>Clean & Enrich]
+    TRANS --> LOAD[Load<br/>into Warehouse]
+    LOAD --> NOTIFY[Notify<br/>Stakeholders]
+    
+    VAL -->|Failed| ALERT[Alert<br/>On-Call]

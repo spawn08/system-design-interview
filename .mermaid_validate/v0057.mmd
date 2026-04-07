@@ -1,0 +1,17 @@
+flowchart TB
+    subgraph API["S3-style HTTP API"]
+        PUT[PUT Object]
+        GET[GET Object]
+        LIST[ListObjectsV2]
+        MPU[CreateMultipartUpload / UploadPart / CompleteMultipartUpload]
+    end
+
+    subgraph Bucket["Bucket: my-app-media"]
+        K1["Key: users/42/profile.jpg"]
+        K2["Key: videos/99/segment_001.ts"]
+    end
+
+    PUT --> K1
+    GET --> K1
+    MPU --> K2
+    LIST --> Bucket

@@ -1,0 +1,7 @@
+flowchart LR
+    P[Producer] --> EX[Exchange] --> Q[Main Queue]
+    Q --> C[Consumer]
+    C -->|reject/nack| Q
+    Q -->|max retries exceeded<br/>or TTL expired| DLX[Dead-Letter Exchange]
+    DLX --> DLQ[Dead-Letter Queue]
+    DLQ --> RETRY[Retry Worker<br/>or Manual Review]

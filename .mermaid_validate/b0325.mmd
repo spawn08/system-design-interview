@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph cap["CAP by Data Store"]
+    PG["Post DB (PostgreSQL)<br/>CP — strong consistency"]
+    GR["Social graph<br/>CP — follow/unfollow<br/>must be immediate"]
+    RC["Feed cache (Redis)<br/>AP — stale feed OK,<br/>downtime not OK"]
+    CA["Feed store (Cassandra)<br/>AP — LOCAL_QUORUM<br/>within region"]
+    EN["Engagement counts<br/>AP — eventual,<br/>CRDTs or batch sync"]
+  end

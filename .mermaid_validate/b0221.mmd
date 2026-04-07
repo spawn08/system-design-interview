@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph Train [Training]
+        OFS[(Offline Store\nHive / Iceberg)]
+        PIT[Point-in-time joins]
+        DS[Training dataset]
+    end
+    subgraph Serve [Serving]
+        OLF[Online Feature Store\nRedis]
+        API[Ranking API]
+    end
+    subgraph Stream [Streaming]
+        SP[Stream processor]
+    end
+    OFS --> PIT --> DS
+    SP --> OLF
+    OLF --> API
+    DS -->|Export embeddings| OLF

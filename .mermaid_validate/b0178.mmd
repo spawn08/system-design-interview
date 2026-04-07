@@ -1,0 +1,37 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as LLM Gateway
+    participant RL as Rate Limiter
+    participant CC as Cache (Exact + Semantic)
+    participant R as Router / Policy
+    participant P as Provider API
+    participant SCR as PII Scrub / Audit
+
+    C->>G: POST /v1/chat/completions (stream=true)
+    G->>G: AuthN/Z + tenant resolve
+    G->>RL: Check RPM + TPM (pre-count)
+    alt over budget
+        RL-->>G: deny
+        G-->>C: 429 + Retry-After
+    end
+    RL-->>G: allow
+    G->>CC: Lookup (exact hash → semantic ANN)
+    alt cache hit
+        CC-->>G: cached completion
+        G->>SCR: Scrub + structured log (cache_hit)
+        SCR-->>C: SSE stream of cached tokens
+    else cache miss
+        CC-->>G: miss
+        G->>R: Select provider/model
+        R-->>G: RouteTarget
+        G->>P: Open streaming request
+        loop stream
+            P-->>G: chunk (delta / tool / error)
+            G->>G: Normalize SSE + accumulate for logging
+            G->>SCR: Optional hot-path mask on deltas
+            G-->>C: Forward gateway SSE
+        end
+        P-->>G: stream end + usage (tokens)
+        G->>SCR: Final scrub + audit record + cache write (if eligible)
+    end

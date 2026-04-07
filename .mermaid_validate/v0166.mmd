@@ -1,0 +1,47 @@
+flowchart TB
+    subgraph Ingestion [Content Ingestion]
+        Upload[Content Upload<br/>API]
+        Stream[Event Stream<br/>Kafka]
+    end
+
+    subgraph Cascade [Moderation Cascade]
+        Rules[Stage 1<br/>Rules Engine]
+        FastML[Stage 2<br/>Fast ML Classifiers]
+        HeavyML[Stage 3<br/>Multi-Modal Models]
+        LLMStage[Stage 4<br/>LLM Contextual<br/>Analysis]
+    end
+
+    subgraph Enforcement [Enforcement]
+        ActionEngine[Action Engine]
+        NotifyUser[User Notification]
+        NotifyCreator[Creator<br/>Notification]
+    end
+
+    subgraph HumanLoop [Human-in-the-Loop]
+        ReviewQueue[Review Queue<br/>Priority-based]
+        ReviewUI[Reviewer<br/>Interface]
+        QA[Quality<br/>Assurance]
+    end
+
+    subgraph Appeals [Appeals]
+        AppealAPI[Appeal<br/>Submission]
+        AppealReview[Appeal<br/>Review]
+        Overturn[Decision<br/>Update]
+    end
+
+    subgraph Monitoring [Monitoring & Feedback]
+        Metrics[Metrics<br/>Dashboard]
+        FeedbackLoop[Feedback<br/>Loop]
+        PolicyMgmt[Policy<br/>Management]
+    end
+
+    Ingestion --> Cascade
+    Cascade -->|violation| Enforcement
+    Cascade -->|uncertain| HumanLoop
+    HumanLoop --> Enforcement
+    Enforcement --> Appeals
+    Appeals --> Overturn
+    
+    HumanLoop --> FeedbackLoop
+    Appeals --> FeedbackLoop
+    FeedbackLoop --> Cascade

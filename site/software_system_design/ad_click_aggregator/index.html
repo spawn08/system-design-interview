@@ -3131,9 +3131,9 @@
   dateFormat X
   axisFormat %s
   section Events
-  e1 (t=10) arrives t=12 :a1, 12, 13
-  e2 (t=11) arrives t=14 :a2, 14, 15
-  e3 (t=9)  arrives t=16 :a3, 16, 17</div>
+  "e1 (t=10) arrives t=12" :a1, 12, 13
+  "e2 (t=11) arrives t=14" :a2, 14, 15
+  "e3 (t=9) arrives t=16" :a3, 16, 17</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Say: <strong>“Event time defines correctness; processing time defines latency.”</strong> Then explain <strong>watermarks</strong> + <strong>allowed lateness</strong>.</p>
@@ -4021,25 +4021,25 @@
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-streaming-batch-reconciliation">Architecture (streaming + batch reconciliation)<a class="headerlink" href="#architecture-streaming-batch-reconciliation" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-  subgraph producers[Event Producers]
+  subgraph producers["Event Producers"]
     P1[Web / SDK]
     P2[Mobile SDK]
     P3[Ad Server Beacons]
   end
 
-  subgraph ingest[Ingestion]
+  subgraph ingest["Ingestion"]
     GW[Ingest API + Schema Registry]
   end
 
   producers --&gt; GW
   GW --&gt; K[Kafka / Pulsar / Kinesis]
 
-  subgraph stream[Stream Processing]
+  subgraph stream["Stream Processing"]
     F[Flink / Beam on Flink]
   end
 
-  subgraph rt[Real-Time Serving]
-    CH[(ClickHouse / Druid / Pinot)]
+  subgraph rt["Real-Time Serving"]
+    CH[("ClickHouse / Druid / Pinot")]
     Q[Query API + Cache]
   end
 
@@ -4047,7 +4047,7 @@
   F --&gt; CH
   CH --&gt; Q
 
-  subgraph batch[Batch &amp; Reconciliation]
+  subgraph batch["Batch &amp; Reconciliation"]
     S3[(Data Lake S3 / GCS)]
     SP[Spark Aggregation]
     R[Reconciliation Service]

@@ -1,0 +1,40 @@
+graph TB
+    subgraph Clients
+        APP[Application] --> LB[Load Balancer]
+        BATCH[Batch Jobs] --> BATCHQ[Batch Queue]
+    end
+
+    subgraph API Gateway
+        LB --> ROUTER[Traffic Router / A/B Splitter]
+        ROUTER --> AUTH[Auth + Rate Limit]
+    end
+
+    subgraph Model Registry
+        REG[(Model Registry)]
+        STORE[(Artifact Store<br/>S3 / GCS)]
+        REG --> STORE
+    end
+
+    subgraph Online Serving
+        AUTH --> SRV1[Model Server v1<br/>TorchServe]
+        AUTH --> SRV2[Model Server v2<br/>Triton]
+        SRV1 --> GPU1[GPU Pool]
+        SRV2 --> GPU2[GPU Pool]
+    end
+
+    subgraph Batch Serving
+        BATCHQ --> SPARK[Spark / Ray Batch]
+        SPARK --> GPU3[GPU Pool]
+        SPARK --> OUTPUT[(Output Store)]
+    end
+
+    subgraph Monitoring
+        SRV1 --> MON[Metrics Collector]
+        SRV2 --> MON
+        MON --> DASH[Dashboard + Alerts]
+        MON --> DRIFT[Drift Detector]
+    end
+
+    REG -.-> SRV1
+    REG -.-> SRV2
+    REG -.-> SPARK

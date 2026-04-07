@@ -1,0 +1,42 @@
+graph TB
+    subgraph Training Cluster
+        subgraph Node 1
+            GPU0[GPU 0<br/>Worker]
+            GPU1[GPU 1<br/>Worker]
+            GPU0 <-->|NVLink| GPU1
+        end
+
+        subgraph Node 2
+            GPU2[GPU 2<br/>Worker]
+            GPU3[GPU 3<br/>Worker]
+            GPU2 <-->|NVLink| GPU3
+        end
+
+        Node1 <-->|InfiniBand| Node2
+    end
+
+    subgraph Orchestration
+        SCHED[Job Scheduler<br/>SLURM / K8s]
+        MONITOR[Training Monitor]
+        CKPT[(Checkpoint Store<br/>S3 / HDFS)]
+    end
+
+    subgraph Data Pipeline
+        DATA[(Training Data<br/>S3 / HDFS)]
+        LOADER[Distributed DataLoader<br/>Sharded by worker]
+    end
+
+    subgraph Experiment Tracking
+        TRACK[MLflow / W&B]
+    end
+
+    SCHED --> Node1
+    SCHED --> Node2
+    DATA --> LOADER
+    LOADER --> GPU0
+    LOADER --> GPU1
+    LOADER --> GPU2
+    LOADER --> GPU3
+    GPU0 --> CKPT
+    GPU0 --> TRACK
+    MONITOR --> SCHED

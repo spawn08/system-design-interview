@@ -1,0 +1,16 @@
+flowchart TD
+    Start[Start] --> Q1{Need ACID transactions?}
+    Q1 -->|Yes| Q2{Complex relationships?}
+    Q1 -->|No| Q3{Data structure?}
+    
+    Q2 -->|Yes| SQL[PostgreSQL/MySQL]
+    Q2 -->|No| SQL
+    
+    Q3 -->|Key-Value| KV[Redis/DynamoDB]
+    Q3 -->|Documents| Doc[MongoDB]
+    Q3 -->|Wide Column| WC[Cassandra]
+    Q3 -->|Graph| Graph[Neo4j]
+    
+    SQL --> Q4{Scale requirements?}
+    Q4 -->|Single region| SQL2[Single PostgreSQL]
+    Q4 -->|Multi-region| SQL3[CockroachDB/Spanner]

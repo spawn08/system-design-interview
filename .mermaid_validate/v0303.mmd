@@ -1,0 +1,9 @@
+flowchart TB
+  N1[Node 1\nmembership state]
+  N2[Node 2\nmembership state]
+  N3[Node 3\nmembership state]
+  N4[Node N\nmembership state]
+  N1 <-->|periodic gossip| N2
+  N2 <-->|periodic gossip| N3
+  N3 <-->|periodic gossip| N4
+  N4 <-->|periodic gossip| N1

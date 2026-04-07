@@ -1,0 +1,7 @@
+flowchart TB
+  subgraph pre["Pre-filter"]
+    P1[Compute eligible ID set] --> P2[ANN only on eligible]
+  end
+  subgraph post["Post-filter"]
+    Q1[ANN top L >> k] --> Q2[Keep first k passing filter]
+  end

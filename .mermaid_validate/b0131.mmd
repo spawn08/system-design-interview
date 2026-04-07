@@ -1,0 +1,20 @@
+graph TB
+    DATA[Training Data] --> SHARD1[Shard 1]
+    DATA --> SHARD2[Shard 2]
+    DATA --> SHARD3[Shard 3]
+    DATA --> SHARD4[Shard 4]
+
+    SHARD1 --> W1[Worker 1<br/>Full Model Copy]
+    SHARD2 --> W2[Worker 2<br/>Full Model Copy]
+    SHARD3 --> W3[Worker 3<br/>Full Model Copy]
+    SHARD4 --> W4[Worker 4<br/>Full Model Copy]
+
+    W1 -->|gradients| AR[All-Reduce<br/>Ring / Tree]
+    W2 -->|gradients| AR
+    W3 -->|gradients| AR
+    W4 -->|gradients| AR
+
+    AR -->|averaged gradients| W1
+    AR -->|averaged gradients| W2
+    AR -->|averaged gradients| W3
+    AR -->|averaged gradients| W4

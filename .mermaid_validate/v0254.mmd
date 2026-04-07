@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant S as Sender Client
+    participant GW as Gateway
+    participant CS as Chat Service
+    participant RD as Redis (members)
+    participant MQ as Kafka
+    participant CAS as Cassandra
+
+    S->>GW: send_message(group_id, body)
+    GW->>CS: SendMessage
+    CS->>RD: SMEMBERS group:group_id
+    CS->>CAS: persist message once
+    loop each member (bounded batch)
+        CS->>MQ: fanout tasks (member_id, message_id)
+    end
+    MQ->>CS: deliver to each recipient pipeline

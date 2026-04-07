@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph Client [Client]
+        U[User]
+    end
+
+    subgraph Edge [Edge]
+        LB[Load Balancer / API GW]
+    end
+
+    subgraph Qu [Query Path]
+        QU[Query Understanding Service]
+        IX[Inverted Index Service]
+        ANN[ANN Index<br/>Dense Embeddings]
+        FUS[Hybrid Fusion]
+    end
+
+    subgraph Rank [Ranking]
+        FE[Feature Service]
+        RM[Ranking Model<br/>LightGBM / DNN]
+        CE[Cross-Encoder<br/>Optional Top-K]
+        RER[Re-ranker<br/>MMR / Rules]
+    end
+
+    subgraph Data [Stores]
+        DOC[(Doc Store / KV)]
+        CACHE[(Query / Result Cache)]
+    end
+
+    U --> LB --> QU
+    QU --> IX
+    QU --> ANN
+    IX --> FUS
+    ANN --> FUS
+    FUS --> FE
+    FE --> RM --> CE --> RER
+    RER --> U
+    FUS -.-> DOC
+    FE -.-> DOC
+    LB -.-> CACHE

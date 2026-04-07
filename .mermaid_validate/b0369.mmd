@@ -1,0 +1,22 @@
+flowchart TB
+  subgraph ap_path["AP-biased serving path"]
+    U[User keystroke]
+    E[Edge / CDN optional]
+    O[Origin autocomplete]
+    L[Local replica / in-memory snapshot]
+    C[Redis cache optional]
+    U --> E --> O
+    O --> C
+    O --> L
+  end
+
+  subgraph ev_index["Eventually consistent index pipeline"]
+    K[Kafka query logs]
+    A[Aggregators Spark / Flink]
+    S[Snapshot builder]
+    OB[(Object store snapshots)]
+    A --> S --> OB
+    K --> A
+  end
+
+  OB -. "async publish / swap" .-> L

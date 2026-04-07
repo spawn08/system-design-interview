@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant ES as Event store
+    participant P as Projection worker
+    participant RM as Read model DB
+
+    loop Catch-up
+        ES->>P: next batch of events
+        P->>RM: upsert / delete rows
+        P->>P: save checkpoint
+    end

@@ -1,0 +1,53 @@
+flowchart TB
+  subgraph clients["Clients"]
+    WEB[Web / Mobile]
+    PARTNER[Partner API]
+  end
+
+  subgraph edge["Edge"]
+    GW[API Gateway]
+    AUTH[Auth / OAuth]
+  end
+
+  subgraph core["Payment Core"]
+    PS[Payment Service]
+    LED[Ledger Service]
+    IDEM[Idempotency Store]
+    OUTBOX[Outbox / Events]
+  end
+
+  subgraph async["Async Processing"]
+    Q[(Message Queue)]
+    WH[Webhook Worker]
+    REC[Reconciliation Worker]
+    FRAUD[Fraud Service]
+  end
+
+  subgraph external["External"]
+    PSP[PSP - Stripe / PayPal]
+    BANK[Issuing / Acquiring Networks]
+  end
+
+  subgraph data["Data Stores"]
+    PAYDB[(Payment DB)]
+    LEDDB[(Ledger DB)]
+    REDIS[(Redis - locks / cache)]
+  end
+
+  WEB --> GW
+  PARTNER --> GW
+  GW --> AUTH
+  AUTH --> PS
+  PS --> IDEM
+  PS --> PAYDB
+  PS --> LED
+  LED --> LEDDB
+  PS --> OUTBOX
+  OUTBOX --> Q
+  Q --> WH
+  Q --> REC
+  PS --> FRAUD
+  WH --> PSP
+  PS --> PSP
+  PSP --> WH
+  PS --> REDIS

@@ -37,12 +37,12 @@ A **news feed** (or **timeline**) is the continuously updated stream of posts us
 
 ```mermaid
 flowchart LR
-    subgraph Write [Write path]
+    subgraph Write["Write path"]
         P[Post created] --> FS[Fan-out / graph]
         FS --> Cache[Per-user feed cache]
         FS --> Idx[Search / index optional]
     end
-    subgraph Read [Read path]
+    subgraph Read["Read path"]
         R[GET /feed] --> Rank[Ranking]
         Cache --> Rank
         Rank --> Resp[JSON + cursors]
@@ -432,11 +432,11 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph Push [Fan-out on write]
+    subgraph Push["Fan-out on write"]
         A1[New post] --> W1[Write N follower caches]
         R1[Read feed] --> F1[Read 1 key]
     end
-    subgraph Pull [Fan-out on read]
+    subgraph Pull["Fan-out on read"]
         A2[New post] --> W2[Write 1 row]
         R2[Read feed] --> F2[Query K users + merge]
     end
@@ -748,7 +748,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph OnRead [Fan-out on read]
+    subgraph OnRead["Fan-out on read"]
         L[Load followee ids] --> Q[Parallel fetch recent posts]
         Q --> M[Merge + truncate]
     end

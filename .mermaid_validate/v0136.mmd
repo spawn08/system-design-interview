@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant DS as Data Scientist
+    participant REG as Feature Registry
+    participant MAT as Materializer
+    participant OFF as Offline Store
+    participant ON as Online Store
+    participant SRV as Model Server
+
+    DS->>REG: Register feature "user_purchase_count_7d"
+    REG->>MAT: Schedule materialization
+    MAT->>OFF: Write historical values (Parquet)
+    MAT->>ON: Write latest values (Redis)
+
+    Note over DS: Training
+    DS->>REG: get_training_features(entity_ids, timestamps)
+    REG->>OFF: Point-in-time join
+    OFF-->>DS: Training DataFrame
+
+    Note over SRV: Serving
+    SRV->>ON: get_online_features(user_id)
+    ON-->>SRV: {user_purchase_count_7d: 12}

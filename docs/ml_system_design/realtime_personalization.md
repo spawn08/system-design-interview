@@ -49,13 +49,13 @@ Session-based models treat a user’s interaction sequence as ordered events (e.
 
 ```mermaid
 flowchart LR
-    subgraph Session [Current session]
+    subgraph sess["Current session"]
         i1[item_1] --> i2[item_2] --> i3[item_3] --> dots[...]
     end
-    subgraph Model [Session model]
+    subgraph smod["Session model"]
         enc[Encoder] --> logits[Scores over candidates]
     end
-    Session --> enc
+    sess --> enc
 ```
 
 ### Multi-Armed Bandits
@@ -165,24 +165,24 @@ Peak (×3–×5): **~200K–350K events/sec** to size Kafka.
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Clients]
-        WEB[Web / App]
+    subgraph cli["Clients"]
+        WEB["Web / App"]
     end
-    subgraph Ingest [Ingestion]
+    subgraph ing["Ingestion"]
         SDK[Event SDK]
-        K[Kafka / Pulsar]
+        K["Kafka / Pulsar"]
     end
-    subgraph Stream [Stream processing]
-        F[Flink / Spark Streaming]
+    subgraph strm["Stream processing"]
+        F["Flink / Spark Streaming"]
     end
-    subgraph Online [Online path]
+    subgraph onl["Online path"]
         RFS[Real-time Feature Service]
         SM[Session Model]
         RS[Ranking Service]
-        FS[(Online Feature Store\nRedis / DynamoDB)]
+        FS[("Online Feature Store\nRedis / DynamoDB")]
     end
-    subgraph Offline [Offline / Near-line]
-        DW[(Data Lake / Hive)]
+    subgraph offl["Offline / Near-line"]
+        DW[("Data Lake / Hive")]
         TR[Training Pipeline]
         EMB[User/Item Embeddings]
     end
@@ -783,22 +783,22 @@ class LinUCB:
 
 ```mermaid
 flowchart LR
-    subgraph Train [Training]
-        OFS[(Offline Store\nHive / Iceberg)]
+    subgraph trn2["Training"]
+        OFS[("Offline Store\nHive / Iceberg")]
         PIT[Point-in-time joins]
         DS[Training dataset]
     end
-    subgraph Serve [Serving]
-        OLF[Online Feature Store\nRedis]
+    subgraph srv2["Serving"]
+        OLF["Online Feature Store\nRedis"]
         API[Ranking API]
     end
-    subgraph Stream [Streaming]
+    subgraph strm2["Streaming"]
         SP[Stream processor]
     end
     OFS --> PIT --> DS
     SP --> OLF
     OLF --> API
-    DS -->|Export embeddings| OLF
+    DS -->|"Export embeddings"| OLF
 ```
 
 **Python: feature store client (read-through + batch):**
@@ -1150,18 +1150,18 @@ def validate_event_payload(d: dict[str, Any]) -> tuple[bool, str]:
 
 ```mermaid
 flowchart LR
-    subgraph Recall [Recall]
-        ANN[ANN index\nTwo-tower / co-vis]
-        POP[Popular + rules]
+    subgraph rec["Recall"]
+        ANN["ANN index\nTwo-tower / co-vis"]
+        POP["Popular + rules"]
     end
-    subgraph Prerank [Pre-rank]
+    subgraph prer["Pre-rank"]
         LR[Lightweight model\n1000 to 200]
     end
-    subgraph Rank [Rank]
+    subgraph rnk["Rank"]
         DNN[Deep ranker\nMMoE]
     end
-    subgraph Rerank [Re-rank]
-        MMR[MMR / business rules]
+    subgraph rerk["Re-rank"]
+        MMR["MMR / business rules"]
         B[Bandit slot]
     end
     ANN --> LR --> DNN --> MMR --> B

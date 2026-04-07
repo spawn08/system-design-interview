@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Pre as Preprocessor
+    participant Cache as Redis
+    participant Queue
+    participant Batcher
+    participant Model as Model Server
+    participant GPU
+    
+    Client->>API: POST /caption (image)
+    API->>Pre: Forward request
+    
+    Pre->>Pre: Validate image
+    Pre->>Pre: Compute image hash
+    Pre->>Cache: Check cache
+    
+    alt Cache Hit
+        Cache-->>Pre: Cached caption
+        Pre-->>Client: Return immediately
+    else Cache Miss
+        Pre->>Pre: Resize, normalize
+        Pre->>Queue: Enqueue preprocessed image
+        
+        loop Collect Batch
+            Queue-->>Batcher: Accumulate requests
+        end
+        
+        Batcher->>Model: Send batch (8 images)
+        Model->>GPU: Inference
+        GPU-->>Model: Generated captions
+        Model-->>Batcher: Captions for batch
+        
+        Batcher->>Cache: Store results
+        Batcher-->>Client: Return caption
+    end

@@ -1,0 +1,17 @@
+flowchart LR
+  subgraph AP["AP-biased (data plane)"]
+    E[Edge caches]
+    S[Shield]
+  end
+  subgraph CP["CP-biased (control plane)"]
+    P[PostgreSQL configs]
+    C[Certificate state]
+  end
+  subgraph Eventual["Eventual cross-cutting"]
+    U[Purge fan-out]
+    D[DNS TTL]
+  end
+  P -->|publish| E
+  C -->|deploy| E
+  U -.->|seconds lag| E
+  D -.->|resolver cache| Clients[Clients]

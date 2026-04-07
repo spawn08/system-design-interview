@@ -387,7 +387,7 @@ flowchart TB
     PG[(PostgreSQL / CockroachDB)]
     RD[(Redis)]
     MQ[[Kafka / Pulsar]]
-    GS[(Geo index: Redis GEO / S2 / custom)]
+    GS[("Geo index: Redis GEO / S2 / custom")]
   end
 
   R --> GW

@@ -2997,15 +2997,15 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph DP [Data Parallelism]
+    subgraph dpar["Data Parallelism"]
         GPU1_DP[GPU 0&lt;br/&gt;Full Model&lt;br/&gt;Batch 0]
         GPU2_DP[GPU 1&lt;br/&gt;Full Model&lt;br/&gt;Batch 1]
         GPU3_DP[GPU 2&lt;br/&gt;Full Model&lt;br/&gt;Batch 2]
-        GPU1_DP &lt;--&gt;|AllReduce&lt;br/&gt;gradients| GPU2_DP
-        GPU2_DP &lt;--&gt;|AllReduce&lt;br/&gt;gradients| GPU3_DP
+        GPU1_DP &lt;--&gt;|"AllReduce&lt;br/&gt;gradients"| GPU2_DP
+        GPU2_DP &lt;--&gt;|"AllReduce&lt;br/&gt;gradients"| GPU3_DP
     end
 
-    subgraph PP [Pipeline Parallelism]
+    subgraph ppar["Pipeline Parallelism"]
         GPU1_PP[GPU 0&lt;br/&gt;Layers 0-19]
         GPU2_PP[GPU 1&lt;br/&gt;Layers 20-39]
         GPU3_PP[GPU 2&lt;br/&gt;Layers 40-59]
@@ -3013,7 +3013,7 @@
         GPU2_PP --&gt;|activations| GPU3_PP
     end
 
-    subgraph TP [Tensor Parallelism]
+    subgraph tpar["Tensor Parallelism"]
         GPU1_TP[GPU 0&lt;br/&gt;Col 0-2047]
         GPU2_TP[GPU 1&lt;br/&gt;Col 2048-4095]
         GPU1_TP &lt;--&gt;|AllGather| GPU2_TP
@@ -3256,52 +3256,52 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TB
-    subgraph Users [Users]
-        CLI[CLI / SDK]
+    subgraph users["Users"]
+        CLI["CLI / SDK"]
         WebUI[Web UI]
         Notebooks[Notebooks]
     end
 
-    subgraph ControlPlane [Control Plane]
+    subgraph cplane["Control Plane"]
         API[Training API]
         Scheduler[Job Scheduler&lt;br/&gt;Gang Scheduling]
         QuotaMgr[Quota Manager]
         ExperimentDB[(Experiment&lt;br/&gt;Registry)]
     end
 
-    subgraph DataPlane [Data Plane - GPU Cluster]
-        subgraph Node1 [Node 1]
+    subgraph dplane["Data Plane - GPU Cluster"]
+        subgraph n1["Node 1"]
             G1[GPU 0-7]
             Agent1[Node Agent]
         end
-        subgraph Node2 [Node 2]
+        subgraph n2["Node 2"]
             G2[GPU 0-7]
             Agent2[Node Agent]
         end
-        subgraph NodeN [Node N]
+        subgraph nn["Node N"]
             GN[GPU 0-7]
             AgentN[Node Agent]
         end
     end
 
-    subgraph Storage [Storage Layer]
+    subgraph storl["Storage Layer"]
         DataStore[(Training Data&lt;br/&gt;GCS / HDFS)]
         CheckpointStore[(Checkpoint Store&lt;br/&gt;GCS)]
         ArtifactStore[(Model Artifacts&lt;br/&gt;Registry)]
     end
 
-    subgraph Observability [Observability]
+    subgraph obs["Observability"]
         Logs[Log Aggregator]
-        Metrics[Metrics + Alerts]
+        Metrics["Metrics + Alerts"]
         TB[TensorBoard&lt;br/&gt;Service]
         Dashboard[Cluster&lt;br/&gt;Dashboard]
     end
 
-    Users --&gt; ControlPlane
-    ControlPlane --&gt; DataPlane
-    DataPlane --&gt; Storage
-    DataPlane --&gt; Observability
-    ControlPlane --&gt; Observability</div>
+    users --&gt; cplane
+    cplane --&gt; dplane
+    dplane --&gt; storl
+    dplane --&gt; obs
+    cplane --&gt; obs</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-job-submission-and-lifecycle">4.1 Job Submission and Lifecycle<a class="headerlink" href="#41-job-submission-and-lifecycle" title="Permanent link">&para;</a></h3>

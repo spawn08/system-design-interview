@@ -1,0 +1,12 @@
+flowchart LR
+    subgraph Users [Users]
+        U1[User A<br/>Likes: Inception, Matrix]
+        U2[User B<br/>Likes: Inception, Matrix, Interstellar]
+    end
+    
+    subgraph Rec [Recommendation]
+        R[User A might like Interstellar!]
+    end
+    
+    U1 --> R
+    U2 --> R

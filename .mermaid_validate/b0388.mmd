@@ -1,0 +1,40 @@
+flowchart TB
+    subgraph Clients
+        U[Uploader client]
+        V[Viewer client]
+    end
+    subgraph Edge
+        CDN[CDN / Edge POPs]
+    end
+    subgraph API
+        GW[API Gateway]
+        UP[Upload service]
+        META[Metadata service]
+        SRCH[Search service]
+    end
+    subgraph Data
+        OBJ[(Object storage)]
+        DB[(Metadata DB)]
+        IDX[(Search index)]
+        CACHE[(Redis cache)]
+    end
+    subgraph Processing
+        Q[Job queue]
+        DAG[Transcode DAG workers]
+        TH[Thumbnail workers]
+        COPY[Copyright / safety pipeline]
+    end
+    U --> GW
+    V --> CDN
+    GW --> UP
+    GW --> META
+    GW --> SRCH
+    UP --> OBJ
+    UP --> Q
+    Q --> DAG
+    DAG --> OBJ
+    TH --> OBJ
+    META --> DB
+    META --> CACHE
+    SRCH --> IDX
+    COPY --> Q

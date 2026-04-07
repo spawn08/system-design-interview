@@ -1,0 +1,12 @@
+flowchart TD
+    subgraph Client-Side Discovery
+        C1[Client] --> REG1[Service Registry<br/>Consul, Eureka]
+        REG1 -->|returns instances| C1
+        C1 -->|direct call| S1[Service Instance]
+    end
+    
+    subgraph Server-Side Discovery
+        C2[Client] --> LB[Load Balancer<br/>or DNS]
+        LB --> REG2[Service Registry]
+        LB --> S2[Service Instance]
+    end

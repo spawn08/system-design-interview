@@ -1,0 +1,10 @@
+flowchart TD
+    A[Start Task A] --> B[Task A: fetch_url]
+    B --> C[I/O wait - yield]
+    C --> D[Start Task B]
+    D --> E[Task B: fetch_url]
+    E --> F[I/O wait - yield]
+    F --> G[Task A: I/O complete, resume]
+    G --> H[Task A: process result]
+    H --> I[Task B: I/O complete, resume]
+    I --> J[Task B: process result]

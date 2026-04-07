@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph Write side
+        CMD[Command] --> H[Command handler]
+        H --> ES[(Event store)]
+    end
+    subgraph Read side
+        PROJ[Projection] --> RM[(Read DB / cache)]
+        Q[Query] --> RM
+    end
+    ES -->|events| PROJ

@@ -1,0 +1,8 @@
+flowchart LR
+    MIC[Mic / Stream] --> BUF[Ring buffer<br/>chunked frames]
+    BUF --> FE[Streaming features<br/>causal frontend]
+    FE --> ENC[Streaming encoder<br/>chunked Conformer / RNN-T]
+    ENC --> EP[Endpointer / VAD]
+    ENC --> DEC[Incremental decoder<br/>partial + final]
+    DEC --> PP[Stabilization + punctuation policy]
+    PP --> UI[Client UI / API callbacks]

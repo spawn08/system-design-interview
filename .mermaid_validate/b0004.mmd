@@ -1,0 +1,9 @@
+flowchart LR
+    STRONG[Linearizability<br/>Strongest] --> SEQ[Sequential<br/>Consistency]
+    SEQ --> CAUSAL[Causal<br/>Consistency]
+    CAUSAL --> RYW[Read-Your-<br/>Writes]
+    RYW --> MONOTONIC[Monotonic<br/>Reads]
+    MONOTONIC --> EVENTUAL[Eventual<br/>Consistency<br/>Weakest]
+    
+    STRONG -.->|Higher latency<br/>Lower availability| EVENTUAL
+    EVENTUAL -.->|Lower latency<br/>Higher availability| STRONG

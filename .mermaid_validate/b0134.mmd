@@ -1,0 +1,22 @@
+graph TB
+    subgraph "Time →"
+        subgraph "GPU 0 (Layers 0-7)"
+            MB1_S0[μ-batch 1<br/>Forward]
+            MB2_S0[μ-batch 2<br/>Forward]
+            MB3_S0[μ-batch 3<br/>Forward]
+            MB4_S0[μ-batch 4<br/>Forward]
+            MB4_S0B[μ-batch 4<br/>Backward]
+            MB3_S0B[μ-batch 3<br/>Backward]
+            MB2_S0B[μ-batch 2<br/>Backward]
+            MB1_S0B[μ-batch 1<br/>Backward]
+        end
+        subgraph "GPU 1 (Layers 8-15)"
+            IDLE1[Idle]
+            MB1_S1[μ-batch 1<br/>Forward]
+            MB2_S1[μ-batch 2<br/>Forward]
+            MB3_S1[μ-batch 3<br/>Forward]
+            MB3_S1B[μ-batch 3<br/>Backward]
+            MB2_S1B[μ-batch 2<br/>Backward]
+            MB1_S1B[μ-batch 1<br/>Backward]
+        end
+    end

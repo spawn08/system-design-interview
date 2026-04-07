@@ -1,0 +1,8 @@
+flowchart LR
+  subgraph session["Session with 30m gap"]
+    E1["click t=0"]
+    E2["click t=10m"]
+    GAP["gap 35m"]
+    E3["click t=50m → new session"]
+  end
+  E1 --> E2 --> GAP --> E3

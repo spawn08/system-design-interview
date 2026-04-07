@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Ingestion [Data Ingestion]
+        Events[User Events] --> Kafka[Kafka]
+        Kafka --> Flink[Flink Processing]
+    end
+    
+    subgraph Storage [Storage]
+        Flink --> DW[(Data Warehouse)]
+        Flink --> FS[(Feature Store)]
+    end
+    
+    subgraph Training [Training]
+        DW --> Sample[Sampling]
+        Sample --> Train[Model Training]
+        FS --> Train
+        Train --> Eval[Evaluation]
+    end
+    
+    subgraph Deployment [Deployment]
+        Eval --> Registry[Model Registry]
+        Registry --> Serving[Model Serving]
+    end

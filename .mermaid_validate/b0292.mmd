@@ -1,0 +1,8 @@
+flowchart LR
+  A[User hits on-sale] --> B{Admission token valid?}
+  B -->|No| C[Enqueue waiting room]
+  C --> D[Poll position]
+  D --> E{Admitted?}
+  E -->|Yes| F[Shop checkout with token]
+  E -->|No| D
+  B -->|Yes| F

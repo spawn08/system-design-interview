@@ -104,7 +104,7 @@ flowchart TB
         T --> TD[Transformer decoder]
         TD --> O[Token outputs]
     end
-    MT[Special tokens: transcribe / translate<br/>language id, timestamps] --> Dec
+    MT["Special tokens: transcribe / translate<br/>language id, timestamps"] --> Dec
 ```
 
 **Multitask training** includes:
@@ -824,20 +824,20 @@ class AsrStreamServicer:
 
 ```mermaid
 flowchart TB
-    subgraph Data[Data plane]
-        RAW[Raw corpora + user opt-in] --> LIC[License & PII scrub]
+    subgraph dplane["Data plane"]
+        RAW["Raw corpora + user opt-in"] --> LIC["License & PII scrub"]
         LIC --> VER[Versioned datasets]
     end
-    subgraph Train[Training]
+    subgraph trn["Training"]
         VER --> AUG[Augmentation + SpecAugment]
         AUG --> SSL[Optional SSL pretrain]
         SSL --> FT[Supervised fine-tune]
     end
-    subgraph Ship[Shipping]
-        FT --> EVAL[Eval: WER + robustness suites]
+    subgraph ship["Shipping"]
+        FT --> EVAL["Eval: WER + robustness suites"]
         EVAL --> SHADOW[Shadow traffic]
         SHADOW --> CAN[Canary]
-        CAN --> ROLL[Rollout + rollback hooks]
+        CAN --> ROLL["Rollout + rollback hooks"]
     end
 ```
 

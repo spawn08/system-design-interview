@@ -140,20 +140,20 @@ For **interactive short text**, you might use **small beams + length normalizati
 
 ```mermaid
 flowchart LR
-    subgraph HighResource [High-resource pairs]
+    subgraph hire["High-resource pairs"]
         A[Large parallel corpora]
     end
     
-    subgraph LowResource [Low-resource pair X→Y]
+    subgraph lowr["Low-resource pair X→Y"]
         B[Small parallel seed]
         C[Monolingual data in X and Y]
     end
     
     A --> D[Multilingual backbone model]
     B --> D
-    C --> E[Back-translation & denoising]
+    C --> E["Back-translation & denoising"]
     E --> D
-    D --> F[Pivot: X→EN→Y as fallback]
+    D --> F["Pivot: X→EN→Y as fallback"]
 ```
 
 ---
@@ -245,25 +245,25 @@ At “Google-scale,” **multilingual models + routing + specialization** (adapt
 
 ```mermaid
 flowchart TB
-    subgraph Inputs [Inputs]
+    subgraph inp["Inputs"]
         T[Text]
-        I[Image / OCR]
+        I["Image / OCR"]
         S[Speech ASR stream]
     end
     
     LD[Language Detection]
     PRE[Preprocessing<br/>normalize + tokenize]
-    ROUTE[Model Router<br/>pair / modality / SLA]
+    ROUTE["Model Router<br/>pair / modality / SLA"]
     MT[Translation Model<br/>GPU workers]
     POST[Post-processing<br/>detokenize + casing + placeholders]
     QE[Quality Estimation]
-    OUT[Response + warnings + alternatives]
+    OUT["Response + warnings + alternatives"]
     
     T --> LD --> PRE --> ROUTE --> MT --> POST --> QE --> OUT
-    I --> OCR[OCR + script detection] --> LD
+    I --> OCR["OCR + script detection"] --> LD
     S --> ASR[ASR] --> LD
     
-    BATCH[Batch / Document Pipeline] --> SEG[Segmentation + doc context cache] --> ROUTE
+    BATCH["Batch / Document Pipeline"] --> SEG["Segmentation + doc context cache"] --> ROUTE
 ```
 
 ### Batch and document path
@@ -993,13 +993,13 @@ def transfer_schedule(num_finetune_steps: int) -> dict[str, float]:
 
 ```mermaid
 flowchart TB
-    subgraph OfflineEval [Offline regression]
+    subgraph offev["Offline regression"]
         G[Golden parallel sets per pair]
-        M[Metrics: BLEU/chrF/COMET]
+        M["Metrics: BLEU/chrF/COMET"]
     end
     
-    subgraph OnlineMon [Online monitoring]
-        L[Latency + error rates]
+    subgraph onmon["Online monitoring"]
+        L["Latency + error rates"]
         Q[QE distribution shifts]
         U[User feedback volume]
     end

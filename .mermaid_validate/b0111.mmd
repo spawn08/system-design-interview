@@ -1,0 +1,8 @@
+flowchart TD
+    APP[Application] -->|writes| PRIMARY[(Primary DB)]
+    APP -->|reads| R1[(Read Replica 1)]
+    APP -->|reads| R2[(Read Replica 2)]
+    APP -->|reads| R3[(Read Replica 3)]
+    PRIMARY -->|async replication| R1
+    PRIMARY -->|async replication| R2
+    PRIMARY -->|async replication| R3

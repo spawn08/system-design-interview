@@ -305,10 +305,10 @@ flowchart LR
   AC[Autocomplete Service]
   Trie[(In-memory Trie / Radix Structure)]
   Redis[(Redis Cache)]
-  K[Kafka: Query Logs]
+  K["Kafka: Query Logs"]
   SP[Spark / Flink Aggregator]
   TB[Trie Builder Job]
-  Obj[(Object Store: Snapshots)]
+  Obj[("Object Store: Snapshots")]
 
   Client --> CDN
   CDN --> GW
@@ -698,9 +698,9 @@ flowchart LR
   K[Kafka Topics]
   F[Flink / Spark Streaming]
   DW[(Data Warehouse)]
-  OFF[Offline Batch: Daily/hourly)]
+  OFF["Offline Batch: Daily/hourly)"]
   FS[(Feature Store / Object Store)]
-  JOB[Aggregator Outputs: CSV/Parquet)]
+  JOB["Aggregator Outputs: CSV/Parquet)"]
 
   LB --> API
   API --> K
@@ -899,14 +899,14 @@ class RankingService:
 ```mermaid
 flowchart TB
   R[Shard Router]
-  S1[Shard: A-F]
-  S2[Shard: G-M]
-  S3[Shard: N-Z]
+  S1["Shard: A-F"]
+  S2["Shard: G-M"]
+  S3["Shard: N-Z"]
   LB1[LB]
   LB2[LB]
   LB3[LB]
 
-  R -->|prefix range| S1
+  R -->|"prefix range"| S1
   R --> S2
   R --> S3
   S1 --> LB1

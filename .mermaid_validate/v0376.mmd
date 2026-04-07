@@ -1,0 +1,13 @@
+flowchart TB
+  subgraph CP["Partition scenario"]
+    S1[Scheduler A]
+    S2[Scheduler B]
+    DB[(Task store)]
+    W1[Worker 1]
+    W2[Worker 2]
+  end
+  S1 -.->|isolated| DB
+  S2 -->|writes win or fail| DB
+  W1 -->|lease CAS| DB
+  W2 -->|lease CAS rejected| DB
+  DB -->|single version per task_id| W1

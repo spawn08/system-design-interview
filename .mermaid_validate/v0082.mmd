@@ -1,0 +1,7 @@
+flowchart LR
+    App[Application] --> DB[(Database)]
+    DB --> CDC[Change Data Capture]
+    CDC --> Kafka[Kafka]
+    Kafka --> Service1[Service 1 Cache]
+    Kafka --> Service2[Service 2 Cache]
+    Kafka --> Service3[Service 3 Cache]

@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant C as Client
+    participant GW as API Gateway
+    participant R as Router
+    participant S as Model Server
+    participant G as GPU
+    participant M as Monitor
+
+    C->>GW: POST /v1/predict
+    GW->>R: Route (A/B split)
+    R->>S: Forward to model v2 (canary: 10%)
+    S->>S: Dynamic batching (wait 5ms)
+    S->>G: Batch inference
+    G-->>S: Predictions
+    S-->>R: Response
+    R-->>GW: Response
+    GW-->>C: {"prediction": [...], "model_version": "v2"}
+    S->>M: Log latency, prediction distribution

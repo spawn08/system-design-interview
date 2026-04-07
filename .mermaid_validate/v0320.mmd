@@ -1,0 +1,11 @@
+flowchart TB
+  subgraph hot["Hot SSD"]
+    H[Open head block + recent blocks]
+  end
+  subgraph warm["Warm / object store"]
+    W[Compacted blocks]
+  end
+  subgraph cold["Cold / glacier"]
+    C[Downsampled blocks]
+  end
+  hot --> warm --> cold

@@ -1,0 +1,28 @@
+flowchart TB
+  Client[Client / Data Plane SDK]
+  GW[API Gateway\nAuth, rate limits]
+  QC[Query Coordinator\nfan-out, merge top-k]
+  SR[Shard Router\nconsistent hash + tenant]
+  subgraph write_path["Write path"]
+    IW[Ingestion Workers]
+    WAL[(Write-Ahead Log)]
+    SEG[Segment Builder\nflush immutable segments]
+  end
+  subgraph shards["Vector shards (N)"]
+    S1[Shard 1\nHNSW / IVF-PQ\n+ Metadata\n+ WAL tail]
+    S2[Shard 2\n...]
+    S3[Shard ...]
+  end
+  OS[(Object Store\nsegment files)]
+  Client --> GW
+  GW --> QC
+  GW --> IW
+  QC --> SR
+  SR --> S1
+  SR --> S2
+  SR --> S3
+  IW --> WAL
+  WAL --> SEG
+  SEG --> OS
+  S1 --> OS
+  S2 --> OS

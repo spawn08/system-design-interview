@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Inactive
+    Inactive --> Pending: condition true
+    Pending --> Firing: condition true for "for" duration
+    Pending --> Inactive: recovered
+    Firing --> Resolved: condition false
+    Resolved --> Inactive

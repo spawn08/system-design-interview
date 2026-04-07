@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph Clients
+    C1[Batch job client]
+    C2[Streaming writer]
+  end
+  subgraph Master["Master (metadata)"]
+    M[Namespace + chunkmap + leases]
+    L[Operation log + checkpoints]
+  end
+  subgraph Chunkservers["Chunkservers (data)"]
+    S1[CS rack A]
+    S2[CS rack B]
+    S3[CS rack C]
+  end
+  C1 -->|metadata RPCs| M
+  C2 -->|metadata RPCs| M
+  C1 -->|data reads/writes| S1
+  C2 -->|append pipeline| S2
+  M -->|heartbeats / chunk reports| S1
+  M -->|heartbeats / chunk reports| S2
+  M -->|heartbeats / chunk reports| S3
+  M --- L

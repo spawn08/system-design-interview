@@ -1,0 +1,33 @@
+flowchart TB
+    subgraph Clients [Clients]
+        WEB[Web / App]
+    end
+    subgraph Ingest [Ingestion]
+        SDK[Event SDK]
+        K[Kafka / Pulsar]
+    end
+    subgraph Stream [Stream processing]
+        F[Flink / Spark Streaming]
+    end
+    subgraph Online [Online path]
+        RFS[Real-time Feature Service]
+        SM[Session Model]
+        RS[Ranking Service]
+        FS[(Online Feature Store\nRedis / DynamoDB)]
+    end
+    subgraph Offline [Offline / Near-line]
+        DW[(Data Lake / Hive)]
+        TR[Training Pipeline]
+        EMB[User/Item Embeddings]
+    end
+    WEB --> SDK --> K
+    K --> F --> RFS
+    K --> DW
+    DW --> TR --> EMB
+    F --> FS
+    WEB --> RS
+    RS --> RFS
+    RFS --> FS
+    RFS --> SM
+    SM --> RS
+    EMB --> RS

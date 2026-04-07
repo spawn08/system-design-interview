@@ -1,0 +1,18 @@
+flowchart TD
+    Q[API Design Question] --> RT{Resource types?}
+    RT -->|Well-defined, few| REST[REST API]
+    RT -->|Complex, nested, varying clients| GQL[GraphQL]
+    RT -->|High-perf internal service| GRPC[gRPC]
+    
+    REST --> V{Need versioning?}
+    V -->|Yes| URI[URI path versioning<br/>most common, explicit]
+    V -->|Internal only| HDR[Header versioning<br/>cleaner URLs]
+    
+    REST --> P{List endpoints?}
+    P -->|Static data| OFFSET[Offset pagination]
+    P -->|Feed/timeline| CURSOR[Cursor pagination]
+    
+    REST --> AUTH{Auth needs?}
+    AUTH -->|Stateless microservices| JWT[JWT tokens]
+    AUTH -->|Third-party access| OAUTH[OAuth 2.0]
+    AUTH -->|Server-to-server| APIKEY[API keys + mTLS]

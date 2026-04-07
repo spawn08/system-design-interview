@@ -3842,10 +3842,10 @@
 <h3 id="43-worker-pool-and-task-assignment">4.3 Worker Pool and Task Assignment<a class="headerlink" href="#43-worker-pool-and-task-assignment" title="Permanent link">&para;</a></h3>
 <p><strong>Pull model:</strong> workers long-poll the ready queue (or partition-specific queues). <strong>Push model:</strong> scheduler assigns tasks to registered workers (requires presence and load signals). Most large systems prefer <strong>pull</strong> with <strong>lease</strong> for simplicity.</p>
 <div class="mermaid">flowchart TD
-  subgraph Partition P1
+  subgraph pp1["Partition P1"]
     Q1[Ready queue P1]
   end
-  subgraph Partition P2
+  subgraph pp2["Partition P2"]
     Q2[Ready queue P2]
   end
   W1[Worker A]

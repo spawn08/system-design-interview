@@ -50,14 +50,14 @@ In a microservices architecture, services need to find each other. Hard-coded IP
 
 ```mermaid
 flowchart TD
-    subgraph Client-Side Discovery
-        C1[Client] --> REG1[Service Registry<br/>Consul, Eureka]
-        REG1 -->|returns instances| C1
-        C1 -->|direct call| S1[Service Instance]
+    subgraph csd["Client-Side Discovery"]
+        C1[Client] --> REG1["Service Registry<br/>Consul, Eureka"]
+        REG1 -->|"returns instances"| C1
+        C1 -->|"direct call"| S1[Service Instance]
     end
     
-    subgraph Server-Side Discovery
-        C2[Client] --> LB[Load Balancer<br/>or DNS]
+    subgraph ssd["Server-Side Discovery"]
+        C2[Client] --> LB["Load Balancer<br/>or DNS"]
         LB --> REG2[Service Registry]
         LB --> S2[Service Instance]
     end
@@ -279,13 +279,13 @@ flowchart TD
     GW -->|/payments/**| PS[Payment Service]
     GW -->|/search/**| SS[Search Service]
     
-    subgraph Gateway Responsibilities
+    subgraph gwr["Gateway Responsibilities"]
         AUTH[Authentication]
         RL[Rate Limiting]
         ROUTE[Routing]
         TLS[TLS Termination]
         CACHE[Response Caching]
-        LOG[Logging / Tracing]
+        LOG["Logging / Tracing"]
         TRANSFORM[Request Transform]
     end
 ```
@@ -551,23 +551,23 @@ ENTRYPOINT ["/service"]
 
 ```mermaid
 flowchart TD
-    subgraph Control Plane
+    subgraph cp["Control Plane"]
         API[API Server]
         SCHED[Scheduler]
         CM[Controller Manager]
         ETCD[(etcd)]
     end
     
-    subgraph Worker Node 1
+    subgraph wn1["Worker Node 1"]
         KUB1[kubelet]
-        P1[Pod: User Service<br/>Container 1 + Sidecar]
-        P2[Pod: User Service<br/>Container 2 + Sidecar]
+        P1["Pod: User Service<br/>Container 1 + Sidecar"]
+        P2["Pod: User Service<br/>Container 2 + Sidecar"]
     end
     
-    subgraph Worker Node 2
+    subgraph wn2["Worker Node 2"]
         KUB2[kubelet]
-        P3[Pod: Order Service<br/>Container 1 + Sidecar]
-        P4[Pod: Payment Service<br/>Container 1 + Sidecar]
+        P3["Pod: Order Service<br/>Container 1 + Sidecar"]
+        P4["Pod: Payment Service<br/>Container 1 + Sidecar"]
     end
     
     API --> KUB1
@@ -701,7 +701,7 @@ flowchart LR
     OS --> PS[Payment Service<br/>Span D]
     OS --> IS[Inventory Service<br/>Span E]
     
-    subgraph Trace ID: abc-123
+    subgraph tid["Trace ID: abc-123"]
         GW
         US
         OS

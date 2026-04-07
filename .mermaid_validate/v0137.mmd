@@ -1,0 +1,4 @@
+graph LR
+    LABELS[Labels<br/>user_id, timestamp, label] --> JOIN{Point-in-Time<br/>Join}
+    FEATURES[Feature Table<br/>user_id, timestamp, features] --> JOIN
+    JOIN --> TRAIN[Training Dataset<br/>features as-of label timestamp]

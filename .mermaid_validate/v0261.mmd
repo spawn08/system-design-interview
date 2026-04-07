@@ -1,0 +1,6 @@
+flowchart TD
+  A[Client has base rev B] --> C{Server head == B?}
+  C -- Yes --> D[Commit succeeds\nnew rev B+1]
+  C -- No --> E{Auto-merge possible?}
+  E -- Yes --> F[Merge + commit]
+  E -- No --> G[Create conflict file\nor surface choice UI]

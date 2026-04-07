@@ -1,0 +1,7 @@
+flowchart LR
+  subgraph tumbling["Tumbling 1m windows"]
+    W1["[0,60)"]
+    W2["[60,120)"]
+    W3["[120,180)"]
+  end
+  W1 --> W2 --> W3

@@ -2905,13 +2905,13 @@
 </table>
 <h3 id="horizontal-vs-vertical-scaling">Horizontal vs Vertical Scaling<a class="headerlink" href="#horizontal-vs-vertical-scaling" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    subgraph Vertical Scaling
+    subgraph vs["Vertical Scaling"]
         V1[Small Server&lt;br/&gt;4 CPU, 8GB RAM] --&gt; V2[Bigger Server&lt;br/&gt;32 CPU, 128GB RAM]
         V2 --&gt; V3[Biggest Server&lt;br/&gt;128 CPU, 1TB RAM]
         V3 --&gt; LIMIT[Hard limit reached!]
     end
 
-    subgraph Horizontal Scaling
+    subgraph hs["Horizontal Scaling"]
         H1[Server 1] 
         H2[Server 2]
         H3[Server 3]
@@ -3005,9 +3005,9 @@
 <p>Auto-scaling automatically adjusts the number of running instances based on current load.</p>
 <div class="mermaid">flowchart LR
     M[Metrics&lt;br/&gt;CPU, Memory, RPS] --&gt; AS{Auto-Scaler}
-    AS --&gt;|CPU &gt; 70%| UP[Scale Up&lt;br/&gt;Add instances]
-    AS --&gt;|CPU &lt; 30%| DOWN[Scale Down&lt;br/&gt;Remove instances]
-    AS --&gt;|Within range| KEEP[Maintain]
+    AS --&gt;|"CPU &gt; 70%"| UP[Scale Up&lt;br/&gt;Add instances]
+    AS --&gt;|"CPU &lt; 30%"| DOWN[Scale Down&lt;br/&gt;Remove instances]
+    AS --&gt;|"Within range"| KEEP[Maintain]
 
     UP --&gt; CD[Cooldown Period&lt;br/&gt;Wait before next action]
     DOWN --&gt; CD</div>
@@ -3535,11 +3535,11 @@ That's 26 hours of downtime per year!</p>
     LAST[Last Backup] --&gt;|RPO| FAIL[Failure Occurs]
     FAIL --&gt;|RTO| RECOVER[System Recovered]
 
-    subgraph Data Loss Window
+    subgraph dlw["Data Loss Window"]
         LAST --&gt; FAIL
     end
 
-    subgraph Downtime Window
+    subgraph dtw["Downtime Window"]
         FAIL --&gt; RECOVER
     end</div>
 <h3 id="dr-strategies">DR Strategies<a class="headerlink" href="#dr-strategies" title="Permanent link">&para;</a></h3>
@@ -3586,20 +3586,20 @@ That's 26 hours of downtime per year!</p>
 </table>
 <h3 id="multi-region-architecture">Multi-Region Architecture<a class="headerlink" href="#multi-region-architecture" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    DNS[Global DNS&lt;br/&gt;Route 53 / CloudFlare] --&gt;|US users| R1
-    DNS --&gt;|EU users| R2
+    DNS["Global DNS&lt;br/&gt;Route 53 / CloudFlare"] --&gt;|"US users"| r1
+    DNS --&gt;|"EU users"| r2
 
-    subgraph R1[US-East Region]
+    subgraph r1["US-East Region"]
         LB1[Load Balancer] --&gt; S1[Services]
         S1 --&gt; DB1[(Primary DB)]
     end
 
-    subgraph R2[EU-West Region]
+    subgraph r2["EU-West Region"]
         LB2[Load Balancer] --&gt; S2[Services]
         S2 --&gt; DB2[(Secondary DB)]
     end
 
-    DB1 &lt;--&gt;|Cross-region&lt;br/&gt;replication| DB2</div>
+    DB1 &lt;--&gt;|"Cross-region&lt;br/&gt;replication"| DB2</div>
 <hr />
 <h2 id="monitoring-and-alerting">Monitoring and Alerting<a class="headerlink" href="#monitoring-and-alerting" title="Permanent link">&para;</a></h2>
 <p>You cannot fix what you cannot observe. Monitoring is the foundation of operational reliability.</p>
@@ -3766,22 +3766,22 @@ That's 26 hours of downtime per year!</p>
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q[System Design Question] --&gt; S{Scale needed?}
-    S --&gt;|1000s of users| VERT[Vertical Scaling&lt;br/&gt;Simple, single server]
-    S --&gt;|Millions of users| HORIZ[Horizontal Scaling&lt;br/&gt;Load balancer + stateless services]
+    S --&gt;|"1000s of users"| VERT[Vertical Scaling&lt;br/&gt;Simple, single server]
+    S --&gt;|"Millions of users"| HORIZ[Horizontal Scaling&lt;br/&gt;Load balancer + stateless services]
 
     HORIZ --&gt; DB{Database bottleneck?}
-    DB --&gt;|Read-heavy| REPLICA[Read Replicas]
-    DB --&gt;|Write-heavy| SHARD[Sharding]
-    DB --&gt;|Both| CQRS[CQRS + Event Sourcing]
+    DB --&gt;|"Read-heavy"| REPLICA[Read Replicas]
+    DB --&gt;|"Write-heavy"| SHARD[Sharding]
+    DB --&gt;|"Both"| CQRS[CQRS + Event Sourcing]
 
     HORIZ --&gt; AV{Availability target?}
-    AV --&gt;|99.9%| AA[Active-Active&lt;br/&gt;Multi-AZ]
-    AV --&gt;|99.99%+| MR[Multi-Region&lt;br/&gt;Active-Active]
+    AV --&gt;|"99.9%"| AA[Active-Active&lt;br/&gt;Multi-AZ]
+    AV --&gt;|"99.99%+"| MR[Multi-Region&lt;br/&gt;Active-Active]
 
     HORIZ --&gt; REL{Reliability needs?}
-    REL --&gt;|Transient failures| RETRY[Retry + Backoff]
-    REL --&gt;|Cascading failures| CB[Circuit Breaker + Bulkhead]
-    REL --&gt;|Data loss prevention| REPL[Replication + Backups]</div>
+    REL --&gt;|"Transient failures"| RETRY[Retry + Backoff]
+    REL --&gt;|"Cascading failures"| CB[Circuit Breaker + Bulkhead]
+    REL --&gt;|"Data loss prevention"| REPL[Replication + Backups]</div>
 <h3 id="quick-reference-for-interviews">Quick Reference for Interviews<a class="headerlink" href="#quick-reference-for-interviews" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

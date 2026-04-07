@@ -1,0 +1,21 @@
+graph TB
+    SERVING[Model Server] -->|predictions + features| LOGGER[Prediction Logger]
+    LOGGER --> STORE[(Prediction Store<br/>BigQuery / S3)]
+    STORE --> DRIFT[Drift Detector<br/>Scheduled Job]
+    STORE --> PERF[Performance Tracker]
+
+    DRIFT -->|alert| ALERT[PagerDuty / Slack]
+    DRIFT -->|trigger| RETRAIN[Retraining Pipeline]
+    PERF --> DASH[Grafana Dashboard]
+
+    subgraph Metrics
+        LATENCY[Latency P50/P95/P99]
+        THROUGHPUT[QPS / GPU Util]
+        ERRORS[Error Rate]
+        BUSINESS[Business KPIs]
+    end
+
+    SERVING --> LATENCY
+    SERVING --> THROUGHPUT
+    SERVING --> ERRORS
+    PERF --> BUSINESS

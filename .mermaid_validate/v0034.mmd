@@ -1,0 +1,12 @@
+flowchart TD
+    START([Need strong audit / time-travel history?]) -->|No| CRUD[Prefer CRUD + optional audit table]
+    START -->|Yes| DOMAIN{Domain events stable<br/>and bounded context clear?}
+    DOMAIN -->|Unclear| MODEL[Clarify aggregates,<br/>consistency boundaries]
+    DOMAIN -->|Yes| WRITE{Write model can be<br/>append-only stream?}
+    WRITE -->|No| HYBRID[Hybrid: critical subdomains<br/>event-sourced, rest CRUD]
+    WRITE -->|Yes| READ{Read patterns diverse<br/>or heavy?}
+    READ -->|No| ES[Event sourcing +<br/>simple read model]
+    READ -->|Yes| CQRS[Event sourcing + CQRS<br/>+ projections]
+    CQRS --> OPS{Team can operate<br/>projections & replay?}
+    OPS -->|No| SIMPLIFY[Reduce scope or<br/>buy platform]
+    OPS -->|Yes| GO[Proceed with clear<br/>SLAs for staleness]

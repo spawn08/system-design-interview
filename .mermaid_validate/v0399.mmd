@@ -1,0 +1,57 @@
+flowchart TB
+    subgraph Input [Input]
+        Seeds[Seed URLs]
+    end
+    
+    subgraph Frontier [URL Frontier]
+        Queue[Priority Queue]
+        Scheduler[Politeness Scheduler]
+    end
+    
+    subgraph Fetcher [Fetcher Cluster]
+        F1[Fetcher 1]
+        F2[Fetcher 2]
+        FN[Fetcher N]
+        DNS[DNS Resolver]
+        Robots[robots.txt Cache]
+    end
+    
+    subgraph Parser [Parser Cluster]
+        P1[Parser 1]
+        P2[Parser 2]
+        PN[Parser N]
+    end
+    
+    subgraph Storage [Storage]
+        Content[(Content Store)]
+        URLStore[(URL Store)]
+        Dedup[Dedup Service]
+    end
+    
+    Seeds --> Queue
+    Queue --> Scheduler
+    Scheduler --> F1
+    Scheduler --> F2
+    Scheduler --> FN
+    
+    F1 --> DNS
+    F2 --> DNS
+    FN --> DNS
+    
+    F1 --> Robots
+    F2 --> Robots
+    FN --> Robots
+    
+    F1 --> P1
+    F2 --> P2
+    FN --> PN
+    
+    P1 --> Content
+    P2 --> Content
+    PN --> Content
+    
+    P1 --> Dedup
+    P2 --> Dedup
+    PN --> Dedup
+    
+    Dedup --> Queue

@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Events [Change Events]
+        Create[Doc Created]
+        Update[Doc Updated]
+        Delete[Doc Deleted]
+        ACLChange[ACL Changed]
+    end
+
+    subgraph Queue [Event Queue]
+        Kafka[Kafka Topic<br/>doc-changes]
+    end
+
+    subgraph Workers [Index Workers]
+        W1[Worker 1]
+        W2[Worker 2]
+        WN[Worker N]
+    end
+
+    subgraph Indexes [Indexes]
+        Vector[(Vector Index)]
+        BM25[(BM25 Index)]
+        ACL[(ACL Index)]
+    end
+
+    Events --> Queue --> Workers --> Indexes

@@ -1,0 +1,46 @@
+flowchart LR
+    subgraph Apps
+        S1[Service A]
+        S2[Service B]
+        S3[Service C]
+    end
+
+    subgraph Agents_and_SDKs
+        Otel[OpenTelemetry SDK / Agent]
+        FB[Fluent Bit / Filebeat]
+        SCR[Prometheus scrape]
+    end
+
+    subgraph Aggregation
+        COL[OTel Collector]
+        PROM[Prometheus / Agent]
+        LS[Logstash / Ingest]
+    end
+
+    subgraph Storage
+        TS[(Time series<br/>Prometheus / Mimir)]
+        LOG[(Logs<br/>Elasticsearch / Loki)]
+        TR[(Traces<br/>Jaeger / Tempo)]
+    end
+
+    subgraph Visualization
+        GF[Grafana / Kibana]
+        AM[Alertmanager]
+    end
+
+    S1 --> Otel
+    S2 --> Otel
+    S3 --> Otel
+    Otel --> COL
+    S1 --> FB
+    FB --> LS
+    SCR --> S1
+    SCR --> PROM
+    COL --> TR
+    COL --> TS
+    LS --> LOG
+    PROM --> TS
+    TS --> GF
+    LOG --> GF
+    TR --> GF
+    TS --> AM

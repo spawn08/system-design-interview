@@ -1,0 +1,9 @@
+flowchart LR
+    subgraph Push [Fan-out on write]
+        A1[New post] --> W1[Write N follower caches]
+        R1[Read feed] --> F1[Read 1 key]
+    end
+    subgraph Pull [Fan-out on read]
+        A2[New post] --> W2[Write 1 row]
+        R2[Read feed] --> F2[Query K users + merge]
+    end

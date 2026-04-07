@@ -259,53 +259,53 @@ Per-repository index:
 
 ```mermaid
 flowchart TB
-    subgraph IDE [IDE Plugin Layer]
+    subgraph ide["IDE Plugin Layer"]
         VSCode[VS Code<br/>Extension]
         JetBrains[JetBrains<br/>Plugin]
         Vim[Vim/Neovim<br/>Plugin]
     end
 
-    subgraph Gateway [API Gateway]
+    subgraph gw["API Gateway"]
         LB[Load Balancer]
-        Auth[Auth + Rate Limit]
+        Auth["Auth + Rate Limit"]
         Router[Model Router]
     end
 
-    subgraph Context [Context Engine]
+    subgraph ctx["Context Engine"]
         LocalCtx[Local Context<br/>Assembler]
         RepoIndex[Repository<br/>Index Service]
         SnippetRetriever[Snippet<br/>Retriever]
     end
 
-    subgraph Serving [Model Serving]
-        subgraph CompletionCluster [Completion Cluster]
+    subgraph srv["Model Serving"]
+        subgraph ccomp["Completion Cluster"]
             Draft[Draft Model<br/>150M]
             Target[Target Model<br/>7B]
         end
-        subgraph ChatCluster [Chat Cluster]
+        subgraph cchat["Chat Cluster"]
             ChatLLM[Chat Model<br/>70B]
         end
     end
 
-    subgraph PostProcess [Post-Processing]
+    subgraph post["Post-Processing"]
         Filter[Code Filter<br/>Syntax Check]
         Dedup[Deduplication]
         License[License<br/>Scanner]
     end
 
-    subgraph Telemetry [Telemetry & Evaluation]
+    subgraph tel["Telemetry & Evaluation"]
         AcceptTracker[Acceptance<br/>Tracker]
         QualityEval[Quality<br/>Evaluation]
         ABTest[A/B Testing]
     end
 
-    IDE --> Gateway
-    Gateway --> Context
-    Context --> Serving
-    Serving --> PostProcess
-    PostProcess --> Gateway
-    Gateway --> IDE
-    IDE --> Telemetry
+    ide --> gw
+    gw --> ctx
+    ctx --> srv
+    srv --> post
+    post --> gw
+    gw --> ide
+    ide --> tel
 ```
 
 ---
@@ -441,26 +441,26 @@ class SpeculativeCompletionEngine:
 
 ```mermaid
 flowchart LR
-    subgraph Trigger [Triggers]
+    subgraph trig["Triggers"]
         Clone[Repo Clone]
         Push[Git Push]
         FileChange[File Save<br/>in IDE]
     end
 
-    subgraph Pipeline [Indexing Pipeline]
+    subgraph pipe["Indexing Pipeline"]
         Parse[Parse Files<br/>tree-sitter]
-        Extract[Extract Symbols<br/>Functions, Classes]
+        Extract["Extract Symbols<br/>Functions, Classes"]
         Embed[Generate<br/>Embeddings]
         BuildGraph[Build Dependency<br/>Graph]
     end
 
-    subgraph Index [Index Store]
+    subgraph istore["Index Store"]
         SymbolIndex[(Symbol Index)]
         EmbeddingIndex[(Embedding Index<br/>HNSW)]
         DepGraph[(Dependency Graph)]
     end
 
-    Trigger --> Pipeline --> Index
+    trig --> pipe --> istore
 ```
 
 ```python

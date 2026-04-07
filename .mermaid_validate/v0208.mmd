@@ -1,0 +1,8 @@
+flowchart TD
+    Request[Request] --> Classify{Image Type?}
+    
+    Classify -->|Simple| Fast[Small/Fast Model<br/>50ms, 90% quality]
+    Classify -->|Complex| Quality[Large/Quality Model<br/>200ms, 99% quality]
+    
+    Fast --> Response[Return Caption]
+    Quality --> Response

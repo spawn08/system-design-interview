@@ -1,0 +1,5 @@
+flowchart LR
+    T1[Thread 1] -->|holds| A[Lock A]
+    T2[Thread 2] -->|holds| B[Lock B]
+    T1 -->|wants| B
+    T2 -->|wants| A

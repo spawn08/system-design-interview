@@ -749,7 +749,7 @@ flowchart TB
 
     C --> MF[Faithfulness<br/>vs contexts]
     A --> MA[Answer relevance<br/>vs query]
-    R --> MR[Context relevance<br/>/ recall / precision]
+    R --> MR["Context relevance<br/>/ recall / precision"]
 ```
 
 ### Python: RAGAS-Style Prompted Checks (Illustrative)

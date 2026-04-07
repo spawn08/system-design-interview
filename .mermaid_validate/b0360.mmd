@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Client
+    participant LB as Load Balancer
+    participant API as API Server
+    participant RL as Rate Limiter
+    participant Redis
+    participant Backend
+    
+    Client->>LB: Request
+    LB->>API: Forward
+    API->>RL: Check rate limit
+    RL->>Redis: INCR key, GET count
+    Redis-->>RL: Current count
+    
+    alt Under limit
+        RL-->>API: Allowed
+        API->>Backend: Process request
+        Backend-->>API: Response
+        API-->>Client: 200 OK + X-RateLimit headers
+    else Over limit
+        RL-->>API: Rejected
+        API-->>Client: 429 Too Many Requests + Retry-After
+    end

@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph AZ1
+    L[Leader]
+  end
+  subgraph AZ2
+    F1[Follower 1]
+  end
+  subgraph AZ3
+    F2[Follower 2]
+  end
+  L -->|replication log| F1
+  L -->|replication log| F2
+  C[Clients] -->|writes| L
+  C -->|reads optional| F1

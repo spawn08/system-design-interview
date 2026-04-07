@@ -17,7 +17,7 @@ Typical scenarios include:
 
 ```mermaid
 flowchart LR
-    subgraph Single machine
+    subgraph sm["Single machine"]
         P1[Process A] --> M[Mutex]
         P2[Process B] --> M
     end
@@ -373,8 +373,8 @@ flowchart TD
     START([Need mutual exclusion<br/>across services?]) --> SAME{Same database<br/>transaction possible?}
     SAME -->|yes| DB[Use row locks<br/>SELECT FOR UPDATE<br/>or serializable txn]
     SAME -->|no| CP{Need linearizable<br/>coordination store?}
-    CP -->|yes, K8s / infra| ETCD[etcd lease + txn<br/>or ZK recipe]
-    CP -->|no, cache tier OK| REDIS[Redis SET NX + unique token<br/>short TTL + renew]
+    CP -->|"yes, K8s / infra"| ETCD[etcd lease + txn<br/>or ZK recipe]
+    CP -->|"no, cache tier OK"| REDIS[Redis SET NX + unique token<br/>short TTL + renew]
     REDIS --> FENCE{Stale writes<br/>to storage possible?}
     FENCE -->|yes| FT[Add fencing tokens<br/>at resource layer]
     FENCE -->|no| DONE[Document failure cases]

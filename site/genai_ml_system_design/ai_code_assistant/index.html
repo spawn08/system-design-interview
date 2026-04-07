@@ -3247,53 +3247,53 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TB
-    subgraph IDE [IDE Plugin Layer]
+    subgraph ide["IDE Plugin Layer"]
         VSCode[VS Code&lt;br/&gt;Extension]
         JetBrains[JetBrains&lt;br/&gt;Plugin]
         Vim[Vim/Neovim&lt;br/&gt;Plugin]
     end
 
-    subgraph Gateway [API Gateway]
+    subgraph gw["API Gateway"]
         LB[Load Balancer]
-        Auth[Auth + Rate Limit]
+        Auth["Auth + Rate Limit"]
         Router[Model Router]
     end
 
-    subgraph Context [Context Engine]
+    subgraph ctx["Context Engine"]
         LocalCtx[Local Context&lt;br/&gt;Assembler]
         RepoIndex[Repository&lt;br/&gt;Index Service]
         SnippetRetriever[Snippet&lt;br/&gt;Retriever]
     end
 
-    subgraph Serving [Model Serving]
-        subgraph CompletionCluster [Completion Cluster]
+    subgraph srv["Model Serving"]
+        subgraph ccomp["Completion Cluster"]
             Draft[Draft Model&lt;br/&gt;150M]
             Target[Target Model&lt;br/&gt;7B]
         end
-        subgraph ChatCluster [Chat Cluster]
+        subgraph cchat["Chat Cluster"]
             ChatLLM[Chat Model&lt;br/&gt;70B]
         end
     end
 
-    subgraph PostProcess [Post-Processing]
+    subgraph post["Post-Processing"]
         Filter[Code Filter&lt;br/&gt;Syntax Check]
         Dedup[Deduplication]
         License[License&lt;br/&gt;Scanner]
     end
 
-    subgraph Telemetry [Telemetry &amp; Evaluation]
+    subgraph tel["Telemetry &amp; Evaluation"]
         AcceptTracker[Acceptance&lt;br/&gt;Tracker]
         QualityEval[Quality&lt;br/&gt;Evaluation]
         ABTest[A/B Testing]
     end
 
-    IDE --&gt; Gateway
-    Gateway --&gt; Context
-    Context --&gt; Serving
-    Serving --&gt; PostProcess
-    PostProcess --&gt; Gateway
-    Gateway --&gt; IDE
-    IDE --&gt; Telemetry</div>
+    ide --&gt; gw
+    gw --&gt; ctx
+    ctx --&gt; srv
+    srv --&gt; post
+    post --&gt; gw
+    gw --&gt; ide
+    ide --&gt; tel</div>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-context-assembly-pipeline">4.1 Context Assembly Pipeline<a class="headerlink" href="#41-context-assembly-pipeline" title="Permanent link">&para;</a></h3>
@@ -3416,26 +3416,26 @@
 </span></code></pre></div>
 <h3 id="43-repository-indexing-pipeline">4.3 Repository Indexing Pipeline<a class="headerlink" href="#43-repository-indexing-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Trigger [Triggers]
+    subgraph trig["Triggers"]
         Clone[Repo Clone]
         Push[Git Push]
         FileChange[File Save&lt;br/&gt;in IDE]
     end
 
-    subgraph Pipeline [Indexing Pipeline]
+    subgraph pipe["Indexing Pipeline"]
         Parse[Parse Files&lt;br/&gt;tree-sitter]
-        Extract[Extract Symbols&lt;br/&gt;Functions, Classes]
+        Extract["Extract Symbols&lt;br/&gt;Functions, Classes"]
         Embed[Generate&lt;br/&gt;Embeddings]
         BuildGraph[Build Dependency&lt;br/&gt;Graph]
     end
 
-    subgraph Index [Index Store]
+    subgraph istore["Index Store"]
         SymbolIndex[(Symbol Index)]
         EmbeddingIndex[(Embedding Index&lt;br/&gt;HNSW)]
         DepGraph[(Dependency Graph)]
     end
 
-    Trigger --&gt; Pipeline --&gt; Index</div>
+    trig --&gt; pipe --&gt; istore</div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">RepositoryIndexer</span><span class="p">:</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Index a repository for code-aware context retrieval.&quot;&quot;&quot;</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>

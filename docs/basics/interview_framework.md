@@ -84,10 +84,10 @@ flowchart LR
     subgraph S4["Step 4: Close"]
         D[Bottlenecks<br/>alternatives<br/>next steps]
     end
-    S1 -->|~5 min| S2
-    S2 -->|~10 min| S3
-    S3 -->|~15–20 min| S4
-    S4 -->|~5 min| E[End]
+    S1 -->|"~5 min"| S2
+    S2 -->|"~10 min"| S3
+    S3 -->|"~15–20 min"| S4
+    S4 -->|"~5 min"| E[End]
 ```
 
 | Phase | Time (35–45 min session) | What “done” looks like |

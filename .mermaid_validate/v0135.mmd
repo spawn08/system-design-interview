@@ -1,0 +1,44 @@
+graph TB
+    subgraph Data Sources
+        KAFKA[Kafka Streams]
+        DW[Data Warehouse<br/>BigQuery / Redshift]
+        DB[(Operational DBs)]
+    end
+
+    subgraph Feature Store
+        REG[Feature Registry<br/>Definitions + Metadata]
+        
+        subgraph Materialization
+            BATCH_MAT[Batch Materialization<br/>Spark / Flink]
+            STREAM_MAT[Stream Materialization<br/>Flink / Spark Streaming]
+        end
+
+        subgraph Storage
+            OFFLINE[(Offline Store<br/>Parquet / Delta Lake)]
+            ONLINE[(Online Store<br/>Redis / DynamoDB)]
+        end
+
+        SDK[Feature Serving SDK]
+    end
+
+    subgraph Consumers
+        TRAIN[Training Pipeline]
+        SERVE[Model Serving]
+        EXPLORE[Data Exploration]
+    end
+
+    KAFKA --> STREAM_MAT
+    DW --> BATCH_MAT
+    DB --> BATCH_MAT
+
+    BATCH_MAT --> OFFLINE
+    BATCH_MAT --> ONLINE
+    STREAM_MAT --> ONLINE
+
+    REG --> SDK
+    OFFLINE --> SDK
+    ONLINE --> SDK
+
+    SDK --> TRAIN
+    SDK --> SERVE
+    SDK --> EXPLORE

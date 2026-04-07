@@ -1,0 +1,7 @@
+flowchart LR
+    Q[Query] --> QU[Query Understanding]
+    QU --> R[Retrieval<br/>Inverted Index + ANN]
+    R --> P[Candidate Pool<br/>~1e3 docs]
+    P --> M[Ranking Model<br/>LTR / Neural]
+    M --> RR[Re-ranking<br/>diversity / rules]
+    RR --> Out[Results]

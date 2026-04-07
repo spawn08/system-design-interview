@@ -296,31 +296,31 @@ Now let's design the system architecture.
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph Clients["Client Layer"]
         Web[Web Browser]
         Mobile[Mobile App]
         API[API Client]
     end
     
-    subgraph Edge [Edge Layer]
+    subgraph Edge["Edge Layer"]
         CDN[CDN / Edge Cache]
         LB[Load Balancer]
     end
     
-    subgraph App [Application Layer]
+    subgraph App["Application Layer"]
         APIGw[API Gateway]
         ShortenSvc[Shortening Service]
         RedirectSvc[Redirect Service]
         AnalyticsSvc[Analytics Service]
     end
     
-    subgraph Data [Data Layer]
+    subgraph Data["Data Layer"]
         Cache[(Redis Cache)]
         DB[(PostgreSQL)]
         Analytics[(ClickHouse)]
     end
     
-    subgraph Async [Async Processing]
+    subgraph Async["Async Processing"]
         Queue[Kafka]
         Worker[Analytics Worker]
     end

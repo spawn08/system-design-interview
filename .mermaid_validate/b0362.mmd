@@ -1,0 +1,8 @@
+flowchart TD
+  RL[Rate Limiter] -->|Rejects excess| Client
+  RL -->|Admits requests| API[API Server]
+  API -->|Overloaded| CB[Circuit Breaker]
+  CB -->|Open| Fallback[Degraded Response]
+  CB -->|Closed| Backend[Backend Service]
+  Backend -->|Backpressure signal| API
+  API -->|Adaptive limit| RL

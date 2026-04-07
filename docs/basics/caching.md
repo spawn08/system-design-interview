@@ -244,17 +244,17 @@ A distributed cache is a separate caching service that multiple application serv
 
 ```mermaid
 flowchart TD
-    subgraph Servers [Application Servers]
+    subgraph srv["Application Servers"]
         S1[Server 1]
         S2[Server 2]
         S3[Server 3]
     end
     
-    subgraph Cache [Distributed Cache]
+    subgraph dcache["Distributed Cache"]
         Redis[(Redis)]
     end
     
-    subgraph Database [Database]
+    subgraph dbsub["Database"]
         DB[(PostgreSQL)]
     end
     
@@ -935,7 +935,7 @@ flowchart TD
     Expire[Cache Entry Expires] --> R1[Request 1]
     Expire --> R2[Request 2]
     Expire --> R3[Request 3]
-    Expire --> R100[Request 100...]
+    Expire --> R100["Request 100..."]
     R1 --> DB[(Database)]
     R2 --> DB
     R3 --> DB

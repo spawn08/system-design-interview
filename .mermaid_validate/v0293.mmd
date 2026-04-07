@@ -1,0 +1,26 @@
+sequenceDiagram
+  participant U as User
+  participant G as API Gateway
+  participant H as Hold service
+  participant I as Inventory DB
+  participant O as Order service
+  participant P as Payment provider
+
+  U->>G: POST /holds (seat_ids, idempotency-key)
+  G->>H: create hold
+  H->>I: UPDATE seats (optimistic lock)
+  I-->>H: ok / conflict
+  H-->>G: 201 hold + expiry
+  G-->>U: hold token + version
+
+  U->>G: POST /orders (hold_id, idempotency-key)
+  G->>O: create order
+  O->>P: authorize / create intent
+  P-->>O: intent_id
+  O-->>G: order pending
+  G-->>U: redirect / 3DS if needed
+
+  P-->>O: webhook captured
+  O->>I: mark seats sold (transaction)
+  O-->>G: order confirmed
+  G-->>U: tickets issued async

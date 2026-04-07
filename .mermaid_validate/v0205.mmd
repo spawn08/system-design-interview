@@ -1,0 +1,13 @@
+flowchart LR
+    subgraph Encoder [Image Encoder]
+        Image[Image] --> CNN[CNN/ViT]
+        CNN --> Features[Feature Vector]
+    end
+    
+    subgraph Decoder [Text Decoder]
+        Features --> Attention[Attention]
+        Attention --> LM[Language Model]
+        LM --> Words[Word by Word]
+    end
+    
+    Words --> Caption[A dog on a beach]

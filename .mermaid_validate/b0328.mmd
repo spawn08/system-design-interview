@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant C as Client
+    participant API as Post Service
+    participant O as Object Storage
+    participant DB as Database
+    participant Q as Kafka
+
+    C->>API: POST /posts (metadata + media keys)
+    API->>DB: INSERT posts, post_media
+    API->>Q: publish PostCreated
+    API-->>C: 201 + post_id
+    Note over C,O: Client already uploaded blobs via pre-signed URLs

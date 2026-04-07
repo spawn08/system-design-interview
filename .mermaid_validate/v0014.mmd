@@ -1,0 +1,50 @@
+erDiagram
+    FACT_SALES {
+        bigint sale_id PK
+        bigint product_id FK
+        bigint customer_id FK
+        bigint store_id FK
+        bigint date_id FK
+        decimal amount
+        int quantity
+        decimal discount
+    }
+    
+    DIM_PRODUCT {
+        bigint product_id PK
+        varchar name
+        varchar category
+        varchar brand
+        decimal price
+    }
+    
+    DIM_CUSTOMER {
+        bigint customer_id PK
+        varchar name
+        varchar email
+        varchar segment
+        varchar region
+    }
+    
+    DIM_STORE {
+        bigint store_id PK
+        varchar store_name
+        varchar city
+        varchar state
+        varchar country
+    }
+    
+    DIM_DATE {
+        bigint date_id PK
+        date full_date
+        int year
+        int quarter
+        int month
+        int day_of_week
+        boolean is_holiday
+    }
+    
+    FACT_SALES }o--|| DIM_PRODUCT : "product_id"
+    FACT_SALES }o--|| DIM_CUSTOMER : "customer_id"
+    FACT_SALES }o--|| DIM_STORE : "store_id"
+    FACT_SALES }o--|| DIM_DATE : "date_id"

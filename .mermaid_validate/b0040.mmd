@@ -1,0 +1,8 @@
+flowchart LR
+    P[Producer] -->|publish| EX{Exchange}
+    EX -->|routing key: order.*| Q1[Queue: Orders]
+    EX -->|routing key: payment.*| Q2[Queue: Payments]
+    EX -->|routing key: #| Q3[Queue: Audit Log]
+    Q1 --> C1[Consumer 1]
+    Q2 --> C2[Consumer 2]
+    Q3 --> C3[Consumer 3]

@@ -2991,13 +2991,13 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph Session [Current session]
+    subgraph sess["Current session"]
         i1[item_1] --&gt; i2[item_2] --&gt; i3[item_3] --&gt; dots[...]
     end
-    subgraph Model [Session model]
+    subgraph smod["Session model"]
         enc[Encoder] --&gt; logits[Scores over candidates]
     end
-    Session --&gt; enc</div>
+    sess --&gt; enc</div>
 <h3 id="multi-armed-bandits">Multi-Armed Bandits<a class="headerlink" href="#multi-armed-bandits" title="Permanent link">&para;</a></h3>
 <p>Bandits formalize <strong>exploration vs. exploitation</strong>: show items likely to reward (exploit) while still learning (explore). Useful for <strong>cold items</strong>, <strong>new users</strong>, or <strong>slots</strong> where supervised scores are uncertain.</p>
 <table>
@@ -3172,24 +3172,24 @@
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-architecture">End-to-end architecture<a class="headerlink" href="#end-to-end-architecture" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Clients [Clients]
-        WEB[Web / App]
+    subgraph cli["Clients"]
+        WEB["Web / App"]
     end
-    subgraph Ingest [Ingestion]
+    subgraph ing["Ingestion"]
         SDK[Event SDK]
-        K[Kafka / Pulsar]
+        K["Kafka / Pulsar"]
     end
-    subgraph Stream [Stream processing]
-        F[Flink / Spark Streaming]
+    subgraph strm["Stream processing"]
+        F["Flink / Spark Streaming"]
     end
-    subgraph Online [Online path]
+    subgraph onl["Online path"]
         RFS[Real-time Feature Service]
         SM[Session Model]
         RS[Ranking Service]
-        FS[(Online Feature Store\nRedis / DynamoDB)]
+        FS[("Online Feature Store\nRedis / DynamoDB")]
     end
-    subgraph Offline [Offline / Near-line]
-        DW[(Data Lake / Hive)]
+    subgraph offl["Offline / Near-line"]
+        DW[("Data Lake / Hive")]
         TR[Training Pipeline]
         EMB[User/Item Embeddings]
     end
@@ -3813,22 +3813,22 @@
 <p><strong>Offline:</strong> Hive, Iceberg, S3 — <strong>training datasets</strong>, backfills, point-in-time correctness.</p>
 <p><strong>Consistency:</strong> same <strong>feature name → definition</strong> in Feast/Tecton or internal registry; <strong>point-in-time joins</strong> for training.</p>
 <div class="mermaid">flowchart LR
-    subgraph Train [Training]
-        OFS[(Offline Store\nHive / Iceberg)]
+    subgraph trn2["Training"]
+        OFS[("Offline Store\nHive / Iceberg")]
         PIT[Point-in-time joins]
         DS[Training dataset]
     end
-    subgraph Serve [Serving]
-        OLF[Online Feature Store\nRedis]
+    subgraph srv2["Serving"]
+        OLF["Online Feature Store\nRedis"]
         API[Ranking API]
     end
-    subgraph Stream [Streaming]
+    subgraph strm2["Streaming"]
         SP[Stream processor]
     end
     OFS --&gt; PIT --&gt; DS
     SP --&gt; OLF
     OLF --&gt; API
-    DS --&gt;|Export embeddings| OLF</div>
+    DS --&gt;|"Export embeddings"| OLF</div>
 <p><strong>Python: feature store client (read-through + batch):</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4141,18 +4141,18 @@
 </span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span>
 </span></code></pre></div>
 <div class="mermaid">flowchart LR
-    subgraph Recall [Recall]
-        ANN[ANN index\nTwo-tower / co-vis]
-        POP[Popular + rules]
+    subgraph rec["Recall"]
+        ANN["ANN index\nTwo-tower / co-vis"]
+        POP["Popular + rules"]
     end
-    subgraph Prerank [Pre-rank]
+    subgraph prer["Pre-rank"]
         LR[Lightweight model\n1000 to 200]
     end
-    subgraph Rank [Rank]
+    subgraph rnk["Rank"]
         DNN[Deep ranker\nMMoE]
     end
-    subgraph Rerank [Re-rank]
-        MMR[MMR / business rules]
+    subgraph rerk["Re-rank"]
+        MMR["MMR / business rules"]
         B[Bandit slot]
     end
     ANN --&gt; LR --&gt; DNN --&gt; MMR --&gt; B

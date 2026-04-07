@@ -2966,14 +2966,14 @@
 <p>In a microservices architecture, services need to find each other. Hard-coded IP addresses don't work when instances are created and destroyed dynamically (auto-scaling, deployments, failures).</p>
 <h3 id="approaches">Approaches<a class="headerlink" href="#approaches" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    subgraph Client-Side Discovery
-        C1[Client] --&gt; REG1[Service Registry&lt;br/&gt;Consul, Eureka]
-        REG1 --&gt;|returns instances| C1
-        C1 --&gt;|direct call| S1[Service Instance]
+    subgraph csd["Client-Side Discovery"]
+        C1[Client] --&gt; REG1["Service Registry&lt;br/&gt;Consul, Eureka"]
+        REG1 --&gt;|"returns instances"| C1
+        C1 --&gt;|"direct call"| S1[Service Instance]
     end
 
-    subgraph Server-Side Discovery
-        C2[Client] --&gt; LB[Load Balancer&lt;br/&gt;or DNS]
+    subgraph ssd["Server-Side Discovery"]
+        C2[Client] --&gt; LB["Load Balancer&lt;br/&gt;or DNS"]
         LB --&gt; REG2[Service Registry]
         LB --&gt; S2[Service Instance]
     end</div>
@@ -3212,13 +3212,13 @@
     GW --&gt;|/payments/**| PS[Payment Service]
     GW --&gt;|/search/**| SS[Search Service]
 
-    subgraph Gateway Responsibilities
+    subgraph gwr["Gateway Responsibilities"]
         AUTH[Authentication]
         RL[Rate Limiting]
         ROUTE[Routing]
         TLS[TLS Termination]
         CACHE[Response Caching]
-        LOG[Logging / Tracing]
+        LOG["Logging / Tracing"]
         TRANSFORM[Request Transform]
     end</div>
 <h3 id="gateway-responsibilities">Gateway Responsibilities<a class="headerlink" href="#gateway-responsibilities" title="Permanent link">&para;</a></h3>
@@ -3579,23 +3579,23 @@
 </span></code></pre></div>
 <h3 id="kubernetes-architecture">Kubernetes Architecture<a class="headerlink" href="#kubernetes-architecture" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    subgraph Control Plane
+    subgraph cp["Control Plane"]
         API[API Server]
         SCHED[Scheduler]
         CM[Controller Manager]
         ETCD[(etcd)]
     end
 
-    subgraph Worker Node 1
+    subgraph wn1["Worker Node 1"]
         KUB1[kubelet]
-        P1[Pod: User Service&lt;br/&gt;Container 1 + Sidecar]
-        P2[Pod: User Service&lt;br/&gt;Container 2 + Sidecar]
+        P1["Pod: User Service&lt;br/&gt;Container 1 + Sidecar"]
+        P2["Pod: User Service&lt;br/&gt;Container 2 + Sidecar"]
     end
 
-    subgraph Worker Node 2
+    subgraph wn2["Worker Node 2"]
         KUB2[kubelet]
-        P3[Pod: Order Service&lt;br/&gt;Container 1 + Sidecar]
-        P4[Pod: Payment Service&lt;br/&gt;Container 1 + Sidecar]
+        P3["Pod: Order Service&lt;br/&gt;Container 1 + Sidecar"]
+        P4["Pod: Payment Service&lt;br/&gt;Container 1 + Sidecar"]
     end
 
     API --&gt; KUB1
@@ -3765,7 +3765,7 @@
     OS --&gt; PS[Payment Service&lt;br/&gt;Span D]
     OS --&gt; IS[Inventory Service&lt;br/&gt;Span E]
 
-    subgraph Trace ID: abc-123
+    subgraph tid["Trace ID: abc-123"]
         GW
         US
         OS

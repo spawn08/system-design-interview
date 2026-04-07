@@ -80,25 +80,25 @@ graph TB
         BATCH[Batch Jobs] --> BATCHQ[Batch Queue]
     end
 
-    subgraph API Gateway
+    subgraph agw["API Gateway"]
         LB --> ROUTER[Traffic Router / A/B Splitter]
         ROUTER --> AUTH[Auth + Rate Limit]
     end
 
-    subgraph Model Registry
+    subgraph mr["Model Registry"]
         REG[(Model Registry)]
         STORE[(Artifact Store<br/>S3 / GCS)]
         REG --> STORE
     end
 
-    subgraph Online Serving
+    subgraph os["Online Serving"]
         AUTH --> SRV1[Model Server v1<br/>TorchServe]
         AUTH --> SRV2[Model Server v2<br/>Triton]
         SRV1 --> GPU1[GPU Pool]
         SRV2 --> GPU2[GPU Pool]
     end
 
-    subgraph Batch Serving
+    subgraph bs["Batch Serving"]
         BATCHQ --> SPARK[Spark / Ray Batch]
         SPARK --> GPU3[GPU Pool]
         SPARK --> OUTPUT[(Output Store)]
@@ -249,7 +249,7 @@ A model registry is the source of truth for all trained models. It stores artifa
 
 ```mermaid
 graph LR
-    subgraph Model Registry
+    subgraph mr2["Model Registry"]
         META[(Metadata DB)]
         ARTIFACTS[(Artifact Store<br/>S3 / GCS)]
     end
@@ -896,7 +896,7 @@ class ModelOptimizer:
 
 ```mermaid
 graph TB
-    SERVING[Model Server] -->|predictions + features| LOGGER[Prediction Logger]
+    SERVING[Model Server] -->|"predictions + features"| LOGGER[Prediction Logger]
     LOGGER --> STORE[(Prediction Store<br/>BigQuery / S3)]
     STORE --> DRIFT[Drift Detector<br/>Scheduled Job]
     STORE --> PERF[Performance Tracker]
@@ -905,9 +905,9 @@ graph TB
     DRIFT -->|trigger| RETRAIN[Retraining Pipeline]
     PERF --> DASH[Grafana Dashboard]
 
-    subgraph Metrics
-        LATENCY[Latency P50/P95/P99]
-        THROUGHPUT[QPS / GPU Util]
+    subgraph met["Metrics"]
+        LATENCY["Latency P50/P95/P99"]
+        THROUGHPUT["QPS / GPU Util"]
         ERRORS[Error Rate]
         BUSINESS[Business KPIs]
     end

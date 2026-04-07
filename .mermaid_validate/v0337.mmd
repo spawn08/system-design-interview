@@ -1,0 +1,67 @@
+flowchart TB
+    subgraph Sources [Notification Sources]
+        API[API Calls]
+        Events[Event Triggers]
+        Scheduled[Scheduled Jobs]
+    end
+    
+    subgraph Gateway [Notification Gateway]
+        Validator[Validator]
+        Enricher[Enricher]
+        Router[Channel Router]
+    end
+    
+    subgraph Queues [Message Queues]
+        PushQ[(Push Queue)]
+        EmailQ[(Email Queue)]
+        SMSQ[(SMS Queue)]
+        InAppQ[(In-App Queue)]
+    end
+    
+    subgraph Workers [Channel Workers]
+        PushW[Push Worker]
+        EmailW[Email Worker]
+        SMSW[SMS Worker]
+        InAppW[In-App Worker]
+    end
+    
+    subgraph Providers [External Providers]
+        APNS[APNS<br/>iOS]
+        FCM[FCM<br/>Android]
+        SES[AWS SES<br/>Email]
+        Twilio[Twilio<br/>SMS]
+    end
+    
+    subgraph Storage [Storage]
+        UserDB[(User Preferences)]
+        TemplateDB[(Templates)]
+        HistoryDB[(Notification History)]
+    end
+    
+    API --> Validator
+    Events --> Validator
+    Scheduled --> Validator
+    
+    Validator --> Enricher
+    Enricher --> Router
+    
+    Router --> PushQ
+    Router --> EmailQ
+    Router --> SMSQ
+    Router --> InAppQ
+    
+    PushQ --> PushW
+    EmailQ --> EmailW
+    SMSQ --> SMSW
+    InAppQ --> InAppW
+    
+    PushW --> APNS
+    PushW --> FCM
+    EmailW --> SES
+    SMSW --> Twilio
+    
+    Enricher --> UserDB
+    Enricher --> TemplateDB
+    PushW --> HistoryDB
+    EmailW --> HistoryDB
+    SMSW --> HistoryDB

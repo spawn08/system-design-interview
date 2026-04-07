@@ -243,8 +243,8 @@ flowchart LR
   H[Hash user_id or api_key_id]
   P[Bucket 0..99]
   REQ --> H --> P
-  P -->|0-94 stable| ST[upstream v1]
-  P -->|95-99 canary| CA[upstream v2]
+  P -->|"0-94 stable"| ST[upstream v1]
+  P -->|"95-99 canary"| CA[upstream v2]
 ```
 
 ---
@@ -543,19 +543,19 @@ The gateway system is **not one database**—partition by concern:
 
 ```mermaid
 flowchart TB
-  subgraph DataPlane [Gateway data plane]
+  subgraph DataPlane["Gateway data plane"]
     G[Ingress workers]
   end
-  subgraph CP [Control path - CP bias]
+  subgraph CP["Control path - CP bias"]
     E[etcd/Consul]
     PG[(PostgreSQL)]
   end
-  subgraph AP [Hot path - latency bias]
+  subgraph AP["Hot path - latency bias"]
     R[Redis RL + cache]
   end
-  G -->|watch routes| E
-  G -->|write audit async| PG
-  G -->|Lua token bucket| R
+  G -->|"watch routes"| E
+  G -->|"write audit async"| PG
+  G -->|"Lua token bucket"| R
 ```
 
 **Partition scenario (Redis unavailable):**
@@ -563,10 +563,10 @@ flowchart TB
 ```mermaid
 flowchart TB
   P[Network partition / Redis down]
-  P --> FO[Fail open: allow traffic]
-  P --> FC[Fail closed: 503 or 429]
-  FO --> R1[Risk: upstream overload]
-  FC --> R2[Risk: total outage of API]
+  P --> FO["Fail open: allow traffic"]
+  P --> FC["Fail closed: 503 or 429"]
+  FO --> R1["Risk: upstream overload"]
+  FC --> R2["Risk: total outage of API"]
 ```
 
 !!! tip

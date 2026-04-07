@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Queue [Priority Queue]
+        P1[P0: CSAM / Imminent Threat<br/>SLA: 15 min]
+        P2[P1: Severe Harassment<br/>SLA: 1 hour]
+        P3[P2: Hate Speech / Violence<br/>SLA: 4 hours]
+        P4[P3: Spam / Misinformation<br/>SLA: 24 hours]
+    end
+
+    subgraph Review [Review Interface]
+        ContentView[Content + Context<br/>Display]
+        PolicyRef[Policy Reference<br/>Panel]
+        MLDecision[ML Decision +<br/>Explanation]
+        ActionButtons[Action Buttons<br/>+ Reason Codes]
+    end
+
+    subgraph QA [Quality Assurance]
+        DoubleReview[Double-Blind<br/>Review Sample]
+        Calibration[Weekly<br/>Calibration]
+        InterRater[Inter-Rater<br/>Agreement]
+    end
+
+    Queue --> Review --> QA

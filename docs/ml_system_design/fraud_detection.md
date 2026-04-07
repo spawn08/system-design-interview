@@ -142,36 +142,36 @@ Goal: Optimize the business trade-off ($ fraud prevented - $ customer loss)
 
 ```mermaid
 flowchart TB
-    subgraph Ingestion [Transaction Ingestion]
+    subgraph ing["Transaction Ingestion"]
         API[Transaction API]
         Stream[Kafka Stream]
     end
     
-    subgraph RealTime [Real-time Scoring]
+    subgraph rt["Real-time Scoring"]
         Gateway[Scoring Gateway]
         Rules[Rules Engine]
         ML[ML Models]
         Ensemble[Ensemble Scorer]
     end
     
-    subgraph Features [Feature Layer]
+    subgraph feat["Feature Layer"]
         RealTimeFS[Real-time Features]
         BatchFS[Batch Features]
         Cache[(Redis)]
     end
     
-    subgraph Decision [Decision Layer]
+    subgraph dec["Decision Layer"]
         DecisionEngine[Decision Engine]
-        Actions[Actions: Block/Allow/Review]
+        Actions["Actions: Block/Allow/Review"]
     end
     
-    subgraph Offline [Offline Layer]
+    subgraph offl["Offline Layer"]
         Training[Model Training]
         Analytics[Analytics]
         Cases[Case Management]
     end
     
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         Events[(Event Store)]
         Labels[(Labels DB)]
         Models[(Model Registry)]

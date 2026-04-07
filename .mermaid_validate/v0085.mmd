@@ -1,0 +1,8 @@
+flowchart TD
+    A[Thread wants to enter critical section] --> B{Is lock available?}
+    B -->|Yes| C[Acquire lock]
+    C --> D[Execute critical section]
+    D --> E[Release lock]
+    E --> F[Lock available for others]
+    B -->|No| G[Wait/Block]
+    G --> B

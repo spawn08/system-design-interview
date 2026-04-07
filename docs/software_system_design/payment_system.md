@@ -221,10 +221,10 @@ flowchart TB
 
   PI --> IDEM
   LD --> IDEM
-  QS -.->|stale OK with TTL| PI
+  QS -.->|"stale OK with TTL"| PI
   NOTIF --> MERCH_WH
-  P -->|prefer errors or queued work| PI
-  P -->|do not serve wrong balance| LD
+  P -->|"prefer errors or queued work"| PI
+  P -->|"do not serve wrong balance"| LD
 ```
 
 !!! important
@@ -424,14 +424,14 @@ flowchart TB
   end
 
   subgraph external["External"]
-    PSP[PSP - Stripe / PayPal]
-    BANK[Issuing / Acquiring Networks]
+    PSP["PSP - Stripe / PayPal"]
+    BANK["Issuing / Acquiring Networks"]
   end
 
   subgraph data["Data Stores"]
     PAYDB[(Payment DB)]
     LEDDB[(Ledger DB)]
-    REDIS[(Redis - locks / cache)]
+    REDIS["Redis - locks / cache"]
   end
 
   WEB --> GW

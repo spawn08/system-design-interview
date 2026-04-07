@@ -1,0 +1,48 @@
+flowchart TB
+    subgraph Coordinator [Coordinator Cluster]
+        C1[Coordinator 1]
+        C2[Coordinator 2]
+        ZK[(ZooKeeper)]
+    end
+    
+    subgraph Frontier [URL Frontier]
+        Kafka[(Kafka)]
+        Redis[(Redis)]
+    end
+    
+    subgraph Workers [Crawler Workers]
+        W1[Worker 1<br/>Fetcher + Parser]
+        W2[Worker 2<br/>Fetcher + Parser]
+        W3[Worker N<br/>Fetcher + Parser]
+    end
+    
+    subgraph Storage [Storage Layer]
+        S3[(S3/HDFS<br/>Content)]
+        Cassandra[(Cassandra<br/>URL Metadata)]
+    end
+    
+    C1 --> ZK
+    C2 --> ZK
+    
+    C1 --> Kafka
+    C2 --> Kafka
+    
+    Kafka --> W1
+    Kafka --> W2
+    Kafka --> W3
+    
+    W1 --> Redis
+    W2 --> Redis
+    W3 --> Redis
+    
+    W1 --> S3
+    W2 --> S3
+    W3 --> S3
+    
+    W1 --> Cassandra
+    W2 --> Cassandra
+    W3 --> Cassandra
+    
+    W1 --> Kafka
+    W2 --> Kafka
+    W3 --> Kafka

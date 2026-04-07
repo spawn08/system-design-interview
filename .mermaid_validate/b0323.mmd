@@ -1,0 +1,16 @@
+flowchart LR
+  subgraph client["Client"]
+    U[Grafana / API user]
+  end
+  subgraph read["Read path"]
+    QF[Query frontend]
+    QR[Querier]
+    SG[Store-gateway]
+    OBJ[(Object store)]
+    ING[Ingester / TSDB head]
+  end
+  U --> QF
+  QF --> QR
+  QR --> ING
+  QR --> SG
+  SG --> OBJ

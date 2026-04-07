@@ -76,18 +76,18 @@ Kafka is a distributed event streaming platform built around an immutable, appen
 
 ```mermaid
 flowchart TD
-    subgraph Kafka Cluster
-        subgraph Broker 1
-            TP0[Topic-A<br/>Partition 0<br/>Leader]
-            TP2[Topic-A<br/>Partition 2<br/>Follower]
+    subgraph kc["Kafka Cluster"]
+        subgraph b1["Broker 1"]
+            TP0["Topic-A<br/>Partition 0<br/>Leader"]
+            TP2["Topic-A<br/>Partition 2<br/>Follower"]
         end
-        subgraph Broker 2
-            TP1[Topic-A<br/>Partition 1<br/>Leader]
-            TP0F[Topic-A<br/>Partition 0<br/>Follower]
+        subgraph b2["Broker 2"]
+            TP1["Topic-A<br/>Partition 1<br/>Leader"]
+            TP0F["Topic-A<br/>Partition 0<br/>Follower"]
         end
-        subgraph Broker 3
-            TP2L[Topic-A<br/>Partition 2<br/>Leader]
-            TP1F[Topic-A<br/>Partition 1<br/>Follower]
+        subgraph b3["Broker 3"]
+            TP2L["Topic-A<br/>Partition 2<br/>Leader"]
+            TP1F["Topic-A<br/>Partition 1<br/>Follower"]
         end
     end
 
@@ -95,15 +95,15 @@ flowchart TD
     P -->|key-based routing| TP1
     P -->|key-based routing| TP2L
 
-    subgraph Consumer Group A
+    subgraph cga["Consumer Group A"]
         C1[Consumer 1] --> TP0
         C2[Consumer 2] --> TP1
         C3[Consumer 3] --> TP2L
     end
 
-    ZK[ZooKeeper / KRaft] --> Broker 1
-    ZK --> Broker 2
-    ZK --> Broker 3
+    ZK["ZooKeeper / KRaft"] --> b1
+    ZK --> b2
+    ZK --> b3
 ```
 
 ### Core Concepts
@@ -454,10 +454,10 @@ Messages that cannot be processed (rejected, expired, queue full) are routed to 
 flowchart LR
     P[Producer] --> EX[Exchange] --> Q[Main Queue]
     Q --> C[Consumer]
-    C -->|reject/nack| Q
-    Q -->|max retries exceeded<br/>or TTL expired| DLX[Dead-Letter Exchange]
+    C -->|"reject/nack"| Q
+    Q -->|"max retries exceeded<br/>or TTL expired"| DLX[Dead-Letter Exchange]
     DLX --> DLQ[Dead-Letter Queue]
-    DLQ --> RETRY[Retry Worker<br/>or Manual Review]
+    DLQ --> RETRY["Retry Worker<br/>or Manual Review"]
 ```
 
 ### Kafka vs RabbitMQ Decision Matrix
@@ -499,18 +499,18 @@ Flink is the leading stream processing framework, designed for stateful computat
 
 ```mermaid
 flowchart LR
-    subgraph Sources
+    subgraph src["Sources"]
         K[Kafka Topic]
         F[File System]
     end
     
-    subgraph Flink Cluster
-        SM[Source<br/>Operator] --> TR[Transform<br/>Operator]
-        TR --> AGG[Aggregate<br/>Operator]
-        AGG --> WIN[Window<br/>Operator]
+    subgraph fc["Flink Cluster"]
+        SM["Source<br/>Operator"] --> TR["Transform<br/>Operator"]
+        TR --> AGG["Aggregate<br/>Operator"]
+        AGG --> WIN["Window<br/>Operator"]
     end
     
-    subgraph Sinks
+    subgraph snk["Sinks"]
         DB[(Database)]
         K2[Kafka Topic]
         ES[Elasticsearch]
@@ -543,18 +543,18 @@ gantt
     axisFormat %s
 
     section Tumbling
-    Window 1 :0, 5
-    Window 2 :5, 10
-    Window 3 :10, 15
+    Window 1 :w1, 0, 5
+    Window 2 :w2, 5, 10
+    Window 3 :w3, 10, 15
 
-    section Sliding size5 slide2
-    Window 1 :0, 5
-    Window 2 :2, 7
-    Window 3 :4, 9
+    section Sliding (size 5, slide 2)
+    Window 1 :sw1, 0, 5
+    Window 2 :sw2, 2, 7
+    Window 3 :sw3, 4, 9
 
-    section Session gap3
-    Session 1 :0, 4
-    Session 2 :8, 13
+    section Session (gap 3)
+    Session 1 :ss1, 0, 4
+    Session 2 :ss2, 8, 13
 ```
 
 | Window | Description | Use Case |
@@ -638,13 +638,13 @@ Instead of storing current state, store the sequence of events that led to the c
 
 ```mermaid
 flowchart LR
-    CMD[Command:<br/>PlaceOrder] --> ES[Event Store]
+    CMD["Command:<br/>PlaceOrder"] --> ES[Event Store]
     ES -->|append| E1[OrderCreated]
     ES -->|append| E2[PaymentReceived]
     ES -->|append| E3[OrderShipped]
     
-    ES -->|replay| STATE[Current State:<br/>Order is Shipped]
-    ES -->|project| READ[Read Model<br/>Materialized View]
+    ES -->|replay| STATE["Current State:<br/>Order is Shipped"]
+    ES -->|project| READ["Read Model<br/>Materialized View"]
 ```
 
 **Benefits:**
@@ -775,23 +775,23 @@ True exactly-once in distributed systems requires coordination at multiple level
 ```mermaid
 flowchart TD
     Q["Need async communication?"] --> MODEL{"What model?"}
-    MODEL -->|One consumer per message| QUEUE[Point-to-Point Queue]
-    MODEL -->|Multiple consumers per message| PUBSUB[Publish-Subscribe]
+    MODEL -->|"One consumer per message"| QUEUE[Point-to-Point Queue]
+    MODEL -->|"Multiple consumers per message"| PUBSUB[Publish-Subscribe]
     
     QUEUE --> TECH1{"Requirements?"}
-    TECH1 -->|Complex routing, RPC| RMQ[RabbitMQ]
-    TECH1 -->|High throughput, replay| KAFKA[Kafka]
-    TECH1 -->|Managed, simple| SQS[Amazon SQS]
+    TECH1 -->|"Complex routing, RPC"| RMQ[RabbitMQ]
+    TECH1 -->|"High throughput, replay"| KAFKA[Kafka]
+    TECH1 -->|"Managed, simple"| SQS[Amazon SQS]
     
     PUBSUB --> TECH2{"Requirements?"}
-    TECH2 -->|Event streaming, replay| KAFKA2[Kafka]
-    TECH2 -->|Managed pub/sub| SNS[SNS + SQS / Pub/Sub]
-    TECH2 -->|Real-time fan-out| REDIS[Redis Pub/Sub]
+    TECH2 -->|"Event streaming, replay"| KAFKA2[Kafka]
+    TECH2 -->|"Managed pub/sub"| SNS["SNS + SQS / Pub/Sub"]
+    TECH2 -->|"Real-time fan-out"| REDIS["Redis Pub/Sub"]
     
     KAFKA --> PROC{"Need processing?"}
-    PROC -->|Simple transforms| KS[Kafka Streams]
-    PROC -->|Complex, stateful| FLINK[Apache Flink]
-    PROC -->|Micro-batch OK| SPARK[Spark Streaming]
+    PROC -->|"Simple transforms"| KS[Kafka Streams]
+    PROC -->|"Complex, stateful"| FLINK[Apache Flink]
+    PROC -->|"Micro-batch OK"| SPARK[Spark Streaming]
 ```
 
 !!! important

@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph CP["CP-leaning (ground truth)"]
+    Dedup[(Authoritative dedup\nRocksDB / DB)]
+    Meta[(Crawl metadata\ncommitted state)]
+  end
+
+  subgraph AP["AP-leaning (keep moving)"]
+    Frontier[[Frontier\nKafka / Redis]]
+    Polite[Politeness cache]
+  end
+
+  Frontier -->|at-least-once URL| Workers
+  Workers --> Dedup
+  Workers --> Meta
+  Polite -.->|best-effort delay| Workers

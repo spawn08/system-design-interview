@@ -1,0 +1,7 @@
+flowchart LR
+    U[Client upload] --> S3[(Raw object)]
+    S3 --> Q[Queue]
+    Q --> Img[Image workers]
+    Q --> Vid[Video transcoder]
+    Img --> V[(Variants + CDN)]
+    Vid --> V

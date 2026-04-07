@@ -3379,13 +3379,13 @@
 <p>GraphQL is an alternative to REST that lets clients specify exactly what data they need. Developed by Facebook in 2012 and open-sourced in 2015.</p>
 <h3 id="rest-vs-graphql">REST vs GraphQL<a class="headerlink" href="#rest-vs-graphql" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph REST
-        C1[Client] --&gt;|GET /users/1| S1[Server]
-        C1 --&gt;|GET /users/1/orders| S1
-        C1 --&gt;|GET /users/1/reviews| S1
+    subgraph rest["REST"]
+        C1[Client] --&gt;|"GET /users/1"| S1[Server]
+        C1 --&gt;|"GET /users/1/orders"| S1
+        C1 --&gt;|"GET /users/1/reviews"| S1
     end
 
-    subgraph GraphQL
+    subgraph gql["GraphQL"]
         C2[Client] --&gt;|Single query| S2[Server]
     end</div>
 <p><strong>The problem REST has:</strong> To show a user profile page with their orders and reviews, you make 3 separate requests (over-fetching on each one since each endpoint returns full objects).</p>
@@ -3548,10 +3548,10 @@
 <p>A bucket holds tokens. Each request consumes one token. Tokens are added at a fixed rate. Requests are rejected when the bucket is empty.</p>
 <div class="mermaid">flowchart LR
     R[Request] --&gt; TB{Tokens &gt; 0?}
-    TB --&gt;|Yes| A[Allow&lt;br/&gt;tokens--]
-    TB --&gt;|No| D[Reject&lt;br/&gt;429 Too Many Requests]
+    TB --&gt;|Yes| A["Allow&lt;br/&gt;tokens--"]
+    TB --&gt;|No| D["Reject&lt;br/&gt;429 Too Many Requests"]
 
-    Refill[Token Refill&lt;br/&gt;every interval] -.-&gt;|Add tokens| TB</div>
+    Refill[Token Refill&lt;br/&gt;every interval] -.-&gt;|"Add tokens"| TB</div>
 <p><strong>Properties:</strong> Allows bursts (up to bucket capacity), smooth average rate.</p>
 <h4 id="sliding-window-log">Sliding Window Log<a class="headerlink" href="#sliding-window-log" title="Permanent link">&para;</a></h4>
 <p>Record timestamps of all requests. Count requests in the current window. Reject if count exceeds limit.</p>
@@ -3712,7 +3712,7 @@
     Auth-&gt;&gt;Auth: Validate credentials
     Auth-&gt;&gt;C: JWT (access_token + refresh_token)
 
-    C-&gt;&gt;API: GET /api/data&lt;br/&gt;Authorization: Bearer &lt;JWT&gt;
+    C-&gt;&gt;API: "GET /api/data&lt;br/&gt;Authorization: Bearer JWT"
     API-&gt;&gt;API: Validate JWT signature&lt;br/&gt;Check expiration&lt;br/&gt;Extract claims
     API-&gt;&gt;C: 200 OK (data)
 
@@ -3796,7 +3796,7 @@
     participant API as Resource Server
 
     U-&gt;&gt;App: Click "Login with Google"
-    App-&gt;&gt;Auth: Redirect to /authorize?client_id=...&amp;redirect_uri=...&amp;scope=...
+    App-&gt;&gt;Auth: "Redirect to /authorize?client_id=...&amp;redirect_uri=...&amp;scope=..."
     U-&gt;&gt;Auth: Login &amp; consent
     Auth-&gt;&gt;App: Redirect to callback with authorization code
     App-&gt;&gt;Auth: POST /token (code + client_secret)
@@ -3965,9 +3965,9 @@
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q[API Design Question] --&gt; RT{Resource types?}
-    RT --&gt;|Well-defined, few| REST[REST API]
-    RT --&gt;|Complex, nested, varying clients| GQL[GraphQL]
-    RT --&gt;|High-perf internal service| GRPC[gRPC]
+    RT --&gt;|"Well-defined, few"| REST[REST API]
+    RT --&gt;|"Complex, nested, varying clients"| GQL[GraphQL]
+    RT --&gt;|"High-perf internal service"| GRPC[gRPC]
 
     REST --&gt; V{Need versioning?}
     V --&gt;|Yes| URI[URI path versioning&lt;br/&gt;most common, explicit]
@@ -3975,12 +3975,12 @@
 
     REST --&gt; P{List endpoints?}
     P --&gt;|Static data| OFFSET[Offset pagination]
-    P --&gt;|Feed/timeline| CURSOR[Cursor pagination]
+    P --&gt;|"Feed/timeline"| CURSOR[Cursor pagination]
 
     REST --&gt; AUTH{Auth needs?}
     AUTH --&gt;|Stateless microservices| JWT[JWT tokens]
-    AUTH --&gt;|Third-party access| OAUTH[OAuth 2.0]
-    AUTH --&gt;|Server-to-server| APIKEY[API keys + mTLS]</div>
+    AUTH --&gt;|"Third-party access"| OAUTH[OAuth 2.0]
+    AUTH --&gt;|"Server-to-server"| APIKEY["API keys + mTLS"]</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, always justify your API design choices. Don't just say "I'll use REST"—explain why REST fits better than GraphQL or gRPC for the specific use case. Discuss pagination strategy, error handling, and authentication in your design.</p>

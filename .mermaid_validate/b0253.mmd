@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant A as Client A
+    participant GWa as Gateway A
+    participant CS as Chat Service
+    participant MQ as Kafka
+    participant CAS as Cassandra
+    participant GWb as Gateway B
+    participant B as Client B
+
+    A->>GWa: WS: send_message(client_msg_id, conv, body)
+    GWa->>CS: RPC: SendMessage
+    CS->>CAS: INSERT message (idempotent on client_msg_id)
+    CS->>MQ: publish conversation_id partition
+    MQ->>CS: consumer: route outbound
+    CS->>GWb: push to user B session (if online)
+    GWb->>B: WS: message_ack + payload
+    B->>GWb: WS: delivery_ack
+    GWb->>CS: update delivery state

@@ -1,0 +1,13 @@
+flowchart TB
+    subgraph Primer [Concept map]
+        A[pCTR / pCVR models]
+        B[Auction: bid × quality × predictions]
+        C[Pacing / budgets]
+        D[Bias + calibration]
+        E[Exploration]
+    end
+
+    A --> B
+    C --> B
+    D --> A
+    E --> A

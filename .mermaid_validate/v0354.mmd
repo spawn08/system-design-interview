@@ -1,0 +1,9 @@
+flowchart LR
+  subgraph grid [Geohash cells conceptual]
+    A["9q8yy"]
+    B["9q8yz"]
+    C["9q8yp"]
+    D["9q8yq"]
+  end
+  Q[Query point near edge] --> A
+  Q -. neighbor scan .-> B

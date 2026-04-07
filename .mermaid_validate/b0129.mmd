@@ -1,0 +1,17 @@
+graph TB
+    PIPELINE[Pipeline Tasks] -->|emit| METRICS[Metrics]
+    PIPELINE -->|emit| LOGS[Structured Logs]
+
+    METRICS --> PROM[Prometheus]
+    LOGS --> ELK[ELK / CloudWatch]
+
+    PROM --> GRAFANA[Grafana Dashboard]
+    PROM --> ALERT[AlertManager]
+
+    subgraph Key Metrics
+        FRESHNESS[Data Freshness<br/>time since last successful run]
+        VOLUME[Row Count<br/>vs historical baseline]
+        QUALITY[Validation Pass Rate]
+        DURATION[Task Duration<br/>P50 / P95]
+        COST[Compute Cost<br/>per pipeline run]
+    end

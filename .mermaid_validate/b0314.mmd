@@ -1,0 +1,8 @@
+flowchart LR
+  subgraph ts["Timestamp stream"]
+    T0["t₀ raw"]
+    T1["Δ₁ = t₁−t₀"]
+    T2["Δ₂ = t₂−t₁"]
+    DOD["Δ₂−Δ₁ = dod (often 0)"]
+  end
+  T0 --> T1 --> T2 --> DOD

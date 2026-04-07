@@ -51,16 +51,16 @@ The foundation of multi-modal search. CLIP trains an image encoder and a text en
 
 ```mermaid
 flowchart LR
-    subgraph Training [Contrastive Training]
-        Img[Image:<br/>"A photo of a cat"]
-        Txt[Text:<br/>"A photo of a cat"]
+    subgraph ctr["Contrastive Training"]
+        Img["Image:<br/>A photo of a cat"]
+        Txt["Text:<br/>A photo of a cat"]
         ImgEnc[Image<br/>Encoder<br/>ViT-L]
         TxtEnc[Text<br/>Encoder<br/>Transformer]
         ImgEmb[Image<br/>Embedding]
         TxtEmb[Text<br/>Embedding]
         Img --> ImgEnc --> ImgEmb
         Txt --> TxtEnc --> TxtEmb
-        ImgEmb <-->|maximize<br/>similarity| TxtEmb
+        ImgEmb <-->|"maximize<br/>similarity"| TxtEmb
     end
 ```
 
@@ -288,38 +288,38 @@ Total:                        ~97ms (well under 300ms budget)
 
 ```mermaid
 flowchart TB
-    subgraph Query [Query Pipeline]
+    subgraph qp["Query Pipeline"]
         QU[Query<br/>Understanding]
         ImgEnc[Image<br/>Encoder]
         TxtEnc[Text<br/>Encoder]
         Fusion[Query<br/>Fusion]
     end
 
-    subgraph Retrieval [Retrieval Layer]
+    subgraph retr["Retrieval Layer"]
         ANN[ANN Search<br/>ScaNN]
         MetaFilter[Metadata<br/>Filter]
     end
 
-    subgraph Ranking [Ranking Layer]
+    subgraph rnk["Ranking Layer"]
         Reranker[Cross-Modal<br/>Re-Ranker]
         Diversity[Diversity<br/>Layer]
         Business[Business<br/>Rules]
     end
 
-    subgraph Index [Index Pipeline]
+    subgraph idxp["Index Pipeline"]
         Crawler[Content<br/>Crawler]
         MediaProc[Media<br/>Processor]
         Embedder[Embedding<br/>Generator]
         IndexBuilder[Index<br/>Builder]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VectorIdx[(Vector Index<br/>ScaNN)]
         MetaStore[(Metadata<br/>Bigtable)]
         MediaStore[(Media Store<br/>GCS)]
     end
 
-    Query --> Retrieval --> Ranking
+    qp --> retr --> rnk
 
     Crawler --> MediaProc --> Embedder --> IndexBuilder
     IndexBuilder --> VectorIdx
@@ -472,30 +472,30 @@ For 10B vectors at 768 dimensions:
 
 ```mermaid
 flowchart LR
-    subgraph Ingest [Content Ingestion]
-        Crawl[Web Crawler /<br/>Product Feed]
+    subgraph ing["Content Ingestion"]
+        Crawl["Web Crawler /<br/>Product Feed"]
         Dedup[Deduplication<br/>Content Hash]
     end
 
-    subgraph Process [Processing]
+    subgraph proc["Processing"]
         ImgProc[Image Processing<br/>Resize, Normalize]
         OCR[OCR Extraction]
         ObjDet[Object Detection]
         MetaExtract[Metadata<br/>Extraction]
     end
 
-    subgraph Embed [Embedding]
+    subgraph emb["Embedding"]
         BatchEmbed[Batch Embedding<br/>GPU Cluster]
-        QualityCheck[Quality Check<br/>& Filtering]
+        QualityCheck["Quality Check<br/>& Filtering"]
     end
 
-    subgraph Index [Index Build]
+    subgraph idxb["Index Build"]
         Partitioner[Vector<br/>Partitioner]
         Quantizer[Product<br/>Quantization]
         IndexWriter[Index<br/>Writer]
     end
 
-    Ingest --> Process --> Embed --> Index
+    ing --> proc --> emb --> idxb
 ```
 
 ```python

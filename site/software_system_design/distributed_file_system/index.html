@@ -3398,9 +3398,9 @@
     R2[Replica set B]
     R3[Replica set C]
   end
-  CP --&gt;|leases / version| DP
-  Clients[Clients] --&gt;|RPC: locations| CP
-  Clients --&gt;|read/write| DP</div>
+  CP --&gt;|"leases / version"| DP
+  Clients[Clients] --&gt;|"RPC: locations"| CP
+  Clients --&gt;|"read/write"| DP</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Colossus</strong> is not “GFS with bigger disks”—interviewers reward acknowledging <strong>metadata sharding</strong>, <strong>erasure coding</strong>, and <strong>multi-tenant</strong> isolation as <strong>second-generation</strong> lessons.</p>
@@ -3765,7 +3765,7 @@
   end
   Part -.-&gt;|may isolate| Meta
   Part -.-&gt;|replicas may be split| Data
-  Meta --&gt;|leases + version| Data</div>
+  Meta --&gt;|"leases + version"| Data</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Interview sound bite:</strong> “We’re <strong>CP</strong> on <strong>metadata</strong> so we never fork the namespace; we’re <strong>AP-oriented on bulk data</strong> because <strong>replicas + primary ordering</strong> give us <strong>durability</strong> without <strong>global transactions</strong>.”</p>
@@ -4165,11 +4165,11 @@
   end
   C1 --&gt;|metadata RPCs| M
   C2 --&gt;|metadata RPCs| M
-  C1 --&gt;|data reads/writes| S1
-  C2 --&gt;|append pipeline| S2
-  M --&gt;|heartbeats / chunk reports| S1
-  M --&gt;|heartbeats / chunk reports| S2
-  M --&gt;|heartbeats / chunk reports| S3
+  C1 --&gt;|"data reads/writes"| S1
+  C2 --&gt;|"append pipeline"| S2
+  M --&gt;|"heartbeats / chunk reports"| S1
+  M --&gt;|"heartbeats / chunk reports"| S2
+  M --&gt;|"heartbeats / chunk reports"| S3
   M --- L</div>
 <p><strong>Roles:</strong></p>
 <ul>
@@ -4595,10 +4595,10 @@
 <h3 id="46-consistency-model">4.6 Consistency Model<a class="headerlink" href="#46-consistency-model" title="Permanent link">&para;</a></h3>
 <p><strong>Defined vs undefined regions</strong> (GFS paper intuition):</p>
 <div class="mermaid">flowchart TB
-  subgraph File tail
-    A[Defined: single writer serialized by primary]
-    B[Consistent but undefined: concurrent writers interleave]
-    C[Inconsistent: partial replica visibility during failure]
+  subgraph ft["File tail"]
+    A["Defined: single writer serialized by primary"]
+    B["Consistent but undefined: concurrent writers interleave"]
+    C["Inconsistent: partial replica visibility during failure"]
   end
   A --&gt; B
   B --&gt; C</div>

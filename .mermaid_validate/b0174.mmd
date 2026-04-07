@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph Input [Input Safety - Pre-Generation]
+        I1[Keyword<br/>Blocklist] --> I2[ML Classifier<br/>FastText]
+        I2 --> I3[LLM Safety<br/>Classifier]
+        I3 --> I4[PII<br/>Detector]
+    end
+
+    subgraph Generation [Generation]
+        G[LLM<br/>Inference]
+    end
+
+    subgraph Output [Output Safety - Post-Generation]
+        O1[Toxicity<br/>Classifier] --> O2[Factuality<br/>Check]
+        O2 --> O3[PII<br/>Scrubber]
+        O3 --> O4[Citation<br/>Injector]
+    end
+
+    Input -->|SAFE| Generation
+    Generation --> Output
+    Input -->|BLOCKED| Reject[Return safe<br/>refusal message]

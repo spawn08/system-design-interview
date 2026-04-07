@@ -1,0 +1,20 @@
+flowchart TD
+    Q[Analytics / Data Question] --> NEED{What do you need?}
+    NEED -->|Fast SQL on structured data| WH[Data Warehouse]
+    NEED -->|Store everything cheaply| LAKE[Data Lake]
+    NEED -->|Both + ACID| LH[Lakehouse]
+    
+    WH --> CLOUD{Cloud preference?}
+    CLOUD -->|AWS| RS[Redshift]
+    CLOUD -->|GCP| BQ[BigQuery]
+    CLOUD -->|Multi-cloud| SF[Snowflake]
+    
+    LAKE --> PROC{Processing needs?}
+    PROC -->|Batch ETL| SPARK[Apache Spark]
+    PROC -->|SQL queries| PRESTO[Presto / Athena]
+    PROC -->|Streaming| FLINK[Flink + Delta/Iceberg]
+    
+    LH --> FORMAT{Table format?}
+    FORMAT -->|Databricks ecosystem| DELTA[Delta Lake]
+    FORMAT -->|Open ecosystem| ICE[Apache Iceberg]
+    FORMAT -->|Streaming upserts| HUDI[Apache Hudi]

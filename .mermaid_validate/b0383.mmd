@@ -1,0 +1,6 @@
+flowchart LR
+    Request[Request] --> Cache{Redis}
+    Cache -->|HIT| Return[Return URL]
+    Cache -->|MISS| DB[(PostgreSQL)]
+    DB --> Store[Store in Cache]
+    Store --> Return

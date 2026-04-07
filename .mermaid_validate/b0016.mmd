@@ -1,0 +1,11 @@
+flowchart TD
+    subgraph Traditional
+        DL[Data Lake<br/>S3/HDFS] -->|ETL| DW[Data Warehouse<br/>Redshift/BQ]
+    end
+    
+    subgraph Lakehouse
+        LH[(Lakehouse<br/>Delta Lake / Iceberg / Hudi)]
+        LH -->|Fast SQL| ANALYTICS[Analytics]
+        LH -->|Direct access| ML[ML Training]
+        LH -->|Streaming| STREAM[Real-time]
+    end

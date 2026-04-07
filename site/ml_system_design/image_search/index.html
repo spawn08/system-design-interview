@@ -3064,12 +3064,12 @@
 <h3 id="how-image-similarity-works">How Image Similarity Works<a class="headerlink" href="#how-image-similarity-works" title="Permanent link">&para;</a></h3>
 <p>The key insight: Convert images to <strong>embeddings</strong> (vectors), then find similar vectors.</p>
 <div class="mermaid">flowchart LR
-    subgraph Encoding [Encoding]
+    subgraph enc1["Encoding"]
         Image[Image] --&gt; CNN[CNN/ViT&lt;br/&gt;Encoder]
         CNN --&gt; Embedding[512-dim&lt;br/&gt;Vector]
     end
 
-    subgraph Search [Search]
+    subgraph srch1["Search"]
         Embedding --&gt; ANN[ANN Index]
         ANN --&gt; Similar[Similar&lt;br/&gt;Images]
     end</div>
@@ -3287,30 +3287,30 @@
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Query [Query Layer]
+    subgraph qry["Query Layer"]
         API[Search API]
         ImageProc[Image Processor]
         TextProc[Text Processor]
     end
 
-    subgraph Encoding [Encoding Layer]
+    subgraph encL["Encoding Layer"]
         ImageEnc[Image Encoder&lt;br/&gt;CLIP ViT]
         TextEnc[Text Encoder&lt;br/&gt;CLIP Text]
     end
 
-    subgraph Search [Search Layer]
-        ANN[Vector Index&lt;br/&gt;FAISS/Pinecone]
+    subgraph srchL["Search Layer"]
+        ANN["Vector Index&lt;br/&gt;FAISS/Pinecone"]
         Filter[Post-Filter]
         Ranker[Re-ranker]
     end
 
-    subgraph Offline [Offline Pipeline]
+    subgraph offp["Offline Pipeline"]
         Indexer[Indexing Pipeline]
         Batch[Batch Encoder]
         Catalog[(Product Catalog)]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VectorDB[(Vector Store)]
         Metadata[(Metadata Store)]
         Cache[(Redis Cache)]
@@ -3505,7 +3505,7 @@
 <h3 id="index-architecture">Index Architecture<a class="headerlink" href="#index-architecture" title="Permanent link">&para;</a></h3>
 <p>For 100 million vectors, we need an approximate nearest neighbor (ANN) index.</p>
 <div class="mermaid">flowchart TB
-    subgraph Index [Vector Index Architecture]
+    subgraph vidx["Vector Index Architecture"]
         Query[Query Vector] --&gt; Coarse[Coarse Quantizer&lt;br/&gt;Find clusters]
         Coarse --&gt; Clusters[Search relevant clusters]
         Clusters --&gt; Fine[Fine-grained search&lt;br/&gt;within clusters]

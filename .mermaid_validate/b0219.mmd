@@ -1,0 +1,8 @@
+flowchart LR
+    subgraph Session [Current session]
+        i1[item_1] --> i2[item_2] --> i3[item_3] --> dots[...]
+    end
+    subgraph Model [Session model]
+        enc[Encoder] --> logits[Scores over candidates]
+    end
+    Session --> enc

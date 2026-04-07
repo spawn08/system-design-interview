@@ -171,12 +171,12 @@ Write the event to an **outbox table** in the same database transaction as the b
 
 ```mermaid
 flowchart LR
-  subgraph Same DB Transaction
+  subgraph sdbt["Same DB Transaction"]
     BT[Business Table] 
     OT[Outbox Table]
   end
-  CDC[CDC / Poller] --> OT
-  CDC --> K[Kafka / Message Broker]
+  CDC["CDC / Poller"] --> OT
+  CDC --> K["Kafka / Message Broker"]
   K --> DS[Downstream Services]
 ```
 

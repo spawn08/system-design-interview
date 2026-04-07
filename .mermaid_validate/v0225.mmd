@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph Stage1 [Stage 1: Retrieval]
+        direction TB
+        All[10M Products] --> Candidates[1000 Candidates]
+    end
+    
+    subgraph Stage2 [Stage 2: Ranking]
+        direction TB
+        Candidates --> Ranked[Top 50 Ranked]
+    end
+    
+    subgraph Stage3 [Stage 3: Re-ranking]
+        direction TB
+        Ranked --> Final[Final 10-20]
+    end
+    
+    Stage1 --> Stage2 --> Stage3

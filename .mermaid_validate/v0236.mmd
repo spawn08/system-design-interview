@@ -1,0 +1,7 @@
+flowchart LR
+    IN[Audio Input<br/>file or chunk] --> FE[Feature Extraction<br/>log-mel spectrogram]
+    FE --> AM[ASR Model<br/>encoder-decoder / CTC / RNN-T]
+    AM --> DEC[Decoder<br/>beam search / RNN-T joint]
+    DEC --> PP[Post-processing<br/>punctuation, ITN, formatting]
+    PP --> OUT[Text + timestamps]
+    LM[Language model<br/>optional fusion / rescoring] --> DEC

@@ -1,0 +1,6 @@
+flowchart LR
+    Main[votes topic] --> Consumer[Vote Processor]
+    Consumer -->|success| Commit[Commit Offset]
+    Consumer -->|failure x3| DLQ[votes-dlq topic]
+    DLQ --> Alert[Alert Team]
+    DLQ --> Manual[Manual Processing]

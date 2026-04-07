@@ -3403,25 +3403,25 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart TB
-  subgraph cp [Control plane - strong consistency preferred]
-    ACL[ACL / collaborators in DB]
+  subgraph cp["Control plane - strong consistency preferred"]
+    ACL["ACL / collaborators in DB"]
     TOK[Short-lived WS tokens]
   end
 
-  subgraph data [Data plane - per-document ordering]
+  subgraph data_ord["Data plane - per-document ordering"]
     LOG[Op log partition by doc_id]
     SEQ[Monotonic seq per doc]
   end
 
-  subgraph soft [Soft / ephemeral]
+  subgraph soft["Soft / ephemeral"]
     PRES[Presence &amp; cursor]
   end
 
   ACL --&gt; TOK
   LOG --&gt; SEQ
-  PRES -.-&gt;|best-effort| clients[Active clients]
-  LOG --&gt;|authoritative| clients
-  TOK --&gt;|authorize| clients</div>
+  PRES -.-&gt;|"best-effort"| clients[Active clients]
+  LOG --&gt;|"authoritative"| clients
+  TOK --&gt;|"authorize"| clients</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Answer template:</strong> “We guarantee <strong>strong per-document operation order</strong> on the log partition; <strong>eventual</strong> materialized document state; <strong>best-effort</strong> presence; <strong>fail-closed</strong> ACL when in doubt.” That shows you separate <strong>hard invariants</strong> from <strong>UX-soft paths</strong>.</p>
@@ -3606,16 +3606,16 @@
     LB[Load Balancer / TLS]
   end
 
-  subgraph realtime [Realtime Tier]
+  subgraph realtime["Realtime Tier"]
     GW[WebSocket Gateways]
     DS[Document Session Service]
   end
 
-  subgraph data [Data Plane]
-    OL[(Operation Log / Kafka)]
+  subgraph data_plane["Data Plane"]
+    OL["Operation Log / Kafka"]
     DB[(Document Metadata DB)]
     OS[(Object Storage - Snapshots)]
-    CACHE[(Redis - Presence / Sessions)]
+    CACHE["Redis - Presence / Sessions"]
   end
 
   A --&gt; LB --&gt; GW
@@ -3710,14 +3710,14 @@
 </ul>
 <p>A central ordering might process A then B. B's insert must shift to index 1 after A's insert is applied (and symmetrically for the other order).</p>
 <div class="mermaid">flowchart TB
-  S0[Initial: empty]
-  S1[After A: a]
-  S2[After A then B: ab]
-  S3[After B then transformed A: ab]
+  S0["Initial: empty"]
+  S1["After A: a"]
+  S2["After A then B: ab"]
+  S3["After B then transformed A: ab"]
 
   S0 --&gt; S1
   S1 --&gt; S2
-  S0 --&gt; S4[After B: b]
+  S0 --&gt; S4["After B: b"]
   S4 --&gt; S3</div>
 <p><strong>Java: simplified OT transform for insert/insert on plain text</strong></p>
 <p>Two operations <code>Oa</code> and <code>Ob</code> are transformed against each other to produce <code>Oa'</code> and <code>Ob'</code> such that applying in either order yields the same final text (under the chosen framework's rules). The following illustrates the <strong>index adjustment</strong> pattern only; production OT includes delete/delete, retain spans, rich attributes, and extensive tests.</p>
@@ -3796,19 +3796,19 @@
 </div>
 <p><strong>Merge intuition (mermaid)</strong></p>
 <div class="mermaid">flowchart LR
-  subgraph replicaA [Replica A]
+  subgraph replicaA["Replica A"]
     A1[Insert X id=3a]
     A2[Insert Y after X]
   end
 
-  subgraph replicaB [Replica B]
+  subgraph replicaB["Replica B"]
     B1[Insert Z id=2b]
   end
 
   M[Deterministic merge order by id rules]
   A2 --&gt; M
   B1 --&gt; M
-  M --&gt; F[Final: interleaving per CRDT spec]</div>
+  M --&gt; F["Final: interleaving per CRDT spec"]</div>
 <h3 id="44-websocket-connection-management">4.4 WebSocket Connection Management<a class="headerlink" href="#44-websocket-connection-management" title="Permanent link">&para;</a></h3>
 <p>Production WebSockets require:</p>
 <table>
@@ -4203,19 +4203,19 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart TB
-  subgraph GW1 [Gateway 1 - 50K conns]
-    C1[Client A - doc_123]
-    C2[Client B - doc_456]
+  subgraph GW1["Gateway 1 - 50K conns"]
+    C1["Client A - doc_123"]
+    C2["Client B - doc_456"]
   end
-  subgraph GW2 [Gateway 2 - 50K conns]
-    C3[Client C - doc_123]
-    C4[Client D - doc_789]
+  subgraph GW2["Gateway 2 - 50K conns"]
+    C3["Client C - doc_123"]
+    C4["Client D - doc_789"]
   end
   subgraph Backbone
-    K[Kafka partition: doc_123]
+    K["Kafka partition: doc_123"]
   end
   C1 --&gt;|op| K
-  K --&gt;|fan-out| C3</div>
+  K --&gt;|"fan-out"| C3</div>
 <h3 id="hot-document-problem-celebrity-document">Hot Document Problem (Celebrity Document)<a class="headerlink" href="#hot-document-problem-celebrity-document" title="Permanent link">&para;</a></h3>
 <p>When a single document has thousands of concurrent editors (e.g., a company all-hands notes doc):</p>
 <table>

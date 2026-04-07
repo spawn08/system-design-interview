@@ -1,0 +1,9 @@
+flowchart TD
+    CLIENT[Client] -->|Write commands| CMD[Command Service]
+    CLIENT -->|Read queries| QRY[Query Service]
+    
+    CMD --> WDB[(Write Database<br/>Normalized)]
+    CMD -->|Events| EB[Event Bus]
+    EB --> QS[Query Service Updater]
+    QS --> RDB[(Read Database<br/>Denormalized, optimized)]
+    QRY --> RDB

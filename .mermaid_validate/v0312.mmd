@@ -1,0 +1,5 @@
+stateDiagram-v2
+  [*] --> Stable
+  Stable --> Rebalancing: member join/leave
+  Rebalancing --> Stable: assignment complete
+  Stable --> Dead: fatal error

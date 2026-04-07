@@ -1,0 +1,9 @@
+flowchart TD
+    LB[Load Balancer / Router]
+    
+    LB -->|/users/*| NEW_US[New User Service<br/>Microservice]
+    LB -->|/orders/*| MONO[Monolith<br/>Still handles orders,<br/>payments, notifications]
+    LB -->|/payments/*| MONO
+    
+    NEW_US --> USDB[(User DB)]
+    MONO --> MONODB[(Monolith DB)]

@@ -353,14 +353,14 @@ Each shard **i** maintains **full** local ZSET. A **scheduled job** (or streamin
 
 ```mermaid
 flowchart TB
-  subgraph shards [Per-shard ZSETs]
+  subgraph shards["Per-shard ZSETs"]
     S1[s0..s199]
     S2[s200..s399]
     S3[sN]
   end
-  subgraph merge [Merge service]
+  subgraph merge["Merge service"]
     H[Min-heap K=100]
-    OUT[global:top cache]
+    OUT["global:top cache"]
   end
   S1 --> H
   S2 --> H
@@ -473,22 +473,22 @@ Leaderboards are **not** one CAP choice—they are **layered**:
 
 ```mermaid
 flowchart TB
-  subgraph ingest [Ingest + Kafka]
+  subgraph ingest["Ingest + Kafka"]
     K[Kafka cluster]
     P[Producer acks=all]
     P --> K
   end
 
-  subgraph redis_layer [Redis layer]
+  subgraph redis_layer["Redis layer"]
     M[Primary shard]
     R[Replica read]
     M --> R
   end
 
-  subgraph cap [CAP story]
+  subgraph cap["CAP story"]
     CP[Strong per-key on primary]
     AP[Replicas may lag for reads]
-    PART[Partition: prefer availability with bounded staleness OR fail closed for writes]
+    PART["Partition: prefer availability with bounded staleness OR fail closed for writes"]
   end
 
   K --> M
@@ -741,7 +741,7 @@ GET /v1/games/550e8400/modes/660e8400/leaderboards/daily:2026-04-05?limit=50
 
 ```mermaid
 flowchart LR
-  subgraph golden [Golden signals]
+  subgraph golden["Golden signals"]
     L[Latency p99/p999]
     T[Traffic RPS]
     E[Errors 5xx]

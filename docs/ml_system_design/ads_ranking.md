@@ -114,11 +114,11 @@ ML rankers should not **optimize on fraudulent clicks** — labels are often **f
 
 ```mermaid
 flowchart TB
-    subgraph Primer [Concept map]
-        A[pCTR / pCVR models]
-        B[Auction: bid × quality × predictions]
-        C[Pacing / budgets]
-        D[Bias + calibration]
+    subgraph prim["Concept map"]
+        A["pCTR / pCVR models"]
+        B["Auction: bid × quality × predictions"]
+        C["Pacing / budgets"]
+        D["Bias + calibration"]
         E[Exploration]
     end
 
@@ -226,34 +226,34 @@ If **P99 = 50ms** total and fixed overhead (RPC, serialization) = **15ms**, **35
 
 ```mermaid
 flowchart LR
-    subgraph Request [Request path]
+    subgraph reqp["Request path"]
         AR[Ad Request]
     end
 
-    subgraph Retrieval [Candidate Retrieval]
+    subgraph retr["Candidate Retrieval"]
         T[Targeting match]
-        B[Budget / pacing filter]
+        B["Budget / pacing filter"]
         FC[Frequency cap]
         Cands[Candidate ads<br/>10²–10⁴]
     end
 
-    subgraph Features [Feature Assembly]
+    subgraph feat["Feature Assembly"]
         UF[User features]
         ADF[Ad features]
         CF[Context features]
-        ASM[Assembled tensors / sparse batch]
+        ASM["Assembled tensors / sparse batch"]
     end
 
-    subgraph ML [CTR / CVR models]
-        M[Deep ranker<br/>pCTR, pCVR]
+    subgraph mlrank["CTR / CVR models"]
+        M["Deep ranker<br/>pCTR, pCVR"]
     end
 
-    subgraph Auction [Auction engine]
-        E[eCPM = f<br/>pCTR, bid, quality]
-        SEL[Ad selection + pricing]
+    subgraph auc["Auction engine"]
+        E["eCPM = f<br/>pCTR, bid, quality"]
+        SEL["Ad selection + pricing"]
     end
 
-    subgraph Out [Serving]
+    subgraph out["Serving"]
         SRV[Ad served to user]
     end
 
@@ -276,21 +276,21 @@ The **online** path scores a request in milliseconds; the **offline** path inges
 
 ```mermaid
 flowchart LR
-    subgraph Online [Online serving]
+    subgraph onl["Online serving"]
         REQ[Ad request logs]
-        WIN[Winning ad + price]
+        WIN["Winning ad + price"]
     end
 
-    subgraph Storage [Data lake / stream]
+    subgraph stor["Data lake / stream"]
         IMP[Impression stream]
         CLK[Click stream]
         CNV[Conversion stream]
     end
 
-    subgraph Train [Training]
-        JOIN[Join + label delay handling]
+    subgraph trn["Training"]
+        JOIN["Join + label delay handling"]
         FEAT[Feature generation at t_impression]
-        TUNE[Train / calibrate]
+        TUNE["Train / calibrate"]
         REL[Release to model servers]
     end
 
@@ -977,25 +977,25 @@ Interview phrase: **“We need the local derivative \(d(\text{CPA})/d(\text{bid}
 
 ```mermaid
 flowchart LR
-    subgraph Goals [Advertiser goals]
-        T[tCPA / tROAS target]
-        B[Budget + schedule]
+    subgraph goals["Advertiser goals"]
+        T["tCPA / tROAS target"]
+        B["Budget + schedule"]
     end
 
-    subgraph Control [Bid control]
-        L[Bid landscape / response model]
-        PID[Controller e.g. PID or online learner]
+    subgraph bctrl["Bid control"]
+        L["Bid landscape / response model"]
+        PID["Controller e.g. PID or online learner"]
         EB[Effective bid multiplier]
     end
 
-    subgraph Auction [Live auction]
-        R[Ranker + pCTR/pCVR]
+    subgraph auc3["Live auction"]
+        R["Ranker + pCTR/pCVR"]
         AUC[Auction + pricing]
-        SP[Spend + outcomes]
+        SP["Spend + outcomes"]
     end
 
-    subgraph Pace [Pacing]
-        P[Pacing state vs curve]
+    subgraph pace["Pacing"]
+        P["Pacing state vs curve"]
     end
 
     T --> PID
@@ -1175,19 +1175,19 @@ Modern **ads interviews** increasingly expect fluency in **identity deprecation*
 
 ```mermaid
 flowchart TB
-    subgraph SLI [SLOs]
+    subgraph sli["SLOs"]
         L[Latency P99]
         Q[Quality score]
         R[Revenue RPM]
     end
 
-    subgraph Ops [Ops loops]
+    subgraph opsl["Ops loops"]
         M[Monitor drift]
         A[Auto rollback model]
-        E[Incident: degrade path]
+        E["Incident: degrade path"]
     end
 
-    SLI --> Ops
+    sli --> opsl
 ```
 
 ---

@@ -1,0 +1,5 @@
+flowchart LR
+    CI[CI build] --> BUCKET[Object storage<br/>versioned assets]
+    BUCKET --> CDN[CDN distribution]
+    CDN --> BROWSER[Browser]
+    BROWSER -->|HTML references<br/>hashed URLs| CDN

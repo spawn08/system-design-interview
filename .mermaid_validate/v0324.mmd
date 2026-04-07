@@ -1,0 +1,11 @@
+flowchart LR
+    subgraph Write [Write path]
+        P[Post created] --> FS[Fan-out / graph]
+        FS --> Cache[Per-user feed cache]
+        FS --> Idx[Search / index optional]
+    end
+    subgraph Read [Read path]
+        R[GET /feed] --> Rank[Ranking]
+        Cache --> Rank
+        Rank --> Resp[JSON + cursors]
+    end

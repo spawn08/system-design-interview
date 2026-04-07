@@ -1,0 +1,15 @@
+flowchart LR
+    subgraph HighResource [High-resource pairs]
+        A[Large parallel corpora]
+    end
+    
+    subgraph LowResource [Low-resource pair X→Y]
+        B[Small parallel seed]
+        C[Monolingual data in X and Y]
+    end
+    
+    A --> D[Multilingual backbone model]
+    B --> D
+    C --> E[Back-translation & denoising]
+    E --> D
+    D --> F[Pivot: X→EN→Y as fallback]

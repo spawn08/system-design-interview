@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Browser
+    participant LB as Load Balancer
+    participant App as Redirect Service
+    participant Cache as Redis
+    participant DB as PostgreSQL
+    participant Queue as Kafka
+    
+    Browser->>LB: GET /aB3xYz1
+    LB->>App: Forward request
+    
+    App->>Cache: GET url:aB3xYz1
+    
+    alt Cache Hit
+        Cache-->>App: "https://example.com/..."
+    else Cache Miss
+        App->>DB: SELECT long_url WHERE short_code = 'aB3xYz1'
+        DB-->>App: "https://example.com/..."
+        App->>Cache: SET url:aB3xYz1 (async)
+    end
+    
+    App->>Queue: Log click event (async, non-blocking)
+    App-->>Browser: 302 Redirect → Location: https://example.com/...
+    
+    Browser->>Browser: Follow redirect to destination

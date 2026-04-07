@@ -1,0 +1,16 @@
+stateDiagram-v2
+  [*] --> pending
+  pending --> authorized: Auth OK
+  pending --> failed: Decline / timeout
+  authorized --> captured: Capture OK
+  authorized --> failed: Void / expiry
+  captured --> settled: Reconciliation OK
+  captured --> refunding: Refund started
+  settled --> refunding: Refund after settle
+  refunding --> refunded: Refund confirmed
+  captured --> chargeback_open: Dispute
+  settled --> chargeback_open: Dispute
+  chargeback_open --> settled: Won
+  chargeback_open --> refunded: Lost
+  failed --> [*]
+  refunded --> [*]

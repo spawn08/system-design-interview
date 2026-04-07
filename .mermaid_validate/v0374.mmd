@@ -1,0 +1,5 @@
+flowchart LR
+  A[Autocomplete Pod] -->|timeout| R[Fallback cache-only]
+  A -->|overload| RL[Rate limit / shed load]
+  R --> E[Empty or stale suggestions]
+  RL --> E

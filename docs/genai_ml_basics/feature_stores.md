@@ -84,13 +84,13 @@ Feature serving (online):
 
 ```mermaid
 graph TB
-    subgraph Data Sources
+    subgraph ds["Data Sources"]
         KAFKA[Kafka Streams]
         DW[Data Warehouse<br/>BigQuery / Redshift]
         DB[(Operational DBs)]
     end
 
-    subgraph Feature Store
+    subgraph fs["Feature Store"]
         REG[Feature Registry<br/>Definitions + Metadata]
         
         subgraph Materialization
@@ -134,23 +134,23 @@ sequenceDiagram
     participant DS as Data Scientist
     participant REG as Feature Registry
     participant MAT as Materializer
-    participant OFF as Offline Store
-    participant ON as Online Store
+    participant OFFL as Offline Store
+    participant ONL as Online Store
     participant SRV as Model Server
 
     DS->>REG: Register feature "user_purchase_count_7d"
     REG->>MAT: Schedule materialization
-    MAT->>OFF: Write historical values (Parquet)
-    MAT->>ON: Write latest values (Redis)
+    MAT->>OFFL: Write historical values (Parquet)
+    MAT->>ONL: Write latest values (Redis)
 
     Note over DS: Training
     DS->>REG: get_training_features(entity_ids, timestamps)
-    REG->>OFF: Point-in-time join
-    OFF-->>DS: Training DataFrame
+    REG->>OFFL: Point-in-time join
+    OFFL-->>DS: Training DataFrame
 
     Note over SRV: Serving
-    SRV->>ON: get_online_features(user_id)
-    ON-->>SRV: {user_purchase_count_7d: 12}
+    SRV->>ONL: get_online_features(user_id)
+    ONL-->>SRV: "{user_purchase_count_7d: 12}"
 ```
 
 ---

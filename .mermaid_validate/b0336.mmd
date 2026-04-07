@@ -1,0 +1,24 @@
+flowchart LR
+    subgraph Input [Notification Input]
+        Trans[Transactional<br/>OTPs, Alerts]
+        Engage[Engagement<br/>Likes, Comments]
+        Promo[Promotional<br/>Marketing]
+    end
+    
+    subgraph Queues [Priority Queues]
+        Q1[Critical Queue<br/>Processed First]
+        Q2[High Queue]
+        Q3[Low Queue<br/>Processed Last]
+    end
+    
+    subgraph Workers [Workers]
+        W1[Worker Pool]
+    end
+    
+    Trans --> Q1
+    Engage --> Q2
+    Promo --> Q3
+    
+    Q1 --> W1
+    Q2 --> W1
+    Q3 --> W1

@@ -1,0 +1,7 @@
+flowchart TB
+  subgraph cap["CAP Classification by Path"]
+    W["Write path<br/>AP — accept samples,<br/>dedupe later"]
+    R["Read path<br/>AP — serve stale over<br/>refusing queries"]
+    A["Alerting<br/>AP + compensating<br/>(for duration, absent)"]
+    M["Metadata<br/>CP — strong consistency<br/>for rule changes"]
+  end

@@ -3038,20 +3038,20 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <div class="mermaid">graph TB
-    subgraph Training Cluster
-        subgraph Node 1
+    subgraph tc["Training Cluster"]
+        subgraph n1["Node 1"]
             GPU0[GPU 0&lt;br/&gt;Worker]
             GPU1[GPU 1&lt;br/&gt;Worker]
             GPU0 &lt;--&gt;|NVLink| GPU1
         end
 
-        subgraph Node 2
+        subgraph n2["Node 2"]
             GPU2[GPU 2&lt;br/&gt;Worker]
             GPU3[GPU 3&lt;br/&gt;Worker]
             GPU2 &lt;--&gt;|NVLink| GPU3
         end
 
-        Node1 &lt;--&gt;|InfiniBand| Node2
+        n1 &lt;--&gt;|InfiniBand| n2
     end
 
     subgraph Orchestration
@@ -3060,17 +3060,17 @@
         CKPT[(Checkpoint Store&lt;br/&gt;S3 / HDFS)]
     end
 
-    subgraph Data Pipeline
+    subgraph dp["Data Pipeline"]
         DATA[(Training Data&lt;br/&gt;S3 / HDFS)]
         LOADER[Distributed DataLoader&lt;br/&gt;Sharded by worker]
     end
 
-    subgraph Experiment Tracking
+    subgraph et["Experiment Tracking"]
         TRACK[MLflow / W&amp;B]
     end
 
-    SCHED --&gt; Node1
-    SCHED --&gt; Node2
+    SCHED --&gt; n1
+    SCHED --&gt; n2
     DATA --&gt; LOADER
     LOADER --&gt; GPU0
     LOADER --&gt; GPU1
@@ -3269,25 +3269,25 @@
 </tbody>
 </table>
 <div class="mermaid">graph LR
-    subgraph "Stage 0: DDP"
+    subgraph s0["Stage 0: DDP"]
         G0_M[Model ✓]
         G0_O[Optimizer ✓]
         G0_G[Gradients ✓]
     end
 
-    subgraph "Stage 1: Partition Optimizer"
+    subgraph s1["Stage 1: Partition Optimizer"]
         G1_M[Model ✓]
         G1_O[Optimizer ⅛]
         G1_G[Gradients ✓]
     end
 
-    subgraph "Stage 2: + Partition Gradients"
+    subgraph s2["Stage 2: + Partition Gradients"]
         G2_M[Model ✓]
         G2_O[Optimizer ⅛]
         G2_G[Gradients ⅛]
     end
 
-    subgraph "Stage 3: + Partition Parameters"
+    subgraph s3["Stage 3: + Partition Parameters"]
         G3_M[Model ⅛]
         G3_O[Optimizer ⅛]
         G3_G[Gradients ⅛]
@@ -3451,12 +3451,12 @@
 </table>
 <h3 id="tensor-parallelism">Tensor Parallelism<a class="headerlink" href="#tensor-parallelism" title="Permanent link">&para;</a></h3>
 <div class="mermaid">graph LR
-    subgraph "GPU 0"
+    subgraph g0["GPU 0"]
         ATT_0[Attention Heads 0-15]
         MLP_0[MLP Column 0]
     end
 
-    subgraph "GPU 1"
+    subgraph g1["GPU 1"]
         ATT_1[Attention Heads 16-31]
         MLP_1[MLP Column 1]
     end
@@ -3590,8 +3590,8 @@
 </span></code></pre></div>
 <h3 id="pipeline-parallelism">Pipeline Parallelism<a class="headerlink" href="#pipeline-parallelism" title="Permanent link">&para;</a></h3>
 <div class="mermaid">graph TB
-    subgraph "Time →"
-        subgraph "GPU 0 (Layers 0-7)"
+    subgraph tdir["Time →"]
+        subgraph gpu0st["GPU 0 (Layers 0-7)"]
             MB1_S0[μ-batch 1&lt;br/&gt;Forward]
             MB2_S0[μ-batch 2&lt;br/&gt;Forward]
             MB3_S0[μ-batch 3&lt;br/&gt;Forward]
@@ -3601,7 +3601,7 @@
             MB2_S0B[μ-batch 2&lt;br/&gt;Backward]
             MB1_S0B[μ-batch 1&lt;br/&gt;Backward]
         end
-        subgraph "GPU 1 (Layers 8-15)"
+        subgraph gpu1st["GPU 1 (Layers 8-15)"]
             IDLE1[Idle]
             MB1_S1[μ-batch 1&lt;br/&gt;Forward]
             MB2_S1[μ-batch 2&lt;br/&gt;Forward]

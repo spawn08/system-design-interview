@@ -149,9 +149,9 @@ flowchart TB
     R2[Replica set B]
     R3[Replica set C]
   end
-  CP -->|leases / version| DP
-  Clients[Clients] -->|RPC: locations| CP
-  Clients -->|read/write| DP
+  CP -->|"leases / version"| DP
+  Clients[Clients] -->|"RPC: locations"| CP
+  Clients -->|"read/write"| DP
 ```
 
 !!! note
@@ -305,7 +305,7 @@ flowchart LR
   end
   Part -.->|may isolate| Meta
   Part -.->|replicas may be split| Data
-  Meta -->|leases + version| Data
+  Meta -->|"leases + version"| Data
 ```
 
 !!! tip
@@ -594,11 +594,11 @@ flowchart LR
   end
   C1 -->|metadata RPCs| M
   C2 -->|metadata RPCs| M
-  C1 -->|data reads/writes| S1
-  C2 -->|append pipeline| S2
-  M -->|heartbeats / chunk reports| S1
-  M -->|heartbeats / chunk reports| S2
-  M -->|heartbeats / chunk reports| S3
+  C1 -->|"data reads/writes"| S1
+  C2 -->|"append pipeline"| S2
+  M -->|"heartbeats / chunk reports"| S1
+  M -->|"heartbeats / chunk reports"| S2
+  M -->|"heartbeats / chunk reports"| S3
   M --- L
 ```
 
@@ -1038,10 +1038,10 @@ def replay_log_for_failover(entries: Iterable[dict]) -> List[dict]:
 
 ```mermaid
 flowchart TB
-  subgraph File tail
-    A[Defined: single writer serialized by primary]
-    B[Consistent but undefined: concurrent writers interleave]
-    C[Inconsistent: partial replica visibility during failure]
+  subgraph ft["File tail"]
+    A["Defined: single writer serialized by primary"]
+    B["Consistent but undefined: concurrent writers interleave"]
+    C["Inconsistent: partial replica visibility during failure"]
   end
   A --> B
   B --> C

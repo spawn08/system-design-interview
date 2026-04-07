@@ -1,0 +1,7 @@
+flowchart LR
+  subgraph sliding["Sliding 5m window, 1m hop"]
+    S1["t∈[0,300)"]
+    S2["t∈[60,360)"]
+    S3["t∈[120,420)"]
+  end
+  S1 --> S2 --> S3

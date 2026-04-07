@@ -1,0 +1,58 @@
+flowchart TB
+    subgraph Clients [Client Layer]
+        Web[Web App]
+        Mobile[Mobile App]
+        API[API Clients]
+    end
+    
+    subgraph Edge [Edge Layer]
+        CDN[CDN]
+        LB[Load Balancer]
+    end
+    
+    subgraph Gateway [API Layer]
+        APIGw[API Gateway<br/>Rate Limiting + Auth]
+    end
+    
+    subgraph Services [Application Layer]
+        UserSvc[User Service]
+        PollSvc[Poll Service]
+        VoteSvc[Vote Service]
+        ResultSvc[Results Service]
+    end
+    
+    subgraph Async [Async Processing]
+        Queue[Kafka]
+        VoteWorker[Vote Processor]
+        ResultWorker[Results Aggregator]
+    end
+    
+    subgraph Data [Data Layer]
+        Cache[(Redis)]
+        PollDB[(Poll DB)]
+        VoteDB[(Vote DB)]
+        AuditLog[(Audit Log)]
+    end
+    
+    Web --> CDN
+    Mobile --> LB
+    API --> LB
+    CDN --> LB
+    LB --> APIGw
+    
+    APIGw --> UserSvc
+    APIGw --> PollSvc
+    APIGw --> VoteSvc
+    APIGw --> ResultSvc
+    
+    VoteSvc --> Queue
+    VoteSvc --> Cache
+    Queue --> VoteWorker
+    VoteWorker --> VoteDB
+    VoteWorker --> Cache
+    VoteWorker --> AuditLog
+    
+    ResultSvc --> Cache
+    
+    PollSvc --> PollDB
+    PollSvc --> Cache

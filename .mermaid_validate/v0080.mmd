@@ -1,0 +1,9 @@
+sequenceDiagram
+    participant App as Application
+    participant Cache as Cache
+    participant DB as Database
+    
+    App->>Cache: Write data
+    Cache->>DB: Write data
+    DB-->>Cache: Confirm
+    Cache-->>App: Confirm

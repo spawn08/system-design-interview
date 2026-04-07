@@ -485,19 +485,19 @@ CREATE TABLE in_app_notifications (
 
 ```mermaid
 flowchart LR
-    subgraph Input [Notification Input]
+    subgraph Input["Notification Input"]
         Trans[Transactional<br/>OTPs, Alerts]
         Engage[Engagement<br/>Likes, Comments]
         Promo[Promotional<br/>Marketing]
     end
     
-    subgraph Queues [Priority Queues]
+    subgraph PrioQueues["Priority Queues"]
         Q1[Critical Queue<br/>Processed First]
         Q2[High Queue]
         Q3[Low Queue<br/>Processed Last]
     end
     
-    subgraph Workers [Workers]
+    subgraph Workers["Workers"]
         W1[Worker Pool]
     end
     
@@ -518,40 +518,40 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph Sources [Notification Sources]
+    subgraph Sources["Notification Sources"]
         API[API Calls]
         Events[Event Triggers]
         Scheduled[Scheduled Jobs]
     end
     
-    subgraph Gateway [Notification Gateway]
+    subgraph Gateway["Notification Gateway"]
         Validator[Validator]
         Enricher[Enricher]
         Router[Channel Router]
     end
     
-    subgraph Queues [Message Queues]
+    subgraph MsgQueues["Message Queues"]
         PushQ[(Push Queue)]
         EmailQ[(Email Queue)]
         SMSQ[(SMS Queue)]
         InAppQ[(In-App Queue)]
     end
     
-    subgraph Workers [Channel Workers]
+    subgraph ChWorkers["Channel Workers"]
         PushW[Push Worker]
         EmailW[Email Worker]
         SMSW[SMS Worker]
         InAppW[In-App Worker]
     end
     
-    subgraph Providers [External Providers]
+    subgraph Providers["External Providers"]
         APNS[APNS<br/>iOS]
         FCM[FCM<br/>Android]
         SES[AWS SES<br/>Email]
         Twilio[Twilio<br/>SMS]
     end
     
-    subgraph Storage [Storage]
+    subgraph Storage["Storage"]
         UserDB[(User Preferences)]
         TemplateDB[(Templates)]
         HistoryDB[(Notification History)]
@@ -1523,25 +1523,25 @@ async def track_click(notification_id: str, url: str):
 
 ```mermaid
 flowchart TB
-    subgraph API [API Layer - Stateless]
+    subgraph API["API Layer - Stateless"]
         API1[API 1]
         API2[API 2]
         API3[API N]
     end
     
-    subgraph Queue [Message Queues]
+    subgraph Queue["Message Queues"]
         PushQ[(Push Queue<br/>Partitioned)]
         EmailQ[(Email Queue<br/>Partitioned)]
     end
     
-    subgraph Workers [Worker Pools]
-        subgraph PushPool [Push Workers]
+    subgraph WorkerPools["Worker Pools"]
+        subgraph PushPool["Push Workers"]
             PW1[Worker 1]
             PW2[Worker 2]
             PWN[Worker N]
         end
         
-        subgraph EmailPool [Email Workers]
+        subgraph EmailPool["Email Workers"]
             EW1[Worker 1]
             EW2[Worker 2]
             EWN[Worker N]
@@ -2077,10 +2077,10 @@ This guarantees that a notification is sent **if and only if** the business even
 ```mermaid
 flowchart TD
   Q[Kafka Queue] --> W{Worker}
-  W -->|FCM healthy| FCM[FCM Provider]
-  W -->|FCM circuit open| DQ[Delayed Retry Queue]
-  W -->|Max retries| DLQ[Dead Letter Queue]
-  DQ -->|After cooldown| W
+  W -->|"FCM healthy"| FCM[FCM Provider]
+  W -->|"FCM circuit open"| DQ[Delayed Retry Queue]
+  W -->|"Max retries"| DLQ[Dead Letter Queue]
+  DQ -->|"After cooldown"| W
 ```
 
 ### Multi-Region Notification Delivery

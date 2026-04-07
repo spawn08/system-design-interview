@@ -1,0 +1,15 @@
+flowchart TD
+    subgraph Ingestion
+        DB[(Databases)] --> INGEST
+        API[APIs] --> INGEST
+        LOG[Logs] --> INGEST
+        IOT[IoT Devices] --> INGEST[Ingestion Layer<br/>Kafka, Kinesis, Flume]
+    end
+    
+    INGEST --> RAW[(Raw Zone<br/>Immutable, as-is)]
+    RAW --> CLEAN[(Cleaned Zone<br/>Validated, deduplicated)]
+    CLEAN --> CURATED[(Curated Zone<br/>Transformed, enriched)]
+    
+    CURATED --> ANALYTICS[Analytics<br/>Presto, Athena]
+    CURATED --> ML[ML Training<br/>Spark, SageMaker]
+    CURATED --> BI[BI Tools<br/>Tableau, Looker]

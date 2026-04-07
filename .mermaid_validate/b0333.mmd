@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant A as Author
+    participant API as Post API
+    participant PS as Pub/Sub
+    participant GW as WS Gateway
+    participant F as Follower client
+
+    A->>API: POST /posts
+    API->>PS: notify followers rooms (batched)
+    PS->>GW: events
+    GW-->>F: {type: "new_post", post_id}

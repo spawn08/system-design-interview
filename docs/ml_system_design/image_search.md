@@ -46,12 +46,12 @@ The key insight: Convert images to **embeddings** (vectors), then find similar v
 
 ```mermaid
 flowchart LR
-    subgraph Encoding [Encoding]
+    subgraph enc1["Encoding"]
         Image[Image] --> CNN[CNN/ViT<br/>Encoder]
         CNN --> Embedding[512-dim<br/>Vector]
     end
     
-    subgraph Search [Search]
+    subgraph srch1["Search"]
         Embedding --> ANN[ANN Index]
         ANN --> Similar[Similar<br/>Images]
     end
@@ -136,30 +136,30 @@ Design a visual search system for an e-commerce platform with:
 
 ```mermaid
 flowchart TB
-    subgraph Query [Query Layer]
+    subgraph qry["Query Layer"]
         API[Search API]
         ImageProc[Image Processor]
         TextProc[Text Processor]
     end
     
-    subgraph Encoding [Encoding Layer]
+    subgraph encL["Encoding Layer"]
         ImageEnc[Image Encoder<br/>CLIP ViT]
         TextEnc[Text Encoder<br/>CLIP Text]
     end
     
-    subgraph Search [Search Layer]
-        ANN[Vector Index<br/>FAISS/Pinecone]
+    subgraph srchL["Search Layer"]
+        ANN["Vector Index<br/>FAISS/Pinecone"]
         Filter[Post-Filter]
         Ranker[Re-ranker]
     end
     
-    subgraph Offline [Offline Pipeline]
+    subgraph offp["Offline Pipeline"]
         Indexer[Indexing Pipeline]
         Batch[Batch Encoder]
         Catalog[(Product Catalog)]
     end
     
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VectorDB[(Vector Store)]
         Metadata[(Metadata Store)]
         Cache[(Redis Cache)]
@@ -376,7 +376,7 @@ For 100 million vectors, we need an approximate nearest neighbor (ANN) index.
 
 ```mermaid
 flowchart TB
-    subgraph Index [Vector Index Architecture]
+    subgraph vidx["Vector Index Architecture"]
         Query[Query Vector] --> Coarse[Coarse Quantizer<br/>Find clusters]
         Coarse --> Clusters[Search relevant clusters]
         Clusters --> Fine[Fine-grained search<br/>within clusters]

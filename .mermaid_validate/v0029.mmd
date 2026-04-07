@@ -1,0 +1,8 @@
+flowchart LR
+  subgraph Same DB Transaction
+    BT[Business Table] 
+    OT[Outbox Table]
+  end
+  CDC[CDC / Poller] --> OT
+  CDC --> K[Kafka / Message Broker]
+  K --> DS[Downstream Services]

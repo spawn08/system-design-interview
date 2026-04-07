@@ -1,0 +1,7 @@
+flowchart LR
+  subgraph Ring
+    direction LR
+    H[Key hash position] --> R1[Replica 1]
+    R1 --> R2[Replica 2]
+    R2 --> R3[Replica 3]
+  end

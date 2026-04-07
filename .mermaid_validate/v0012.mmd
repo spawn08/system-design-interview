@@ -1,0 +1,13 @@
+flowchart LR
+    subgraph OLTP
+        APP[Application] --> DB[(Operational DB<br/>MySQL, PostgreSQL)]
+    end
+    
+    subgraph Analytics Infrastructure
+        DB -->|ETL / CDC| WH[(Data Warehouse<br/>Redshift, BigQuery)]
+        DB -->|Raw dump| DL[(Data Lake<br/>S3 / HDFS)]
+        DL -->|Structured queries| LH[(Lakehouse<br/>Delta Lake, Iceberg)]
+    end
+    
+    WH --> BI[BI Dashboards<br/>Tableau, Looker]
+    LH --> ML[ML Pipelines<br/>Feature Engineering]

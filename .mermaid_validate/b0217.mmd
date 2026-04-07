@@ -1,0 +1,7 @@
+flowchart LR
+    DOC[User uploads 40-page PDF] --> EXTRACT[Extract text + layout]
+    EXTRACT --> CHUNK[Chunk / sentence segmentation]
+    CHUNK --> CACHE_CTX[Cross-sentence context window]
+    CACHE_CTX --> MTB[MT workers with KV-cache]
+    MTB --> STITCH[Stitch + format preservation]
+    STITCH --> QE2[QE + glossary enforcement]

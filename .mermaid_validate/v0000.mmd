@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant P as Proposer
+  participant A1 as Acceptor 1
+  participant A2 as Acceptor 2
+  participant A3 as Acceptor 3
+
+  P->>A1: Prepare(n=1)
+  P->>A2: Prepare(n=1)
+  P->>A3: Prepare(n=1)
+  A1-->>P: Promise(n=1, none)
+  A2-->>P: Promise(n=1, none)
+  Note over P: Majority promised
+  P->>A1: Accept(n=1, value=X)
+  P->>A2: Accept(n=1, value=X)
+  A1-->>P: Accepted
+  A2-->>P: Accepted
+  Note over P: Value X is chosen

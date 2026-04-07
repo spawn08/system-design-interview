@@ -1,0 +1,12 @@
+sequenceDiagram
+  participant Pr as Producer
+  participant L as Partition Leader
+  participant F as Follower
+  participant Co as Controller
+  Pr->>L: Produce batch (acks=all)
+  L->>L: Append to log
+  L->>F: Replication fetch
+  F->>F: Append follower log
+  F-->>L: next fetch with high watermark advance
+  L-->>Pr: ack (committed offset)
+  Note over Co: On leader failure: elect from ISR

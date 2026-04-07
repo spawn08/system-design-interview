@@ -3076,12 +3076,12 @@
 <h3 id="collaborative-filtering">Collaborative Filtering<a class="headerlink" href="#collaborative-filtering" title="Permanent link">&para;</a></h3>
 <p>The core idea: <strong>Users with similar taste will like similar items.</strong></p>
 <div class="mermaid">flowchart LR
-    subgraph Users [Users]
-        U1[User A&lt;br/&gt;Likes: Inception, Matrix]
-        U2[User B&lt;br/&gt;Likes: Inception, Matrix, Interstellar]
+    subgraph users["Users"]
+        U1["User A&lt;br/&gt;Likes: Inception, Matrix"]
+        U2["User B&lt;br/&gt;Likes: Inception, Matrix, Interstellar"]
     end
 
-    subgraph Rec [Recommendation]
+    subgraph rec["Recommendation"]
         R[User A might like Interstellar!]
     end
 
@@ -3325,26 +3325,26 @@
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Online [Online Serving]
+    subgraph onl["Online Serving"]
         API[Recommendation API]
         Ranker[Re-ranking Service]
         Cache[(Redis Cache)]
     end
 
-    subgraph Retrieval [Candidate Retrieval]
+    subgraph retr["Candidate Retrieval"]
         CF[Collaborative Filtering]
         CB[Content-Based]
         Pop[Popular Items]
-        ANN[ANN Index&lt;br/&gt;FAISS/Pinecone]
+        ANN["ANN Index&lt;br/&gt;FAISS/Pinecone"]
     end
 
-    subgraph Offline [Offline Training]
+    subgraph offl["Offline Training"]
         Train[Model Training]
         Features[Feature Pipeline]
         Batch[Batch Predictions]
     end
 
-    subgraph Data [Data Layer]
+    subgraph data["Data Layer"]
         Events[(Event Stream&lt;br/&gt;Kafka)]
         DW[(Data Warehouse&lt;br/&gt;BigQuery)]
         FeatureStore[(Feature Store)]
@@ -3374,22 +3374,22 @@
 <h3 id="the-two-stage-architecture">The Two-Stage Architecture<a class="headerlink" href="#the-two-stage-architecture" title="Permanent link">&para;</a></h3>
 <p>Recommendations typically use a <strong>retrieval + ranking</strong> pipeline:</p>
 <div class="mermaid">flowchart LR
-    subgraph Stage1 [Stage 1: Retrieval]
+    subgraph s1["Stage 1: Retrieval"]
         direction TB
         All[10M Products] --&gt; Candidates[1000 Candidates]
     end
 
-    subgraph Stage2 [Stage 2: Ranking]
+    subgraph s2["Stage 2: Ranking"]
         direction TB
         Candidates --&gt; Ranked[Top 50 Ranked]
     end
 
-    subgraph Stage3 [Stage 3: Re-ranking]
+    subgraph s3["Stage 3: Re-ranking"]
         direction TB
         Ranked --&gt; Final[Final 10-20]
     end
 
-    Stage1 --&gt; Stage2 --&gt; Stage3</div>
+    s1 --&gt; s2 --&gt; s3</div>
 <table>
 <thead>
 <tr>
@@ -3943,24 +3943,24 @@
 <h2 id="step-8-training-pipeline">Step 8: Training Pipeline<a class="headerlink" href="#step-8-training-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="data-pipeline">Data Pipeline<a class="headerlink" href="#data-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Ingestion [Data Ingestion]
+    subgraph ing["Data Ingestion"]
         Events[User Events] --&gt; Kafka[Kafka]
         Kafka --&gt; Flink[Flink Processing]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         Flink --&gt; DW[(Data Warehouse)]
         Flink --&gt; FS[(Feature Store)]
     end
 
-    subgraph Training [Training]
+    subgraph trn["Training"]
         DW --&gt; Sample[Sampling]
         Sample --&gt; Train[Model Training]
         FS --&gt; Train
         Train --&gt; Eval[Evaluation]
     end
 
-    subgraph Deployment [Deployment]
+    subgraph depl["Deployment"]
         Eval --&gt; Registry[Model Registry]
         Registry --&gt; Serving[Model Serving]
     end</div>

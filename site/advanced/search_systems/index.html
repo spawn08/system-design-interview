@@ -2829,14 +2829,14 @@
 <hr />
 <h2 id="how-search-works-the-big-picture">How Search Works: The Big Picture<a class="headerlink" href="#how-search-works-the-big-picture" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart LR
-    subgraph Indexing Pipeline
-        DATA[Data Sources&lt;br/&gt;DB, Files, APIs] --&gt; CRAWL[Crawler / CDC]
+    subgraph ip["Indexing Pipeline"]
+        DATA["Data Sources&lt;br/&gt;DB, Files, APIs"] --&gt; CRAWL["Crawler / CDC"]
         CRAWL --&gt; PROC[Document Processor&lt;br/&gt;Tokenize, Normalize]
         PROC --&gt; IDX[Indexer&lt;br/&gt;Build Inverted Index]
         IDX --&gt; STORE[(Search Index&lt;br/&gt;Sharded)]
     end
 
-    subgraph Query Pipeline
+    subgraph qpflow["Query Pipeline"]
         USER[User Query] --&gt; QP[Query Parser&lt;br/&gt;Tokenize, Expand]
         QP --&gt; SEARCH[Search Engine&lt;br/&gt;Retrieve Candidates]
         SEARCH --&gt; RANK[Ranker&lt;br/&gt;Score &amp; Sort]
@@ -3110,18 +3110,18 @@
     COORD --&gt; N3[Data Node 3]
 
     subgraph N1[Data Node 1]
-        S0P[Index: products&lt;br/&gt;Shard 0 - Primary]
-        S2R[Index: products&lt;br/&gt;Shard 2 - Replica]
+        S0P["Index: products&lt;br/&gt;Shard 0 - Primary"]
+        S2R["Index: products&lt;br/&gt;Shard 2 - Replica"]
     end
 
     subgraph N2[Data Node 2]
-        S1P[Index: products&lt;br/&gt;Shard 1 - Primary]
-        S0R[Index: products&lt;br/&gt;Shard 0 - Replica]
+        S1P["Index: products&lt;br/&gt;Shard 1 - Primary"]
+        S0R["Index: products&lt;br/&gt;Shard 0 - Replica"]
     end
 
     subgraph N3[Data Node 3]
-        S2P[Index: products&lt;br/&gt;Shard 2 - Primary]
-        S1R[Index: products&lt;br/&gt;Shard 1 - Replica]
+        S2P["Index: products&lt;br/&gt;Shard 2 - Primary"]
+        S1R["Index: products&lt;br/&gt;Shard 1 - Replica"]
     end</div>
 <h3 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h3>
 <table>
@@ -3496,9 +3496,9 @@
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q[Search Requirement] --&gt; TYPE{Search type?}
-    TYPE --&gt;|Full-text search| FTS[Elasticsearch / Solr]
+    TYPE --&gt;|Full-text search| FTS["Elasticsearch / Solr"]
     TYPE --&gt;|Autocomplete| AC{Scale?}
-    TYPE --&gt;|Vector/semantic| VS[Vector DB + ANN]
+    TYPE --&gt;|"Vector/semantic"| VS[Vector DB + ANN]
     TYPE --&gt;|Log search| LOG[ELK Stack]
 
     AC --&gt;|&lt; 1M terms| TRIE[In-memory Trie]

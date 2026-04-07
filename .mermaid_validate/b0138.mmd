@@ -1,0 +1,18 @@
+flowchart TB
+    subgraph Offline["Offline evaluation"]
+        REF[Reference / rubric]
+        AUTO[Automatic metrics]
+        HUMAN[Human labels]
+        REF --> AUTO
+        REF --> HUMAN
+    end
+
+    subgraph Online["Online evaluation"]
+        UX[User behavior]
+        SAT[Explicit feedback]
+        BIZ[Business outcomes]
+    end
+
+    Offline -->|"gates releases"| SHIP[Ship candidate]
+    SHIP --> Online
+    Online -->|"closes the loop"| Offline

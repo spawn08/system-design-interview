@@ -1,0 +1,7 @@
+flowchart LR
+    subgraph Aggregate lifecycle
+        E1[OrderCreated] --> E2[LineItemAdded]
+        E2 --> E3[PaymentAuthorized]
+        E3 --> E4[OrderShipped]
+    end
+    E4 --> STATE[Current state = fold events]

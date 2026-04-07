@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant Client
+  participant API
+  participant Meta as Metadata
+  participant Block as Block store
+  participant Notify as Notifier
+
+  Client->>API: GET /changes?since=cursor
+  API->>Meta: fetch delta
+  Meta-->>API: file rev bumped
+  API-->>Client: file.updated + etag
+
+  Client->>API: PUT blocks (missing hashes)
+  API->>Block: conditional put by hash
+  Block-->>API: 201 / dedup hit
+
+  Client->>API: POST /files/{id}/commit
+  API->>Meta: txn: new revision if etag matches
+  Meta->>Notify: publish change event
+  Notify-->>Client: WS push (other devices)

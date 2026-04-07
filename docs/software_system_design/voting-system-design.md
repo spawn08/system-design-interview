@@ -160,26 +160,26 @@ CAP is a lens, not a prescription: in practice we choose **per operation** consi
 
 ```mermaid
 flowchart TB
-    subgraph CP_Path [CP-oriented: vote integrity]
+    subgraph CP_Path["CP-oriented: vote integrity"]
         VS[Vote submission path]
         UC[(DB UNIQUE / conditional write)]
         VS --> UC
     end
 
-    subgraph AP_Path [AP-oriented: read scaling]
+    subgraph AP_Path["AP-oriented: read scaling"]
         RC[Results / counts read path]
         CACHE[(Redis / read replicas)]
         RC --> CACHE
     end
 
-    subgraph Eventual [Eventual: display freshness]
+    subgraph Eventual["Eventual: display freshness"]
         LB[Leaderboard / live ticker]
         Q[Stream / worker updates]
         LB --> Q
         Q --> CACHE
     end
 
-    UC -.->|reconcile / async projection| CACHE
+    UC -.->|"reconcile / async projection"| CACHE
 ```
 
 **Interview takeaway:** Say clearly: **dedup is a consistency problem**; **fan-out reads and UI aggregates are availability/throughput problems**. Separate paths, reconcile.
@@ -477,35 +477,35 @@ Reads:
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph Clients["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
     
-    subgraph Edge [Edge Layer]
+    subgraph Edge["Edge Layer"]
         CDN[CDN]
         LB[Load Balancer]
     end
     
-    subgraph Gateway [API Layer]
+    subgraph Gateway["API Layer"]
         APIGw[API Gateway<br/>Rate Limiting + Auth]
     end
     
-    subgraph Services [Application Layer]
+    subgraph Services["Application Layer"]
         UserSvc[User Service]
         PollSvc[Poll Service]
         VoteSvc[Vote Service]
         ResultSvc[Results Service]
     end
     
-    subgraph Async [Async Processing]
+    subgraph Async["Async Processing"]
         Queue[Kafka]
         VoteWorker[Vote Processor]
         ResultWorker[Results Aggregator]
     end
     
-    subgraph Data [Data Layer]
+    subgraph Data["Data Layer"]
         Cache[(Redis)]
         PollDB[(Poll DB)]
         VoteDB[(Vote DB)]
@@ -590,10 +590,10 @@ We use multiple layers of protection:
 
 ```mermaid
 flowchart TD
-    Vote[Vote Request] --> L1{Layer 1:<br/>Redis Check}
+    Vote[Vote Request] --> L1{"Layer 1:<br/>Redis Check"}
     L1 -->|Already voted| Reject1[Reject]
-    L1 -->|Not found| L2[Layer 2:<br/>Kafka Dedup]
-    L2 --> L3{Layer 3:<br/>DB Constraint}
+    L1 -->|Not found| L2["Layer 2:<br/>Kafka Dedup"]
+    L2 --> L3{"Layer 3:<br/>DB Constraint"}
     L3 -->|Constraint violation| Reject2[Log & Ignore]
     L3 -->|Success| Store[Vote Stored]
     Store --> UpdateCache[Update Redis]
@@ -1115,18 +1115,18 @@ When a celebrity creates a poll and 10 million people vote:
 
 ```mermaid
 flowchart LR
-    subgraph Normal [Normal: 100 votes/sec]
+    subgraph Normal["Normal: 100 votes/sec"]
         N1[3 API pods]
         N2[3 workers]
     end
     
-    subgraph Viral [Viral: 10K votes/sec]
+    subgraph Viral["Viral: 10K votes/sec"]
         V1[30 API pods]
         V2[30 workers]
     end
     
     Monitor[Metrics] --> HPA[HPA / Auto-scaler]
-    HPA --> |scale up| Viral
+    HPA -->|scale up| Viral
 ```
 
 **Auto-scaling rules:**

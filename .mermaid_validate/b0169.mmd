@@ -1,0 +1,48 @@
+flowchart TB
+    subgraph Ingestion [Ingestion Pipeline]
+        Connectors[Source Connectors<br/>Drive, Confluence, Slack]
+        Parser[Document Parser<br/>PDF, HTML, Markdown]
+        Chunker[Chunking Engine]
+        Embedder[Embedding Service<br/>GPU]
+        ACLSync[ACL Sync Service]
+    end
+
+    subgraph Index [Index Layer]
+        VectorDB[(Vector Index<br/>HNSW / ScaNN)]
+        BM25Idx[(BM25 Index<br/>Elasticsearch)]
+        DocStore[(Document Store<br/>Bigtable)]
+        ACLStore[(ACL Store<br/>Spanner)]
+    end
+
+    subgraph Query [Query Pipeline]
+        QU[Query Understanding]
+        Retriever[Hybrid Retriever]
+        Reranker[Cross-Encoder<br/>Re-Ranker]
+        PromptBuilder[Prompt Builder]
+        LLM[LLM Generator]
+        CitationEngine[Citation Engine]
+    end
+
+    subgraph Feedback [Feedback & Eval]
+        FeedbackAPI[Feedback API]
+        EvalPipeline[Evaluation Pipeline]
+        Analytics[Query Analytics]
+    end
+
+    Connectors --> Parser --> Chunker --> Embedder --> VectorDB
+    Chunker --> BM25Idx
+    Chunker --> DocStore
+    Connectors --> ACLSync --> ACLStore
+
+    QU --> Retriever
+    Retriever --> VectorDB
+    Retriever --> BM25Idx
+    Retriever --> ACLStore
+    Retriever --> Reranker
+    Reranker --> PromptBuilder
+    PromptBuilder --> LLM
+    LLM --> CitationEngine
+
+    CitationEngine --> FeedbackAPI
+    FeedbackAPI --> EvalPipeline
+    EvalPipeline --> Analytics

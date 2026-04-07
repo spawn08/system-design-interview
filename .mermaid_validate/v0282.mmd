@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant Client
+  participant Master
+  participant P as Primary replica
+  participant S1 as Secondary
+  participant S2 as Secondary
+  Client->>Master: RequestLease(chunk_id) / mutation intent
+  Master-->>Client: {primary, secondaries, lease deadline}
+  Client->>P: Push data (pipeline stage 1)
+  P->>S1: Forward data (stage 2)
+  S1->>S2: Forward data (stage 3)
+  Client->>P: CommitMutation(serial, offsets)
+  P->>S1: Apply in serial order
+  P->>S2: Apply in serial order
+  P-->>Client: Ack defined offsets / append results

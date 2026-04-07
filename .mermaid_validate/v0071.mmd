@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph REST
+        C1[Client] -->|GET /users/1| S1[Server]
+        C1 -->|GET /users/1/orders| S1
+        C1 -->|GET /users/1/reviews| S1
+    end
+    
+    subgraph GraphQL
+        C2[Client] -->|Single query| S2[Server]
+    end

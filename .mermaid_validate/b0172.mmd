@@ -1,0 +1,60 @@
+flowchart TB
+    subgraph Clients [Client Layer]
+        Web[Web App]
+        Mobile[Mobile App]
+        API[API Clients]
+    end
+
+    subgraph Gateway [API Gateway]
+        LB[Load Balancer]
+        Auth[Auth & Rate Limit]
+        Router[Request Router]
+    end
+
+    subgraph Safety [Safety Pipeline]
+        InputFilter[Input Classifier]
+        OutputFilter[Output Classifier]
+        PII[PII Detector]
+    end
+
+    subgraph Serving [LLM Serving Cluster]
+        Scheduler[Request Scheduler]
+        subgraph GPUPool [GPU Pool]
+            GPU1[GPU Replica 1<br/>vLLM]
+            GPU2[GPU Replica 2<br/>vLLM]
+            GPUN[GPU Replica N<br/>vLLM]
+        end
+        KVStore[KV-Cache<br/>Manager]
+    end
+
+    subgraph Context [Context Assembly]
+        ConvMgr[Conversation<br/>Manager]
+        SysPrompt[System Prompt<br/>Store]
+        ToolRouter[Tool Router]
+    end
+
+    subgraph Storage [Storage Layer]
+        ConvDB[(Conversation DB<br/>Spanner/Bigtable)]
+        UserDB[(User Store<br/>Spanner)]
+        AuditLog[(Safety Audit Log<br/>BigQuery)]
+    end
+
+    subgraph Feedback [Feedback & Evaluation]
+        ThumbsUD[Thumbs Up/Down]
+        Eval[Evaluation Pipeline]
+        ABTest[A/B Testing]
+    end
+
+    Clients --> Gateway
+    Gateway --> Safety
+    Safety -->|clean input| Context
+    Context -->|assembled prompt| Serving
+    Serving -->|raw output| Safety
+    Safety -->|filtered output| Gateway
+    Gateway -->|SSE stream| Clients
+    
+    Context --> Storage
+    Serving --> Storage
+    Safety --> AuditLog
+    Clients --> Feedback
+    Feedback --> Eval

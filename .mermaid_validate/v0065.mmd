@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Indexing Pipeline
+        DATA[Data Sources<br/>DB, Files, APIs] --> CRAWL[Crawler / CDC]
+        CRAWL --> PROC[Document Processor<br/>Tokenize, Normalize]
+        PROC --> IDX[Indexer<br/>Build Inverted Index]
+        IDX --> STORE[(Search Index<br/>Sharded)]
+    end
+    
+    subgraph Query Pipeline
+        USER[User Query] --> QP[Query Parser<br/>Tokenize, Expand]
+        QP --> SEARCH[Search Engine<br/>Retrieve Candidates]
+        SEARCH --> RANK[Ranker<br/>Score & Sort]
+        RANK --> RESULT[Results]
+    end
+    
+    STORE --> SEARCH

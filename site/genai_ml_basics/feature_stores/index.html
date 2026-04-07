@@ -2958,13 +2958,13 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <div class="mermaid">graph TB
-    subgraph Data Sources
+    subgraph ds["Data Sources"]
         KAFKA[Kafka Streams]
         DW[Data Warehouse&lt;br/&gt;BigQuery / Redshift]
         DB[(Operational DBs)]
     end
 
-    subgraph Feature Store
+    subgraph fs["Feature Store"]
         REG[Feature Registry&lt;br/&gt;Definitions + Metadata]
 
         subgraph Materialization
@@ -3005,23 +3005,23 @@
     participant DS as Data Scientist
     participant REG as Feature Registry
     participant MAT as Materializer
-    participant OFF as Offline Store
-    participant ON as Online Store
+    participant OFFL as Offline Store
+    participant ONL as Online Store
     participant SRV as Model Server
 
     DS-&gt;&gt;REG: Register feature "user_purchase_count_7d"
     REG-&gt;&gt;MAT: Schedule materialization
-    MAT-&gt;&gt;OFF: Write historical values (Parquet)
-    MAT-&gt;&gt;ON: Write latest values (Redis)
+    MAT-&gt;&gt;OFFL: Write historical values (Parquet)
+    MAT-&gt;&gt;ONL: Write latest values (Redis)
 
     Note over DS: Training
     DS-&gt;&gt;REG: get_training_features(entity_ids, timestamps)
-    REG-&gt;&gt;OFF: Point-in-time join
-    OFF--&gt;&gt;DS: Training DataFrame
+    REG-&gt;&gt;OFFL: Point-in-time join
+    OFFL--&gt;&gt;DS: Training DataFrame
 
     Note over SRV: Serving
-    SRV-&gt;&gt;ON: get_online_features(user_id)
-    ON--&gt;&gt;SRV: {user_purchase_count_7d: 12}</div>
+    SRV-&gt;&gt;ONL: get_online_features(user_id)
+    ONL--&gt;&gt;SRV: "{user_purchase_count_7d: 12}"</div>
 <hr />
 <h2 id="step-4-feature-definition-registry">Step 4: Feature Definition &amp; Registry<a class="headerlink" href="#step-4-feature-definition-registry" title="Permanent link">&para;</a></h2>
 <p>The feature registry is the metadata backbone. Every feature has a typed definition, owner, lineage, and SLA.</p>

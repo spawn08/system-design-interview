@@ -1,0 +1,13 @@
+flowchart TB
+  U[User]
+  B[Browser Cache]
+  E[Edge CDN]
+  A[Autocomplete Service]
+  R[Redis]
+  T[In-memory Trie]
+
+  U --> B
+  B -->|miss| E
+  E -->|miss| A
+  A --> R
+  A --> T

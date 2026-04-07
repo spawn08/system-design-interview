@@ -1,0 +1,44 @@
+flowchart TB
+  subgraph Clients["Clients"]
+    R[Rider app]
+    D[Driver app]
+  end
+
+  subgraph Edge["Edge / API"]
+    GW[API Gateway + Auth]
+    WS[WebSocket gateway]
+  end
+
+  subgraph Core["Core services"]
+    TS[Trip service]
+    MS[Matching service]
+    LS[Location ingestion]
+    ETA[ETA / routing]
+    PR[Pricing / surge]
+    PAY[Payments]
+    NS[Notification]
+  end
+
+  subgraph Data["Data stores"]
+    PG[(PostgreSQL / CockroachDB)]
+    RD[(Redis)]
+    MQ[[Kafka / Pulsar]]
+    GS[(Geo index: Redis GEO / S2 / custom)]
+  end
+
+  R --> GW
+  D --> GW
+  R --> WS
+  D --> WS
+  GW --> TS
+  GW --> MS
+  WS --> LS
+  LS --> MQ
+  MQ --> MS
+  MS --> GS
+  MS --> ETA
+  TS --> PG
+  MS --> RD
+  PR --> RD
+  PAY --> PG
+  TS --> NS

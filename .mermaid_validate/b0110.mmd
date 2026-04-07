@@ -1,0 +1,8 @@
+flowchart LR
+    M[Metrics<br/>CPU, Memory, RPS] --> AS{Auto-Scaler}
+    AS -->|CPU > 70%| UP[Scale Up<br/>Add instances]
+    AS -->|CPU < 30%| DOWN[Scale Down<br/>Remove instances]
+    AS -->|Within range| KEEP[Maintain]
+    
+    UP --> CD[Cooldown Period<br/>Wait before next action]
+    DOWN --> CD

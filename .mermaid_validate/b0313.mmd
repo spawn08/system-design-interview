@@ -1,0 +1,16 @@
+flowchart LR
+  subgraph Region_A[Region A]
+    PA[Producers]
+    CA[Consumers]
+    BA[Brokers cluster A]
+    PA --> BA
+    BA --> CA
+  end
+  subgraph Region_B[Region B]
+    PB[Producers]
+    CB[Consumers]
+    BB[Brokers cluster B]
+    PB --> BB
+    BB --> CB
+  end
+  BA <-->|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB

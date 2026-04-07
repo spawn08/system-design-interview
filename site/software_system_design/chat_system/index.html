@@ -3548,7 +3548,7 @@
   end
 
   AP_paths --&gt; UX[Best-effort UX]
-  CP_paths --&gt; INV[Invariant: who is in the group / what is persisted]
+  CP_paths --&gt; INV["Invariant: who is in the group / what is persisted"]
   Mixed --&gt; EVC[Eventually consistent across viewers]</div>
 <p><strong>Per-path summary</strong></p>
 <table>
@@ -3736,7 +3736,7 @@
 
     LB[Load Balancer / TLS Termination]
 
-    subgraph Edge [WebSocket Tier]
+    subgraph Edge["WebSocket Tier"]
         WG1[WebSocket Gateway]
         WG2[WebSocket Gateway]
         WG3[WebSocket Gateway]
@@ -3746,7 +3746,7 @@
 
     MQ[[Message Queue&lt;br/&gt;Kafka / Pulsar]]
 
-    subgraph Data [Data Stores]
+    subgraph Data["Data Stores"]
         CAS[(Message Store&lt;br/&gt;Cassandra / Scylla)]
         RD[(Redis Cluster&lt;br/&gt;Presence / Sessions / Cache)]
         OBJ[(Object Storage&lt;br/&gt;S3 / GCS)]

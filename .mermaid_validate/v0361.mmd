@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph Cluster [Redis Cluster]
+        subgraph Shard1 [Shard 1]
+            M1[Master 1]
+            S1[Replica 1]
+        end
+        
+        subgraph Shard2 [Shard 2]
+            M2[Master 2]
+            S2[Replica 2]
+        end
+        
+        subgraph Shard3 [Shard 3]
+            M3[Master 3]
+            S3[Replica 3]
+        end
+    end
+    
+    API[API Servers] --> Cluster

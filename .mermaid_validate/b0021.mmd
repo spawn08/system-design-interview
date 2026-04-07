@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant C as Client
+    participant ZK as ZooKeeper
+    C->>ZK: create /locks/r/lock- (ephemeral+sequential)
+    ZK-->>C: lock-00000042
+    C->>ZK: list children /locks/r/
+    ZK-->>C: [..., lock-00000041, lock-00000042]
+    C->>ZK: watch lock-00000041
+    Note over C: Not smallest; wait
+    ZK-->>C: predecessor deleted
+    C->>ZK: list children again
+    C->>ZK: I am smallest; critical section

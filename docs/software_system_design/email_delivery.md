@@ -206,7 +206,7 @@ flowchart LR
     ARF --> PARSE[ARF + DSN parser]
     PARSE --> ID[Resolve internal message / tenant]
     ID --> SUP[Suppression store]
-    SUP --> WH[Webhook: complaint event]
+    SUP --> WH["Webhook: complaint event"]
     WH --> DASH[Customer dashboard + API]
 ```
 

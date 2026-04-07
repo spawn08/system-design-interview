@@ -357,13 +357,13 @@ GraphQL is an alternative to REST that lets clients specify exactly what data th
 
 ```mermaid
 flowchart LR
-    subgraph REST
-        C1[Client] -->|GET /users/1| S1[Server]
-        C1 -->|GET /users/1/orders| S1
-        C1 -->|GET /users/1/reviews| S1
+    subgraph rest["REST"]
+        C1[Client] -->|"GET /users/1"| S1[Server]
+        C1 -->|"GET /users/1/orders"| S1
+        C1 -->|"GET /users/1/reviews"| S1
     end
     
-    subgraph GraphQL
+    subgraph gql["GraphQL"]
         C2[Client] -->|Single query| S2[Server]
     end
 ```
@@ -525,10 +525,10 @@ A bucket holds tokens. Each request consumes one token. Tokens are added at a fi
 ```mermaid
 flowchart LR
     R[Request] --> TB{Tokens > 0?}
-    TB -->|Yes| A[Allow<br/>tokens--]
-    TB -->|No| D[Reject<br/>429 Too Many Requests]
+    TB -->|Yes| A["Allow<br/>tokens--"]
+    TB -->|No| D["Reject<br/>429 Too Many Requests"]
     
-    Refill[Token Refill<br/>every interval] -.->|Add tokens| TB
+    Refill[Token Refill<br/>every interval] -.->|"Add tokens"| TB
 ```
 
 **Properties:** Allows bursts (up to bucket capacity), smooth average rate.
@@ -683,7 +683,7 @@ sequenceDiagram
     Auth->>Auth: Validate credentials
     Auth->>C: JWT (access_token + refresh_token)
     
-    C->>API: GET /api/data<br/>Authorization: Bearer <JWT>
+    C->>API: "GET /api/data<br/>Authorization: Bearer JWT"
     API->>API: Validate JWT signature<br/>Check expiration<br/>Extract claims
     API->>C: 200 OK (data)
     
@@ -777,7 +777,7 @@ sequenceDiagram
     participant API as Resource Server
 
     U->>App: Click "Login with Google"
-    App->>Auth: Redirect to /authorize?client_id=...&redirect_uri=...&scope=...
+    App->>Auth: "Redirect to /authorize?client_id=...&redirect_uri=...&scope=..."
     U->>Auth: Login & consent
     Auth->>App: Redirect to callback with authorization code
     App->>Auth: POST /token (code + client_secret)
@@ -888,9 +888,9 @@ Use this as a reference during interviews:
 ```mermaid
 flowchart TD
     Q[API Design Question] --> RT{Resource types?}
-    RT -->|Well-defined, few| REST[REST API]
-    RT -->|Complex, nested, varying clients| GQL[GraphQL]
-    RT -->|High-perf internal service| GRPC[gRPC]
+    RT -->|"Well-defined, few"| REST[REST API]
+    RT -->|"Complex, nested, varying clients"| GQL[GraphQL]
+    RT -->|"High-perf internal service"| GRPC[gRPC]
     
     REST --> V{Need versioning?}
     V -->|Yes| URI[URI path versioning<br/>most common, explicit]
@@ -898,12 +898,12 @@ flowchart TD
     
     REST --> P{List endpoints?}
     P -->|Static data| OFFSET[Offset pagination]
-    P -->|Feed/timeline| CURSOR[Cursor pagination]
+    P -->|"Feed/timeline"| CURSOR[Cursor pagination]
     
     REST --> AUTH{Auth needs?}
     AUTH -->|Stateless microservices| JWT[JWT tokens]
-    AUTH -->|Third-party access| OAUTH[OAuth 2.0]
-    AUTH -->|Server-to-server| APIKEY[API keys + mTLS]
+    AUTH -->|"Third-party access"| OAUTH[OAuth 2.0]
+    AUTH -->|"Server-to-server"| APIKEY["API keys + mTLS"]
 ```
 
 !!! important

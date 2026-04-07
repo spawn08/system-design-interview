@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Ingest [Content Ingestion]
+        Crawl[Web Crawler /<br/>Product Feed]
+        Dedup[Deduplication<br/>Content Hash]
+    end
+
+    subgraph Process [Processing]
+        ImgProc[Image Processing<br/>Resize, Normalize]
+        OCR[OCR Extraction]
+        ObjDet[Object Detection]
+        MetaExtract[Metadata<br/>Extraction]
+    end
+
+    subgraph Embed [Embedding]
+        BatchEmbed[Batch Embedding<br/>GPU Cluster]
+        QualityCheck[Quality Check<br/>& Filtering]
+    end
+
+    subgraph Index [Index Build]
+        Partitioner[Vector<br/>Partitioner]
+        Quantizer[Product<br/>Quantization]
+        IndexWriter[Index<br/>Writer]
+    end
+
+    Ingest --> Process --> Embed --> Index

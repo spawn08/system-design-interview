@@ -3362,11 +3362,11 @@
 </table>
 <p>ML rankers should not <strong>optimize on fraudulent clicks</strong> — labels are often <strong>filtered</strong> using <strong>rules + models</strong> before training.</p>
 <div class="mermaid">flowchart TB
-    subgraph Primer [Concept map]
-        A[pCTR / pCVR models]
-        B[Auction: bid × quality × predictions]
-        C[Pacing / budgets]
-        D[Bias + calibration]
+    subgraph prim["Concept map"]
+        A["pCTR / pCVR models"]
+        B["Auction: bid × quality × predictions"]
+        C["Pacing / budgets"]
+        D["Bias + calibration"]
         E[Exploration]
     end
 
@@ -3624,34 +3624,34 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart LR
-    subgraph Request [Request path]
+    subgraph reqp["Request path"]
         AR[Ad Request]
     end
 
-    subgraph Retrieval [Candidate Retrieval]
+    subgraph retr["Candidate Retrieval"]
         T[Targeting match]
-        B[Budget / pacing filter]
+        B["Budget / pacing filter"]
         FC[Frequency cap]
         Cands[Candidate ads&lt;br/&gt;10²–10⁴]
     end
 
-    subgraph Features [Feature Assembly]
+    subgraph feat["Feature Assembly"]
         UF[User features]
         ADF[Ad features]
         CF[Context features]
-        ASM[Assembled tensors / sparse batch]
+        ASM["Assembled tensors / sparse batch"]
     end
 
-    subgraph ML [CTR / CVR models]
-        M[Deep ranker&lt;br/&gt;pCTR, pCVR]
+    subgraph mlrank["CTR / CVR models"]
+        M["Deep ranker&lt;br/&gt;pCTR, pCVR"]
     end
 
-    subgraph Auction [Auction engine]
-        E[eCPM = f&lt;br/&gt;pCTR, bid, quality]
-        SEL[Ad selection + pricing]
+    subgraph auc["Auction engine"]
+        E["eCPM = f&lt;br/&gt;pCTR, bid, quality"]
+        SEL["Ad selection + pricing"]
     end
 
-    subgraph Out [Serving]
+    subgraph out["Serving"]
         SRV[Ad served to user]
     end
 
@@ -3670,21 +3670,21 @@
 <h3 id="offline-training-and-logging-companion-path">Offline training and logging (companion path)<a class="headerlink" href="#offline-training-and-logging-companion-path" title="Permanent link">&para;</a></h3>
 <p>The <strong>online</strong> path scores a request in milliseconds; the <strong>offline</strong> path ingests <strong>impression / click / conversion</strong> logs for training. These are <strong>decoupled</strong> systems with <strong>shared schemas</strong> and strict <strong>feature parity</strong> checks.</p>
 <div class="mermaid">flowchart LR
-    subgraph Online [Online serving]
+    subgraph onl["Online serving"]
         REQ[Ad request logs]
-        WIN[Winning ad + price]
+        WIN["Winning ad + price"]
     end
 
-    subgraph Storage [Data lake / stream]
+    subgraph stor["Data lake / stream"]
         IMP[Impression stream]
         CLK[Click stream]
         CNV[Conversion stream]
     end
 
-    subgraph Train [Training]
-        JOIN[Join + label delay handling]
+    subgraph trn["Training"]
+        JOIN["Join + label delay handling"]
         FEAT[Feature generation at t_impression]
-        TUNE[Train / calibrate]
+        TUNE["Train / calibrate"]
         REL[Release to model servers]
     end
 
@@ -4566,25 +4566,25 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph Goals [Advertiser goals]
-        T[tCPA / tROAS target]
-        B[Budget + schedule]
+    subgraph goals["Advertiser goals"]
+        T["tCPA / tROAS target"]
+        B["Budget + schedule"]
     end
 
-    subgraph Control [Bid control]
-        L[Bid landscape / response model]
-        PID[Controller e.g. PID or online learner]
+    subgraph bctrl["Bid control"]
+        L["Bid landscape / response model"]
+        PID["Controller e.g. PID or online learner"]
         EB[Effective bid multiplier]
     end
 
-    subgraph Auction [Live auction]
-        R[Ranker + pCTR/pCVR]
+    subgraph auc3["Live auction"]
+        R["Ranker + pCTR/pCVR"]
         AUC[Auction + pricing]
-        SP[Spend + outcomes]
+        SP["Spend + outcomes"]
     end
 
-    subgraph Pace [Pacing]
-        P[Pacing state vs curve]
+    subgraph pace["Pacing"]
+        P["Pacing state vs curve"]
     end
 
     T --&gt; PID
@@ -4913,19 +4913,19 @@ p_i^{\text{VCG}} = W_{-i} - W_{-i}^{*}(i \text{ excluded})
 </tbody>
 </table>
 <div class="mermaid">flowchart TB
-    subgraph SLI [SLOs]
+    subgraph sli["SLOs"]
         L[Latency P99]
         Q[Quality score]
         R[Revenue RPM]
     end
 
-    subgraph Ops [Ops loops]
+    subgraph opsl["Ops loops"]
         M[Monitor drift]
         A[Auto rollback model]
-        E[Incident: degrade path]
+        E["Incident: degrade path"]
     end
 
-    SLI --&gt; Ops</div>
+    sli --&gt; opsl</div>
 <hr />
 <h2 id="interview-tips">Interview Tips<a class="headerlink" href="#interview-tips" title="Permanent link">&para;</a></h2>
 <table>

@@ -1,0 +1,6 @@
+flowchart TB
+    R[GET /feed] --> A[Load ZSET ids]
+    R --> B[Load celebrity recent]
+    A --> M[Merge + dedupe]
+    B --> M
+    M --> Rank[Rank / truncate]

@@ -1,0 +1,32 @@
+flowchart LR
+  subgraph Pretrain["Pre-trained base LM"]
+    PT[Next-token objective\nweb-scale corpus]
+  end
+
+  subgraph SFT["Stage 1: SFT"]
+    D1[(Instruction JSONL)]
+    M1[SFT trainer]
+    PiSFT[Instruction-tuned π_SFT]
+    PT --> M1
+    D1 --> M1
+    M1 --> PiSFT
+  end
+
+  subgraph RM["Stage 2: Reward model"]
+    D2[(Preference pairs\nchosen/rejected)]
+    RMtrain[Train r_φ\nBradley-Terry loss]
+    PiSFT --> RMtrain
+    D2 --> RMtrain
+    RMtrain --> Rphi[Scalar reward model r_φ]
+  end
+
+  subgraph PPO["Stage 3: PPO RLHF"]
+    Roll[Rollouts / sampling]
+    Adv[Advantages + KL penalty]
+    PPOupd[Policy update π_θ]
+    PiSFT --> Roll
+    Rphi --> Roll
+    Roll --> Adv --> PPOupd
+    PiSFT -. reference π_ref .-> PPOupd
+    PPOupd --> PiAligned[Aligned policy π*]
+  end

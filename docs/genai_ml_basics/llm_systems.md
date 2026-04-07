@@ -97,33 +97,33 @@ Self-hosted 7B model:       25 × $1.5/hr × 24 = $900/day
 
 ```mermaid
 graph TB
-    subgraph Client Layer
+    subgraph cl["Client Layer"]
         WEB[Web App]
         API_C[API Client]
         MOBILE[Mobile]
     end
 
-    subgraph API Layer
+    subgraph al["API Layer"]
         GW[API Gateway]
         GUARD[Guardrails<br/>Input Filter]
     end
 
-    subgraph RAG Pipeline
+    subgraph rag["RAG Pipeline"]
         EMBED_Q[Query Encoder]
         VECTOR[(Vector DB<br/>Pinecone / Weaviate)]
         RERANK[Re-ranker]
         CONTEXT[Context Builder]
     end
 
-    subgraph LLM Serving
+    subgraph lls["LLM Serving"]
         PROMPT[Prompt Manager]
         ROUTER[Model Router]
-        LLM1[LLM - GPT-4o<br/>Complex queries]
-        LLM2[LLM - 7B Model<br/>Simple queries]
+        LLM1["LLM - GPT-4o<br/>Complex queries"]
+        LLM2["LLM - 7B Model<br/>Simple queries"]
         CACHE[(Semantic Cache<br/>Redis)]
     end
 
-    subgraph Post-Processing
+    subgraph pp["Post-Processing"]
         FILTER[Output Filter<br/>PII, Safety]
         CITE[Citation Generator]
         STREAM[SSE Streamer]

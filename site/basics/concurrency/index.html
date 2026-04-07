@@ -2996,11 +2996,11 @@
 <p>A single CPU core achieves concurrency through <strong>context switching</strong>—rapidly switching between tasks so fast it appears simultaneous.</p>
 <p>True parallelism requires multiple CPU cores or processors.</p>
 <div class="mermaid">flowchart LR
-    subgraph Concurrent [Concurrency - Single Core]
+    subgraph cc["Concurrency - Single Core"]
         C1[Task A] --&gt; C2[Task B] --&gt; C3[Task A] --&gt; C4[Task B]
     end
 
-    subgraph Parallel [Parallelism - Multi Core]
+    subgraph pm["Parallelism - Multi Core"]
         direction TB
         P1[Task A] --&gt; P2[Task A cont.]
         P3[Task B] --&gt; P4[Task B cont.]
@@ -3552,15 +3552,15 @@
 <li>When I/O completes, original task resumes</li>
 </ol>
 <div class="mermaid">flowchart TD
-    A[Start Task A] --&gt; B[Task A: fetch_url]
-    B --&gt; C[I/O wait - yield]
+    A[Start Task A] --&gt; B["Task A: fetch_url"]
+    B --&gt; C["I/O wait - yield"]
     C --&gt; D[Start Task B]
-    D --&gt; E[Task B: fetch_url]
-    E --&gt; F[I/O wait - yield]
-    F --&gt; G[Task A: I/O complete, resume]
-    G --&gt; H[Task A: process result]
-    H --&gt; I[Task B: I/O complete, resume]
-    I --&gt; J[Task B: process result]</div>
+    D --&gt; E["Task B: fetch_url"]
+    E --&gt; F["I/O wait - yield"]
+    F --&gt; G["Task A: I/O complete, resume"]
+    G --&gt; H["Task A: process result"]
+    H --&gt; I["Task B: I/O complete, resume"]
+    I --&gt; J["Task B: process result"]</div>
 <p><strong>Async vs Threads:</strong></p>
 <table>
 <thead>

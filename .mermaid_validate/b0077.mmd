@@ -1,0 +1,19 @@
+flowchart TD
+    subgraph Servers [Application Servers]
+        S1[Server 1]
+        S2[Server 2]
+        S3[Server 3]
+    end
+    
+    subgraph Cache [Distributed Cache]
+        Redis[(Redis)]
+    end
+    
+    subgraph Database [Database]
+        DB[(PostgreSQL)]
+    end
+    
+    S1 --> Redis
+    S2 --> Redis
+    S3 --> Redis
+    Redis -.-> DB

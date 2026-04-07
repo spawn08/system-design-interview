@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant OS as Order Service
+    participant PS as Payment Service
+    participant IS as Inventory Service
+    participant SS as Shipping Service
+
+    OS->>OS: Create Order (PENDING)
+    OS->>PS: Charge Payment
+    PS->>PS: Deduct $100
+    PS->>IS: Reserve Inventory
+    IS->>IS: Reserve 1 unit
+    IS->>SS: Schedule Shipment
+    SS--xSS: Shipment failed!
+    
+    Note over OS,SS: Compensation begins (reverse order)
+    SS->>IS: Cancel reservation
+    IS->>IS: Release 1 unit
+    IS->>PS: Refund payment
+    PS->>PS: Credit $100
+    PS->>OS: Cancel order
+    OS->>OS: Order CANCELLED

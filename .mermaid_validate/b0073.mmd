@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant C as Client
+    participant Auth as Auth Service
+    participant API as API Server
+
+    C->>Auth: POST /login (credentials)
+    Auth->>Auth: Validate credentials
+    Auth->>C: JWT (access_token + refresh_token)
+    
+    C->>API: GET /api/data<br/>Authorization: Bearer <JWT>
+    API->>API: Validate JWT signature<br/>Check expiration<br/>Extract claims
+    API->>C: 200 OK (data)
+    
+    Note over C,API: Token expired
+    C->>Auth: POST /refresh (refresh_token)
+    Auth->>C: New JWT

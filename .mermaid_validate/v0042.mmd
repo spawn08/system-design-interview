@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph Sources
+        K[Kafka Topic]
+        F[File System]
+    end
+    
+    subgraph Flink Cluster
+        SM[Source<br/>Operator] --> TR[Transform<br/>Operator]
+        TR --> AGG[Aggregate<br/>Operator]
+        AGG --> WIN[Window<br/>Operator]
+    end
+    
+    subgraph Sinks
+        DB[(Database)]
+        K2[Kafka Topic]
+        ES[Elasticsearch]
+    end
+    
+    K --> SM
+    F --> SM
+    WIN --> DB
+    WIN --> K2
+    WIN --> ES

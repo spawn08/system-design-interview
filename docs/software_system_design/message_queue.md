@@ -331,7 +331,7 @@ flowchart TB
     P -->|acks=all| L2
     L2 -.->|cannot replicate| F3[Followers unreachable]
   end
-  Healthy -->|split-brain risk if two leaders| Partition
+  Healthy -->|"split-brain risk if two leaders"| Partition
 ```
 
 !!! tip
@@ -518,8 +518,8 @@ flowchart TB
     L1[(Log segments\n+ indexes)]
   end
   subgraph Consumers
-    G1[Consumer Group: payments]
-    G2[Consumer Group: analytics]
+    G1["Consumer Group: payments"]
+    G2["Consumer Group: analytics"]
   end
   subgraph Metadata
     Z[ZooKeeper or KRaft\nmetadata quorum]
@@ -1182,7 +1182,7 @@ flowchart LR
     PB --> BB
     BB --> CB
   end
-  BA <-->|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB
+  BA <-->|"MirrorMaker 2 / Cluster Linking\nreplicate topics"| BB
 ```
 
 **Conflict resolution (active-active):** If the **same key** can be written in **both** regions, you need **deterministic merge** rules: **last-write-wins (LWW)** with **vector clocks** / **version fields**, **CRDTs**, or **region-owned key prefixes** (`us-east-{id}` vs `eu-west-{id}`) so keys **don’t collide**. The log **does not** magically merge business conflicts.

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant CL as Client
+    participant API as Upload API
+    participant OS as Object Storage
+    participant Q as Queue
+    participant OR as Orchestrator
+    CL->>API: POST /uploads (metadata)
+    API->>CL: upload_id, presigned URLs
+    loop chunks
+        CL->>OS: PUT part n
+        OS->>CL: ETag / checksum
+    end
+    CL->>API: POST /complete (parts, hashes)
+    API->>OS: CompleteMultipartUpload
+    API->>Q: VideoUploaded event
+    Q->>OR: consume
+    OR->>OR: build DAG, schedule jobs

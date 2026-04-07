@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph DC1 [Data Center 1]
+        Client1[Client] --> Node1[(Node A)]
+    end
+    
+    subgraph DC2 [Data Center 2]
+        Client2[Client] --> Node2[(Node B)]
+    end
+    
+    Node1 -.-x|Network Partition| Node2

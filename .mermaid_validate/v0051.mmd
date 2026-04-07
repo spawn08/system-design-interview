@@ -1,0 +1,4 @@
+flowchart LR
+    A[Service A] -->|event| MQ[Message Queue]
+    MQ -->|consume| B[Service B]
+    MQ -->|consume| C[Service C]

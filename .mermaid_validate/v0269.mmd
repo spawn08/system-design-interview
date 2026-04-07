@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant C as Customer API
+  participant API as Purge API
+  participant DB as PostgreSQL
+  participant K as Kafka (global)
+  participant R as Regional consumer
+  participant P as PoP agent
+  participant E as Edge nodes
+  C->>API: POST /v1/purge (tags + urls)
+  API->>DB: insert purge_jobs (queued)
+  API->>K: publish PurgeEvent
+  API-->>C: 202 accepted + job id
+  K->>R: shard by region
+  R->>P: deliver to each PoP topic
+  loop each PoP
+    P->>E: broadcast invalidate (batched)
+    E->>E: drop keys + optional soft-purge
+  end

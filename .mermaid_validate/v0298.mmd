@@ -1,0 +1,22 @@
+flowchart TB
+  subgraph ingest [Ingest + Kafka]
+    K[Kafka cluster]
+    P[Producer acks=all]
+    P --> K
+  end
+
+  subgraph redis_layer [Redis layer]
+    M[Primary shard]
+    R[Replica read]
+    M --> R
+  end
+
+  subgraph cap [CAP story]
+    CP[Strong per-key on primary]
+    AP[Replicas may lag for reads]
+    PART[Partition: prefer availability with bounded staleness OR fail closed for writes]
+  end
+
+  K --> M
+  R --> AP
+  M --> CP

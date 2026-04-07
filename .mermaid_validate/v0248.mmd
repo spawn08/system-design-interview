@@ -1,0 +1,7 @@
+stateDiagram-v2
+  [*] --> Closed
+  Closed --> Open: threshold exceeded
+  Open --> HalfOpen: after cooldown
+  HalfOpen --> Closed: probe ok
+  HalfOpen --> Open: probe fails
+  note right of Open: fail fast to client

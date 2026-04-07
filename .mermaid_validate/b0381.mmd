@@ -1,0 +1,17 @@
+flowchart TB
+    subgraph AP_path["AP-leaning: redirect read path"]
+        R[Client] --> Edge[CDN / LB]
+        Edge --> App[Redirect service]
+        App --> Cache[(Redis)]
+        App --> DB[(Primary / replicas)]
+    end
+
+    subgraph CP_moment["CP moment: create mapping"]
+        C[Create API] --> Auth[Transactional insert UNIQUE short_code]
+        Auth --> Primary[(Authoritative store)]
+    end
+
+    subgraph Analytics_AP["AP: analytics pipeline"]
+        App --> Q[Queue]
+        Q --> OLAP[(Analytics store)]
+    end

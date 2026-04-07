@@ -1,0 +1,6 @@
+stateDiagram-v2
+    [*] --> Closed
+    Closed --> Open: Failure threshold exceeded
+    Open --> HalfOpen: Timeout expires
+    HalfOpen --> Closed: Probe succeeds
+    HalfOpen --> Open: Probe fails

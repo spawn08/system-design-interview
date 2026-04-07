@@ -1,0 +1,12 @@
+flowchart LR
+    subgraph Training [Contrastive Training]
+        Img[Image:<br/>"A photo of a cat"]
+        Txt[Text:<br/>"A photo of a cat"]
+        ImgEnc[Image<br/>Encoder<br/>ViT-L]
+        TxtEnc[Text<br/>Encoder<br/>Transformer]
+        ImgEmb[Image<br/>Embedding]
+        TxtEmb[Text<br/>Embedding]
+        Img --> ImgEnc --> ImgEmb
+        Txt --> TxtEnc --> TxtEmb
+        ImgEmb <-->|maximize<br/>similarity| TxtEmb
+    end

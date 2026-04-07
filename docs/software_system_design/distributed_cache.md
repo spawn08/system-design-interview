@@ -168,9 +168,9 @@ flowchart TB
   C1 -->|read| N2
   C1 -->|ideal write| N1
   N1 -.->|replication blocked| N2
-  C1 -->|choice: fail vs stale| X{Serve stale read?}
-  X -->|AP: yes| R[Return replica value + optional version]
-  X -->|CP: no| E[Error / retry / redirect]
+  C1 -->|"choice: fail vs stale"| X{Serve stale read?}
+  X -->|"AP: yes"| R[Return replica value + optional version]
+  X -->|"CP: no"| E[Error / retry / redirect]
 ```
 
 **Interview punchline:** Caches **bias toward availability and partition tolerance** for reads; **correctness** comes from **TTL**, **invalidation**, **versioning**, and **application-level invariants**, not from pretending the cache is a strongly consistent store.
@@ -872,10 +872,10 @@ flowchart TB
   subgraph AZ3
     F2[Follower 2]
   end
-  L -->|replication log| F1
-  L -->|replication log| F2
+  L -->|"replication log"| F1
+  L -->|"replication log"| F2
   C[Clients] -->|writes| L
-  C -->|reads optional| F1
+  C -->|"reads optional"| F1
 ```
 
 === "Java"

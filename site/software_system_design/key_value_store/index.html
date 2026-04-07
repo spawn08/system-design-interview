@@ -3384,9 +3384,9 @@
   end
 
   subgraph PartCP["Partition: CP / Raft shard"]
-    R1[Minority: no leader]
-    R2[Majority: leader accepts writes]
-    R3[Reads/writes fail or stale on minority]
+    R1["Minority: no leader"]
+    R2["Majority: leader accepts writes"]
+    R3["Reads/writes fail or stale on minority"]
     R1 -.-&gt;|no quorum| R2
     R2 --&gt; R3
   end</div>
@@ -4455,16 +4455,16 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-  subgraph US-East
+  subgraph use["US-East"]
     L1[Leader Partition 1]
     F2[Follower Partition 2]
   end
-  subgraph EU-West
+  subgraph euw["EU-West"]
     F1[Follower Partition 1]
     L2[Leader Partition 2]
   end
-  L1 --&gt;|async replication| F1
-  L2 --&gt;|async replication| F2</div>
+  L1 --&gt;|"async replication"| F1
+  L2 --&gt;|"async replication"| F2</div>
 <h3 id="compaction-strategy-deep-dive">Compaction Strategy Deep Dive<a class="headerlink" href="#compaction-strategy-deep-dive" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

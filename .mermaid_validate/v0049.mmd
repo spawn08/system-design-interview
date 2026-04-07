@@ -1,0 +1,21 @@
+flowchart TD
+    MOBILE[Mobile App] --> GW
+    WEB[Web App] --> GW
+    EXT[External API] --> GW
+    
+    GW[API Gateway]
+    
+    GW -->|/users/**| US[User Service]
+    GW -->|/orders/**| OS[Order Service]
+    GW -->|/payments/**| PS[Payment Service]
+    GW -->|/search/**| SS[Search Service]
+    
+    subgraph Gateway Responsibilities
+        AUTH[Authentication]
+        RL[Rate Limiting]
+        ROUTE[Routing]
+        TLS[TLS Termination]
+        CACHE[Response Caching]
+        LOG[Logging / Tracing]
+        TRANSFORM[Request Transform]
+    end

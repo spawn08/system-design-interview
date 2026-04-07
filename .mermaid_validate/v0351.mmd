@@ -1,0 +1,7 @@
+flowchart LR
+  subgraph Read["Feed read path"]
+    A[GET /feed] --> B[Load candidate ids]
+    B --> C[Filter + rank]
+    C --> D[Batch hydrate metadata]
+    D --> E[JSON + next_cursor]
+  end

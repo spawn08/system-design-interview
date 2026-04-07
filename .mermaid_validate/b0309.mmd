@@ -1,0 +1,31 @@
+flowchart TB
+  subgraph Producers
+    P1[Producer A]
+    P2[Producer B]
+  end
+  subgraph Brokers
+    B1[Broker 1\nLeader P0,P3]
+    B2[Broker 2\nLeader P1,P4]
+    B3[Broker 3\nLeader P2,P5]
+  end
+  subgraph Storage
+    L1[(Log segments\n+ indexes)]
+  end
+  subgraph Consumers
+    G1[Consumer Group: payments]
+    G2[Consumer Group: analytics]
+  end
+  subgraph Metadata
+    Z[ZooKeeper or KRaft\nmetadata quorum]
+  end
+  P1 --> B1
+  P2 --> B2
+  B1 --> L1
+  B2 --> L1
+  B3 --> L1
+  B1 --> G1
+  B2 --> G1
+  B3 --> G2
+  B1 -.-> Z
+  B2 -.-> Z
+  B3 -.-> Z

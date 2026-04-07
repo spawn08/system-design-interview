@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant P as Proposer
+    participant A1 as Acceptor 1
+    participant A2 as Acceptor 2
+    participant A3 as Acceptor 3
+    participant L as Learner
+
+    Note over P,L: Phase 1: Prepare
+    P->>A1: Prepare(n=1)
+    P->>A2: Prepare(n=1)
+    P->>A3: Prepare(n=1)
+    A1->>P: Promise(n=1, no prev)
+    A2->>P: Promise(n=1, no prev)
+    A3->>P: Promise(n=1, no prev)
+
+    Note over P,L: Phase 2: Accept
+    P->>A1: Accept(n=1, v="NodeA")
+    P->>A2: Accept(n=1, v="NodeA")
+    P->>A3: Accept(n=1, v="NodeA")
+    A1->>P: Accepted(n=1)
+    A2->>P: Accepted(n=1)
+
+    Note over P,L: Phase 3: Learn
+    P->>L: Decided: "NodeA"

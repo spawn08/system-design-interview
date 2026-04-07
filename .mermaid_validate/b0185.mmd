@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph base["Base generation (cheap latent)"]
+    zT[z_T ~ noise]
+    zT --> UN[U-Net denoising N steps]
+    UN --> z0[z_0 latent]
+  end
+  z0 --> DEC[VAE decode]
+  DEC --> low[Low-res RGB preview]
+  subgraph sr["Super-resolution cascade"]
+    low --> SR1[SR 2×]
+    SR1 --> mid[Mid-res]
+    mid --> SR2[SR 2× or refiner]
+    SR2 --> hi[Final high-res]
+  end

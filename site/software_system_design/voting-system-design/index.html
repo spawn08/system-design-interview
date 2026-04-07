@@ -3707,26 +3707,26 @@
 </ul>
 <h3 id="diagram-logical-partitions-of-consistency">Diagram: logical partitions of consistency<a class="headerlink" href="#diagram-logical-partitions-of-consistency" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph CP_Path [CP-oriented: vote integrity]
+    subgraph CP_Path["CP-oriented: vote integrity"]
         VS[Vote submission path]
         UC[(DB UNIQUE / conditional write)]
         VS --&gt; UC
     end
 
-    subgraph AP_Path [AP-oriented: read scaling]
+    subgraph AP_Path["AP-oriented: read scaling"]
         RC[Results / counts read path]
         CACHE[(Redis / read replicas)]
         RC --&gt; CACHE
     end
 
-    subgraph Eventual [Eventual: display freshness]
+    subgraph Eventual["Eventual: display freshness"]
         LB[Leaderboard / live ticker]
         Q[Stream / worker updates]
         LB --&gt; Q
         Q --&gt; CACHE
     end
 
-    UC -.-&gt;|reconcile / async projection| CACHE</div>
+    UC -.-&gt;|"reconcile / async projection"| CACHE</div>
 <p><strong>Interview takeaway:</strong> Say clearly: <strong>dedup is a consistency problem</strong>; <strong>fan-out reads and UI aggregates are availability/throughput problems</strong>. Separate paths, reconcile.</p>
 <hr />
 <h2 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h2>
@@ -4027,35 +4027,35 @@
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph Clients["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
 
-    subgraph Edge [Edge Layer]
+    subgraph Edge["Edge Layer"]
         CDN[CDN]
         LB[Load Balancer]
     end
 
-    subgraph Gateway [API Layer]
+    subgraph Gateway["API Layer"]
         APIGw[API Gateway&lt;br/&gt;Rate Limiting + Auth]
     end
 
-    subgraph Services [Application Layer]
+    subgraph Services["Application Layer"]
         UserSvc[User Service]
         PollSvc[Poll Service]
         VoteSvc[Vote Service]
         ResultSvc[Results Service]
     end
 
-    subgraph Async [Async Processing]
+    subgraph Async["Async Processing"]
         Queue[Kafka]
         VoteWorker[Vote Processor]
         ResultWorker[Results Aggregator]
     end
 
-    subgraph Data [Data Layer]
+    subgraph Data["Data Layer"]
         Cache[(Redis)]
         PollDB[(Poll DB)]
         VoteDB[(Vote DB)]
@@ -4120,10 +4120,10 @@
 <h3 id="defense-in-depth-strategy">Defense in Depth Strategy<a class="headerlink" href="#defense-in-depth-strategy" title="Permanent link">&para;</a></h3>
 <p>We use multiple layers of protection:</p>
 <div class="mermaid">flowchart TD
-    Vote[Vote Request] --&gt; L1{Layer 1:&lt;br/&gt;Redis Check}
+    Vote[Vote Request] --&gt; L1{"Layer 1:&lt;br/&gt;Redis Check"}
     L1 --&gt;|Already voted| Reject1[Reject]
-    L1 --&gt;|Not found| L2[Layer 2:&lt;br/&gt;Kafka Dedup]
-    L2 --&gt; L3{Layer 3:&lt;br/&gt;DB Constraint}
+    L1 --&gt;|Not found| L2["Layer 2:&lt;br/&gt;Kafka Dedup"]
+    L2 --&gt; L3{"Layer 3:&lt;br/&gt;DB Constraint"}
     L3 --&gt;|Constraint violation| Reject2[Log &amp; Ignore]
     L3 --&gt;|Success| Store[Vote Stored]
     Store --&gt; UpdateCache[Update Redis]</div>
@@ -4626,18 +4626,18 @@
 <h3 id="handling-viral-polls">Handling Viral Polls<a class="headerlink" href="#handling-viral-polls" title="Permanent link">&para;</a></h3>
 <p>When a celebrity creates a poll and 10 million people vote:</p>
 <div class="mermaid">flowchart LR
-    subgraph Normal [Normal: 100 votes/sec]
+    subgraph Normal["Normal: 100 votes/sec"]
         N1[3 API pods]
         N2[3 workers]
     end
 
-    subgraph Viral [Viral: 10K votes/sec]
+    subgraph Viral["Viral: 10K votes/sec"]
         V1[30 API pods]
         V2[30 workers]
     end
 
     Monitor[Metrics] --&gt; HPA[HPA / Auto-scaler]
-    HPA --&gt; |scale up| Viral</div>
+    HPA --&gt;|scale up| Viral</div>
 <p><strong>Auto-scaling rules:</strong>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Kubernetes HPA</span>
 </span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2</span>

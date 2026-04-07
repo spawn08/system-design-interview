@@ -1,0 +1,6 @@
+flowchart TB
+    E[PostCreated event] --> D{Celebrity?}
+    D -->|no| P[Push to Redis ZSET per follower]
+    D -->|yes| S[Write to author's recent list only]
+    S --> R[Followers merge at read]
+    P --> R

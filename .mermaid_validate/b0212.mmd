@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph Query [Query Layer]
+        API[Search API]
+        ImageProc[Image Processor]
+        TextProc[Text Processor]
+    end
+    
+    subgraph Encoding [Encoding Layer]
+        ImageEnc[Image Encoder<br/>CLIP ViT]
+        TextEnc[Text Encoder<br/>CLIP Text]
+    end
+    
+    subgraph Search [Search Layer]
+        ANN[Vector Index<br/>FAISS/Pinecone]
+        Filter[Post-Filter]
+        Ranker[Re-ranker]
+    end
+    
+    subgraph Offline [Offline Pipeline]
+        Indexer[Indexing Pipeline]
+        Batch[Batch Encoder]
+        Catalog[(Product Catalog)]
+    end
+    
+    subgraph Storage [Storage]
+        VectorDB[(Vector Store)]
+        Metadata[(Metadata Store)]
+        Cache[(Redis Cache)]
+    end
+    
+    API --> ImageProc
+    API --> TextProc
+    
+    ImageProc --> ImageEnc
+    TextProc --> TextEnc
+    
+    ImageEnc --> ANN
+    TextEnc --> ANN
+    
+    ANN --> Filter
+    Filter --> Ranker
+    Ranker --> API
+    
+    Catalog --> Indexer
+    Indexer --> Batch
+    Batch --> VectorDB
+    VectorDB --> ANN
+    
+    ANN --> Cache
+    Filter --> Metadata

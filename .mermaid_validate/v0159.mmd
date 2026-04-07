@@ -1,0 +1,27 @@
+sequenceDiagram
+    participant U as User
+    participant O as Orchestrator
+    participant P as Planner LLM
+    participant TR as Tool Router
+    participant T as Tool Worker
+    participant M as Memory Store
+    participant E as Evaluator
+
+    U->>O: Task + session_id
+    O->>M: Load scratchpad + retrieve (optional)
+    M-->>O: Context bundle
+    O->>P: Prompt with tools + policy
+    P-->>O: tool_call JSON
+    O->>TR: validate + authorize
+    TR->>T: execute (sandbox)
+    T-->>TR: observation
+    TR-->>O: normalized result
+    O->>M: append observation / episodic event
+    O->>E: progress + safety check
+    alt continue
+        E-->>O: continue
+        O->>P: next iteration
+    else finish
+        E-->>O: stop
+        O-->>U: final answer + citations
+    end

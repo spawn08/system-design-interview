@@ -1,0 +1,43 @@
+flowchart LR
+  subgraph clients["Data sources"]
+    A1[Agents / exporters]
+    A2[OpenTelemetry SDK]
+    A3[Push gateway]
+  end
+
+  subgraph edge["Ingestion"]
+    GW[Ingestion Gateway / Distributor]
+  end
+
+  subgraph write["Write path"]
+    ING[Ingester]
+    WAL[(WAL)]
+    TS[(Time-series DB / Blocks)]
+  end
+
+  subgraph read["Read path"]
+    QRY[Query frontend]
+    ENG[Query engine / Evaluator]
+    CACHE[Cache / Results]
+  end
+
+  subgraph async["Async & UX"]
+    ALT[Alerting engine]
+    RUL[Rule store]
+    NOT[Notification router]
+    DASH[Dashboard API]
+  end
+
+  A1 --> GW
+  A2 --> GW
+  A3 --> GW
+  GW --> ING
+  ING --> WAL
+  ING --> TS
+  QRY --> ENG
+  ENG --> TS
+  ENG --> CACHE
+  ALT --> ENG
+  RUL --> ALT
+  ALT --> NOT
+  DASH --> QRY

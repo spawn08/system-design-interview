@@ -48,11 +48,11 @@ True parallelism requires multiple CPU cores or processors.
 
 ```mermaid
 flowchart LR
-    subgraph Concurrent [Concurrency - Single Core]
+    subgraph cc["Concurrency - Single Core"]
         C1[Task A] --> C2[Task B] --> C3[Task A] --> C4[Task B]
     end
     
-    subgraph Parallel [Parallelism - Multi Core]
+    subgraph pm["Parallelism - Multi Core"]
         direction TB
         P1[Task A] --> P2[Task A cont.]
         P3[Task B] --> P4[Task B cont.]
@@ -683,15 +683,15 @@ asyncio.run(main())
 
 ```mermaid
 flowchart TD
-    A[Start Task A] --> B[Task A: fetch_url]
-    B --> C[I/O wait - yield]
+    A[Start Task A] --> B["Task A: fetch_url"]
+    B --> C["I/O wait - yield"]
     C --> D[Start Task B]
-    D --> E[Task B: fetch_url]
-    E --> F[I/O wait - yield]
-    F --> G[Task A: I/O complete, resume]
-    G --> H[Task A: process result]
-    H --> I[Task B: I/O complete, resume]
-    I --> J[Task B: process result]
+    D --> E["Task B: fetch_url"]
+    E --> F["I/O wait - yield"]
+    F --> G["Task A: I/O complete, resume"]
+    G --> H["Task A: process result"]
+    H --> I["Task B: I/O complete, resume"]
+    I --> J["Task B: process result"]
 ```
 
 **Async vs Threads:**

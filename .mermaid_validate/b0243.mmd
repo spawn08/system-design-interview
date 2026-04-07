@@ -1,0 +1,22 @@
+flowchart TB
+  subgraph ingest["Ingest path — AP log, tunable acks"]
+    P[Producers] --> L[(Durable log)]
+  end
+
+  subgraph agg["Aggregation — CP state + idempotent sink"]
+    L --> F[Stream processor]
+    F --> S[(OLAP / rollup sink)]
+  end
+
+  subgraph q["Query path — AP read models"]
+    S --> API[Query API]
+    R[(Redis cache)] --> API
+    S --> R
+  end
+
+  subgraph recon["Reconciliation — CP job output"]
+    L --> Lake[(Data lake)]
+    Lake --> J[Batch job]
+    J --> Rep[(Reconciliation report)]
+    S --> Rep
+  end

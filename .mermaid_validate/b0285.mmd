@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant C as Sending MTA (Client)
+    participant S as Receiving MTA (Server)
+    C->>S: CONNECT (TCP 25 or 587)
+    S-->>C: 220 Service ready
+    C->>S: EHLO client.outbound.example
+    S-->>C: 250-STARTTLS / 250-SIZE / 250 AUTH
+    C->>S: STARTTLS
+    S-->>C: 220 Ready to start TLS
+    Note over C,S: TLS handshake
+    C->>S: EHLO client.outbound.example
+    C->>S: MAIL FROM:<bounce@notify.example.com>
+    S-->>C: 250 OK
+    C->>S: RCPT TO:<user@gmail.com>
+    S-->>C: 250 OK
+    C->>S: DATA
+    S-->>C: 354 Start mail input
+    C->>S: Headers + blank line + body + .
+    S-->>C: 250 Message accepted for delivery
+    C->>S: QUIT

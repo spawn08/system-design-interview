@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph App["Application layer"]
+    GW[API gateway]
+    MOD[Moderation]
+    RAG[RAG / tools]
+  end
+
+  subgraph Model["Model layer"]
+    AL[Aligned policy π]
+    RM[Optional reward / judge]
+  end
+
+  Users((Users)) --> GW --> MOD --> RAG --> AL
+  AL --> RM
+  RM -. evaluation / routing .-> GW

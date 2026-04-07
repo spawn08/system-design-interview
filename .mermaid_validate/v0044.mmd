@@ -1,0 +1,8 @@
+flowchart LR
+    CMD[Command:<br/>PlaceOrder] --> ES[Event Store]
+    ES -->|append| E1[OrderCreated]
+    ES -->|append| E2[PaymentReceived]
+    ES -->|append| E3[OrderShipped]
+    
+    ES -->|replay| STATE[Current State:<br/>Order is Shipped]
+    ES -->|project| READ[Read Model<br/>Materialized View]

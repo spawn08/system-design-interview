@@ -1,0 +1,10 @@
+graph LR
+    REQ[Request] --> SPLIT{Traffic Splitter}
+    SPLIT -->|80%| V1[Model v1<br/>Control]
+    SPLIT -->|10%| V2[Model v2<br/>Treatment A]
+    SPLIT -->|10%| V3[Model v3<br/>Treatment B]
+
+    V1 --> LOG[Event Logger]
+    V2 --> LOG
+    V3 --> LOG
+    LOG --> ANALYSIS[Statistical Analysis<br/>Sequential Testing]

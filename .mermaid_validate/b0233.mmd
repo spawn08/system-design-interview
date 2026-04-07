@@ -1,0 +1,12 @@
+flowchart TB
+    subgraph Global [Global layer]
+        Q[Query]
+        M[Merge top-K per shard]
+    end
+    subgraph Shards [Shards 0..B-1]
+        S0[Shard 0<br/>Index + ANN]
+        S1[Shard 1<br/>Index + ANN]
+        SB[Shard B-1]
+    end
+    Q --> S0 & S1 & SB
+    S0 & S1 & SB --> M

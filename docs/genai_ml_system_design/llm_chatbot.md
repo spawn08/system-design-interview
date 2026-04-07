@@ -247,27 +247,27 @@ With spot instances (60% discount):
 
 ```mermaid
 flowchart TB
-    subgraph Clients [Client Layer]
+    subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
         API[API Clients]
     end
 
-    subgraph Gateway [API Gateway]
+    subgraph gtw["API Gateway"]
         LB[Load Balancer]
-        Auth[Auth & Rate Limit]
+        Auth["Auth & Rate Limit"]
         Router[Request Router]
     end
 
-    subgraph Safety [Safety Pipeline]
+    subgraph safe["Safety Pipeline"]
         InputFilter[Input Classifier]
         OutputFilter[Output Classifier]
         PII[PII Detector]
     end
 
-    subgraph Serving [LLM Serving Cluster]
+    subgraph serve["LLM Serving Cluster"]
         Scheduler[Request Scheduler]
-        subgraph GPUPool [GPU Pool]
+        subgraph gpool["GPU Pool"]
             GPU1[GPU Replica 1<br/>vLLM]
             GPU2[GPU Replica 2<br/>vLLM]
             GPUN[GPU Replica N<br/>vLLM]
@@ -275,37 +275,37 @@ flowchart TB
         KVStore[KV-Cache<br/>Manager]
     end
 
-    subgraph Context [Context Assembly]
+    subgraph ctx["Context Assembly"]
         ConvMgr[Conversation<br/>Manager]
         SysPrompt[System Prompt<br/>Store]
         ToolRouter[Tool Router]
     end
 
-    subgraph Storage [Storage Layer]
+    subgraph stor["Storage Layer"]
         ConvDB[(Conversation DB<br/>Spanner/Bigtable)]
         UserDB[(User Store<br/>Spanner)]
         AuditLog[(Safety Audit Log<br/>BigQuery)]
     end
 
-    subgraph Feedback [Feedback & Evaluation]
-        ThumbsUD[Thumbs Up/Down]
+    subgraph fb["Feedback & Evaluation"]
+        ThumbsUD["Thumbs Up/Down"]
         Eval[Evaluation Pipeline]
         ABTest[A/B Testing]
     end
 
-    Clients --> Gateway
-    Gateway --> Safety
-    Safety -->|clean input| Context
-    Context -->|assembled prompt| Serving
-    Serving -->|raw output| Safety
-    Safety -->|filtered output| Gateway
-    Gateway -->|SSE stream| Clients
+    cli --> gtw
+    gtw --> safe
+    safe -->|"clean input"| ctx
+    ctx -->|"assembled prompt"| serve
+    serve -->|"raw output"| safe
+    safe -->|"filtered output"| gtw
+    gtw -->|"SSE stream"| cli
     
-    Context --> Storage
-    Serving --> Storage
-    Safety --> AuditLog
-    Clients --> Feedback
-    Feedback --> Eval
+    ctx --> stor
+    serve --> stor
+    safe --> AuditLog
+    cli --> fb
+    fb --> Eval
 ```
 
 ### Component Responsibilities
@@ -501,7 +501,7 @@ sequenceDiagram
         Gateway-->>Client: SSE: data: {"delta": "token"}
     end
     
-    LLM-->>Gateway: finish_reason: stop
+    LLM-->>Gateway: "finish_reason: stop"
     Gateway->>Safety: classify_output(full_response)
     
     alt Output SAFE
@@ -526,25 +526,25 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph Input [Input Safety - Pre-Generation]
+    subgraph inp["Input Safety - Pre-Generation"]
         I1[Keyword<br/>Blocklist] --> I2[ML Classifier<br/>FastText]
         I2 --> I3[LLM Safety<br/>Classifier]
         I3 --> I4[PII<br/>Detector]
     end
 
-    subgraph Generation [Generation]
+    subgraph gen["Generation"]
         G[LLM<br/>Inference]
     end
 
-    subgraph Output [Output Safety - Post-Generation]
+    subgraph out["Output Safety - Post-Generation"]
         O1[Toxicity<br/>Classifier] --> O2[Factuality<br/>Check]
         O2 --> O3[PII<br/>Scrubber]
         O3 --> O4[Citation<br/>Injector]
     end
 
-    Input -->|SAFE| Generation
-    Generation --> Output
-    Input -->|BLOCKED| Reject[Return safe<br/>refusal message]
+    inp -->|SAFE| gen
+    gen --> out
+    inp -->|BLOCKED| Reject[Return safe<br/>refusal message]
 ```
 
 **Cascade design — fast filters first:**
@@ -646,9 +646,9 @@ class GPUAutoscaler:
 ```mermaid
 flowchart LR
     Request[User Request] --> Router{Model Router}
-    Router -->|90%| ModelA[Gemini Pro<br/>Production]
-    Router -->|5%| ModelB[Gemini Pro v2<br/>Experiment A]
-    Router -->|5%| ModelC[Fine-tuned<br/>Experiment B]
+    Router -->|"90%"| ModelA[Gemini Pro<br/>Production]
+    Router -->|"5%"| ModelB[Gemini Pro v2<br/>Experiment A]
+    Router -->|"5%"| ModelC[Fine-tuned<br/>Experiment B]
     
     ModelA --> Logger[Metrics Logger]
     ModelB --> Logger
@@ -703,29 +703,29 @@ CREATE TABLE messages (
 
 ```mermaid
 flowchart TB
-    subgraph Online [Online Signals]
-        ThumbsUp[Thumbs Up / Down]
+    subgraph onl["Online Signals"]
+        ThumbsUp["Thumbs Up / Down"]
         Regen[Regenerate Clicks]
         Abandon[Session Abandonment]
-        CopyPaste[Copy/Paste Rate]
+        CopyPaste["Copy/Paste Rate"]
     end
 
-    subgraph Offline [Offline Evaluation]
+    subgraph offl["Offline Evaluation"]
         HumanEval[Human Eval<br/>Side-by-side rating]
         AutoEval[Auto Eval<br/>LLM-as-Judge]
-        Benchmark[Benchmark Suite<br/>MMLU, HumanEval, etc.]
+        Benchmark["Benchmark Suite<br/>MMLU, HumanEval, etc."]
     end
 
-    subgraph Training [Training Pipeline]
-        RLHF[RLHF / DPO<br/>Training]
+    subgraph trainp["Training Pipeline"]
+        RLHF["RLHF / DPO<br/>Training"]
         SFT[Supervised<br/>Fine-tuning]
         Safety_T[Safety<br/>Tuning]
     end
 
-    Online --> DataPipeline[Data Pipeline]
-    DataPipeline --> Training
-    Offline --> Training
-    Training --> NewModel[New Model<br/>Candidate]
+    onl --> DataPipeline[Data Pipeline]
+    DataPipeline --> trainp
+    offl --> trainp
+    trainp --> NewModel[New Model<br/>Candidate]
     NewModel --> ABTest[A/B Test]
     ABTest --> Production[Promote to<br/>Production]
 ```

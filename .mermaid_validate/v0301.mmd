@@ -1,0 +1,27 @@
+flowchart TB
+  subgraph Clients
+    C[Application]
+  end
+  subgraph Coordination["Request path"]
+    L[Load Balancer optional]
+    Co[Coordinator node]
+  end
+  subgraph Ring["Consistent hash ring (virtual nodes)"]
+    VN1((v1))
+    VN2((v2))
+    VN3((v3))
+    VN4((v4))
+  end
+  subgraph Storage["Replica nodes"]
+    N1[Node A]
+    N2[Node B]
+    N3[Node C]
+  end
+  C --> L --> Co
+  Co --> N1
+  Co --> N2
+  Co --> N3
+  VN1 -.-> N1
+  VN2 -.-> N2
+  VN3 -.-> N3
+  VN4 -.-> N1

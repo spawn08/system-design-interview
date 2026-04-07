@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant App as Application
+    participant Cache as Cache
+    participant Queue as Queue
+    participant Worker as Worker
+    participant DB as Database
+    
+    App->>Cache: Write data
+    Cache-->>App: Confirm immediately
+    Cache->>Queue: Enqueue write
+    Note over App: Application continues
+    Queue->>Worker: Process write
+    Worker->>DB: Write to database

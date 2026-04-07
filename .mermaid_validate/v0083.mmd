@@ -1,0 +1,10 @@
+flowchart TD
+    Expire[Cache Entry Expires] --> R1[Request 1]
+    Expire --> R2[Request 2]
+    Expire --> R3[Request 3]
+    Expire --> R100[Request 100...]
+    R1 --> DB[(Database)]
+    R2 --> DB
+    R3 --> DB
+    R100 --> DB
+    DB --> Crash[Database Overloaded!]

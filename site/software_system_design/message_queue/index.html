@@ -3593,7 +3593,7 @@
     P --&gt;|acks=all| L2
     L2 -.-&gt;|cannot replicate| F3[Followers unreachable]
   end
-  Healthy --&gt;|split-brain risk if two leaders| Partition</div>
+  Healthy --&gt;|"split-brain risk if two leaders"| Partition</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>Staff sound bite:</strong> Under partition, <strong>Kafka-style</strong> systems with <strong><code>acks=all</code> + min ISR</strong> behave <strong>CP</strong> on the <strong>commit set</strong> (you may <strong>not</strong> get an ack). <strong>Unclean election</strong> trades <strong>C</strong> for <strong>A</strong>—say that only for <strong>explicit</strong> disaster policies.</p>
@@ -3900,8 +3900,8 @@
     L1[(Log segments\n+ indexes)]
   end
   subgraph Consumers
-    G1[Consumer Group: payments]
-    G2[Consumer Group: analytics]
+    G1["Consumer Group: payments"]
+    G2["Consumer Group: analytics"]
   end
   subgraph Metadata
     Z[ZooKeeper or KRaft\nmetadata quorum]
@@ -4713,7 +4713,7 @@
     PB --&gt; BB
     BB --&gt; CB
   end
-  BA &lt;--&gt;|MirrorMaker 2 / Cluster Linking\nreplicate topics| BB</div>
+  BA &lt;--&gt;|"MirrorMaker 2 / Cluster Linking\nreplicate topics"| BB</div>
 <p><strong>Conflict resolution (active-active):</strong> If the <strong>same key</strong> can be written in <strong>both</strong> regions, you need <strong>deterministic merge</strong> rules: <strong>last-write-wins (LWW)</strong> with <strong>vector clocks</strong> / <strong>version fields</strong>, <strong>CRDTs</strong>, or <strong>region-owned key prefixes</strong> (<code>us-east-{id}</code> vs <code>eu-west-{id}</code>) so keys <strong>don’t collide</strong>. The log <strong>does not</strong> magically merge business conflicts.</p>
 <p><strong>RPO / RTO:</strong></p>
 <table>

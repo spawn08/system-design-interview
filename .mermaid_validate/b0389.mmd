@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph CP["CP-biased (control plane)"]
+    U[Multipart upload complete]
+    M[Metadata OLTP]
+    J[Job queue state / orchestration]
+  end
+  subgraph AP["AP-biased (data plane / scale)"]
+    C[CDN segment delivery]
+    R[Recommendations]
+    V[View count aggregates]
+  end
+  U --> M
+  M --> J
+  J --> C
+  M -.->|eventual| R
+  M -.->|async| V

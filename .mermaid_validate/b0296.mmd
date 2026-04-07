@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph shards [Per-shard ZSETs]
+    S1[s0..s199]
+    S2[s200..s399]
+    S3[sN]
+  end
+  subgraph merge [Merge service]
+    H[Min-heap K=100]
+    OUT[global:top cache]
+  end
+  S1 --> H
+  S2 --> H
+  S3 --> H
+  H --> OUT

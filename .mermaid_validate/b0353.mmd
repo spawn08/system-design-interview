@@ -1,0 +1,33 @@
+flowchart TB
+  subgraph clients [Clients]
+    M[Mobile / Web Maps]
+  end
+
+  subgraph edge [Edge]
+    CDN[CDN / API Gateway]
+  end
+
+  subgraph svc [Services]
+    PS[Proximity API]
+    RS[Ranking / Relevance]
+  end
+
+  subgraph data [Data Plane]
+    GS[(Geospatial Index Shard)]
+    PG[(PostGIS / Primary Store)]
+    RD[(Redis GEO Cache)]
+    OS[(Object Store: Bulk Ingest)]
+  end
+
+  subgraph async [Async]
+    Q[Ingest Queue]
+    IDX[Index Builder]
+  end
+
+  M --> CDN --> PS
+  PS --> RS
+  PS --> GS
+  PS --> RD
+  RS --> GS
+  PG --> Q --> IDX --> GS
+  OS --> Q

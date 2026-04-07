@@ -1,0 +1,12 @@
+sequenceDiagram
+  participant C as Client
+  participant API as Proximity API
+  participant IX as Index
+  participant R as Ranker
+
+  C->>API: GET /nearby lat lon radius
+  API->>IX: candidate IDs (prefix/cells)
+  IX-->>API: place IDs + coarse keys
+  API->>R: features distance rating
+  R-->>API: ordered list + cursor
+  API-->>C: JSON

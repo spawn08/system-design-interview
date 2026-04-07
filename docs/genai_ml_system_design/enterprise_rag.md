@@ -288,7 +288,7 @@ Total:                        ~2,250ms  ✓ (under 3s budget)
 
 ```mermaid
 flowchart TB
-    subgraph Ingestion [Ingestion Pipeline]
+    subgraph ingest["Ingestion Pipeline"]
         Connectors[Source Connectors<br/>Drive, Confluence, Slack]
         Parser[Document Parser<br/>PDF, HTML, Markdown]
         Chunker[Chunking Engine]
@@ -296,14 +296,14 @@ flowchart TB
         ACLSync[ACL Sync Service]
     end
 
-    subgraph Index [Index Layer]
+    subgraph idxlay["Index Layer"]
         VectorDB[(Vector Index<br/>HNSW / ScaNN)]
         BM25Idx[(BM25 Index<br/>Elasticsearch)]
         DocStore[(Document Store<br/>Bigtable)]
         ACLStore[(ACL Store<br/>Spanner)]
     end
 
-    subgraph Query [Query Pipeline]
+    subgraph qpipe["Query Pipeline"]
         QU[Query Understanding]
         Retriever[Hybrid Retriever]
         Reranker[Cross-Encoder<br/>Re-Ranker]
@@ -312,7 +312,7 @@ flowchart TB
         CitationEngine[Citation Engine]
     end
 
-    subgraph Feedback [Feedback & Eval]
+    subgraph fbeval["Feedback & Eval"]
         FeedbackAPI[Feedback API]
         EvalPipeline[Evaluation Pipeline]
         Analytics[Query Analytics]
@@ -345,7 +345,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph Sources [Data Sources]
+    subgraph src["Data Sources"]
         GDrive[Google Drive]
         Confluence[Confluence]
         Slack[Slack]
@@ -353,13 +353,13 @@ flowchart LR
         Jira[Jira]
     end
 
-    subgraph Connectors [Connector Layer]
+    subgraph conn["Connector Layer"]
         CDC[Change Data<br/>Capture]
         Webhook[Webhook<br/>Listeners]
         Poller[Periodic<br/>Poller]
     end
 
-    subgraph Processing [Processing Pipeline]
+    subgraph proc["Processing Pipeline"]
         Extract[Text<br/>Extraction]
         Dedup[Deduplication]
         Chunk[Chunking]
@@ -367,13 +367,13 @@ flowchart LR
         ACL[ACL<br/>Resolution]
     end
 
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         VDB[(Vector DB)]
         Search[(Search Index)]
         Meta[(Metadata Store)]
     end
 
-    Sources --> Connectors --> Processing --> Storage
+    src --> conn --> proc --> stor
 ```
 
 **Connector design per source:**
@@ -656,30 +656,30 @@ Score (0-10):"""
 
 ```mermaid
 flowchart LR
-    subgraph Events [Change Events]
+    subgraph evts["Change Events"]
         Create[Doc Created]
         Update[Doc Updated]
         Delete[Doc Deleted]
         ACLChange[ACL Changed]
     end
 
-    subgraph Queue [Event Queue]
+    subgraph qu["Event Queue"]
         Kafka[Kafka Topic<br/>doc-changes]
     end
 
-    subgraph Workers [Index Workers]
+    subgraph wrk["Index Workers"]
         W1[Worker 1]
         W2[Worker 2]
         WN[Worker N]
     end
 
-    subgraph Indexes [Indexes]
+    subgraph indx["Indexes"]
         Vector[(Vector Index)]
         BM25[(BM25 Index)]
         ACL[(ACL Index)]
     end
 
-    Events --> Queue --> Workers --> Indexes
+    evts --> qu --> wrk --> indx
 ```
 
 **Update strategies:**

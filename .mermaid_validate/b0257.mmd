@@ -1,0 +1,19 @@
+flowchart TB
+  subgraph cp [CP-leaning paths]
+    M[Metadata commit\nfile tree + revision]
+    A[ACL grant/revoke]
+  end
+
+  subgraph ap [AP-leaning paths]
+    B[Block read by hash\nreplicated objects]
+    N[Notify / change feed delivery]
+  end
+
+  subgraph part [Partition]
+    P[Network split\nclients cannot reach all replicas]
+  end
+
+  P -->|choose| M
+  P -->|choose| B
+  M -->|may fail closed\nreject ambiguous commits| X[Consistent tree]
+  B -->|still serve\nknown hashes| Y[Available reads]

@@ -12,14 +12,14 @@ Search is one of the most common and most complex features in modern application
 
 ```mermaid
 flowchart LR
-    subgraph Indexing Pipeline
-        DATA[Data Sources<br/>DB, Files, APIs] --> CRAWL[Crawler / CDC]
+    subgraph ip["Indexing Pipeline"]
+        DATA["Data Sources<br/>DB, Files, APIs"] --> CRAWL["Crawler / CDC"]
         CRAWL --> PROC[Document Processor<br/>Tokenize, Normalize]
         PROC --> IDX[Indexer<br/>Build Inverted Index]
         IDX --> STORE[(Search Index<br/>Sharded)]
     end
     
-    subgraph Query Pipeline
+    subgraph qpflow["Query Pipeline"]
         USER[User Query] --> QP[Query Parser<br/>Tokenize, Expand]
         QP --> SEARCH[Search Engine<br/>Retrieve Candidates]
         SEARCH --> RANK[Ranker<br/>Score & Sort]
@@ -335,18 +335,18 @@ flowchart TD
     COORD --> N3[Data Node 3]
     
     subgraph N1[Data Node 1]
-        S0P[Index: products<br/>Shard 0 - Primary]
-        S2R[Index: products<br/>Shard 2 - Replica]
+        S0P["Index: products<br/>Shard 0 - Primary"]
+        S2R["Index: products<br/>Shard 2 - Replica"]
     end
     
     subgraph N2[Data Node 2]
-        S1P[Index: products<br/>Shard 1 - Primary]
-        S0R[Index: products<br/>Shard 0 - Replica]
+        S1P["Index: products<br/>Shard 1 - Primary"]
+        S0R["Index: products<br/>Shard 0 - Replica"]
     end
     
     subgraph N3[Data Node 3]
-        S2P[Index: products<br/>Shard 2 - Primary]
-        S1R[Index: products<br/>Shard 1 - Replica]
+        S2P["Index: products<br/>Shard 2 - Primary"]
+        S1R["Index: products<br/>Shard 1 - Replica"]
     end
 ```
 
@@ -635,9 +635,9 @@ Most search engines support fuzzy queries with configurable maximum edit distanc
 ```mermaid
 flowchart TD
     Q[Search Requirement] --> TYPE{Search type?}
-    TYPE -->|Full-text search| FTS[Elasticsearch / Solr]
+    TYPE -->|Full-text search| FTS["Elasticsearch / Solr"]
     TYPE -->|Autocomplete| AC{Scale?}
-    TYPE -->|Vector/semantic| VS[Vector DB + ANN]
+    TYPE -->|"Vector/semantic"| VS[Vector DB + ANN]
     TYPE -->|Log search| LOG[ELK Stack]
     
     AC -->|< 1M terms| TRIE[In-memory Trie]

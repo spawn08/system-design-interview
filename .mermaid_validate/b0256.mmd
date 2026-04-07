@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant A as Client A
+    participant S as Server (directory)
+    participant B as Client B
+
+    A->>S: fetch prekey bundle for B
+    S-->>A: identity key + signed prekey + one-time prekeys
+    A->>A: X3DH derive shared secret
+    A->>S: send initial encrypted message (header)
+    S->>B: relay ciphertext only
+    B->>B: complete X3DH + Double Ratchet init
+    B->>S: reply ciphertext

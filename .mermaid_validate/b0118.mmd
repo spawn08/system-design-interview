@@ -1,0 +1,18 @@
+flowchart TD
+    Q[System Design Question] --> S{Scale needed?}
+    S -->|1000s of users| VERT[Vertical Scaling<br/>Simple, single server]
+    S -->|Millions of users| HORIZ[Horizontal Scaling<br/>Load balancer + stateless services]
+    
+    HORIZ --> DB{Database bottleneck?}
+    DB -->|Read-heavy| REPLICA[Read Replicas]
+    DB -->|Write-heavy| SHARD[Sharding]
+    DB -->|Both| CQRS[CQRS + Event Sourcing]
+    
+    HORIZ --> AV{Availability target?}
+    AV -->|99.9%| AA[Active-Active<br/>Multi-AZ]
+    AV -->|99.99%+| MR[Multi-Region<br/>Active-Active]
+    
+    HORIZ --> REL{Reliability needs?}
+    REL -->|Transient failures| RETRY[Retry + Backoff]
+    REL -->|Cascading failures| CB[Circuit Breaker + Bulkhead]
+    REL -->|Data loss prevention| REPL[Replication + Backups]

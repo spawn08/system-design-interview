@@ -1,0 +1,25 @@
+flowchart TD
+    subgraph Control Plane
+        API[API Server]
+        SCHED[Scheduler]
+        CM[Controller Manager]
+        ETCD[(etcd)]
+    end
+    
+    subgraph Worker Node 1
+        KUB1[kubelet]
+        P1[Pod: User Service<br/>Container 1 + Sidecar]
+        P2[Pod: User Service<br/>Container 2 + Sidecar]
+    end
+    
+    subgraph Worker Node 2
+        KUB2[kubelet]
+        P3[Pod: Order Service<br/>Container 1 + Sidecar]
+        P4[Pod: Payment Service<br/>Container 1 + Sidecar]
+    end
+    
+    API --> KUB1
+    API --> KUB2
+    API --> ETCD
+    SCHED --> API
+    CM --> API

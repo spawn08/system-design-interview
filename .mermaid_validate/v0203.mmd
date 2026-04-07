@@ -1,0 +1,60 @@
+flowchart TB
+    subgraph Ingestion [Transaction Ingestion]
+        API[Transaction API]
+        Stream[Kafka Stream]
+    end
+    
+    subgraph RealTime [Real-time Scoring]
+        Gateway[Scoring Gateway]
+        Rules[Rules Engine]
+        ML[ML Models]
+        Ensemble[Ensemble Scorer]
+    end
+    
+    subgraph Features [Feature Layer]
+        RealTimeFS[Real-time Features]
+        BatchFS[Batch Features]
+        Cache[(Redis)]
+    end
+    
+    subgraph Decision [Decision Layer]
+        DecisionEngine[Decision Engine]
+        Actions[Actions: Block/Allow/Review]
+    end
+    
+    subgraph Offline [Offline Layer]
+        Training[Model Training]
+        Analytics[Analytics]
+        Cases[Case Management]
+    end
+    
+    subgraph Storage [Storage]
+        Events[(Event Store)]
+        Labels[(Labels DB)]
+        Models[(Model Registry)]
+    end
+    
+    API --> Gateway
+    Gateway --> Rules
+    Gateway --> ML
+    
+    Rules --> Ensemble
+    ML --> Ensemble
+    
+    ML --> RealTimeFS
+    ML --> BatchFS
+    RealTimeFS --> Cache
+    BatchFS --> Cache
+    
+    Ensemble --> DecisionEngine
+    DecisionEngine --> Actions
+    
+    Stream --> Events
+    Events --> Training
+    Training --> Models
+    Models --> ML
+    
+    Events --> Analytics
+    Actions --> Cases
+    Cases --> Labels
+    Labels --> Training

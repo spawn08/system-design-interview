@@ -2995,9 +2995,9 @@
 
     V-&gt;&gt;B: Login to bank (gets session cookie)
     V-&gt;&gt;E: Visits evil site
-    E-&gt;&gt;V: Hidden form: POST bank.com/transfer?to=attacker&amp;amount=10000
+    E-&gt;&gt;V: "Hidden form: POST bank.com/transfer?to=attacker&amp;amount=10000"
     V-&gt;&gt;B: Browser auto-sends cookie with the forged request
-    B-&gt;&gt;B: Valid session → processes transfer!</div>
+    B-&gt;&gt;B: "Valid session → processes transfer!"</div>
 <p><strong>Prevention: Synchronizer Token Pattern</strong></p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.charset.StandardCharsets</span><span class="p">;</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.security.MessageDigest</span><span class="p">;</span>
@@ -3032,8 +3032,8 @@
 <h3 id="symmetric-encryption">Symmetric Encryption<a class="headerlink" href="#symmetric-encryption" title="Permanent link">&para;</a></h3>
 <p>The same key encrypts and decrypts the data.</p>
 <div class="mermaid">flowchart LR
-    PT[Plaintext] --&gt;|Encrypt with Key K| CT[Ciphertext]
-    CT --&gt;|Decrypt with Key K| PT2[Plaintext]</div>
+    PT[Plaintext] --&gt;|"Encrypt with Key K"| CT[Ciphertext]
+    CT --&gt;|"Decrypt with Key K"| PT2[Plaintext]</div>
 <table>
 <thead>
 <tr>
@@ -3112,8 +3112,8 @@
 <h3 id="asymmetric-encryption">Asymmetric Encryption<a class="headerlink" href="#asymmetric-encryption" title="Permanent link">&para;</a></h3>
 <p>Uses a key pair: a <strong>public key</strong> (shared freely) for encryption and a <strong>private key</strong> (kept secret) for decryption.</p>
 <div class="mermaid">flowchart LR
-    PT[Plaintext] --&gt;|Encrypt with&lt;br/&gt;Public Key| CT[Ciphertext]
-    CT --&gt;|Decrypt with&lt;br/&gt;Private Key| PT2[Plaintext]</div>
+    PT[Plaintext] --&gt;|"Encrypt with&lt;br/&gt;Public Key"| CT[Ciphertext]
+    CT --&gt;|"Decrypt with&lt;br/&gt;Private Key"| PT2[Plaintext]</div>
 <table>
 <thead>
 <tr>
@@ -3379,8 +3379,8 @@
 </table>
 <h3 id="certificate-chain-of-trust">Certificate Chain of Trust<a class="headerlink" href="#certificate-chain-of-trust" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    ROOT[Root CA&lt;br/&gt;Self-signed&lt;br/&gt;Pre-installed in OS/browser] --&gt; INT[Intermediate CA&lt;br/&gt;Signed by Root CA]
-    INT --&gt; LEAF[Server Certificate&lt;br/&gt;Signed by Intermediate CA&lt;br/&gt;Contains server's public key]
+    ROOT["Root CA&lt;br/&gt;Self-signed&lt;br/&gt;Pre-installed in OS/browser"] --&gt; INT["Intermediate CA&lt;br/&gt;Signed by Root CA"]
+    INT --&gt; LEAF["Server Certificate&lt;br/&gt;Signed by Intermediate CA&lt;br/&gt;Contains server's public key"]
 
     LEAF --&gt; V{Client validates}
     V --&gt; V1[Signature valid?]
@@ -3433,10 +3433,10 @@
 <p>Every piece of data entering your system is potentially malicious. Validate at the boundary—before data reaches business logic or storage.</p>
 <h3 id="validation-strategy-defense-in-depth">Validation Strategy: Defense in Depth<a class="headerlink" href="#validation-strategy-defense-in-depth" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TD
-    INPUT[User Input] --&gt; L1[Layer 1: Client-side validation&lt;br/&gt;UX only, not security]
-    L1 --&gt; L2[Layer 2: API Gateway&lt;br/&gt;Schema validation, rate limiting]
-    L2 --&gt; L3[Layer 3: Application&lt;br/&gt;Business rule validation]
-    L3 --&gt; L4[Layer 4: Database&lt;br/&gt;Constraints, triggers]</div>
+    INPUT[User Input] --&gt; L1["Layer 1: Client-side validation&lt;br/&gt;UX only, not security"]
+    L1 --&gt; L2["Layer 2: API Gateway&lt;br/&gt;Schema validation, rate limiting"]
+    L2 --&gt; L3["Layer 3: Application&lt;br/&gt;Business rule validation"]
+    L3 --&gt; L4["Layer 4: Database&lt;br/&gt;Constraints, triggers"]</div>
 <h3 id="java-example-comprehensive-input-validation">Java Example: Comprehensive Input Validation<a class="headerlink" href="#java-example-comprehensive-input-validation" title="Permanent link">&para;</a></h3>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.ArrayList</span><span class="p">;</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.List</span><span class="p">;</span>
@@ -3512,11 +3512,11 @@
 <h3 id="zero-trust-architecture">Zero Trust Architecture<a class="headerlink" href="#zero-trust-architecture" title="Permanent link">&para;</a></h3>
 <p>Traditional security uses a "castle and moat" model: strong perimeter, trusted interior. Zero Trust assumes no implicit trust—every request is verified.</p>
 <div class="mermaid">flowchart TD
-    subgraph Traditional
+    subgraph trad["Traditional"]
         FW[Firewall] --&gt; INT[Internal Network&lt;br/&gt;Everything trusted]
     end
 
-    subgraph Zero Trust
+    subgraph zt["Zero Trust"]
         R[Request] --&gt; V{Verify Identity}
         V --&gt; A{Authorize Action}
         A --&gt; E{Encrypt Always}
@@ -3643,8 +3643,8 @@
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q[Security Requirement] --&gt; DATA{What data?}
-    DATA --&gt;|PII / Financial| HIGH[High Security]
-    DATA --&gt;|Public content| LOW[Standard Security]
+    DATA --&gt;|"PII / Financial"| HIGH[High Security]
+    DATA --&gt;|"Public content"| LOW[Standard Security]
 
     HIGH --&gt; ENC[Encrypt at rest + in transit]
     HIGH --&gt; AUDIT[Full audit logging]
@@ -3656,7 +3656,7 @@
     LOW --&gt; INPUT[Input validation]
 
     ENC --&gt; KM{Key management?}
-    KM --&gt;|Cloud| CKM[AWS KMS / Azure Key Vault]
+    KM --&gt;|Cloud| CKM["AWS KMS / Azure Key Vault"]
     KM --&gt;|Self-hosted| VAULT[HashiCorp Vault]
 
     AUTH --&gt; AT{Auth type?}

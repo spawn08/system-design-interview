@@ -1,0 +1,15 @@
+flowchart TB
+  subgraph RackA["Rack A"]
+    A1[Chunkserver A1]
+    A2[Chunkserver A2]
+  end
+  subgraph RackB["Rack B"]
+    B1[Chunkserver B1]
+  end
+  subgraph RackC["Rack C"]
+    C1[Chunkserver C1]
+  end
+  R[Replica set for chunk X]
+  A1 --- R
+  B1 --- R
+  C1 --- R

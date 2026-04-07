@@ -1,0 +1,7 @@
+flowchart LR
+    A[Audio] --> F[Feature Extraction]
+    F --> AM[Acoustic Model<br/>HMM-DNN / GMM]
+    AM --> D[Decoder<br/>WFST search]
+    LM[Language Model<br/>n-gram] --> D
+    Lex[Lexicon / Pronunciations] --> D
+    D --> T[Text + alignment]

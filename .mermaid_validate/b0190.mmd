@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant C as Client
+  participant G as API Gateway
+  participant Q as Query Coordinator
+  participant S1 as Shard A
+  participant S2 as Shard B
+  C->>G: ANN query (k, ef, filter)
+  G->>Q: authenticated request
+  par parallel ANN
+    Q->>S1: top-k partial
+    Q->>S2: top-k partial
+  end
+  S1-->>Q: candidates + scores
+  S2-->>Q: candidates + scores
+  Q->>Q: merge-heap + dedupe + filter
+  Q-->>G: global top-k
+  G-->>C: JSON response

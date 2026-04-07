@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant Client
+    participant API
+    participant Encoder as Image Encoder
+    participant Cache as Redis
+    participant Index as Vector Index
+    participant Metadata as Metadata Store
+    participant Ranker
+    
+    Client->>API: Search with image
+    API->>API: Validate & preprocess image
+    
+    API->>Encoder: Encode image
+    Encoder-->>API: 512-dim embedding
+    
+    API->>Cache: Check embedding cache
+    
+    alt Cache hit
+        Cache-->>API: Cached results
+    else Cache miss
+        API->>Index: ANN search (k=100)
+        Index-->>API: Candidate IDs + distances
+        
+        API->>Metadata: Get product details
+        Metadata-->>API: Product metadata
+        
+        API->>Ranker: Re-rank with features
+        Ranker-->>API: Final ranking
+        
+        API->>Cache: Cache results
+    end
+    
+    API-->>Client: Top-N similar products

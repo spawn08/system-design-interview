@@ -1085,19 +1085,19 @@ Each side-effecting tool call carries:
 
 ```mermaid
 flowchart TB
-    subgraph region_eu[Region EU]
+    subgraph region_eu["Region EU"]
         OE[Orchestrator]
         PE[Planner pool]
         TE[Tool workers]
         ME[(Memory EU)]
     end
-    subgraph region_us[Region US]
+    subgraph region_us["Region US"]
         OU[Orchestrator]
         PU[Planner pool]
         TU[Tool workers]
         MU[(Memory US)]
     end
-    G[Global DNS / LB] --> region_eu
+    G["Global DNS / LB"] --> region_eu
     G --> region_us
 ```
 
@@ -1362,12 +1362,12 @@ We’re at time. Thanks — this was a strong **systems** discussion; next round
 
 ```mermaid
 flowchart TB
-    subgraph control[Control Plane]
-        POL[Policy + Budgets]
+    subgraph ctrl["Control Plane"]
+        POL["Policy + Budgets"]
         REG[Tool Registry]
         EV[Evaluator]
     end
-    subgraph data[Data Plane]
+    subgraph dplane["Data Plane"]
         PL[Planner LLM]
         TW[Tool Workers]
         MEM[Memory]

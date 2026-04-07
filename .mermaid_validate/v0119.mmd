@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant V as Victim
+    participant E as Evil Site
+    participant B as Bank Site
+
+    V->>B: Login to bank (gets session cookie)
+    V->>E: Visits evil site
+    E->>V: Hidden form: POST bank.com/transfer?to=attacker&amount=10000
+    V->>B: Browser auto-sends cookie with the forged request
+    B->>B: Valid session → processes transfer!

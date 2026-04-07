@@ -1,0 +1,6 @@
+stateDiagram-v2
+    [*] --> Closed
+    Closed --> Open: Failure rate > threshold
+    Open --> HalfOpen: After timeout period
+    HalfOpen --> Closed: Probe requests succeed
+    HalfOpen --> Open: Probe requests fail

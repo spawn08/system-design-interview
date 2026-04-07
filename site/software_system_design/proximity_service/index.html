@@ -3089,20 +3089,20 @@
 </table>
 <p><strong>Interview narrative:</strong> “We don’t choose C or A once—we <strong>separate the hot read path</strong> (AP, fast) from <strong>transactional truth</strong> for edits (CP where it matters) and <strong>fan-out aggregates</strong> (eventual).”</p>
 <div class="mermaid">flowchart TB
-  subgraph ap_path [AP: serving path]
+  subgraph ap_path["AP: serving path"]
     Q[Nearby query]
     IX[(Geospatial shards / Redis GEO)]
     CA[Optional cache]
     Q --&gt; IX --&gt; CA
   end
 
-  subgraph cp_path [CP: authoritative writes]
+  subgraph cp_path["CP: authoritative writes"]
     ADM[Admin / ingest]
-    OLTP[(OLTP: place row + geometry)]
+    OLTP[("OLTP: place row + geometry")]
     ADM --&gt; OLTP
   end
 
-  subgraph ev_path [Eventual: aggregates]
+  subgraph ev_path["Eventual: aggregates"]
     RV[Reviews stream]
     AGG[Aggregator / materializer]
     SUM[(Denormalized rating_sum, count)]
@@ -3375,14 +3375,14 @@
     RS[Ranking / Relevance]
   end
 
-  subgraph data [Data Plane]
+  subgraph data_plane["Data Plane"]
     GS[(Geospatial Index Shard)]
     PG[(PostGIS / Primary Store)]
     RD[(Redis GEO Cache)]
-    OS[(Object Store: Bulk Ingest)]
+    OS[("Object Store: Bulk Ingest")]
   end
 
-  subgraph async [Async]
+  subgraph async_ingest["Async"]
     Q[Ingest Queue]
     IDX[Index Builder]
   end
@@ -3504,7 +3504,7 @@
 </div>
 <p><strong>Neighbor cells:</strong> A point near a cell edge may need <strong>neighboring</strong> geohashes in queries. Libraries expose <strong>neighbor</strong> APIs (8 neighbors in 2D) to avoid missing POIs just across a boundary.</p>
 <div class="mermaid">flowchart LR
-  subgraph grid [Geohash cells conceptual]
+  subgraph grid["Geohash cells conceptual"]
     A["9q8yy"]
     B["9q8yz"]
     C["9q8yp"]
@@ -3514,10 +3514,10 @@
   Q -. neighbor scan .-&gt; B</div>
 <p><strong>Grid visualization (prefix nesting):</strong></p>
 <div class="mermaid">flowchart TB
-  subgraph l4 [Prefix length 4 — large cell]
+  subgraph l4["Prefix length 4 — large cell"]
     W[Whole metro area]
   end
-  subgraph l6 [Length 6 — finer]
+  subgraph l6["Length 6 — finer"]
     C1[Cell ...0]
     C2[Cell ...1]
     C3[Cell ...2]
@@ -3535,7 +3535,7 @@
 <li><strong>Search:</strong> traverse nodes overlapping the <strong>query circle</strong> (or bbox); descend only into intersecting children.</li>
 </ul>
 <div class="mermaid">flowchart TD
-  R[Root: world bbox]
+  R["Root: world bbox"]
   R --&gt; NW[NW quadrant]
   R --&gt; NE[NE quadrant]
   R --&gt; SW[SW quadrant]

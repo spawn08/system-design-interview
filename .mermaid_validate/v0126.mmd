@@ -1,0 +1,22 @@
+flowchart TD
+    Q[Security Requirement] --> DATA{What data?}
+    DATA -->|PII / Financial| HIGH[High Security]
+    DATA -->|Public content| LOW[Standard Security]
+    
+    HIGH --> ENC[Encrypt at rest + in transit]
+    HIGH --> AUDIT[Full audit logging]
+    HIGH --> MFA[Multi-factor auth]
+    HIGH --> ZERO[Zero trust architecture]
+    
+    LOW --> TLS[TLS in transit]
+    LOW --> AUTH[Standard auth]
+    LOW --> INPUT[Input validation]
+    
+    ENC --> KM{Key management?}
+    KM -->|Cloud| CKM[AWS KMS / Azure Key Vault]
+    KM -->|Self-hosted| VAULT[HashiCorp Vault]
+    
+    AUTH --> AT{Auth type?}
+    AT -->|Stateless services| JWT[JWT tokens]
+    AT -->|Third-party| OAUTH[OAuth 2.0]
+    AT -->|Service mesh| MTLS[mTLS]

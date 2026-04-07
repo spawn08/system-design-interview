@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph ap_path [AP: serving path]
+    Q[Nearby query]
+    IX[(Geospatial shards / Redis GEO)]
+    CA[Optional cache]
+    Q --> IX --> CA
+  end
+
+  subgraph cp_path [CP: authoritative writes]
+    ADM[Admin / ingest]
+    OLTP[(OLTP: place row + geometry)]
+    ADM --> OLTP
+  end
+
+  subgraph ev_path [Eventual: aggregates]
+    RV[Reviews stream]
+    AGG[Aggregator / materializer]
+    SUM[(Denormalized rating_sum, count)]
+    RV --> AGG --> SUM
+  end
+
+  OLTP -. async index build .-> IX
+  OLTP -. publish change .-> AGG
+  SUM -. read model for cards .-> IX

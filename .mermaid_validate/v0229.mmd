@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Data [Data]
+        LOGS[Click / Impression Logs]
+        LABELS[Editorial / Human Labels]
+    end
+
+    subgraph Pipe [Pipeline]
+        ETL[ETL & Sessionization]
+        FE[Feature Joins]
+        TR[Train LTR / Fine-tune]
+        EV[Offline Eval NDCG]
+    end
+
+    subgraph Ship [Deployment]
+        REG[Model Registry]
+        CAN[Canary / A/B]
+        ONNX[ONNX / TensorRT Export]
+    end
+
+    LOGS --> ETL --> FE --> TR --> EV
+    LABELS --> FE
+    TR --> REG --> CAN --> ONNX

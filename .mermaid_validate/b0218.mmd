@@ -1,0 +1,16 @@
+flowchart TB
+    subgraph OfflineEval [Offline regression]
+        G[Golden parallel sets per pair]
+        M[Metrics: BLEU/chrF/COMET]
+    end
+    
+    subgraph OnlineMon [Online monitoring]
+        L[Latency + error rates]
+        Q[QE distribution shifts]
+        U[User feedback volume]
+    end
+    
+    G --> M --> Gate{Release gate}
+    L --> Gate
+    Q --> Gate
+    U --> Gate

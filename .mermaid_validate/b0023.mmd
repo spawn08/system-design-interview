@@ -1,0 +1,6 @@
+stateDiagram-v2
+    [*] --> Holding
+    Holding --> Renewing: heartbeat OK
+    Renewing --> Holding
+    Holding --> Lost: renew fails / TTL expires
+    Lost --> [*]

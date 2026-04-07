@@ -4015,11 +4015,11 @@
 <h4 id="circuit-breaker-state-machine">Circuit breaker state machine<a class="headerlink" href="#circuit-breaker-state-machine" title="Permanent link">&para;</a></h4>
 <div class="mermaid">stateDiagram-v2
     [*] --&gt; Closed
-    Closed --&gt; Open : failures &gt;= threshold\nor error_rate &gt; limit
-    Open --&gt; HalfOpen : cooldown elapsed
-    HalfOpen --&gt; Closed : probe success
-    HalfOpen --&gt; Open : probe failure
-    Closed --&gt; Closed : success resets failure window</div>
+    Closed --&gt; Open : "failures &gt;= threshold\nor error_rate &gt; limit"
+    Open --&gt; HalfOpen : "cooldown elapsed"
+    HalfOpen --&gt; Closed : "probe success"
+    HalfOpen --&gt; Open : "probe failure"
+    Closed --&gt; Closed : "success resets failure window"</div>
 <h4 id="provider-health-scoring-weighted-error-rate-latency">Provider health scoring (weighted error rate + latency)<a class="headerlink" href="#provider-health-scoring-weighted-error-rate-latency" title="Permanent link">&para;</a></h4>
 <p>Maintain a rolling window per <strong>(provider, region, model)</strong>. Example <strong>score</strong> in <span class="arithmatex">\([0,100]\)</span> — higher is healthier:</p>
 <div class="arithmatex">\[

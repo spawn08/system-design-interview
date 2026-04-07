@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph l4 [Prefix length 4 — large cell]
+    W[Whole metro area]
+  end
+  subgraph l6 [Length 6 — finer]
+    C1[Cell ...0]
+    C2[Cell ...1]
+    C3[Cell ...2]
+    C4[Cell ...3]
+  end
+  W --> C1
+  W --> C2
+  W --> C3
+  W --> C4

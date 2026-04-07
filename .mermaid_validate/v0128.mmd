@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant S as Data Source
+    participant I as Ingestion
+    participant R as Raw Store
+    participant T as Transformer
+    participant V as Validator
+    participant C as Clean Store
+    participant F as Feature Eng
+    participant FS as Feature Store
+    participant M as Model Training
+
+    S->>I: Raw events / CDC
+    I->>R: Write bronze (append-only)
+    R->>T: Scheduled transform job
+    T->>V: Validate transformed data
+    
+    alt Validation passes
+        V->>C: Write to silver layer
+        C->>F: Compute features
+        F->>FS: Materialize to feature store
+        FS->>M: Training dataset (point-in-time)
+    else Validation fails
+        V->>V: Alert + quarantine bad data
+    end

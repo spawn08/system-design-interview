@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph UploadPath[Upload path]
+        C[Client] --> APIGW[API Gateway]
+        APIGW --> US[Upload service]
+        US -->|presigned| S3[(Object storage)]
+        US -->|enqueue| K[Kafka topics]
+    end
+    subgraph ProcessPath[Processing]
+        K --> ORC[Orchestrator / DAG]
+        ORC --> TC[Transcode pool]
+        TC --> S3
+        ORC --> TH2[Thumbnail service]
+        TH2 --> S3
+        ORC --> META2[Metadata indexer]
+    end
+    subgraph ReadPath[Read path]
+        V2[Viewer] --> CDN2[CDN]
+        CDN2 -->|miss| S3
+        V2 --> APIGW2[API Gateway]
+        APIGW2 --> VID[Video API]
+        VID --> DB[(DB)]
+    end

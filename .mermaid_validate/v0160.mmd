@@ -1,0 +1,9 @@
+flowchart TB
+    S[Supervisor]
+    S --> C[Coder agent]
+    S --> T[Tester agent]
+    S --> R[Reviewer agent]
+    C --> AGG[Result aggregation / conflict resolution]
+    T --> AGG
+    R --> AGG
+    AGG --> OUT[Final artifact + trace]

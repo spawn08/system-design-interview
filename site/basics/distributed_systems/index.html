@@ -3013,8 +3013,8 @@
     P --&gt; CP
     P --&gt; AP
 
-    CP --&gt; |Examples| CP_EX[HBase, MongoDB, Redis Cluster]
-    AP --&gt; |Examples| AP_EX[Cassandra, DynamoDB, CouchDB]</div>
+    CP --&gt;|"Examples"| CP_EX["HBase, MongoDB, Redis Cluster"]
+    AP --&gt;|"Examples"| AP_EX["Cassandra, DynamoDB, CouchDB"]</div>
 <h3 id="the-three-guarantees">The Three Guarantees<a class="headerlink" href="#the-three-guarantees" title="Permanent link">&para;</a></h3>
 <p><strong>Consistency (C):</strong> Every read receives the most recent write or an error. All nodes see the same data at the same time.</p>
 <p><strong>Availability (A):</strong> Every request receives a non-error response, without guarantee that it contains the most recent write.</p>
@@ -3327,7 +3327,7 @@
     A2-&gt;&gt;P: Accepted(n=1)
 
     Note over P,L: Phase 3: Learn
-    P-&gt;&gt;L: Decided: "NodeA"</div>
+    P-&gt;&gt;L: "Decided: NodeA"</div>
 <p><strong>Phase 1 (Prepare):</strong> Proposer sends a proposal number <code>n</code> to acceptors. Acceptors promise not to accept proposals with numbers less than <code>n</code>.</p>
 <p><strong>Phase 2 (Accept):</strong> If the proposer receives promises from a majority, it sends an accept request with the value. Acceptors accept if they haven't promised a higher number.</p>
 <p><strong>Phase 3 (Learn):</strong> Once a majority accepts, the value is chosen. Learners are informed.</p>
@@ -3508,11 +3508,11 @@
 <p>Message queues decouple producers from consumers, enabling asynchronous communication between services. They are a cornerstone of distributed architectures.</p>
 <h3 id="why-message-queues">Why Message Queues?<a class="headerlink" href="#why-message-queues" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Without Queue
+    subgraph woq["Without Queue"]
         A1[Service A] --&gt;|direct call| B1[Service B]
     end
 
-    subgraph With Queue
+    subgraph wiq["With Queue"]
         A2[Service A] --&gt;|publish| Q[Message Queue]
         Q --&gt;|consume| B2[Service B]
     end</div>
@@ -3776,15 +3776,15 @@
 <h3 id="consistent-hashing">Consistent Hashing<a class="headerlink" href="#consistent-hashing" title="Permanent link">&para;</a></h3>
 <p>Consistent hashing arranges servers on a virtual ring. Each key is assigned to the first server encountered when walking clockwise from the key's position on the ring.</p>
 <div class="mermaid">graph TD
-    subgraph Hash Ring
-        N1[Node A&lt;br/&gt;Position: 50] 
-        N2[Node B&lt;br/&gt;Position: 150]
-        N3[Node C&lt;br/&gt;Position: 250]
+    subgraph hr["Hash Ring"]
+        N1["Node A&lt;br/&gt;Position: 50"] 
+        N2["Node B&lt;br/&gt;Position: 150"]
+        N3["Node C&lt;br/&gt;Position: 250"]
     end
 
-    K1[Key 'user1'&lt;br/&gt;Hash: 80] --&gt;|clockwise to| N2
-    K2[Key 'user2'&lt;br/&gt;Hash: 200] --&gt;|clockwise to| N3
-    K3[Key 'user3'&lt;br/&gt;Hash: 30] --&gt;|clockwise to| N1</div>
+    K1["Key 'user1'&lt;br/&gt;Hash: 80"] --&gt;|clockwise to| N2
+    K2["Key 'user2'&lt;br/&gt;Hash: 200"] --&gt;|clockwise to| N3
+    K3["Key 'user3'&lt;br/&gt;Hash: 30"] --&gt;|clockwise to| N1</div>
 <p><strong>When a node is added:</strong> Only the keys between the new node and its predecessor on the ring are remapped. On average, only <code>K/N</code> keys move (where K = total keys, N = total nodes).</p>
 <p><strong>When a node is removed:</strong> Only that node's keys move to the next node on the ring.</p>
 <h3 id="virtual-nodes">Virtual Nodes<a class="headerlink" href="#virtual-nodes" title="Permanent link">&para;</a></h3>
@@ -4030,8 +4030,8 @@
     R --&gt; A[Availability Requirements]
     R --&gt; P[Performance Requirements]
 
-    C --&gt; |Strong consistency needed| CP[CP Design&lt;br/&gt;Consensus protocol&lt;br/&gt;Quorum reads/writes]
-    C --&gt; |Eventual consistency OK| AP[AP Design&lt;br/&gt;Async replication&lt;br/&gt;Conflict resolution]
+    C --&gt;|"Strong consistency needed"| CP[CP Design&lt;br/&gt;Consensus protocol&lt;br/&gt;Quorum reads/writes]
+    C --&gt;|"Eventual consistency OK"| AP[AP Design&lt;br/&gt;Async replication&lt;br/&gt;Conflict resolution]
 
     CP --&gt; MQ1[Sync communication&lt;br/&gt;or ordered log]
     AP --&gt; MQ2[Async message queue&lt;br/&gt;Event sourcing]

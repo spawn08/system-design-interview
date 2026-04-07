@@ -1,0 +1,17 @@
+flowchart TD
+    Q[Interview Question] --> R[Requirements]
+    R --> C[Consistency Requirements]
+    R --> A[Availability Requirements]
+    R --> P[Performance Requirements]
+    
+    C --> |Strong consistency needed| CP[CP Design<br/>Consensus protocol<br/>Quorum reads/writes]
+    C --> |Eventual consistency OK| AP[AP Design<br/>Async replication<br/>Conflict resolution]
+    
+    CP --> MQ1[Sync communication<br/>or ordered log]
+    AP --> MQ2[Async message queue<br/>Event sourcing]
+    
+    MQ1 --> LB[Load Balancing<br/>Data Partitioning]
+    MQ2 --> LB
+    
+    LB --> LE[Leader Election<br/>if needed]
+    LE --> FT[Fault Tolerance<br/>Replication, Retries]

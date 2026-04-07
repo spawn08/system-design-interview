@@ -1,0 +1,15 @@
+graph LR
+    INPUT[User Input] --> IFILTER[Input Guard]
+    IFILTER --> PII_I[PII Detection]
+    IFILTER --> INJECT[Injection Detection]
+    IFILTER --> TOXIC_I[Toxicity Check]
+
+    PII_I --> LLM[LLM Generation]
+    INJECT --> LLM
+    TOXIC_I --> LLM
+
+    LLM --> OFILTER[Output Guard]
+    OFILTER --> FACT[Factuality Check]
+    OFILTER --> PII_O[PII Masking]
+    OFILTER --> TOXIC_O[Toxicity Filter]
+    OFILTER --> RESPONSE[Safe Response]

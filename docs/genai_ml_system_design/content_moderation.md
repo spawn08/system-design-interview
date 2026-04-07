@@ -220,52 +220,52 @@ Appeal records:               100K/day × 2 KB = 200 MB/day
 
 ```mermaid
 flowchart TB
-    subgraph Ingestion [Content Ingestion]
+    subgraph ing["Content Ingestion"]
         Upload[Content Upload<br/>API]
         Stream[Event Stream<br/>Kafka]
     end
 
-    subgraph Cascade [Moderation Cascade]
+    subgraph casc["Moderation Cascade"]
         Rules[Stage 1<br/>Rules Engine]
         FastML[Stage 2<br/>Fast ML Classifiers]
         HeavyML[Stage 3<br/>Multi-Modal Models]
         LLMStage[Stage 4<br/>LLM Contextual<br/>Analysis]
     end
 
-    subgraph Enforcement [Enforcement]
+    subgraph enf["Enforcement"]
         ActionEngine[Action Engine]
         NotifyUser[User Notification]
         NotifyCreator[Creator<br/>Notification]
     end
 
-    subgraph HumanLoop [Human-in-the-Loop]
+    subgraph hitl["Human-in-the-Loop"]
         ReviewQueue[Review Queue<br/>Priority-based]
         ReviewUI[Reviewer<br/>Interface]
         QA[Quality<br/>Assurance]
     end
 
-    subgraph Appeals [Appeals]
+    subgraph app["Appeals"]
         AppealAPI[Appeal<br/>Submission]
         AppealReview[Appeal<br/>Review]
         Overturn[Decision<br/>Update]
     end
 
-    subgraph Monitoring [Monitoring & Feedback]
+    subgraph mon["Monitoring & Feedback"]
         Metrics[Metrics<br/>Dashboard]
         FeedbackLoop[Feedback<br/>Loop]
         PolicyMgmt[Policy<br/>Management]
     end
 
-    Ingestion --> Cascade
-    Cascade -->|violation| Enforcement
-    Cascade -->|uncertain| HumanLoop
-    HumanLoop --> Enforcement
-    Enforcement --> Appeals
-    Appeals --> Overturn
+    ing --> casc
+    casc -->|violation| enf
+    casc -->|uncertain| hitl
+    hitl --> enf
+    enf --> app
+    app --> Overturn
     
-    HumanLoop --> FeedbackLoop
-    Appeals --> FeedbackLoop
-    FeedbackLoop --> Cascade
+    hitl --> FeedbackLoop
+    app --> FeedbackLoop
+    FeedbackLoop --> casc
 ```
 
 ---
@@ -450,27 +450,27 @@ class AdversarialDefense:
 
 ```mermaid
 flowchart LR
-    subgraph Queue [Priority Queue]
-        P1[P0: CSAM / Imminent Threat<br/>SLA: 15 min]
-        P2[P1: Severe Harassment<br/>SLA: 1 hour]
-        P3[P2: Hate Speech / Violence<br/>SLA: 4 hours]
-        P4[P3: Spam / Misinformation<br/>SLA: 24 hours]
+    subgraph pq["Priority Queue"]
+        P1["P0: CSAM / Imminent Threat<br/>SLA: 15 min"]
+        P2["P1: Severe Harassment<br/>SLA: 1 hour"]
+        P3["P2: Hate Speech / Violence<br/>SLA: 4 hours"]
+        P4["P3: Spam / Misinformation<br/>SLA: 24 hours"]
     end
 
-    subgraph Review [Review Interface]
-        ContentView[Content + Context<br/>Display]
+    subgraph rev["Review Interface"]
+        ContentView["Content + Context<br/>Display"]
         PolicyRef[Policy Reference<br/>Panel]
-        MLDecision[ML Decision +<br/>Explanation]
-        ActionButtons[Action Buttons<br/>+ Reason Codes]
+        MLDecision["ML Decision +<br/>Explanation"]
+        ActionButtons["Action Buttons<br/>+ Reason Codes"]
     end
 
-    subgraph QA [Quality Assurance]
+    subgraph qas["Quality Assurance"]
         DoubleReview[Double-Blind<br/>Review Sample]
         Calibration[Weekly<br/>Calibration]
         InterRater[Inter-Rater<br/>Agreement]
     end
 
-    Queue --> Review --> QA
+    pq --> rev --> qas
 ```
 
 ```python

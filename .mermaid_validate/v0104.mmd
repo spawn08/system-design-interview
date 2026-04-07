@@ -1,0 +1,9 @@
+flowchart TD
+    User[User in Tokyo] --> DNS[DNS Query: api.example.com]
+    DNS --> GSLB[GSLB/GeoDNS]
+    GSLB --> DC1[Tokyo DC: 52.0.0.1]
+    GSLB --> DC2[Frankfurt DC: 18.0.0.1]
+    GSLB --> DC3[Virginia DC: 35.0.0.1]
+    GSLB -.->|Returns Tokyo IP| User
+    User --> TokyoLB[Tokyo Load Balancer]
+    TokyoLB --> Servers[Tokyo Servers]

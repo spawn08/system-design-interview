@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant U as User
+    participant App as Your App
+    participant Auth as Auth Server (Google, etc.)
+    participant API as Resource Server
+
+    U->>App: Click "Login with Google"
+    App->>Auth: Redirect to /authorize?client_id=...&redirect_uri=...&scope=...
+    U->>Auth: Login & consent
+    Auth->>App: Redirect to callback with authorization code
+    App->>Auth: POST /token (code + client_secret)
+    Auth->>App: access_token + refresh_token
+    App->>API: GET /api/resource (Bearer token)
+    API->>App: Protected data

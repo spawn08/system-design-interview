@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph UploadPath["Upload path — CP-leaning"]
+    U1[Pre-signed PUT to object store]
+    U2[POST /posts — metadata txn]
+    U3[Async pipeline — at-least-once jobs]
+    U1 --> U2
+    U2 --> U3
+  end
+  subgraph FeedPath["Feed read — AP-leaning"]
+    F1[Feed service]
+    F2[Materialized ids + cache]
+    F3[Ranking optional]
+    F1 --> F2 --> F3
+  end
+  subgraph EngagePath["Likes/comments — strong per action"]
+    E1[Like/comment API]
+    E2[(Shard by post_id or user)]
+    E1 --> E2
+  end
+  subgraph ProfilePath["Profile — available, softly consistent"]
+    P1[Profile API]
+    P2[Cache + origin DB]
+    P1 --> P2
+  end

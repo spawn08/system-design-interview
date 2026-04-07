@@ -1,0 +1,56 @@
+[
+  {
+    "file": "docs/advanced/consensus_algorithms.md",
+    "line": 139,
+    "idx": 2,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 13:"
+  },
+  {
+    "file": "docs/advanced/consistency_patterns.md",
+    "line": 64,
+    "idx": 5,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 2:"
+  },
+  {
+    "file": "docs/advanced/distributed_locking.md",
+    "line": 191,
+    "idx": 21,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 9:"
+  },
+  {
+    "file": "docs/advanced/message_queues.md",
+    "line": 77,
+    "idx": 39,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 27:"
+  },
+  {
+    "file": "docs/genai_ml_basics/feature_stores.md",
+    "line": 132,
+    "idx": 136,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 11:"
+  },
+  {
+    "file": "docs/genai_ml_system_design/multimodal_search.md",
+    "line": 52,
+    "idx": 182,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 3:"
+  },
+  {
+    "file": "docs/software_system_design/distributed_cache.md",
+    "line": 732,
+    "idx": 274,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 3:"
+  },
+  {
+    "file": "docs/software_system_design/key_value_store.md",
+    "line": 484,
+    "idx": 305,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 13:"
+  },
+  {
+    "file": "docs/software_system_design/search_autocomplete.md",
+    "line": 694,
+    "idx": 371,
+    "msg": "Error: Evaluation failed: Error: Parse error on line 7:"
+  }
+]

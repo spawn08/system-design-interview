@@ -1,0 +1,16 @@
+sequenceDiagram
+  participant C as Coordinator
+  participant P1 as Orders DB
+  participant P2 as Inventory DB
+  participant P3 as Payments DB
+
+  C->>P1: PREPARE
+  C->>P2: PREPARE
+  C->>P3: PREPARE
+  P1-->>C: VOTE_COMMIT
+  P2-->>C: VOTE_COMMIT
+  P3-->>C: VOTE_COMMIT
+  Note over C: All voted commit
+  C->>P1: COMMIT
+  C->>P2: COMMIT
+  C->>P3: COMMIT

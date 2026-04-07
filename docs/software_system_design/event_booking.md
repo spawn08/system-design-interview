@@ -427,11 +427,11 @@ flowchart TB
   end
 
   subgraph Data["Data stores"]
-    PG[(OLTP: Postgres / Cockroach)]
-    RD[(Redis: holds, rate limits, queue)]
-    ES[(Search index: events)]
-    OBJ[(Object storage: tickets/PDF)]
-    KQ[[Kafka: events]]
+    PG[("OLTP: Postgres / Cockroach")]
+    RD[("Redis: holds, rate limits, queue")]
+    ES[("Search index: events")]
+    OBJ[("Object storage: tickets/PDF")]
+    KQ[["Kafka: events"]]
   end
 
   W --> CDN
@@ -696,8 +696,8 @@ flowchart TB
     T[Token bucket admit/sec]
   end
   subgraph Store["Redis"]
-    Q[(sorted set: queue)]
-    A[(set: admitted session ids)]
+    Q[("sorted set: queue")]
+    A[("set: admitted session ids")]
   end
   R --> T
   T -->|allowed| Q

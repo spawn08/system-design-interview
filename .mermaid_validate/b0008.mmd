@@ -1,0 +1,12 @@
+flowchart LR
+    OS[Order Service<br/>Create Order] -->|OrderCreated| E1[Event Bus]
+    E1 --> PS[Payment Service<br/>Charge Payment]
+    PS -->|PaymentCharged| E2[Event Bus]
+    E2 --> IS[Inventory Service<br/>Reserve Stock]
+    IS -->|StockReserved| E3[Event Bus]
+    E3 --> SS[Shipping Service<br/>Schedule Delivery]
+    
+    SS -->|ShippingFailed| E4[Event Bus]
+    E4 --> IS2[Inventory Service<br/>Release Stock]
+    IS2 -->|StockReleased| E5[Event Bus]
+    E5 --> PS2[Payment Service<br/>Refund Payment]

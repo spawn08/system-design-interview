@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant C as Client
+  participant API as Post API
+  participant S3 as Object storage
+  participant Q as Queue
+  participant W as Image worker
+  participant DB as Metadata DB
+  C->>API: POST /posts (object_key)
+  API->>DB: insert post pending
+  API->>Q: enqueue process job
+  API-->>C: 202 Accepted / post id
+  Q->>W: job
+  W->>S3: GET raw object
+  W->>W: decode resize encode
+  W->>S3: PUT renditions
+  W->>DB: update renditions + active
+  W->>Q: fan-out event

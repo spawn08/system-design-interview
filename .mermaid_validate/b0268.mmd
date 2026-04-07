@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph GW1 [Gateway 1 - 50K conns]
+    C1[Client A - doc_123]
+    C2[Client B - doc_456]
+  end
+  subgraph GW2 [Gateway 2 - 50K conns]
+    C3[Client C - doc_123]
+    C4[Client D - doc_789]
+  end
+  subgraph Backbone
+    K[Kafka partition: doc_123]
+  end
+  C1 -->|op| K
+  K -->|fan-out| C3

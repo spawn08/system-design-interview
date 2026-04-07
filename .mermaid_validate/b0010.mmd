@@ -1,0 +1,6 @@
+flowchart LR
+    SVC[Service] -->|1. Write to DB<br/>in single transaction| DB[(Database)]
+    DB -->|includes outbox table| OB[Outbox Table]
+    RELAY[Message Relay<br/>polls or CDC] -->|2. Read from outbox| OB
+    RELAY -->|3. Publish| MQ[Message Queue]
+    RELAY -->|4. Mark as sent| OB

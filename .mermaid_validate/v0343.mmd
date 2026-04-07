@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph cp["CP surfaces — strongly consistent"]
+    PI[Payment initiation & commits]
+    LD[Ledger writes & balances]
+    IDEM[Idempotency + financial invariants]
+  end
+
+  subgraph ap_edge["AP-tolerant surfaces"]
+    QS[Status read replicas / CDN cache]
+    NOTIF[Customer notifications]
+    MERCH_WH[Merchant webhook fan-out]
+  end
+
+  subgraph partition["Partition / failure"]
+    P[Network split or replica lag]
+  end
+
+  PI --> IDEM
+  LD --> IDEM
+  QS -.->|stale OK with TTL| PI
+  NOTIF --> MERCH_WH
+  P -->|prefer errors or queued work| PI
+  P -->|do not serve wrong balance| LD

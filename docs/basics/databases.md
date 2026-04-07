@@ -370,7 +370,7 @@ flowchart TD
     Node2 <--> Node3
     Node3 <--> Node1
     
-    subgraph Ring [Cassandra Ring]
+    subgraph cring["Cassandra Ring"]
         Node1
         Node2
         Node3
@@ -477,15 +477,15 @@ In a distributed system, network partitions (nodes can't communicate) WILL happe
 
 ```mermaid
 flowchart LR
-    subgraph DC1 [Data Center 1]
+    subgraph dc1["Data Center 1"]
         Client1[Client] --> Node1[(Node A)]
     end
     
-    subgraph DC2 [Data Center 2]
+    subgraph dc2["Data Center 2"]
         Client2[Client] --> Node2[(Node B)]
     end
     
-    Node1 -.-x|Network Partition| Node2
+    Node1 -.-x|"Network Partition"| Node2
 ```
 
 Client 1 writes `x = 1` to Node A. But Node A can't replicate to Node B due to the partition.
@@ -860,17 +860,17 @@ flowchart TD
     Q1 -->|Yes| Q2{Complex relationships?}
     Q1 -->|No| Q3{Data structure?}
     
-    Q2 -->|Yes| SQL[PostgreSQL/MySQL]
+    Q2 -->|Yes| SQL["PostgreSQL/MySQL"]
     Q2 -->|No| SQL
     
-    Q3 -->|Key-Value| KV[Redis/DynamoDB]
+    Q3 -->|Key-Value| KV["Redis/DynamoDB"]
     Q3 -->|Documents| Doc[MongoDB]
     Q3 -->|Wide Column| WC[Cassandra]
     Q3 -->|Graph| Graph[Neo4j]
     
     SQL --> Q4{Scale requirements?}
     Q4 -->|Single region| SQL2[Single PostgreSQL]
-    Q4 -->|Multi-region| SQL3[CockroachDB/Spanner]
+    Q4 -->|Multi-region| SQL3["CockroachDB/Spanner"]
 ```
 
 ### Quick Reference

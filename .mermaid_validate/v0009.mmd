@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant O as Saga Orchestrator
+    participant OS as Order Service
+    participant PS as Payment Service
+    participant IS as Inventory Service
+    participant SS as Shipping Service
+
+    O->>OS: Create Order
+    OS->>O: Order Created
+
+    O->>PS: Charge Payment
+    PS->>O: Payment Charged
+
+    O->>IS: Reserve Inventory
+    IS->>O: Inventory Reserved
+
+    O->>SS: Schedule Shipment
+    SS--xO: Shipment Failed!
+
+    Note over O: Compensation begins
+    O->>IS: Release Inventory
+    IS->>O: Inventory Released
+    O->>PS: Refund Payment
+    PS->>O: Payment Refunded
+    O->>OS: Cancel Order
+    OS->>O: Order Cancelled

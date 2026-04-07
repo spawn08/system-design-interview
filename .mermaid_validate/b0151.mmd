@@ -1,0 +1,11 @@
+graph LR
+    METRICS[Prometheus Metrics] --> HPA[Horizontal Pod Autoscaler]
+    HPA --> SCALE{Scale Decision}
+    SCALE -->|Scale Up| ADD[Add GPU Pods]
+    SCALE -->|Scale Down| REMOVE[Remove GPU Pods]
+    SCALE -->|No Change| WAIT[Wait]
+
+    CUSTOM[Custom Metrics] --> HPA
+    CUSTOM --- QPS[QPS per Pod]
+    CUSTOM --- GPU[GPU Utilization]
+    CUSTOM --- QUEUE[Queue Depth]

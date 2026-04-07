@@ -1,0 +1,14 @@
+flowchart TD
+    Client[Client] --> Node1[Node 1]
+    Client --> Node2[Node 2]
+    Client --> Node3[Node 3]
+    
+    Node1 <--> Node2
+    Node2 <--> Node3
+    Node3 <--> Node1
+    
+    subgraph Ring [Cassandra Ring]
+        Node1
+        Node2
+        Node3
+    end

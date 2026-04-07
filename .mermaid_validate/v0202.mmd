@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Reality [Reality]
+        direction TB
+        Legit[99.9% Legitimate]
+        Fraud[0.1% Fraudulent]
+    end
+    
+    subgraph Challenge [Challenge]
+        direction TB
+        C1[Highly imbalanced data]
+        C2[Adversarial attackers]
+        C3[Real-time constraint]
+        C4[Evolving patterns]
+    end
+    
+    Reality --> Challenge

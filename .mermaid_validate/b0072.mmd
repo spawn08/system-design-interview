@@ -1,0 +1,6 @@
+flowchart LR
+    R[Request] --> TB{Tokens > 0?}
+    TB -->|Yes| A[Allow<br/>tokens--]
+    TB -->|No| D[Reject<br/>429 Too Many Requests]
+    
+    Refill[Token Refill<br/>every interval] -.->|Add tokens| TB

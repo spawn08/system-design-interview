@@ -1,0 +1,18 @@
+flowchart LR
+    subgraph General["General capability"]
+        MMLU[MMLU / ARC]
+        HS[HellaSwag]
+    end
+    subgraph Domain["Domain & tooling"]
+        HE[HumanEval]
+        SWE[SWE-bench]
+        MED[MedQA / MATH]
+    end
+    subgraph Preference["Preference & safety"]
+        AR[Chatbot Arena Elo]
+        TQ[TruthfulQA]
+        SAF[ToxiGen / BBQ]
+    end
+    General --> SEL[Model + risk profile]
+    Domain --> SEL
+    Preference --> SEL

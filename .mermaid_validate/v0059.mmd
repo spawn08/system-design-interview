@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph Users
+        EU[User EU]
+        US[User US]
+    end
+
+    subgraph DNS["Authoritative DNS / Traffic steering"]
+        GSLB[Geo routing policy]
+    end
+
+    subgraph PoPs
+        POP_EU[PoP Frankfurt]
+        POP_US[PoP Virginia]
+    end
+
+    EU --> GSLB
+    US --> GSLB
+    GSLB --> POP_EU
+    GSLB --> POP_US

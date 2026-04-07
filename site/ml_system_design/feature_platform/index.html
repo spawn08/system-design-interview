@@ -3287,10 +3287,10 @@
     axisFormat %s
 
     section Entity timeline
-    Account created           :milestone, 0, 0
-    Feature window eligible   :active, 1, 4
-    Label event (click)       :crit, 5, 5
-    Future purchase           :done, 7, 7</div>
+    "Account created"           :milestone, 0, 0
+    "Feature window eligible"   :active, 1, 4
+    "Label event (click)"       :crit, 5, 5
+    "Future purchase"           :done, 7, 7</div>
 <p><strong>Wrong join:</strong> joining “all purchases ever” would include the purchase at <span class="arithmatex">\(t=7\)</span> when predicting at <span class="arithmatex">\(t=5\)</span>.</p>
 <p><strong>Right join:</strong> for each example at <span class="arithmatex">\(t=5\)</span>, join feature rows with <code>feature_time &lt;= t5</code> and pick the <strong>latest</strong> such row per feature (depending on semantics).</p>
 <div class="mermaid">sequenceDiagram
@@ -3344,17 +3344,17 @@
 <p>Stateful stream processors compute keyed aggregates using <strong>windows</strong>.</p>
 <h4 id="tumbling-window-fixed-size-non-overlapping">Tumbling window (fixed-size, non-overlapping)<a class="headerlink" href="#tumbling-window-fixed-size-non-overlapping" title="Permanent link">&para;</a></h4>
 <div class="mermaid">flowchart LR
-    subgraph Tumbling [Tumbling 1h]
-        a1[00:00-01:00] --&gt; a2[01:00-02:00] --&gt; a3[02:00-03:00]
+    subgraph tum["Tumbling 1h"]
+        a1["00:00-01:00"] --&gt; a2["01:00-02:00"] --&gt; a3["02:00-03:00"]
     end</div>
 <h4 id="sliding-window-fixed-length-moves-with-time">Sliding window (fixed length, moves with time)<a class="headerlink" href="#sliding-window-fixed-length-moves-with-time" title="Permanent link">&para;</a></h4>
 <div class="mermaid">flowchart LR
-    subgraph Sliding [Sliding 1h step 10m]
+    subgraph sli["Sliding 1h step 10m"]
         s1[W ends 01:10] --&gt; s2[W ends 01:20] --&gt; s3[W ends 01:30]
     end</div>
 <h4 id="session-window-gap-based">Session window (gap-based)<a class="headerlink" href="#session-window-gap-based" title="Permanent link">&para;</a></h4>
 <div class="mermaid">flowchart LR
-    subgraph Session [Gap 30m]
+    subgraph sess["Gap 30m"]
         e1[e1] --&gt; e2[e2] --&gt; gap[gap &amp;gt; 30m] --&gt; e3[e3]
     end</div>
 <p><strong>Operational note:</strong> sliding windows are <strong>more expensive</strong> (more overlapping state) than tumbling; session windows need <strong>gap timers</strong> and <strong>state eviction</strong> policies.</p>
@@ -3585,28 +3585,28 @@
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-dual-path-batch-streaming-with-unified-semantics">Architecture: dual path (batch + streaming) with unified semantics<a class="headerlink" href="#architecture-dual-path-batch-streaming-with-unified-semantics" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph BatchPath [Batch path]
-        DW[(Data Warehouse / Lake)]
+    subgraph bpath["Batch path"]
+        DW[("Data Warehouse / Lake")]
         SP[Batch Compute Spark SQL]
         OFF[(Offline Feature Store)]
         DW --&gt; SP --&gt; OFF
     end
 
-    subgraph StreamPath [Streaming path]
-        K[[Kafka / Event Bus]]
-        FL[Flink / Stream Processor]
-        ON[(Online Store Redis / DynamoDB)]
+    subgraph spath["Streaming path"]
+        K[["Kafka / Event Bus"]]
+        FL["Flink / Stream Processor"]
+        ON[("Online Store Redis / DynamoDB")]
         K --&gt; FL --&gt; ON
     end
 
-    subgraph ServePath [Serving path]
+    subgraph servp["Serving path"]
         M[Model Service]
         FS[Feature Server]
         ON --&gt; FS
         FS --&gt; M
     end
 
-    subgraph TrainPath [Training path]
+    subgraph trainp["Training path"]
         TJ[Training Job]
         OFF --&gt; TJ
         TJ --&gt; DS[Training Dataset PIT joins]

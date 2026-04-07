@@ -1,0 +1,16 @@
+flowchart LR
+    U[User / Client] --> O[Orchestrator]
+    O --> P[Planner LLM]
+    P --> TR[Tool Router]
+    TR --> T1[Search]
+    TR --> T2[Code Sandbox]
+    TR --> T3[HTTP / APIs]
+    TR --> T4[Browser / Computer Use]
+    TR --> MS[(Memory Store)]
+    MS --> P
+    T1 --> EV[Evaluator]
+    T2 --> EV
+    T3 --> EV
+    T4 --> EV
+    EV --> O
+    O --> R[Response / Artifacts]

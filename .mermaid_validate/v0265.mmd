@@ -1,0 +1,10 @@
+flowchart TB
+  S0[Initial: empty]
+  S1[After A: a]
+  S2[After A then B: ab]
+  S3[After B then transformed A: ab]
+
+  S0 --> S1
+  S1 --> S2
+  S0 --> S4[After B: b]
+  S4 --> S3

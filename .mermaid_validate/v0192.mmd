@@ -1,0 +1,40 @@
+flowchart LR
+    subgraph Request [Request path]
+        AR[Ad Request]
+    end
+
+    subgraph Retrieval [Candidate Retrieval]
+        T[Targeting match]
+        B[Budget / pacing filter]
+        FC[Frequency cap]
+        Cands[Candidate ads<br/>10²–10⁴]
+    end
+
+    subgraph Features [Feature Assembly]
+        UF[User features]
+        ADF[Ad features]
+        CF[Context features]
+        ASM[Assembled tensors / sparse batch]
+    end
+
+    subgraph ML [CTR / CVR models]
+        M[Deep ranker<br/>pCTR, pCVR]
+    end
+
+    subgraph Auction [Auction engine]
+        E[eCPM = f<br/>pCTR, bid, quality]
+        SEL[Ad selection + pricing]
+    end
+
+    subgraph Out [Serving]
+        SRV[Ad served to user]
+    end
+
+    AR --> T --> B --> FC --> Cands
+    Cands --> UF
+    Cands --> ADF
+    AR --> CF
+    UF --> ASM
+    ADF --> ASM
+    CF --> ASM
+    ASM --> M --> E --> SEL --> SRV

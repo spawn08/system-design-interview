@@ -1,0 +1,40 @@
+flowchart TB
+    subgraph Clients["Client Apps"]
+        A[Web / Mobile / Batch Jobs]
+    end
+
+    subgraph GW["LLM Gateway"]
+        AUTH[AuthN/Z<br/>API Keys / mTLS / JWT]
+        RL[Rate Limiter<br/>Token + RPM buckets]
+        CC[Cache Check<br/>Exact + Semantic]
+        ROUTER[Router<br/>Policy Engine]
+        POOL["Provider Pool"]
+    end
+
+    subgraph Providers["Upstream Providers"]
+        OAI[OpenAI]
+        ANT[Anthropic]
+        GOO[Google AI]
+        SH[Self-hosted<br/>vLLM / TGI]
+    end
+
+    subgraph Resp["Response Pipeline"]
+        PII[PII Scrub / Mask]
+        COST[Cost Tracking<br/>Meters + Budgets]
+        LOG[Structured Logging]
+        CW[Cache Write<br/>If eligible]
+    end
+
+    A --> AUTH --> RL --> CC
+    CC -->|miss| ROUTER
+    CC -->|hit| PII
+    ROUTER --> POOL
+    POOL --> OAI
+    POOL --> ANT
+    POOL --> GOO
+    POOL --> SH
+    OAI --> PII
+    ANT --> PII
+    GOO --> PII
+    SH --> PII
+    PII --> COST --> LOG --> CW

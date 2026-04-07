@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph Encoding [Encoding]
+        Image[Image] --> CNN[CNN/ViT<br/>Encoder]
+        CNN --> Embedding[512-dim<br/>Vector]
+    end
+    
+    subgraph Search [Search]
+        Embedding --> ANN[ANN Index]
+        ANN --> Similar[Similar<br/>Images]
+    end

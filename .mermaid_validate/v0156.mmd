@@ -1,0 +1,8 @@
+flowchart TD
+    Q[Question] --> B1[Branch A]
+    Q --> B2[Branch B]
+    B1 --> SA[Score A]
+    B2 --> SB[Score B]
+    SA --> P{Prune / expand?}
+    SB --> P
+    P --> W[Winner path → action]

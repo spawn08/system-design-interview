@@ -3554,14 +3554,14 @@
 <p><strong>Multi-region:</strong> a <strong>single global Redis</strong> optimizes consistency of one number but hurts <strong>latency and partition resilience</strong>. <strong>Per-region Redis</strong> improves availability and RTT but <strong>violates a strict global limit</strong> unless you add async reconciliation (eventually consistent) or a <strong>partitioned budget</strong> (e.g. 200/min per region).</p>
 <p><strong>During a Redis partition:</strong> clients on the minority side may see <strong>stale</strong> or <strong>split-brain</strong> counts if reads go to replicas or split primaries—designs usually <strong>route writes to one primary</strong> per key and accept <strong>unavailability of enforcement</strong> (fail open) rather than wrong hard enforcement. <strong>Split clients</strong> (some to each partition) can <strong>exceed</strong> the intended limit until the partition heals—acknowledge this as <strong>bounded over-admission</strong>.</p>
 <div class="mermaid">flowchart TB
-  subgraph CP [Consistency vs availability under partition]
+  subgraph CP["Consistency vs availability under partition"]
     W[Writers to single Redis primary per shard]
     R[Reads from primary for limit checks]
     P[Network partition]
     W --&gt; P
     R --&gt; P
-    P --&gt;|minority partition| FO[Fail open OR queue checks]
-    P --&gt;|healed| REC[Reconcile counters / accept over-count]
+    P --&gt;|"minority partition"| FO[Fail open OR queue checks]
+    P --&gt;|healed| REC["Reconcile counters / accept over-count"]
   end</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -4378,28 +4378,28 @@
 <p>For a distributed system, we need a centralized store for rate limit state.</p>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Clients [Clients]
+    subgraph Clients["Clients"]
         C1[Client 1]
         C2[Client 2]
         C3[Client N]
     end
 
-    subgraph Edge [Edge Layer]
+    subgraph Edge["Edge Layer"]
         LB[Load Balancer]
     end
 
-    subgraph App [Application Layer]
+    subgraph App["Application Layer"]
         API1[API Server 1]
         API2[API Server 2]
         API3[API Server N]
     end
 
-    subgraph RateLimit [Rate Limiting Layer]
+    subgraph RateLimit["Rate Limiting Layer"]
         RL[Rate Limiter Service]
         Redis[(Redis Cluster)]
     end
 
-    subgraph Backend [Backend Services]
+    subgraph Backend["Backend Services"]
         Svc[Backend Services]
     end
 
@@ -5216,18 +5216,18 @@
 <h2 id="step-5-scaling-production">Step 5: Scaling &amp; Production<a class="headerlink" href="#step-5-scaling-production" title="Permanent link">&para;</a></h2>
 <h3 id="redis-cluster-for-high-availability">Redis Cluster for High Availability<a class="headerlink" href="#redis-cluster-for-high-availability" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Cluster [Redis Cluster]
-        subgraph Shard1 [Shard 1]
+    subgraph Cluster["Redis Cluster"]
+        subgraph Shard1["Shard 1"]
             M1[Master 1]
             S1[Replica 1]
         end
 
-        subgraph Shard2 [Shard 2]
+        subgraph Shard2["Shard 2"]
             M2[Master 2]
             S2[Replica 2]
         end
 
-        subgraph Shard3 [Shard 3]
+        subgraph Shard3["Shard 3"]
             M3[Master 3]
             S3[Replica 3]
         end
@@ -5432,13 +5432,13 @@
 <h3 id="cascading-failure-and-load-shedding">Cascading Failure and Load Shedding<a class="headerlink" href="#cascading-failure-and-load-shedding" title="Permanent link">&para;</a></h3>
 <p>At L6, connect rate limiting to broader system resilience:</p>
 <div class="mermaid">flowchart TD
-  RL[Rate Limiter] --&gt;|Rejects excess| Client
-  RL --&gt;|Admits requests| API[API Server]
+  RL[Rate Limiter] --&gt;|"Rejects excess"| Client
+  RL --&gt;|"Admits requests"| API[API Server]
   API --&gt;|Overloaded| CB[Circuit Breaker]
   CB --&gt;|Open| Fallback[Degraded Response]
   CB --&gt;|Closed| Backend[Backend Service]
-  Backend --&gt;|Backpressure signal| API
-  API --&gt;|Adaptive limit| RL</div>
+  Backend --&gt;|"Backpressure signal"| API
+  API --&gt;|"Adaptive limit"| RL</div>
 <table>
 <thead>
 <tr>

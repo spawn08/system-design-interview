@@ -3063,25 +3063,25 @@
         BATCH[Batch Jobs] --&gt; BATCHQ[Batch Queue]
     end
 
-    subgraph API Gateway
+    subgraph agw["API Gateway"]
         LB --&gt; ROUTER[Traffic Router / A/B Splitter]
         ROUTER --&gt; AUTH[Auth + Rate Limit]
     end
 
-    subgraph Model Registry
+    subgraph mr["Model Registry"]
         REG[(Model Registry)]
         STORE[(Artifact Store&lt;br/&gt;S3 / GCS)]
         REG --&gt; STORE
     end
 
-    subgraph Online Serving
+    subgraph os["Online Serving"]
         AUTH --&gt; SRV1[Model Server v1&lt;br/&gt;TorchServe]
         AUTH --&gt; SRV2[Model Server v2&lt;br/&gt;Triton]
         SRV1 --&gt; GPU1[GPU Pool]
         SRV2 --&gt; GPU2[GPU Pool]
     end
 
-    subgraph Batch Serving
+    subgraph bs["Batch Serving"]
         BATCHQ --&gt; SPARK[Spark / Ray Batch]
         SPARK --&gt; GPU3[GPU Pool]
         SPARK --&gt; OUTPUT[(Output Store)]
@@ -3247,7 +3247,7 @@
 <p>A model registry is the source of truth for all trained models. It stores artifacts, metadata, lineage, and deployment status.</p>
 <h3 id="registry-design">Registry Design<a class="headerlink" href="#registry-design" title="Permanent link">&para;</a></h3>
 <div class="mermaid">graph LR
-    subgraph Model Registry
+    subgraph mr2["Model Registry"]
         META[(Metadata DB)]
         ARTIFACTS[(Artifact Store&lt;br/&gt;S3 / GCS)]
     end
@@ -3954,7 +3954,7 @@
 <h2 id="step-9-model-monitoring-drift-detection">Step 9: Model Monitoring &amp; Drift Detection<a class="headerlink" href="#step-9-model-monitoring-drift-detection" title="Permanent link">&para;</a></h2>
 <h3 id="monitoring-architecture">Monitoring Architecture<a class="headerlink" href="#monitoring-architecture" title="Permanent link">&para;</a></h3>
 <div class="mermaid">graph TB
-    SERVING[Model Server] --&gt;|predictions + features| LOGGER[Prediction Logger]
+    SERVING[Model Server] --&gt;|"predictions + features"| LOGGER[Prediction Logger]
     LOGGER --&gt; STORE[(Prediction Store&lt;br/&gt;BigQuery / S3)]
     STORE --&gt; DRIFT[Drift Detector&lt;br/&gt;Scheduled Job]
     STORE --&gt; PERF[Performance Tracker]
@@ -3963,9 +3963,9 @@
     DRIFT --&gt;|trigger| RETRAIN[Retraining Pipeline]
     PERF --&gt; DASH[Grafana Dashboard]
 
-    subgraph Metrics
-        LATENCY[Latency P50/P95/P99]
-        THROUGHPUT[QPS / GPU Util]
+    subgraph met["Metrics"]
+        LATENCY["Latency P50/P95/P99"]
+        THROUGHPUT["QPS / GPU Util"]
         ERRORS[Error Rate]
         BUSINESS[Business KPIs]
     end

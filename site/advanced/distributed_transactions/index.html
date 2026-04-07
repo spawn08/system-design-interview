@@ -3027,12 +3027,12 @@
 <h3 id="solution-outbox-table">Solution: Outbox Table<a class="headerlink" href="#solution-outbox-table" title="Permanent link">&para;</a></h3>
 <p>Write the event to an <strong>outbox table</strong> in the same database transaction as the business data. A separate process reads the outbox and publishes to the message broker.</p>
 <div class="mermaid">flowchart LR
-  subgraph Same DB Transaction
+  subgraph sdbt["Same DB Transaction"]
     BT[Business Table] 
     OT[Outbox Table]
   end
-  CDC[CDC / Poller] --&gt; OT
-  CDC --&gt; K[Kafka / Message Broker]
+  CDC["CDC / Poller"] --&gt; OT
+  CDC --&gt; K["Kafka / Message Broker"]
   K --&gt; DS[Downstream Services]</div>
 <table>
 <thead>

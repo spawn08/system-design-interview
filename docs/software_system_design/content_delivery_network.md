@@ -496,10 +496,10 @@ flowchart LR
     U[Purge fan-out]
     D[DNS TTL]
   end
-  P -->|publish| E
-  C -->|deploy| E
-  U -.->|seconds lag| E
-  D -.->|resolver cache| Clients[Clients]
+  P -->|"publish"| E
+  C -->|"deploy"| E
+  U -.->|"seconds lag"| E
+  D -.->|"resolver cache"| Clients[Clients]
 ```
 
 **Interview punchline:** **Immutability** (versioned asset URLs) avoids **coordination**; **mutable** APIs need **purge** or **short TTL** — there is **no global linearizable cache** at CDN scale for all keys.

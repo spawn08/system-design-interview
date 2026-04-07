@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Client
+    participant API as Command API
+    participant H as Handler
+    participant ES as Event store
+    participant Bus as Message broker
+    participant P as Projection
+    participant RDB as Read DB
+    participant Reader as Query API
+
+    Client->>API: PlaceOrder(command)
+    API->>H: dispatch
+    H->>ES: append(events) [expected version]
+    ES-->>H: ok
+    H->>Bus: publish integration event (outbox / after commit)
+    Bus->>P: consume
+    P->>RDB: update materialized view
+    Client->>Reader: list orders (may be slightly stale)
+    Reader->>RDB: query
+    RDB-->>Reader: rows
+    Reader-->>Client: response

@@ -192,10 +192,10 @@ flowchart LR
     Polite[Politeness cache]
   end
 
-  Frontier -->|at-least-once URL| Workers
+  Frontier -->|"at-least-once URL"| Workers
   Workers --> Dedup
   Workers --> Meta
-  Polite -.->|best-effort delay| Workers
+  Polite -.->|"best-effort delay"| Workers
 ```
 
 Under a partition, **prefer**: frontier may **duplicate**, workers may **re-fetch** occasionally, but **dedup + idempotent writes** prevent permanent inconsistency in “what the corpus contains.”
@@ -421,16 +421,16 @@ URL frontier size       = 10B URLs × 200 bytes = 2 TB
 
 ```mermaid
 flowchart TB
-    subgraph Input [Input]
+    subgraph Input["Input"]
         Seeds[Seed URLs]
     end
     
-    subgraph Frontier [URL Frontier]
+    subgraph Frontier["URL Frontier"]
         Queue[Priority Queue]
         Scheduler[Politeness Scheduler]
     end
     
-    subgraph Fetcher [Fetcher Cluster]
+    subgraph Fetcher["Fetcher Cluster"]
         F1[Fetcher 1]
         F2[Fetcher 2]
         FN[Fetcher N]
@@ -438,13 +438,13 @@ flowchart TB
         Robots[robots.txt Cache]
     end
     
-    subgraph Parser [Parser Cluster]
+    subgraph Parser["Parser Cluster"]
         P1[Parser 1]
         P2[Parser 2]
         PN[Parser N]
     end
     
-    subgraph Storage [Storage]
+    subgraph Storage["Storage"]
         Content[(Content Store)]
         URLStore[(URL Store)]
         Dedup[Dedup Service]
@@ -526,11 +526,11 @@ The frontier manages the queue of URLs to crawl. It's not a simple FIFO queue—
 
 ```mermaid
 flowchart TB
-    subgraph Frontier [URL Frontier]
+    subgraph Frontier2["URL Frontier"]
         Input[New URLs]
         Prioritizer[Prioritizer]
         
-        subgraph Queues [Per-Host Queues]
+        subgraph PerHostQueues["Per-Host Queues"]
             Q1[example.com queue]
             Q2[other.com queue]
             QN[... queues]
@@ -1377,24 +1377,24 @@ For crawling billions of pages, we need a distributed system.
 
 ```mermaid
 flowchart TB
-    subgraph Coordinator [Coordinator Cluster]
+    subgraph Coordinator["Coordinator Cluster"]
         C1[Coordinator 1]
         C2[Coordinator 2]
         ZK[(ZooKeeper)]
     end
     
-    subgraph Frontier [URL Frontier]
+    subgraph Frontier3["URL Frontier"]
         Kafka[(Kafka)]
         Redis[(Redis)]
     end
     
-    subgraph Workers [Crawler Workers]
+    subgraph CrawlWorkers["Crawler Workers"]
         W1[Worker 1<br/>Fetcher + Parser]
         W2[Worker 2<br/>Fetcher + Parser]
         W3[Worker N<br/>Fetcher + Parser]
     end
     
-    subgraph Storage [Storage Layer]
+    subgraph StorageLayer["Storage Layer"]
         S3[(S3/HDFS<br/>Content)]
         Cassandra[(Cassandra<br/>URL Metadata)]
     end

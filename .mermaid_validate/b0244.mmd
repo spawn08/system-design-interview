@@ -1,0 +1,38 @@
+flowchart LR
+  subgraph producers[Event Producers]
+    P1[Web / SDK]
+    P2[Mobile SDK]
+    P3[Ad Server Beacons]
+  end
+
+  subgraph ingest[Ingestion]
+    GW[Ingest API + Schema Registry]
+  end
+
+  producers --> GW
+  GW --> K[Kafka / Pulsar / Kinesis]
+
+  subgraph stream[Stream Processing]
+    F[Flink / Beam on Flink]
+  end
+
+  subgraph rt[Real-Time Serving]
+    CH[(ClickHouse / Druid / Pinot)]
+    Q[Query API + Cache]
+  end
+
+  K --> F
+  F --> CH
+  CH --> Q
+
+  subgraph batch[Batch & Reconciliation]
+    S3[(Data Lake S3 / GCS)]
+    SP[Spark Aggregation]
+    R[Reconciliation Service]
+  end
+
+  K --> S3
+  S3 --> SP
+  SP --> R
+  CH --> R
+  R --> CH

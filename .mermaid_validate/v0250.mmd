@@ -1,0 +1,6 @@
+flowchart TB
+  P[Network partition / Redis down]
+  P --> FO[Fail open: allow traffic]
+  P --> FC[Fail closed: 503 or 429]
+  FO --> R1[Risk: upstream overload]
+  FC --> R2[Risk: total outage of API]

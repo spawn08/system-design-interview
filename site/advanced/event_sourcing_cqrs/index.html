@@ -2970,7 +2970,7 @@
 <h3 id="events-as-the-source-of-truth">Events as the source of truth<a class="headerlink" href="#events-as-the-source-of-truth" title="Permanent link">&para;</a></h3>
 <p>An <strong>event</strong> is an immutable fact: something that happened in the past, named in past tense (for example <code>MoneyDeposited</code>, <code>OrderShipped</code>). The aggregate's current state is not stored as a single row that you overwrite; it is the <strong>fold</strong> (or reduce) of all events for that aggregate, in order.</p>
 <div class="mermaid">flowchart LR
-    subgraph Aggregate lifecycle
+    subgraph al["Aggregate lifecycle"]
         E1[OrderCreated] --&gt; E2[LineItemAdded]
         E2 --&gt; E3[PaymentAuthorized]
         E3 --&gt; E4[OrderShipped]
@@ -3008,7 +3008,7 @@
 <h3 id="event-replay-and-state-reconstruction">Event replay and state reconstruction<a class="headerlink" href="#event-replay-and-state-reconstruction" title="Permanent link">&para;</a></h3>
 <p>To rebuild state, load all events for a stream in order and apply a <strong>pure</strong> handler function: <code>(state, event) -&gt; state</code>. If the handler is deterministic, the same event list always yields the same state — which is how you get testability and time travel.</p>
 <div class="mermaid">flowchart TD
-    ES[(Event store)] --&gt;|stream events| REPLAY[Replay / fold]
+    ES[(Event store)] --&gt;|stream events| REPLAY["Replay / fold"]
     REPLAY --&gt; S1[State at t1]
     REPLAY --&gt; S2[State at t2]
     REPLAY --&gt; SN[State now]</div>
@@ -3033,12 +3033,12 @@
 <p>CQRS does not require event sourcing (you can CQRS with two SQL tables), but <strong>event sourcing pairs naturally with CQRS</strong>: the write model appends events; the read model is built by <strong>projections</strong>.</p>
 <h3 id="separate-read-and-write-models">Separate read and write models<a class="headerlink" href="#separate-read-and-write-models" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart LR
-    subgraph Write side
+    subgraph ws["Write side"]
         CMD[Command] --&gt; H[Command handler]
         H --&gt; ES[(Event store)]
     end
-    subgraph Read side
-        PROJ[Projection] --&gt; RM[(Read DB / cache)]
+    subgraph rs["Read side"]
+        PROJ[Projection] --&gt; RM["Read DB / cache"]
         Q[Query] --&gt; RM
     end
     ES --&gt;|events| PROJ</div>
@@ -3209,11 +3209,11 @@
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
 <p>Use this flowchart to structure answers in system design interviews when someone mentions events, sagas, or auditability.</p>
 <div class="mermaid">flowchart TD
-    START([Need strong audit / time-travel history?]) --&gt;|No| CRUD[Prefer CRUD + optional audit table]
+    START([("Need strong audit / time-travel history?")]) --&gt;|No| CRUD[Prefer CRUD + optional audit table]
     START --&gt;|Yes| DOMAIN{Domain events stable&lt;br/&gt;and bounded context clear?}
     DOMAIN --&gt;|Unclear| MODEL[Clarify aggregates,&lt;br/&gt;consistency boundaries]
     DOMAIN --&gt;|Yes| WRITE{Write model can be&lt;br/&gt;append-only stream?}
-    WRITE --&gt;|No| HYBRID[Hybrid: critical subdomains&lt;br/&gt;event-sourced, rest CRUD]
+    WRITE --&gt;|No| HYBRID["Hybrid: critical subdomains&lt;br/&gt;event-sourced, rest CRUD"]
     WRITE --&gt;|Yes| READ{Read patterns diverse&lt;br/&gt;or heavy?}
     READ --&gt;|No| ES[Event sourcing +&lt;br/&gt;simple read model]
     READ --&gt;|Yes| CQRS[Event sourcing + CQRS&lt;br/&gt;+ projections]

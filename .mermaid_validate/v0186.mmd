@@ -1,0 +1,15 @@
+flowchart LR
+  U[User / Client] --> API[API Gateway + Auth]
+  API --> Q[Queue + Scheduler]
+  Q --> INSAFE[Input Safety & Policy]
+  INSAFE --> TE[Text Encoders\nCLIP / T5]
+  TE --> LD[Latent Diffusion\nU-Net or DiT\nN sampling steps + CFG]
+  LD --> VAE[VAE Decoder]
+  VAE --> SR[Super-Resolution / Refiner]
+  SR --> OUTSAFE[Output Safety\nNSFW / face / policy]
+  OUTSAFE --> PROV[Watermark + C2PA / Metadata]
+  PROV --> OBJ[Object Storage]
+  OBJ --> CDN[CDN]
+  CDN --> U
+  Q -.-> MET[Metrics + Tracing]
+  LD -.-> MET

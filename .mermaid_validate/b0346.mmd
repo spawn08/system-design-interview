@@ -1,0 +1,24 @@
+sequenceDiagram
+  participant C as Client
+  participant PS as Payment Service
+  participant PSP as PSP API
+  participant WH as Webhook Worker
+
+  C->>PS: POST /payments (Idempotency-Key)
+  PS->>PS: Reserve idempotency slot
+  PS->>PSP: Create PaymentIntent / Order
+  PSP-->>PS: requires_action / succeeded
+  PS-->>C: pending + client_secret
+  Note over C,PSP: Customer completes 3DS if required
+  C->>PS: POST /confirm
+  PS->>PSP: Confirm / authorize
+  PSP-->>PS: authorized
+  PS-->>C: status authorized
+  PSP->>WH: charge.succeeded (async)
+  WH->>PS: apply event (idempotent)
+  PS->>PS: transition if needed
+  PS->>PS: POST /capture (batch or manual)
+  PS->>PSP: capture
+  PSP-->>PS: captured
+  PSP->>WH: charge.captured
+  WH->>PS: mark captured / enqueue settlement

@@ -1,0 +1,8 @@
+flowchart TD
+    Users[Users] --> LB[Load Balancer]
+    LB --> S1[Server 1]
+    LB --> S2[Server 2]
+    LB --> S3[Server 3]
+    S1 --> DB[(Database)]
+    S2 --> DB
+    S3 --> DB

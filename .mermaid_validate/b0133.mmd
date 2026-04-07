@@ -1,0 +1,20 @@
+graph LR
+    subgraph "GPU 0"
+        ATT_0[Attention Heads 0-15]
+        MLP_0[MLP Column 0]
+    end
+
+    subgraph "GPU 1"
+        ATT_1[Attention Heads 16-31]
+        MLP_1[MLP Column 1]
+    end
+
+    INPUT[Input] --> ATT_0
+    INPUT --> ATT_1
+    ATT_0 --> AR1[All-Reduce]
+    ATT_1 --> AR1
+    AR1 --> MLP_0
+    AR1 --> MLP_1
+    MLP_0 --> AR2[All-Reduce]
+    MLP_1 --> AR2
+    AR2 --> OUTPUT[Output]

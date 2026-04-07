@@ -1,0 +1,10 @@
+flowchart TD
+    Client1[Client 1] --> LB[Load Balancer]
+    Client2[Client 2] --> LB
+    Client3[Client 3] --> LB
+    
+    LB --> Server1[Server 1]
+    LB --> Server2[Server 2]
+    
+    Server1 --> Redis[(Redis Pub/Sub)]
+    Server2 --> Redis

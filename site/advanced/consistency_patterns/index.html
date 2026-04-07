@@ -2934,7 +2934,7 @@
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Strong consistency requires: W + R &gt; N
 </span></code></pre></div>
 <div class="mermaid">flowchart TD
-    subgraph Write Quorum (W=2, N=3)
+    subgraph wq["Write Quorum (W=2, N=3)"]
         W_CLIENT[Client Write] --&gt; WN1[Node 1 ✓]
         W_CLIENT --&gt; WN2[Node 2 ✓]
         W_CLIENT --&gt; WN3[Node 3 ✗ slow]
@@ -2942,10 +2942,10 @@
         WN2 --&gt;|ack| W_CLIENT
     end
 
-    subgraph Read Quorum (R=2, N=3)
-        R_CLIENT[Client Read] --&gt; RN1[Node 1: v=5]
-        R_CLIENT --&gt; RN2[Node 2: v=5]
-        R_CLIENT --&gt; RN3[Node 3: v=3 stale]
+    subgraph rq["Read Quorum (R=2, N=3)"]
+        R_CLIENT[Client Read] --&gt; RN1["Node 1: v=5"]
+        R_CLIENT --&gt; RN2["Node 2: v=5"]
+        R_CLIENT --&gt; RN3["Node 3: v=3 stale"]
         RN1 --&gt;|v=5| R_CLIENT
         RN2 --&gt;|v=5| R_CLIENT
     end</div>
@@ -3181,13 +3181,13 @@
 <p><strong>Read Repair:</strong> When a read reveals stale replicas (during a quorum read), the coordinator sends the latest value to the stale replicas in the background.</p>
 <p><strong>Merkle Trees:</strong> To detect which data ranges are inconsistent between replicas without comparing every record, use Merkle trees — hash trees where each leaf is a hash of a data range, and each parent is a hash of its children. Two replicas only need to compare tree roots; if they differ, walk down the tree to find the exact divergent ranges.</p>
 <div class="mermaid">flowchart TD
-    ROOT[Root Hash: abc123]
-    ROOT --&gt; L[Left: def456]
-    ROOT --&gt; R[Right: ghi789]
-    L --&gt; LL[Range 0-25: hash1]
-    L --&gt; LR[Range 26-50: hash2]
-    R --&gt; RL[Range 51-75: hash3]
-    R --&gt; RR[Range 76-100: hash4]</div>
+    ROOT["Root Hash: abc123"]
+    ROOT --&gt; L["Left: def456"]
+    ROOT --&gt; R["Right: ghi789"]
+    L --&gt; LL["Range 0-25: hash1"]
+    L --&gt; LR["Range 26-50: hash2"]
+    R --&gt; RL["Range 51-75: hash3"]
+    R --&gt; RR["Range 76-100: hash4"]</div>
 <hr />
 <h2 id="causal-consistency">Causal Consistency<a class="headerlink" href="#causal-consistency" title="Permanent link">&para;</a></h2>
 <p>Causal consistency preserves the ordering of causally related operations while allowing concurrent (independent) operations to be seen in any order.</p>
@@ -3797,15 +3797,15 @@
 <h2 id="choosing-the-right-consistency-pattern">Choosing the Right Consistency Pattern<a class="headerlink" href="#choosing-the-right-consistency-pattern" title="Permanent link">&para;</a></h2>
 <div class="mermaid">flowchart TD
     Q[Consistency Requirement] --&gt; DATA{What kind of data?}
-    DATA --&gt;|Financial / inventory| STRONG[Strong Consistency&lt;br/&gt;Quorum W+R&gt;N or 2PC]
+    DATA --&gt;|"Financial / inventory"| STRONG[Strong Consistency&lt;br/&gt;Quorum W+R&gt;N or 2PC]
     DATA --&gt;|User-facing counters| EVENTUAL_CRDT[Eventual + CRDT&lt;br/&gt;G-Counter, PN-Counter]
     DATA --&gt;|Social features| EVENTUAL[Eventual Consistency&lt;br/&gt;LWW or merge function]
-    DATA --&gt;|Chat / collaboration| CAUSAL[Causal Consistency&lt;br/&gt;Vector clocks]
+    DATA --&gt;|"Chat / collaboration"| CAUSAL[Causal Consistency&lt;br/&gt;Vector clocks]
 
     STRONG --&gt; SCOPE{Scope?}
     SCOPE --&gt;|Single database| TXN[Database Transactions&lt;br/&gt;SERIALIZABLE isolation]
     SCOPE --&gt;|Multiple services| SAGA[Saga Pattern&lt;br/&gt;+ Outbox]
-    SCOPE --&gt;|Multiple databases| QUORUM[Quorum Reads/Writes]
+    SCOPE --&gt;|Multiple databases| QUORUM["Quorum Reads/Writes"]
 
     EVENTUAL --&gt; CONFLICT{Conflicts likely?}
     CONFLICT --&gt;|Rare| LWW[Last-Writer-Wins]

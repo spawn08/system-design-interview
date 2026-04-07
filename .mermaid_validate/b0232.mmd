@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph Metrics [Metrics]
+        LAT[Latency histogram]
+        CTR[CTR / conversion]
+        NULL[Empty result rate]
+    end
+    subgraph Actions [Actions]
+        ALERT[PagerDuty]
+        ROLL[Auto rollback]
+        EXP[Experiment pause]
+    end
+    LAT --> ALERT
+    CTR --> EXP
+    NULL --> ROLL

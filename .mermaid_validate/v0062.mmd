@@ -1,0 +1,16 @@
+flowchart TD
+    START([Need to persist binary blob?])
+    START --> Q1{Structured query,<br/>transactions, joins?}
+    Q1 -->|Yes| DB[(Relational or<br/>document DB)]
+    Q1 -->|No| Q2{POSIX filesystem,<br/>random writes, low latency<br/>local disk?}
+    Q2 -->|Yes| FS[Block / file storage<br/>attached volume]
+    Q2 -->|No| Q3{Huge scale, HTTP access,<br/>immutable or whole-object updates?}
+    Q3 -->|Yes| OBJ[Object storage<br/>+ CDN for reads]
+    Q3 -->|No| OTHER[Revisit requirements]
+
+    OBJ --> Q4{Globally distributed<br/>read-heavy users?}
+    Q4 -->|Yes| CDN[Add CDN + cache policy]
+    Q4 -->|No| ORIGIN[Origin-only or<br/>private access]
+
+    DB --> API[App servers mediate access]
+    CDN --> SEC[Presigned URLs or<br/>OAC for origin]

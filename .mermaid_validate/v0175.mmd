@@ -1,0 +1,10 @@
+flowchart LR
+    Request[User Request] --> Router{Model Router}
+    Router -->|90%| ModelA[Gemini Pro<br/>Production]
+    Router -->|5%| ModelB[Gemini Pro v2<br/>Experiment A]
+    Router -->|5%| ModelC[Fine-tuned<br/>Experiment B]
+    
+    ModelA --> Logger[Metrics Logger]
+    ModelB --> Logger
+    ModelC --> Logger
+    Logger --> Dashboard[A/B Dashboard]

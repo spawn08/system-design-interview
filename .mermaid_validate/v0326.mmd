@@ -1,0 +1,25 @@
+flowchart TB
+    Client[Client apps]
+    LB[Load balancer]
+    PostAPI[Post Service]
+    Fanout[Fan-out Service]
+    FeedSvc[Feed Service]
+    Kafka[/Kafka/]
+    Redis[(Feed cache Redis)]
+    DB[(Relational / NoSQL)]
+    Obj[(Object storage)]
+    CDN[CDN]
+
+    Client --> LB
+    LB --> PostAPI
+    LB --> FeedSvc
+    PostAPI --> DB
+    PostAPI --> Obj
+    PostAPI --> Kafka
+    Kafka --> Fanout
+    Fanout --> Redis
+    Fanout --> DB
+    FeedSvc --> Redis
+    FeedSvc --> DB
+    Obj --> CDN
+    Client --> CDN

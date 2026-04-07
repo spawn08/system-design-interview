@@ -3718,8 +3718,8 @@
   H[Hash user_id or api_key_id]
   P[Bucket 0..99]
   REQ --&gt; H --&gt; P
-  P --&gt;|0-94 stable| ST[upstream v1]
-  P --&gt;|95-99 canary| CA[upstream v2]</div>
+  P --&gt;|"0-94 stable"| ST[upstream v1]
+  P --&gt;|"95-99 canary"| CA[upstream v2]</div>
 <hr />
 <h2 id="4-detailed-component-design">4. Detailed Component Design<a class="headerlink" href="#4-detailed-component-design" title="Permanent link">&para;</a></h2>
 <h3 id="41-routing-traffic-management">4.1 Routing &amp; Traffic Management<a class="headerlink" href="#41-routing-traffic-management" title="Permanent link">&para;</a></h3>
@@ -4231,26 +4231,26 @@
 </tbody>
 </table>
 <div class="mermaid">flowchart TB
-  subgraph DataPlane [Gateway data plane]
+  subgraph DataPlane["Gateway data plane"]
     G[Ingress workers]
   end
-  subgraph CP [Control path - CP bias]
+  subgraph CP["Control path - CP bias"]
     E[etcd/Consul]
     PG[(PostgreSQL)]
   end
-  subgraph AP [Hot path - latency bias]
+  subgraph AP["Hot path - latency bias"]
     R[Redis RL + cache]
   end
-  G --&gt;|watch routes| E
-  G --&gt;|write audit async| PG
-  G --&gt;|Lua token bucket| R</div>
+  G --&gt;|"watch routes"| E
+  G --&gt;|"write audit async"| PG
+  G --&gt;|"Lua token bucket"| R</div>
 <p><strong>Partition scenario (Redis unavailable):</strong></p>
 <div class="mermaid">flowchart TB
   P[Network partition / Redis down]
-  P --&gt; FO[Fail open: allow traffic]
-  P --&gt; FC[Fail closed: 503 or 429]
-  FO --&gt; R1[Risk: upstream overload]
-  FC --&gt; R2[Risk: total outage of API]</div>
+  P --&gt; FO["Fail open: allow traffic"]
+  P --&gt; FC["Fail closed: 503 or 429"]
+  FO --&gt; R1["Risk: upstream overload"]
+  FC --&gt; R2["Risk: total outage of API"]</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Say clearly: <strong>CAP applies per subsystem</strong>. The <strong>gateway process</strong> favors <strong>availability</strong> of traffic (often <strong>fail open on RL</strong>) vs <strong>strict quota</strong>—that is a <strong>business</strong> knob, not a theorem misunderstanding.</p>

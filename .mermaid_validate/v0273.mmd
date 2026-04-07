@@ -1,0 +1,25 @@
+flowchart LR
+  subgraph Clients
+    A[App Servers]
+  end
+  subgraph ClientLib["Client Library"]
+    B[Consistent Hash / Slot Map]
+    C[Connection Pool]
+  end
+  subgraph Cluster["Cache Cluster"]
+    N1[Node 1]
+    N2[Node 2]
+    N3[Node N]
+  end
+  subgraph Persistence["Persistence Layer"]
+    P1[(RDB Snapshot)]
+    P2[(Append Log AOF)]
+  end
+  A --> B
+  B --> C
+  C --> N1
+  C --> N2
+  C --> N3
+  N1 --> P1
+  N2 --> P2
+  N3 --> P2

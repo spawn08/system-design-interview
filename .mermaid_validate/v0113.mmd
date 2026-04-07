@@ -1,0 +1,8 @@
+flowchart TD
+    LB[Load Balancer] --> S1[Server 1<br/>Active]
+    LB --> S2[Server 2<br/>Active]
+    LB --> S3[Server 3<br/>Active]
+    
+    S1 -.->|fails| LB
+    LB -->|redistributes| S2
+    LB -->|redistributes| S3

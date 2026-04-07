@@ -53,8 +53,8 @@ graph TD
     P --> CP
     P --> AP
     
-    CP --> |Examples| CP_EX[HBase, MongoDB, Redis Cluster]
-    AP --> |Examples| AP_EX[Cassandra, DynamoDB, CouchDB]
+    CP -->|"Examples"| CP_EX["HBase, MongoDB, Redis Cluster"]
+    AP -->|"Examples"| AP_EX["Cassandra, DynamoDB, CouchDB"]
 ```
 
 ### The Three Guarantees
@@ -357,7 +357,7 @@ sequenceDiagram
     A2->>P: Accepted(n=1)
 
     Note over P,L: Phase 3: Learn
-    P->>L: Decided: "NodeA"
+    P->>L: "Decided: NodeA"
 ```
 
 **Phase 1 (Prepare):** Proposer sends a proposal number `n` to acceptors. Acceptors promise not to accept proposals with numbers less than `n`.
@@ -525,11 +525,11 @@ Message queues decouple producers from consumers, enabling asynchronous communic
 
 ```mermaid
 flowchart LR
-    subgraph Without Queue
+    subgraph woq["Without Queue"]
         A1[Service A] -->|direct call| B1[Service B]
     end
     
-    subgraph With Queue
+    subgraph wiq["With Queue"]
         A2[Service A] -->|publish| Q[Message Queue]
         Q -->|consume| B2[Service B]
     end
@@ -727,15 +727,15 @@ Consistent hashing arranges servers on a virtual ring. Each key is assigned to t
 
 ```mermaid
 graph TD
-    subgraph Hash Ring
-        N1[Node A<br/>Position: 50] 
-        N2[Node B<br/>Position: 150]
-        N3[Node C<br/>Position: 250]
+    subgraph hr["Hash Ring"]
+        N1["Node A<br/>Position: 50"] 
+        N2["Node B<br/>Position: 150"]
+        N3["Node C<br/>Position: 250"]
     end
     
-    K1[Key 'user1'<br/>Hash: 80] -->|clockwise to| N2
-    K2[Key 'user2'<br/>Hash: 200] -->|clockwise to| N3
-    K3[Key 'user3'<br/>Hash: 30] -->|clockwise to| N1
+    K1["Key 'user1'<br/>Hash: 80"] -->|clockwise to| N2
+    K2["Key 'user2'<br/>Hash: 200"] -->|clockwise to| N3
+    K3["Key 'user3'<br/>Hash: 30"] -->|clockwise to| N1
 ```
 
 **When a node is added:** Only the keys between the new node and its predecessor on the ring are remapped. On average, only `K/N` keys move (where K = total keys, N = total nodes).
@@ -962,8 +962,8 @@ flowchart TD
     R --> A[Availability Requirements]
     R --> P[Performance Requirements]
     
-    C --> |Strong consistency needed| CP[CP Design<br/>Consensus protocol<br/>Quorum reads/writes]
-    C --> |Eventual consistency OK| AP[AP Design<br/>Async replication<br/>Conflict resolution]
+    C -->|"Strong consistency needed"| CP[CP Design<br/>Consensus protocol<br/>Quorum reads/writes]
+    C -->|"Eventual consistency OK"| AP[AP Design<br/>Async replication<br/>Conflict resolution]
     
     CP --> MQ1[Sync communication<br/>or ordered log]
     AP --> MQ2[Async message queue<br/>Event sourcing]

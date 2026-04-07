@@ -1,0 +1,31 @@
+flowchart LR
+  subgraph clients [Clients]
+    A[Browser A]
+    B[Browser B]
+    C[Mobile C]
+  end
+
+  subgraph edge [Edge]
+    LB[Load Balancer / TLS]
+  end
+
+  subgraph realtime [Realtime Tier]
+    GW[WebSocket Gateways]
+    DS[Document Session Service]
+  end
+
+  subgraph data [Data Plane]
+    OL[(Operation Log / Kafka)]
+    DB[(Document Metadata DB)]
+    OS[(Object Storage - Snapshots)]
+    CACHE[(Redis - Presence / Sessions)]
+  end
+
+  A --> LB --> GW
+  B --> LB --> GW
+  C --> LB --> GW
+  GW --> DS
+  DS --> OL
+  DS --> DB
+  DS --> OS
+  GW --> CACHE

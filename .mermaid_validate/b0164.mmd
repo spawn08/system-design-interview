@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph Trigger [Triggers]
+        Clone[Repo Clone]
+        Push[Git Push]
+        FileChange[File Save<br/>in IDE]
+    end
+
+    subgraph Pipeline [Indexing Pipeline]
+        Parse[Parse Files<br/>tree-sitter]
+        Extract[Extract Symbols<br/>Functions, Classes]
+        Embed[Generate<br/>Embeddings]
+        BuildGraph[Build Dependency<br/>Graph]
+    end
+
+    subgraph Index [Index Store]
+        SymbolIndex[(Symbol Index)]
+        EmbeddingIndex[(Embedding Index<br/>HNSW)]
+        DepGraph[(Dependency Graph)]
+    end
+
+    Trigger --> Pipeline --> Index

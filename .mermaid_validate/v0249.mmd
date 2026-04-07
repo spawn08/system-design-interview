@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph DataPlane [Gateway data plane]
+    G[Ingress workers]
+  end
+  subgraph CP [Control path - CP bias]
+    E[etcd/Consul]
+    PG[(PostgreSQL)]
+  end
+  subgraph AP [Hot path - latency bias]
+    R[Redis RL + cache]
+  end
+  G -->|watch routes| E
+  G -->|write audit async| PG
+  G -->|Lua token bucket| R

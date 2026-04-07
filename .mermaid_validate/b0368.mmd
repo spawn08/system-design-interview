@@ -1,0 +1,10 @@
+flowchart TD
+  A[Rider requests trip] --> B[Persist REQUESTED]
+  B --> C[Geo query candidates]
+  C --> D[Rank by ETA + rules]
+  D --> E{Offer sent?}
+  E -->|timeout| F[Next candidate]
+  F --> D
+  E -->|accept| G[Assign driver MATCHED]
+  G --> H[Stream location to rider]
+  H --> I[Complete trip + capture payment]

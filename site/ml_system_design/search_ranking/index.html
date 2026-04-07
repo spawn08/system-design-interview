@@ -3252,31 +3252,31 @@
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="online-path">Online path<a class="headerlink" href="#online-path" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Client [Client]
+    subgraph cli["Client"]
         U[User]
     end
 
-    subgraph Edge [Edge]
-        LB[Load Balancer / API GW]
+    subgraph edge["Edge"]
+        LB["Load Balancer / API GW"]
     end
 
-    subgraph Qu [Query Path]
+    subgraph qpath["Query Path"]
         QU[Query Understanding Service]
         IX[Inverted Index Service]
         ANN[ANN Index&lt;br/&gt;Dense Embeddings]
         FUS[Hybrid Fusion]
     end
 
-    subgraph Rank [Ranking]
+    subgraph rank["Ranking"]
         FE[Feature Service]
         RM[Ranking Model&lt;br/&gt;LightGBM / DNN]
         CE[Cross-Encoder&lt;br/&gt;Optional Top-K]
-        RER[Re-ranker&lt;br/&gt;MMR / Rules]
+        RER["Re-ranker&lt;br/&gt;MMR / Rules"]
     end
 
-    subgraph Data [Stores]
-        DOC[(Doc Store / KV)]
-        CACHE[(Query / Result Cache)]
+    subgraph stores["Stores"]
+        DOC[("Doc Store / KV")]
+        CACHE[("Query / Result Cache")]
     end
 
     U --&gt; LB --&gt; QU
@@ -4326,12 +4326,12 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 </tbody>
 </table>
 <div class="mermaid">flowchart LR
-    subgraph Metrics [Metrics]
+    subgraph met["Metrics"]
         LAT[Latency histogram]
-        CTR[CTR / conversion]
+        CTR["CTR / conversion"]
         NULL[Empty result rate]
     end
-    subgraph Actions [Actions]
+    subgraph act["Actions"]
         ALERT[PagerDuty]
         ROLL[Auto rollback]
         EXP[Experiment pause]
@@ -4412,11 +4412,11 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 </table>
 <p><strong>Sharding sketch:</strong> with <span class="arithmatex">\(B\)</span> shards, doc id <code>d</code> routes to shard <code>hash(d) mod B</code>. Each shard holds an inverted index <strong>subset</strong> and an ANN partition. Queries fan out to <strong>all shards</strong> (for global recall), merge by score, then take global top-K — this is expensive at scale; optimizations include <strong>query routing</strong> (only shards likely to contain relevant docs) and <strong>tiered</strong> retrieval.</p>
 <div class="mermaid">flowchart TB
-    subgraph Global [Global layer]
+    subgraph glob["Global layer"]
         Q[Query]
         M[Merge top-K per shard]
     end
-    subgraph Shards [Shards 0..B-1]
+    subgraph shards["Shards 0..B-1"]
         S0[Shard 0&lt;br/&gt;Index + ANN]
         S1[Shard 1&lt;br/&gt;Index + ANN]
         SB[Shard B-1]

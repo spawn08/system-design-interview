@@ -137,9 +137,9 @@ sequenceDiagram
 
     V->>B: Login to bank (gets session cookie)
     V->>E: Visits evil site
-    E->>V: Hidden form: POST bank.com/transfer?to=attacker&amount=10000
+    E->>V: "Hidden form: POST bank.com/transfer?to=attacker&amount=10000"
     V->>B: Browser auto-sends cookie with the forged request
-    B->>B: Valid session → processes transfer!
+    B->>B: "Valid session → processes transfer!"
 ```
 
 **Prevention: Synchronizer Token Pattern**
@@ -184,8 +184,8 @@ The same key encrypts and decrypts the data.
 
 ```mermaid
 flowchart LR
-    PT[Plaintext] -->|Encrypt with Key K| CT[Ciphertext]
-    CT -->|Decrypt with Key K| PT2[Plaintext]
+    PT[Plaintext] -->|"Encrypt with Key K"| CT[Ciphertext]
+    CT -->|"Decrypt with Key K"| PT2[Plaintext]
 ```
 
 | Algorithm | Key Size | Speed | Use Case |
@@ -248,8 +248,8 @@ Uses a key pair: a **public key** (shared freely) for encryption and a **private
 
 ```mermaid
 flowchart LR
-    PT[Plaintext] -->|Encrypt with<br/>Public Key| CT[Ciphertext]
-    CT -->|Decrypt with<br/>Private Key| PT2[Plaintext]
+    PT[Plaintext] -->|"Encrypt with<br/>Public Key"| CT[Ciphertext]
+    CT -->|"Decrypt with<br/>Private Key"| PT2[Plaintext]
 ```
 
 | Algorithm | Key Size | Use Case |
@@ -394,8 +394,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    ROOT[Root CA<br/>Self-signed<br/>Pre-installed in OS/browser] --> INT[Intermediate CA<br/>Signed by Root CA]
-    INT --> LEAF[Server Certificate<br/>Signed by Intermediate CA<br/>Contains server's public key]
+    ROOT["Root CA<br/>Self-signed<br/>Pre-installed in OS/browser"] --> INT["Intermediate CA<br/>Signed by Root CA"]
+    INT --> LEAF["Server Certificate<br/>Signed by Intermediate CA<br/>Contains server's public key"]
     
     LEAF --> V{Client validates}
     V --> V1[Signature valid?]
@@ -459,10 +459,10 @@ Every piece of data entering your system is potentially malicious. Validate at t
 
 ```mermaid
 flowchart TD
-    INPUT[User Input] --> L1[Layer 1: Client-side validation<br/>UX only, not security]
-    L1 --> L2[Layer 2: API Gateway<br/>Schema validation, rate limiting]
-    L2 --> L3[Layer 3: Application<br/>Business rule validation]
-    L3 --> L4[Layer 4: Database<br/>Constraints, triggers]
+    INPUT[User Input] --> L1["Layer 1: Client-side validation<br/>UX only, not security"]
+    L1 --> L2["Layer 2: API Gateway<br/>Schema validation, rate limiting"]
+    L2 --> L3["Layer 3: Application<br/>Business rule validation"]
+    L3 --> L4["Layer 4: Database<br/>Constraints, triggers"]
 ```
 
 ### Java Example: Comprehensive Input Validation
@@ -548,11 +548,11 @@ Traditional security uses a "castle and moat" model: strong perimeter, trusted i
 
 ```mermaid
 flowchart TD
-    subgraph Traditional
+    subgraph trad["Traditional"]
         FW[Firewall] --> INT[Internal Network<br/>Everything trusted]
     end
     
-    subgraph Zero Trust
+    subgraph zt["Zero Trust"]
         R[Request] --> V{Verify Identity}
         V --> A{Authorize Action}
         A --> E{Encrypt Always}
@@ -652,8 +652,8 @@ public class VaultSecretsManager implements SecretsManager {
 ```mermaid
 flowchart TD
     Q[Security Requirement] --> DATA{What data?}
-    DATA -->|PII / Financial| HIGH[High Security]
-    DATA -->|Public content| LOW[Standard Security]
+    DATA -->|"PII / Financial"| HIGH[High Security]
+    DATA -->|"Public content"| LOW[Standard Security]
     
     HIGH --> ENC[Encrypt at rest + in transit]
     HIGH --> AUDIT[Full audit logging]
@@ -665,7 +665,7 @@ flowchart TD
     LOW --> INPUT[Input validation]
     
     ENC --> KM{Key management?}
-    KM -->|Cloud| CKM[AWS KMS / Azure Key Vault]
+    KM -->|Cloud| CKM["AWS KMS / Azure Key Vault"]
     KM -->|Self-hosted| VAULT[HashiCorp Vault]
     
     AUTH --> AT{Auth type?}

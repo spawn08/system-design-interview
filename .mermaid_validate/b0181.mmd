@@ -1,0 +1,47 @@
+flowchart TB
+    subgraph Users [Users]
+        CLI[CLI / SDK]
+        WebUI[Web UI]
+        Notebooks[Notebooks]
+    end
+
+    subgraph ControlPlane [Control Plane]
+        API[Training API]
+        Scheduler[Job Scheduler<br/>Gang Scheduling]
+        QuotaMgr[Quota Manager]
+        ExperimentDB[(Experiment<br/>Registry)]
+    end
+
+    subgraph DataPlane [Data Plane - GPU Cluster]
+        subgraph Node1 [Node 1]
+            G1[GPU 0-7]
+            Agent1[Node Agent]
+        end
+        subgraph Node2 [Node 2]
+            G2[GPU 0-7]
+            Agent2[Node Agent]
+        end
+        subgraph NodeN [Node N]
+            GN[GPU 0-7]
+            AgentN[Node Agent]
+        end
+    end
+
+    subgraph Storage [Storage Layer]
+        DataStore[(Training Data<br/>GCS / HDFS)]
+        CheckpointStore[(Checkpoint Store<br/>GCS)]
+        ArtifactStore[(Model Artifacts<br/>Registry)]
+    end
+
+    subgraph Observability [Observability]
+        Logs[Log Aggregator]
+        Metrics[Metrics + Alerts]
+        TB[TensorBoard<br/>Service]
+        Dashboard[Cluster<br/>Dashboard]
+    end
+
+    Users --> ControlPlane
+    ControlPlane --> DataPlane
+    DataPlane --> Storage
+    DataPlane --> Observability
+    ControlPlane --> Observability

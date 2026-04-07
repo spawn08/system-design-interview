@@ -116,10 +116,10 @@ gantt
     axisFormat %s
 
     section Entity timeline
-    Account created           :milestone, 0, 0
-    Feature window eligible   :active, 1, 4
-    Label event (click)       :crit, 5, 5
-    Future purchase           :done, 7, 7
+    "Account created"           :milestone, 0, 0
+    "Feature window eligible"   :active, 1, 4
+    "Label event (click)"       :crit, 5, 5
+    "Future purchase"           :done, 7, 7
 ```
 
 **Wrong join:** joining “all purchases ever” would include the purchase at \(t=7\) when predicting at \(t=5\).
@@ -162,8 +162,8 @@ Stateful stream processors compute keyed aggregates using **windows**.
 
 ```mermaid
 flowchart LR
-    subgraph Tumbling [Tumbling 1h]
-        a1[00:00-01:00] --> a2[01:00-02:00] --> a3[02:00-03:00]
+    subgraph tum["Tumbling 1h"]
+        a1["00:00-01:00"] --> a2["01:00-02:00"] --> a3["02:00-03:00"]
     end
 ```
 
@@ -171,7 +171,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph Sliding [Sliding 1h step 10m]
+    subgraph sli["Sliding 1h step 10m"]
         s1[W ends 01:10] --> s2[W ends 01:20] --> s3[W ends 01:30]
     end
 ```
@@ -180,7 +180,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph Session [Gap 30m]
+    subgraph sess["Gap 30m"]
         e1[e1] --> e2[e2] --> gap[gap &gt; 30m] --> e3[e3]
     end
 ```
@@ -287,28 +287,28 @@ If peak **2M events/sec** with **10:1** aggregation fan-in:
 
 ```mermaid
 flowchart TB
-    subgraph BatchPath [Batch path]
-        DW[(Data Warehouse / Lake)]
+    subgraph bpath["Batch path"]
+        DW[("Data Warehouse / Lake")]
         SP[Batch Compute Spark SQL]
         OFF[(Offline Feature Store)]
         DW --> SP --> OFF
     end
 
-    subgraph StreamPath [Streaming path]
-        K[[Kafka / Event Bus]]
-        FL[Flink / Stream Processor]
-        ON[(Online Store Redis / DynamoDB)]
+    subgraph spath["Streaming path"]
+        K[["Kafka / Event Bus"]]
+        FL["Flink / Stream Processor"]
+        ON[("Online Store Redis / DynamoDB")]
         K --> FL --> ON
     end
 
-    subgraph ServePath [Serving path]
+    subgraph servp["Serving path"]
         M[Model Service]
         FS[Feature Server]
         ON --> FS
         FS --> M
     end
 
-    subgraph TrainPath [Training path]
+    subgraph trainp["Training path"]
         TJ[Training Job]
         OFF --> TJ
         TJ --> DS[Training Dataset PIT joins]

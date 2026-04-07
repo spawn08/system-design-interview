@@ -1,0 +1,40 @@
+sequenceDiagram
+    participant Client as Payment Client
+    participant API as Scoring API
+    participant Features as Feature Service
+    participant Rules as Rules Engine
+    participant ML as ML Service
+    participant Decision as Decision Engine
+    participant Cases as Case Queue
+    
+    Client->>API: Transaction request
+    
+    par Feature Extraction
+        API->>Features: Get user features
+        API->>Features: Get device features
+        API->>Features: Get transaction features
+    end
+    
+    Features-->>API: Feature vector
+    
+    par Scoring
+        API->>Rules: Apply rules
+        API->>ML: ML prediction
+    end
+    
+    Rules-->>API: Rule scores/flags
+    ML-->>API: Fraud probability
+    
+    API->>Decision: Combine scores
+    Decision->>Decision: Apply thresholds
+    
+    alt Score > Block Threshold
+        Decision-->>Client: BLOCK
+    else Score > Review Threshold
+        Decision-->>Client: ALLOW (flagged)
+        Decision->>Cases: Queue for review
+    else Score < Review Threshold
+        Decision-->>Client: ALLOW
+    end
+    
+    Note over Client,Cases: Total time < 100ms

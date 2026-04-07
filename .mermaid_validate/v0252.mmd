@@ -1,0 +1,46 @@
+flowchart TB
+    subgraph Clients [Clients]
+        M[Mobile Apps]
+        W[Web Clients]
+        D[Desktop Apps]
+    end
+
+    LB[Load Balancer / TLS Termination]
+
+    subgraph Edge [WebSocket Tier]
+        WG1[WebSocket Gateway]
+        WG2[WebSocket Gateway]
+        WG3[WebSocket Gateway]
+    end
+
+    CS[Chat Service]
+
+    MQ[[Message Queue<br/>Kafka / Pulsar]]
+
+    subgraph Data [Data Stores]
+        CAS[(Message Store<br/>Cassandra / Scylla)]
+        RD[(Redis Cluster<br/>Presence / Sessions / Cache)]
+        OBJ[(Object Storage<br/>S3 / GCS)]
+    end
+
+    PN[Push Notification Service]
+
+    M --> LB
+    W --> LB
+    D --> LB
+
+    LB --> WG1
+    LB --> WG2
+    LB --> WG3
+
+    WG1 --> CS
+    WG2 --> CS
+    WG3 --> CS
+
+    CS --> MQ
+    MQ --> CS
+
+    CS --> CAS
+    CS --> RD
+    CS --> OBJ
+    CS --> PN

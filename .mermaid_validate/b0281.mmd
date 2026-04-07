@@ -1,0 +1,9 @@
+sequenceDiagram
+  participant Client
+  participant Master
+  participant Primary as Chunkserver (any replica)
+  Client->>Master: LookupChunk(file, chunk_index)
+  Master-->>Client: {chunk_id, version, replica_locations, primary? lease}
+  Note over Client: Pick nearest healthy replica
+  Client->>Primary: Read(chunk_id, range, version)
+  Primary-->>Client: Data + checksum verification

@@ -161,9 +161,9 @@ flowchart TB
   end
 
   subgraph PartCP["Partition: CP / Raft shard"]
-    R1[Minority: no leader]
-    R2[Majority: leader accepts writes]
-    R3[Reads/writes fail or stale on minority]
+    R1["Minority: no leader"]
+    R2["Majority: leader accepts writes"]
+    R3["Reads/writes fail or stale on minority"]
     R1 -.->|no quorum| R2
     R2 --> R3
   end
@@ -965,16 +965,16 @@ At L5, candidates say "we use quorum." At L6, you must articulate the gap betwee
 
 ```mermaid
 flowchart LR
-  subgraph US-East
+  subgraph use["US-East"]
     L1[Leader Partition 1]
     F2[Follower Partition 2]
   end
-  subgraph EU-West
+  subgraph euw["EU-West"]
     F1[Follower Partition 1]
     L2[Leader Partition 2]
   end
-  L1 -->|async replication| F1
-  L2 -->|async replication| F2
+  L1 -->|"async replication"| F1
+  L2 -->|"async replication"| F2
 ```
 
 ### Compaction Strategy Deep Dive

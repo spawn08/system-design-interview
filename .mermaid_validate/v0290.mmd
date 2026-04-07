@@ -1,0 +1,20 @@
+flowchart TB
+  subgraph CP["CP-style paths (correctness first)"]
+    R[Seat hold / confirm in OLTP]
+    P[Payment intent + capture + ledger]
+  end
+
+  subgraph AP["AP-style paths (available + soft freshness)"]
+    M[Seat map + CDN]
+    C[Cached availability summary]
+    W[Waiting room position UX]
+  end
+
+  U[User] --> M
+  U --> C
+  U --> W
+  U --> R
+  R --> P
+
+  M -.->|stale OK| C
+  R -.->|invalidates or version-checks| C

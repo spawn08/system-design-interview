@@ -2910,20 +2910,20 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <div class="mermaid">graph TB
-    subgraph Data Sources
+    subgraph ds["Data Sources"]
         DB[(Operational DBs)]
         API[External APIs]
         KAFKA[Event Streams&lt;br/&gt;Kafka]
         FILES[File Drops&lt;br/&gt;S3 / GCS]
     end
 
-    subgraph Ingestion Layer
+    subgraph il["Ingestion Layer"]
         CDC[CDC&lt;br/&gt;Debezium]
         PULL[Pull Connectors&lt;br/&gt;Airbyte / Fivetran]
         STREAM[Stream Ingestion]
     end
 
-    subgraph Processing Layer
+    subgraph pl["Processing Layer"]
         RAW[(Raw / Bronze&lt;br/&gt;S3 Parquet)]
         TRANSFORM[Transformation&lt;br/&gt;Spark / dbt]
         VALIDATE[Data Validation&lt;br/&gt;Great Expectations]
@@ -3761,7 +3761,7 @@
     PROM --&gt; GRAFANA[Grafana Dashboard]
     PROM --&gt; ALERT[AlertManager]
 
-    subgraph Key Metrics
+    subgraph km["Key Metrics"]
         FRESHNESS[Data Freshness&lt;br/&gt;time since last successful run]
         VOLUME[Row Count&lt;br/&gt;vs historical baseline]
         QUALITY[Validation Pass Rate]

@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph ingress["Ingress"]
+        API[Send / Templates API]
+        AUTH[AuthZ + Quotas + Idempotency]
+        VAL[Validation + Suppression check]
+    end
+    subgraph paths["Logical paths"]
+        TX[Transactional priority queue]
+        MKT[Marketing bulk queue]
+    end
+    subgraph render["Rendering"]
+        TR[Template engine]
+        SIG[DKIM signer]
+    end
+    subgraph delivery["Delivery tier"]
+        MTA[MTA pool / SMTP workers]
+        MX[MX resolver + cache]
+        SMTP[SMTP to recipient MX]
+    end
+    subgraph feedback["Feedback"]
+        BH[Bounce / complaint handler]
+        SUP[Suppression store]
+        WEB[Webhooks / analytics]
+    end
+    API --> AUTH --> VAL
+    VAL -->|high priority| TX
+    VAL -->|bulk| MKT
+    TX --> TR
+    MKT --> TR
+    TR --> SIG --> MTA
+    MTA --> MX --> SMTP
+    SMTP -. NDR / FBL .-> BH
+    BH --> SUP
+    SUP -. filter before enqueue .-> VAL
+    MTA --> WEB

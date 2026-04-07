@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph AZ1
+    L[Leader]
+  end
+  subgraph AZ2
+    F1[Follower]
+  end
+  subgraph AZ3
+    F2[Follower]
+  end
+  L -->|replicate| F1
+  L -->|replicate| F2

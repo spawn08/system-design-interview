@@ -474,10 +474,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  subgraph Partition P1
+  subgraph pp1["Partition P1"]
     Q1[Ready queue P1]
   end
-  subgraph Partition P2
+  subgraph pp2["Partition P2"]
     Q2[Ready queue P2]
   end
   W1[Worker A]

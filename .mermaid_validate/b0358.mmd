@@ -1,0 +1,10 @@
+flowchart TB
+  subgraph CP [Consistency vs availability under partition]
+    W[Writers to single Redis primary per shard]
+    R[Reads from primary for limit checks]
+    P[Network partition]
+    W --> P
+    R --> P
+    P -->|minority partition| FO[Fail open OR queue checks]
+    P -->|healed| REC[Reconcile counters / accept over-count]
+  end

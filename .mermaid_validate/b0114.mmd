@@ -1,0 +1,7 @@
+flowchart TD
+    LB[Load Balancer] --> S1[Server 1<br/>Active]
+    S2[Server 2<br/>Standby]
+    
+    S1 -.->|fails| LB
+    LB -->|promotes| S2
+    S2 -->|becomes Active| LB

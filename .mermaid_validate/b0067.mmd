@@ -1,0 +1,20 @@
+flowchart TD
+    CLIENT[Client] --> COORD[Coordinating Node]
+    COORD --> N1[Data Node 1]
+    COORD --> N2[Data Node 2]
+    COORD --> N3[Data Node 3]
+    
+    subgraph N1[Data Node 1]
+        S0P[Index: products<br/>Shard 0 - Primary]
+        S2R[Index: products<br/>Shard 2 - Replica]
+    end
+    
+    subgraph N2[Data Node 2]
+        S1P[Index: products<br/>Shard 1 - Primary]
+        S0R[Index: products<br/>Shard 0 - Replica]
+    end
+    
+    subgraph N3[Data Node 3]
+        S2P[Index: products<br/>Shard 2 - Primary]
+        S1R[Index: products<br/>Shard 1 - Replica]
+    end

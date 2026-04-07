@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Online [Online serving]
+        REQ[Ad request logs]
+        WIN[Winning ad + price]
+    end
+
+    subgraph Storage [Data lake / stream]
+        IMP[Impression stream]
+        CLK[Click stream]
+        CNV[Conversion stream]
+    end
+
+    subgraph Train [Training]
+        JOIN[Join + label delay handling]
+        FEAT[Feature generation at t_impression]
+        TUNE[Train / calibrate]
+        REL[Release to model servers]
+    end
+
+    REQ --> IMP
+    WIN --> IMP
+    IMP --> JOIN
+    CLK --> JOIN
+    CNV --> JOIN
+    JOIN --> FEAT --> TUNE --> REL

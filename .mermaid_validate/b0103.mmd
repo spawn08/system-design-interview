@@ -1,0 +1,8 @@
+flowchart TD
+    User[User] --> LB[Load Balancer]
+    LB --> S1[Server 1]
+    LB --> S2[Server 2]
+    LB --> S3[Server 3]
+    S1 --> Redis[(Redis/Session Store)]
+    S2 --> Redis
+    S3 --> Redis

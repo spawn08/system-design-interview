@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant Dev as Developer
+    participant IDE as IDE
+    participant Plugin as Extension
+    participant Local as Local Context
+    participant Server as Completion Server
+
+    Dev->>IDE: Types code
+    IDE->>Plugin: onChange event
+    Plugin->>Plugin: Debounce (150ms)
+    Plugin->>Local: Gather local context
+    Local-->>Plugin: prefix, suffix, open files
+    Plugin->>Server: POST /completions
+    
+    par Speculative Decode
+        Server->>Server: Draft model → verify with target
+    end
+    
+    Server-->>Plugin: Completion response
+    Plugin->>Plugin: Post-filter, dedup
+    Plugin->>IDE: Show inline ghost text
+    
+    alt Developer presses Tab
+        Dev->>IDE: Accept (Tab)
+        IDE->>Plugin: accepted event
+        Plugin->>Server: POST /telemetry (accepted)
+    else Developer keeps typing
+        Dev->>IDE: Reject (keep typing)
+        Plugin->>Server: POST /telemetry (rejected)
+    end

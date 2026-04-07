@@ -3250,7 +3250,7 @@
         T --&gt; TD[Transformer decoder]
         TD --&gt; O[Token outputs]
     end
-    MT[Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps] --&gt; Dec</div>
+    MT["Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps"] --&gt; Dec</div>
 <p><strong>Multitask training</strong> includes:</p>
 <ul>
 <li><strong>Transcription</strong> in many languages</li>
@@ -4183,20 +4183,20 @@
 </div>
 <h3 id="training-and-release-pipeline">Training and Release Pipeline<a class="headerlink" href="#training-and-release-pipeline" title="Permanent link">&para;</a></h3>
 <div class="mermaid">flowchart TB
-    subgraph Data[Data plane]
-        RAW[Raw corpora + user opt-in] --&gt; LIC[License &amp; PII scrub]
+    subgraph dplane["Data plane"]
+        RAW["Raw corpora + user opt-in"] --&gt; LIC["License &amp; PII scrub"]
         LIC --&gt; VER[Versioned datasets]
     end
-    subgraph Train[Training]
+    subgraph trn["Training"]
         VER --&gt; AUG[Augmentation + SpecAugment]
         AUG --&gt; SSL[Optional SSL pretrain]
         SSL --&gt; FT[Supervised fine-tune]
     end
-    subgraph Ship[Shipping]
-        FT --&gt; EVAL[Eval: WER + robustness suites]
+    subgraph ship["Shipping"]
+        FT --&gt; EVAL["Eval: WER + robustness suites"]
         EVAL --&gt; SHADOW[Shadow traffic]
         SHADOW --&gt; CAN[Canary]
-        CAN --&gt; ROLL[Rollout + rollback hooks]
+        CAN --&gt; ROLL["Rollout + rollback hooks"]
     end</div>
 <h3 id="capacity-planning-snapshot">Capacity Planning Snapshot<a class="headerlink" href="#capacity-planning-snapshot" title="Permanent link">&para;</a></h3>
 <table>

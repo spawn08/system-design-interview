@@ -44,12 +44,12 @@ The core idea: **Users with similar taste will like similar items.**
 
 ```mermaid
 flowchart LR
-    subgraph Users [Users]
-        U1[User A<br/>Likes: Inception, Matrix]
-        U2[User B<br/>Likes: Inception, Matrix, Interstellar]
+    subgraph users["Users"]
+        U1["User A<br/>Likes: Inception, Matrix"]
+        U2["User B<br/>Likes: Inception, Matrix, Interstellar"]
     end
     
-    subgraph Rec [Recommendation]
+    subgraph rec["Recommendation"]
         R[User A might like Interstellar!]
     end
     
@@ -176,26 +176,26 @@ Recommendations served: 500 million/day
 
 ```mermaid
 flowchart TB
-    subgraph Online [Online Serving]
+    subgraph onl["Online Serving"]
         API[Recommendation API]
         Ranker[Re-ranking Service]
         Cache[(Redis Cache)]
     end
     
-    subgraph Retrieval [Candidate Retrieval]
+    subgraph retr["Candidate Retrieval"]
         CF[Collaborative Filtering]
         CB[Content-Based]
         Pop[Popular Items]
-        ANN[ANN Index<br/>FAISS/Pinecone]
+        ANN["ANN Index<br/>FAISS/Pinecone"]
     end
     
-    subgraph Offline [Offline Training]
+    subgraph offl["Offline Training"]
         Train[Model Training]
         Features[Feature Pipeline]
         Batch[Batch Predictions]
     end
     
-    subgraph Data [Data Layer]
+    subgraph data["Data Layer"]
         Events[(Event Stream<br/>Kafka)]
         DW[(Data Warehouse<br/>BigQuery)]
         FeatureStore[(Feature Store)]
@@ -230,22 +230,22 @@ Recommendations typically use a **retrieval + ranking** pipeline:
 
 ```mermaid
 flowchart LR
-    subgraph Stage1 [Stage 1: Retrieval]
+    subgraph s1["Stage 1: Retrieval"]
         direction TB
         All[10M Products] --> Candidates[1000 Candidates]
     end
     
-    subgraph Stage2 [Stage 2: Ranking]
+    subgraph s2["Stage 2: Ranking"]
         direction TB
         Candidates --> Ranked[Top 50 Ranked]
     end
     
-    subgraph Stage3 [Stage 3: Re-ranking]
+    subgraph s3["Stage 3: Re-ranking"]
         direction TB
         Ranked --> Final[Final 10-20]
     end
     
-    Stage1 --> Stage2 --> Stage3
+    s1 --> s2 --> s3
 ```
 
 | Stage | Goal | Latency Budget | Model Complexity |
@@ -825,24 +825,24 @@ class RealTimePersonalizer:
 
 ```mermaid
 flowchart LR
-    subgraph Ingestion [Data Ingestion]
+    subgraph ing["Data Ingestion"]
         Events[User Events] --> Kafka[Kafka]
         Kafka --> Flink[Flink Processing]
     end
     
-    subgraph Storage [Storage]
+    subgraph stor["Storage"]
         Flink --> DW[(Data Warehouse)]
         Flink --> FS[(Feature Store)]
     end
     
-    subgraph Training [Training]
+    subgraph trn["Training"]
         DW --> Sample[Sampling]
         Sample --> Train[Model Training]
         FS --> Train
         Train --> Eval[Evaluation]
     end
     
-    subgraph Deployment [Deployment]
+    subgraph depl["Deployment"]
         Eval --> Registry[Model Registry]
         Registry --> Serving[Model Serving]
     end

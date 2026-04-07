@@ -3467,9 +3467,9 @@
   C1 --&gt;|read| N2
   C1 --&gt;|ideal write| N1
   N1 -.-&gt;|replication blocked| N2
-  C1 --&gt;|choice: fail vs stale| X{Serve stale read?}
-  X --&gt;|AP: yes| R[Return replica value + optional version]
-  X --&gt;|CP: no| E[Error / retry / redirect]</div>
+  C1 --&gt;|"choice: fail vs stale"| X{Serve stale read?}
+  X --&gt;|"AP: yes"| R[Return replica value + optional version]
+  X --&gt;|"CP: no"| E[Error / retry / redirect]</div>
 <p><strong>Interview punchline:</strong> Caches <strong>bias toward availability and partition tolerance</strong> for reads; <strong>correctness</strong> comes from <strong>TTL</strong>, <strong>invalidation</strong>, <strong>versioning</strong>, and <strong>application-level invariants</strong>, not from pretending the cache is a strongly consistent store.</p>
 <h3 id="data-model-schema">Data Model &amp; Schema<a class="headerlink" href="#data-model-schema" title="Permanent link">&para;</a></h3>
 <p>Caches are <strong>schema-light</strong> but <strong>not schema-free</strong>: bad key design causes <strong>hot shards</strong>, <strong>inefficient invalidation</strong>, and <strong>unbounded memory</strong>.</p>
@@ -4320,10 +4320,10 @@
   subgraph AZ3
     F2[Follower 2]
   end
-  L --&gt;|replication log| F1
-  L --&gt;|replication log| F2
+  L --&gt;|"replication log"| F1
+  L --&gt;|"replication log"| F2
   C[Clients] --&gt;|writes| L
-  C --&gt;|reads optional| F1</div>
+  C --&gt;|"reads optional"| F1</div>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Java</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">

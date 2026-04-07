@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph AP_paths["AP-leaning paths"]
+    P[Presence TTL]
+    T[Typing indicators]
+    C[Cached membership]
+  end
+
+  subgraph CP_paths["CP-leaning paths"]
+    M[Authoritative membership DB]
+    W[Message ack after durable commit]
+  end
+
+  subgraph Mixed["Mixed / pipeline"]
+    R[Read receipts via queue]
+    F[Fan-out consumers]
+  end
+
+  AP_paths --> UX[Best-effort UX]
+  CP_paths --> INV[Invariant: who is in the group / what is persisted]
+  Mixed --> EVC[Eventually consistent across viewers]
