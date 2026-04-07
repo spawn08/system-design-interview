@@ -620,11 +620,11 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| The Data Warehouse Toolkit | Kimball & Ross (Wiley) |
-| Delta Lake Documentation | [delta.io](https://delta.io/) |
-| Apache Iceberg | [iceberg.apache.org](https://iceberg.apache.org/) |
-| Designing Data-Intensive Applications | Martin Kleppmann (O'Reilly) — Chapter 10 |
-| dbt (data build tool) | [getdbt.com](https://www.getdbt.com/) |
-| Apache Airflow | [airflow.apache.org](https://airflow.apache.org/) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| The Data Warehouse Toolkit | Kimball & Ross (Wiley) | Ralph Kimball defined dimensional modeling (star schemas, slowly changing dimensions) as the standard approach for analytical databases. His methodology — identify business processes, declare grain, choose dimensions, define facts — is still how data warehouses are designed at every major company. The book explains *why* denormalization is correct for analytics (read-optimized, aggregation-friendly) even though it violates normal forms used in OLTP. |
+| Delta Lake Documentation | [delta.io](https://delta.io/) | Delta Lake solved the data lake reliability crisis: raw Parquet/ORC files on S3/HDFS have no ACID transactions, no schema enforcement, and no time travel. Delta adds a transaction log (JSON-based, optimistic concurrency) on top of Parquet files, enabling ACID commits, schema evolution, and `MERGE` operations. It bridges the gap between the flexibility of data lakes and the reliability of data warehouses (the "lakehouse" architecture). |
+| Apache Iceberg | [iceberg.apache.org](https://iceberg.apache.org/) | Netflix created Iceberg to fix the performance and correctness problems of Hive-style table formats. Hive tables rely on directory listings for partition discovery (slow at scale, race-prone), while Iceberg uses snapshot-based metadata with manifest files — enabling hidden partitioning, schema evolution without rewriting data, and time-travel queries. It's engine-agnostic (Spark, Flink, Trino), making it the emerging standard for open table formats. |
+| Designing Data-Intensive Applications | Martin Kleppmann (O'Reilly) — Chapter 10 | Chapter 10 covers batch processing (MapReduce, Spark) as the foundation of data warehouse ETL pipelines. Kleppmann explains the Unix philosophy applied to data: small, composable processing stages connected by materialized intermediate datasets. Understanding sort-merge joins, broadcast joins, and data locality is essential for designing efficient data pipelines that populate warehouses. |
+| dbt (data build tool) | [getdbt.com](https://www.getdbt.com/) | dbt brought software engineering practices (version control, testing, documentation, CI/CD) to SQL-based data transformations. Before dbt, warehouse transformations were ad-hoc stored procedures with no lineage tracking. dbt models are SELECT statements organized into a DAG, enabling incremental builds, data quality tests, and automatic documentation — the "T" in modern ELT pipelines. |
+| Apache Airflow | [airflow.apache.org](https://airflow.apache.org/) | Airbnb created Airflow to orchestrate complex data pipelines that existing cron-based scheduling couldn't handle: multi-step DAGs with dependencies, retries, backfills, and SLA monitoring. Airflow separates workflow definition (Python DAGs) from execution (task instances on workers), enabling dynamic pipeline generation and programmatic scheduling that scales with organizational complexity. |

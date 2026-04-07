@@ -583,13 +583,12 @@ flowchart TD
 
 ## Further Reading
 
-- [OpenTelemetry](https://opentelemetry.io/docs/) — official documentation for traces, metrics, and logs.
-- [Google SRE Book — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/) — SLIs, SLOs, and monitoring philosophy.
-- [Prometheus documentation](https://prometheus.io/docs/introduction/overview/) — metrics model and PromQL.
-- [W3C Trace Context](https://www.w3.org/TR/trace-context/) — standard for trace propagation headers.
-- [The RED Method](https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/) — service health metrics.
-- [USE Method](http://www.brendangregg.com/usemethod.html) — Brendan Gregg on resource analysis.
-- [Mermaid documentation](https://mermaid.js.org/) — diagrams as code (used above).
+- [OpenTelemetry](https://opentelemetry.io/docs/) — OpenTelemetry merged the competing OpenTracing and OpenCensus projects into a single vendor-neutral standard for traces, metrics, and logs. It solves the vendor lock-in problem: instrument once with OTel SDKs, then export to any backend (Jaeger, Datadog, Grafana). The documentation covers the collector architecture, context propagation (W3C Trace Context), and auto-instrumentation for major frameworks.
+- [Google SRE Book — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/) — This chapter defines the monitoring philosophy that shaped modern observability: monitor for *symptoms* (user-visible errors, latency) not *causes* (CPU usage, disk space). It introduced the "four golden signals" (latency, traffic, errors, saturation) and SLO-based alerting — alert when the error budget is being consumed too fast, not on arbitrary thresholds.
+- [Prometheus documentation](https://prometheus.io/docs/introduction/overview/) — Prometheus pioneered the pull-based metrics model (scraping `/metrics` endpoints) and the multi-dimensional data model (time series identified by metric name + label set). PromQL enables powerful queries like "p99 latency per endpoint per region over the last hour." Understanding Prometheus's architecture (TSDB storage, recording rules, alertmanager) is essential for any metrics-based observability system design.
+- [W3C Trace Context](https://www.w3.org/TR/trace-context/) — Before this standard, each tracing system (Zipkin, Jaeger, Datadog) used incompatible propagation headers, breaking traces at service boundaries that used different vendors. W3C Trace Context defines `traceparent` and `tracestate` headers that enable end-to-end trace propagation across heterogeneous systems — a prerequisite for observability in microservice architectures.
+- [The RED Method](https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/) — Tom Wilkie (Grafana) created RED (Rate, Errors, Duration) as a service-centric monitoring framework. Unlike USE (which monitors infrastructure), RED monitors *what users experience*: request rate, error rate, and latency distribution. These three metrics per service endpoint provide the minimum viable observability for any microservice.
+- [USE Method](http://www.brendangregg.com/usemethod.html) — Brendan Gregg's USE method (Utilization, Saturation, Errors) is a systematic approach for analyzing *infrastructure* performance: for every resource (CPU, memory, disk, network), check utilization (% busy), saturation (queue depth), and errors. It prevents the common mistake of monitoring averages instead of bottlenecks and provides a checklist-driven approach to performance troubleshooting.
 
 !!! tip
     In interviews, naming **RED**, **USE**, **SLO/error budget**, and **head vs tail sampling** signals production experience — but always tie choices back to **what users experience** and **operational cost**.

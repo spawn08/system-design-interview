@@ -410,13 +410,13 @@ The following snippets are illustrative — not production-complete — but show
 
 ## Further Reading
 
-| Resource | Topic |
-|----------|--------|
-| Martin Fowler — *Event Sourcing* | Conceptual overview and when to use |
-| Greg Young — CQRS materials | Command/query separation and read models |
-| *Implementing Domain-Driven Design* (Vaughn Vernon) | Aggregates, domain events, bounded contexts |
-| Enterprise Integration Patterns (Hohpe & Woolf) | Messaging, idempotency, outbox |
-| Kafka / Pulsar documentation | Log-based integration at scale |
+| Resource | Topic | Why This Matters |
+|----------|--------|-----------------|
+| Martin Fowler — *Event Sourcing* | Conceptual overview and when to use | Fowler's article explains the fundamental insight: instead of storing current state (which loses history), store the sequence of events that produced it. This enables temporal queries ("what was the balance at 3pm?"), complete audit trails, and the ability to rebuild state from scratch. He also honestly covers the downsides — schema evolution of events is painful, and event stores grow without bound. |
+| Greg Young — CQRS materials | Command/query separation and read models | Greg Young formalized CQRS as a pattern where write models (optimized for business invariants) and read models (optimized for query performance) are completely separate. This was needed because a single model that handles both writes and complex reads leads to bloated schemas and performance compromises. His materials explain how event sourcing naturally feeds CQRS — events are projected into purpose-built read stores. |
+| *Implementing Domain-Driven Design* (Vaughn Vernon) | Aggregates, domain events, bounded contexts | Vernon's book bridges the gap between DDD theory (Evans) and practical implementation with event sourcing. It explains why aggregates are the consistency boundary for commands, how domain events flow between bounded contexts, and why getting aggregate boundaries wrong leads to either distributed transactions (too large) or inconsistent state (too small). |
+| Enterprise Integration Patterns (Hohpe & Woolf) | Messaging, idempotency, outbox | Event-sourced systems communicate through messages, and this book catalogues the patterns for reliable messaging: the transactional outbox (atomically write to DB and event store), idempotent consumers (handle duplicate delivery), and content-based routing. These are the building blocks that make event-driven architectures work in production. |
+| Kafka / Pulsar documentation | Log-based integration at scale | Kafka and Pulsar provide the durable, ordered, replayable log that event sourcing requires as its backbone. Understanding log compaction (retaining only the latest value per key), consumer group semantics, and exactly-once delivery is essential for implementing event sourcing at scale — the event store is effectively a Kafka topic. |
 
 ---
 

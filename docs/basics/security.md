@@ -681,10 +681,10 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| OWASP Top 10 | [owasp.org/www-project-top-ten](https://owasp.org/www-project-top-ten/) |
-| TLS 1.3 | [RFC 8446](https://tools.ietf.org/html/rfc8446) |
-| Zero Trust | [NIST SP 800-207](https://csrc.nist.gov/publications/detail/sp/800-207/final) |
-| Password Hashing | [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) |
-| JWT Best Practices | [RFC 8725](https://tools.ietf.org/html/rfc8725) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| OWASP Top 10 | [owasp.org/www-project-top-ten](https://owasp.org/www-project-top-ten/) | The industry-standard classification of the most critical web application security risks. Updated periodically by security practitioners worldwide, it defines what "secure by default" means — injection, broken auth, misconfig, SSRF, etc. Every security-aware system design should address at least the top 5 threats from this list. |
+| TLS 1.3 | [RFC 8446](https://tools.ietf.org/html/rfc8446) | TLS 1.3 (2018) reduced the handshake from 2 round-trips to 1 (and 0-RTT for resumed sessions), removed insecure cipher suites (RC4, SHA-1, CBC), and mandated forward secrecy. The RFC explains why previous versions were vulnerable to downgrade attacks and how the redesigned handshake eliminates entire classes of MITM exploits. |
+| Zero Trust | [NIST SP 800-207](https://csrc.nist.gov/publications/detail/sp/800-207/final) | Traditional perimeter security ("castle and moat") fails when attackers breach the network boundary. NIST's Zero Trust Architecture framework (2020) formalized the principle of "never trust, always verify" — every request must be authenticated and authorized regardless of network location. This is the architectural foundation for modern service mesh security (mTLS between microservices). |
+| Password Hashing | [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) | Explains why bcrypt/scrypt/Argon2id are required instead of SHA-256 — adaptive hashing functions are deliberately slow to make brute-force attacks computationally infeasible. Covers salt generation, work factor tuning, and migration strategies from legacy hashing schemes. |
+| JWT Best Practices | [RFC 8725](https://tools.ietf.org/html/rfc8725) | JWTs are widely misused — this RFC documents the pitfalls: algorithm confusion attacks (`alg: none`), key confusion between HMAC and RSA, token replay, and excessive claim lifetimes. It provides concrete recommendations for secure JWT usage in distributed systems where stateless authentication is needed. |

@@ -1311,9 +1311,9 @@ def client_must_refresh_lease(exc: Exception) -> bool:
 
 ### Further Reading (Canonical)
 
-- Ghemawat, Gobioff, Leung: **The Google File System** (2003).
-- Shvachko et al.: **The Hadoop Distributed File System** (2010).
-- Apache Hadoop docs: **HDFS Architecture** (for HA/QJM/ec).
+- Ghemawat, Gobioff, Leung: **The Google File System** (2003) — GFS was designed to solve Google's specific problem: storing and processing multi-TB datasets (web crawls, index builds) on thousands of commodity machines that fail regularly. The paper introduced the single-master architecture (metadata server + chunk servers), large chunk sizes (64MB to amortize metadata overhead), and append-optimized write semantics (record append for concurrent producers). Its design trade-offs — weak consistency for availability, single master as scaling bottleneck — directly shaped every distributed file system that followed.
+- Shvachko et al.: **The Hadoop Distributed File System** (2010) — HDFS is the open-source implementation of GFS's architecture. This paper documents the production realities: NameNode memory as the metadata bottleneck (each file/block consumes ~150 bytes), block replication strategy (rack-aware placement for fault tolerance), and the checkpoint/journal mechanism for metadata persistence. Understanding HDFS's limitations (small files problem, single NameNode bottleneck) explains why the industry moved toward federation, erasure coding, and eventually object storage (S3).
+- Apache Hadoop docs: **HDFS Architecture** — The official documentation covers the HA (High Availability) architecture with Quorum Journal Manager (QJM) for NameNode failover, HDFS Federation for horizontal namespace scaling, and erasure coding (Reed-Solomon) that reduces storage overhead from 3x replication to 1.5x while maintaining fault tolerance. Essential for understanding how modern Hadoop deployments solve the limitations described in the original papers.
 
 !!! note
     Treat numbers as **teaching aids**; real clusters vary by **workload**, **codec**, **EC policies**, and **cloud vs on-prem**.

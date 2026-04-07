@@ -993,10 +993,10 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| CAP Theorem | [Brewer's Conjecture (2000)](https://users.ece.cmu.edu/~adrian/731-sp04/readings/GL-cap.pdf) |
-| Raft | [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf) |
-| Paxos | [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf) |
-| Consistent Hashing | [Dynamo: Amazon's Highly Available Key-value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf) |
-| Vector Clocks | [Time, Clocks, and the Ordering of Events (Lamport)](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| CAP Theorem | [Brewer's Conjecture (2000)](https://users.ece.cmu.edu/~adrian/731-sp04/readings/GL-cap.pdf) | Eric Brewer formalized the fundamental impossibility that a distributed system cannot simultaneously guarantee consistency, availability, and partition tolerance. Before this, engineers designed systems assuming all three were achievable. The paper forced the industry to make explicit trade-offs — every modern distributed database (Cassandra, DynamoDB, Spanner) is built around choosing CP or AP. |
+| Raft | [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf) | Paxos was notoriously difficult to understand and implement correctly. Ongaro and Ousterhout designed Raft (2014) as an equivalent consensus protocol decomposed into leader election, log replication, and safety — each independently understandable. It became the backbone of etcd, CockroachDB, and TiKV because teams could implement it without subtle correctness bugs. |
+| Paxos | [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf) | Lamport's original consensus protocol (1998) solved the fundamental problem of getting multiple unreliable nodes to agree on a single value despite failures. It proved that consensus is achievable with a majority of functioning nodes, establishing the theoretical foundation for all replicated state machines (Chubby, ZooKeeper). This simplified version explains the two-phase prepare/accept mechanism. |
+| Consistent Hashing | [Dynamo: Amazon's Highly Available Key-value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf) | Amazon built Dynamo (2007) to solve the "always writable" shopping cart problem during peak traffic — traditional databases couldn't guarantee availability under network partitions. The paper introduced a production architecture combining consistent hashing, vector clocks, sloppy quorums, and anti-entropy repair. It directly inspired Cassandra, Riak, and Voldemort, and defined the AP database category. |
+| Vector Clocks | [Time, Clocks, and the Ordering of Events (Lamport)](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) | Lamport's 1978 paper solved a fundamental problem: distributed machines have no shared clock, so "which event happened first?" has no global answer. He introduced logical clocks that establish a partial ordering of events using happens-before relationships, enabling causality tracking without synchronized physical clocks. This is the theoretical basis for conflict detection in replicated systems. |

@@ -739,10 +739,10 @@ Desktop clients run a **lightweight DB** (SQLite) tracking local inode state, se
 
 | Topic | Why it matters |
 |-------|----------------|
-| Content-defined chunking | Stable dedup under edits |
-| Merkle trees | Integrity proofs and sync subsets |
-| Operational transformation | Real-time doc collaboration |
-| Rsync algorithm | Classic rolling-hash inspiration |
+| Content-defined chunking | Traditional fixed-size chunking breaks when bytes are inserted (all subsequent chunks shift). Content-defined chunking (Rabin fingerprinting) uses rolling hashes to find cut points based on content, so edits only affect the modified chunk. This is how Dropbox and Google Drive achieve efficient deduplication and delta sync — only changed chunks are uploaded, not entire files. |
+| Merkle trees | A Merkle tree (hash tree) recursively hashes data blocks into a single root hash. To verify a specific block, you only need the sibling hashes along the path to the root (O(log n) proof). Cloud storage uses this for integrity verification (detect corruption without re-reading everything) and efficient sync (compare root hashes → drill down to find exactly which chunks differ between client and server). |
+| Operational transformation | Google Docs pioneered real-time collaborative editing using OT — an algorithm that transforms concurrent edit operations so they converge to the same document state regardless of arrival order. Understanding OT (and its successor, CRDTs) is essential for cloud storage systems that support simultaneous editing, because it solves the fundamental problem of conflict resolution without locking. |
+| Rsync algorithm | Andrew Tridgell's rsync algorithm (1996) efficiently synchronizes files over a network by computing rolling checksums (Adler-32) and strong checksums (MD5) on the destination, then using them to identify matching blocks on the source. Only non-matching blocks are transferred. This is the conceptual foundation for delta-sync in cloud storage — minimizing bandwidth by transferring only the differences between local and remote file versions. |
 
 !!! note
     Use this page as a **structured outline**, not a claim about any vendor’s internal architecture. Trade names are for **orientation** only.

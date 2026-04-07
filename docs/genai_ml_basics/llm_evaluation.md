@@ -921,9 +921,9 @@ Interviewers expect **structured**, **multi-layer** answers — not a single met
 
 ### Further Reading (Pointers)
 
-- BLEU / ROUGE / BERTScore papers and tooling docs for implementation details.
-- LMSYS Chatbot Arena methodology for **pairwise** and **Elo**.
-- RAGAS documentation for **retrieval-augmented** evaluation primitives.
-- TruthfulQA for **honesty** evaluation design.
+- **BLEU / ROUGE / BERTScore** — BLEU (Papineni et al., 2002) measures n-gram precision between generated and reference text, originally designed for machine translation. ROUGE (Lin, 2004) measures recall-oriented overlap, designed for summarization. Both have known limitations: they correlate poorly with human judgment for open-ended generation. BERTScore (Zhang et al., 2020) addresses this by computing semantic similarity using contextual embeddings instead of surface-level token matching. Understanding when each metric is appropriate (and when none suffice) is critical for LLM evaluation system design.
+- **LMSYS Chatbot Arena** — The Arena introduced crowdsourced pairwise comparison (users choose between two blind model outputs) with Elo rating aggregation as the most reliable method for ranking LLMs on open-ended tasks. This methodology is important because automated metrics fail to capture nuanced quality differences in chat — human preference is the gold standard, and Elo provides a principled way to aggregate noisy pairwise judgments into a global ranking.
+- **RAGAS documentation** — RAGAS (Retrieval-Augmented Generation Assessment) provides metrics specifically designed for RAG pipelines: faithfulness (does the answer match the retrieved context?), answer relevance (does it address the question?), and context precision/recall (did retrieval find the right documents?). These decomposed metrics are essential because RAG failures can come from retrieval, generation, or both — and a single end-to-end metric cannot diagnose which component is broken.
+- **TruthfulQA** — Lin et al. created TruthfulQA to measure whether LLMs generate truthful answers rather than repeating popular misconceptions. The benchmark revealed that larger models are often *less* truthful (they better internalize common falsehoods from training data). This is the foundation for evaluating honesty and hallucination in LLM systems — a critical quality dimension that standard accuracy benchmarks completely miss.
 
 This page is a **fundamentals** layer — pair it with [Enterprise RAG](../genai_ml_system_design/enterprise_rag.md) and [LLM Chatbot](../genai_ml_system_design/llm_chatbot.md) system design notes for end-to-end stories.

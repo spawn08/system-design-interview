@@ -773,11 +773,11 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Building Microservices | Sam Newman (O'Reilly) |
-| Microservices Patterns | Chris Richardson (Manning) |
-| Kubernetes in Action | Marko Lukša (Manning) |
-| Domain-Driven Design | Eric Evans |
-| The Twelve-Factor App | [12factor.net](https://12factor.net/) |
-| Envoy Proxy | [envoyproxy.io](https://www.envoyproxy.io/) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Building Microservices | Sam Newman (O'Reilly) | Newman's book addresses the fundamental question: *when should you decompose a monolith, and where do you draw service boundaries?* It covers the organizational argument (Conway's Law — team structure determines architecture), the technical patterns (API gateway, circuit breaker, saga), and the operational requirements (independent deployment, monitoring, failure isolation) that must be in place before microservices pay off. |
+| Microservices Patterns | Chris Richardson (Manning) | Richardson created microservices.io and this book systematically catalogs 44 patterns organized by concern: decomposition (by business capability, by subdomain), communication (API gateway, messaging), data management (database per service, saga, CQRS), and observability (health check, distributed tracing). Each pattern includes a problem/solution/trade-off structure that maps directly to system design interview answers. |
+| Kubernetes in Action | Marko Lukša (Manning) | Kubernetes became the standard platform for deploying microservices because it solves the operational problems that microservices create: service discovery (DNS-based), load balancing (kube-proxy), rolling deployments, self-healing (restart failed containers), and resource isolation (CPU/memory limits). The book explains the architecture (control plane, kubelet, etcd) and the abstractions (Pods, Services, Deployments) that make container orchestration practical. |
+| Domain-Driven Design | Eric Evans | Evans' 2003 book introduced bounded contexts — the idea that a single domain model cannot serve an entire organization, and that explicit boundaries between models are necessary. This concept became the primary strategy for microservice decomposition: each bounded context maps to a service with its own data store and ubiquitous language. Without DDD, service boundaries are arbitrary and lead to distributed monoliths. |
+| The Twelve-Factor App | [12factor.net](https://12factor.net/) | Heroku engineers distilled 12 principles for building cloud-native applications: externalize config (environment variables), treat backing services as attached resources, scale via stateless processes, and treat logs as event streams. These principles are prerequisites for microservices — a service that stores local state, reads config from files, or depends on sticky sessions cannot be independently scaled or deployed. |
+| Envoy Proxy | [envoyproxy.io](https://www.envoyproxy.io/) | Lyft built Envoy to solve the "smart endpoints, dumb pipes" problem at scale: every microservice needs retries, timeouts, circuit breaking, rate limiting, and observability, but implementing this in every service creates massive duplication. Envoy runs as a sidecar proxy alongside each service, handling all L7 networking concerns transparently. It's the data plane behind Istio and the foundation of the service mesh architecture pattern. |

@@ -394,12 +394,12 @@ flowchart TD
 
 ## Further Reading
 
-- Martin Kleppmann — *"How to do distributed locking"* (Redlock critique) — essential for Staff-level depth.
-- Redis documentation — **Distributed locks with Redis** and Redlock specification (read alongside critiques).
-- Apache ZooKeeper — **Recipes and Solutions** (distributed locks and barriers).
-- etcd — **etcd client v3 concurrency** package documentation.
-- PostgreSQL manual — **Explicit Locking**, advisory locks, and isolation levels.
-- Herlihy and Wing — *Linearizability: A Correctness Condition for Concurrent Objects* (foundations).
+- Martin Kleppmann — *"How to do distributed locking"* — Kleppmann's 2016 critique of Redis Redlock demonstrated that Redis-based distributed locks are fundamentally unsafe under process pauses (GC, page faults) and clock skew. He showed that a lock holder can be paused after acquiring the lock, the lock expires, another client acquires it, and both proceed — violating mutual exclusion. His conclusion: use fencing tokens or a consensus-based system (ZooKeeper) for correctness-critical locks. This debate is essential reading for Staff-level distributed systems understanding.
+- Redis documentation — **Distributed locks with Redis** — Antirez (Redis creator) designed Redlock as a distributed lock algorithm using N independent Redis instances with majority quorum. The documentation explains the algorithm (SET with NX, PX, and unique values across N nodes) and the trade-off: Redlock provides best-effort locking with high performance, suitable for efficiency (preventing duplicate work) but not safety (preventing data corruption). Read alongside Kleppmann's critique above.
+- Apache ZooKeeper — **Recipes and Solutions** — ZooKeeper provides the strongest distributed locking guarantees through ephemeral sequential nodes and watches. When a client disconnects, its ephemeral node is automatically deleted, releasing the lock — solving the "client died while holding lock" problem. The recipes document explains how to implement locks, barriers, leader election, and group membership using ZooKeeper's ordered, linearizable znodes.
+- etcd — **etcd client v3 concurrency** — etcd (the coordination store behind Kubernetes) provides distributed locking via lease-based TTLs and Raft consensus. Its concurrency package offers ready-to-use Lock and Election primitives with lease keep-alive. Unlike Redis, etcd guarantees linearizable reads and writes, making its locks safe for correctness-critical operations where the locking state must survive node failures.
+- PostgreSQL manual — **Explicit Locking** — Advisory locks in PostgreSQL provide application-level locking without modifying data. They're often overlooked but solve a common problem: coordinating access to external resources (files, APIs) across multiple application instances sharing the same database. Session-level vs. transaction-level advisory locks have different release semantics — choosing wrong causes lock leaks.
+- Herlihy and Wing — *Linearizability: A Correctness Condition for Concurrent Objects* — This 1990 paper defined linearizability: every operation appears to take effect atomically at some point between its invocation and response. This is the formal correctness condition that distributed locks must satisfy — if a lock implementation is not linearizable, two clients can believe they hold the lock simultaneously. Understanding linearizability vs. serializability vs. sequential consistency is essential for evaluating whether a locking implementation is actually correct.
 
 ---
 

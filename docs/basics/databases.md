@@ -933,12 +933,12 @@ flowchart TD
 
 ## Further Reading
 
-- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapters 2, 3, 5, 6, 7
-- [Use The Index, Luke](https://use-the-index-luke.com/) — SQL indexing and tuning guide
-- [Amazon DynamoDB Developer Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/)
-- [CockroachDB Architecture Overview](https://www.cockroachlabs.com/docs/stable/architecture/overview.html) — distributed SQL internals
-- [MongoDB Manual](https://www.mongodb.com/docs/manual/) — document database patterns
-- [CAP Theorem Revisited](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) — Eric Brewer's 2012 reflection
+- *Designing Data-Intensive Applications* by Martin Kleppmann — Chapters 2, 3, 5, 6, 7 — Chapter 2 compares data models (relational, document, graph) with clear trade-off analysis. Chapter 3 dissects storage engines (B-trees vs. LSM-trees) to explain why PostgreSQL and Cassandra have fundamentally different performance profiles. Chapters 5–7 cover replication, partitioning, and transactions — the three pillars that determine how a database behaves under scale and failure.
+- [Use The Index, Luke](https://use-the-index-luke.com/) — A free guide that explains *how* database indexes actually work (B-tree traversal, index-only scans, partial indexes) rather than just *what* they are. Understanding why a composite index on `(a, b)` helps queries filtering on `a` but not on `b` alone is the difference between a design that scales and one that hits a wall at 10M rows.
+- [Amazon DynamoDB Developer Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/) — DynamoDB embodies the single-table design philosophy where access patterns are defined upfront and the schema is optimized for those patterns (unlike relational schemas designed for flexibility). The guide covers partition key design, GSI overloading, and adaptive capacity — patterns essential for understanding NoSQL trade-offs in system design.
+- [CockroachDB Architecture Overview](https://www.cockroachlabs.com/docs/stable/architecture/overview.html) — CockroachDB demonstrates that distributed SQL is achievable: it provides serializable isolation and automatic sharding across nodes using Raft consensus per range. The architecture overview explains how it solves the problems that forced the CAP-era choice between consistency (traditional RDBMS) and horizontal scalability (NoSQL).
+- [MongoDB Manual](https://www.mongodb.com/docs/manual/) — MongoDB pioneered the document database model where flexible JSON-like schemas accommodate evolving data structures without migrations. The manual covers sharding (hash-based and range-based), replica sets with automatic failover, and the aggregation pipeline — core patterns for document-oriented system designs.
+- [CAP Theorem Revisited](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) — Twelve years after proposing CAP, Eric Brewer himself clarified common misconceptions: CAP applies only during partitions (not always), the C/A trade-off is not binary but a spectrum, and modern systems like Spanner challenge the original framing by minimizing partition windows with specialized hardware (TrueTime). This article is essential for nuanced interview answers about consistency vs. availability.
 
 !!! note
     For deeper coverage of CAP theorem and consistency models, see also [Distributed Systems](distributed_systems.md).

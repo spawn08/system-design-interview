@@ -525,9 +525,9 @@ Use this template when the interviewer asks you to estimate:
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Latency Numbers | [Jeff Dean's Numbers Everyone Should Know](https://colin-scott.github.io/personal_website/research/interactive_latency.html) |
-| System Design Primer | [github.com/donnemartin/system-design-primer](https://github.com/donnemartin/system-design-primer) |
-| Capacity Planning | [High Scalability Blog](http://highscalability.com/) |
-| DDIA | Designing Data-Intensive Applications by Martin Kleppmann |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Latency Numbers | [Jeff Dean's Numbers Everyone Should Know](https://colin-scott.github.io/personal_website/research/interactive_latency.html) | Jeff Dean (Google Fellow) compiled the canonical latency reference — L1 cache (0.5ns) to cross-continent RTT (150ms) — that anchors every back-of-the-envelope estimate. Knowing these orders of magnitude lets you instantly judge whether a design is feasible (e.g., a single-machine lookup at 1μs vs. a cross-region call at 150ms means 150,000× difference). |
+| System Design Primer | [github.com/donnemartin/system-design-primer](https://github.com/donnemartin/system-design-primer) | A community-curated repository that organizes scalability patterns, estimation templates, and real-world architecture examples into one reference. Useful as a structured study companion for connecting individual concepts (caching, sharding, load balancing) into end-to-end system designs. |
+| Capacity Planning | [High Scalability Blog](http://highscalability.com/) | Documents real architecture decisions from companies at scale — how Twitter handles 400K tweets/sec, how WhatsApp serves 2B users on Erlang, etc. These case studies provide the concrete numbers and architectural patterns needed to calibrate your own estimation intuition. |
+| DDIA | Designing Data-Intensive Applications by Martin Kleppmann | The most comprehensive modern reference for distributed systems engineering. Kleppmann rigorously covers storage engines, replication, partitioning, consistency, and batch/stream processing with clear trade-off analysis. Chapters 1–2 provide the foundation for estimation thinking: understanding what bottlenecks (disk, network, CPU) dominate which workloads. |

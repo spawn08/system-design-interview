@@ -913,11 +913,11 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| REST Dissertation | [Roy Fielding's Dissertation (2000)](https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm) |
-| HTTP Specification | [RFC 9110 - HTTP Semantics](https://httpwg.org/specs/rfc9110.html) |
-| GraphQL Spec | [graphql.org/spec](https://spec.graphql.org/) |
-| OAuth 2.0 | [RFC 6749](https://tools.ietf.org/html/rfc6749) |
-| JWT | [RFC 7519](https://tools.ietf.org/html/rfc7519) |
-| API Design Guidelines | [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| REST Dissertation | [Roy Fielding's Dissertation (2000)](https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm) | Fielding defined REST as an architectural style — not a protocol — with six constraints (stateless, cacheable, uniform interface, layered, client-server, code-on-demand). Most "REST APIs" violate these constraints. Reading the original explains why HATEOAS exists, when RPC is actually more appropriate, and how the web's scalability emerges from these specific constraints. |
+| HTTP Specification | [RFC 9110 - HTTP Semantics](https://httpwg.org/specs/rfc9110.html) | The 2022 consolidation of HTTP semantics (replacing RFCs 7230–7235) defines what methods, status codes, and headers actually mean. Understanding idempotency guarantees (PUT is idempotent, POST is not) and safe methods (GET must not have side effects) is essential for designing correct APIs — especially around caching, retries, and load balancer behavior. |
+| GraphQL Spec | [graphql.org/spec](https://spec.graphql.org/) | Facebook created GraphQL (2012, open-sourced 2015) to solve the mobile data-fetching problem: REST endpoints either over-fetched (wasting bandwidth) or required multiple round-trips. GraphQL lets clients specify exactly the data shape they need in a single request. The spec defines the type system, query execution model, and introspection that make this possible. |
+| OAuth 2.0 | [RFC 6749](https://tools.ietf.org/html/rfc6749) | OAuth 2.0 solved the "password anti-pattern" — users giving their credentials to third-party apps. It introduced delegated authorization via access tokens, enabling "Login with Google" without sharing passwords. The RFC defines four grant types for different scenarios (web apps, mobile, server-to-server, single-page apps) and is the foundation of modern API authentication. |
+| JWT | [RFC 7519](https://tools.ietf.org/html/rfc7519) | JSON Web Tokens provide a compact, self-contained way to transmit claims between services without server-side session storage. The RFC defines the structure (header.payload.signature), enabling stateless authentication at scale — critical for microservices where a centralized session store becomes a bottleneck. |
+| API Design Guidelines | [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines) | A battle-tested, opinionated guide covering versioning strategies, pagination, filtering, error response formats, and long-running operations. It codifies patterns that Microsoft learned from operating Azure APIs at massive scale — useful as a concrete reference when making API design decisions. |

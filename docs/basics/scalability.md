@@ -801,10 +801,10 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Google SRE Book | [sre.google/sre-book](https://sre.google/sre-book/table-of-contents/) |
-| Designing Data-Intensive Applications | Martin Kleppmann (O'Reilly) |
-| Chaos Engineering | [principlesofchaos.org](https://principlesofchaos.org/) |
-| AWS Well-Architected: Reliability | [AWS Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/) |
-| Circuit Breaker Pattern | [Martin Fowler](https://martinfowler.com/bliki/CircuitBreaker.html) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Google SRE Book | [sre.google/sre-book](https://sre.google/sre-book/table-of-contents/) | Google codified two decades of operational excellence into this book. It introduced SLOs and error budgets as a way to balance reliability against feature velocity — instead of "zero downtime," teams get a measurable budget for acceptable failures. The chapters on cascading failures, load balancing, and distributed consensus are directly applicable to system design answers. |
+| Designing Data-Intensive Applications | Martin Kleppmann (O'Reilly) | The definitive modern reference for understanding scalability trade-offs. Kleppmann covers replication (single-leader, multi-leader, leaderless), partitioning strategies, consistency models, and batch vs. stream processing — each with rigorous analysis of when to use what. Essential for moving beyond "just add more servers" to understanding *how* systems actually scale. |
+| Chaos Engineering | [principlesofchaos.org](https://principlesofchaos.org/) | Netflix pioneered chaos engineering after their 2008 database corruption incident drove the migration to AWS. The discipline of intentionally injecting failures (Chaos Monkey, Chaos Kong) proved that systems must be tested under real failure conditions, not just designed for them. The principles define how to run controlled experiments on distributed systems to build confidence in resilience. |
+| AWS Well-Architected: Reliability | [AWS Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/) | Amazon distilled lessons from operating the world's largest cloud infrastructure into a framework of best practices. The Reliability Pillar covers foundations (quotas, networking), change management (monitoring, scaling), and failure management (fault isolation, DR). Useful for translating abstract reliability concepts into concrete architectural decisions. |
+| Circuit Breaker Pattern | [Martin Fowler](https://martinfowler.com/bliki/CircuitBreaker.html) | In distributed systems, a failing downstream service can cascade timeouts and exhaust connection pools across the entire call chain. Michael Nygard introduced the circuit breaker pattern (in *Release It!*) to "fail fast" — when a service exceeds a failure threshold, the circuit opens and returns errors immediately instead of waiting. Fowler's article explains the state machine (closed → open → half-open) and when to use it. |

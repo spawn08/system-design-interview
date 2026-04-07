@@ -291,11 +291,11 @@ This pattern shows **closed questions** where helpful, **explicit assumptions**,
 
 ## Further Reading
 
-- [Estimation](estimation.md) — Back-of-the-envelope drills and sizing patterns that pair with Step 1 and Step 2.
-- [Scalability, Availability, and Reliability](scalability.md) — Vocabulary for NFR discussions and failure-aware design.
-- [Distributed Systems](distributed_systems.md) — Consensus, replication, and messaging—common deep-dive territory in Step 3.
-- [Databases](databases.md) — Choosing stores and articulating consistency trade-offs during deep dive.
-- [API Design](api_design.md) — Shaping boundaries and contracts in Step 2.
+- [Estimation](estimation.md) — Back-of-the-envelope calculations (QPS, storage, bandwidth) anchor your design in reality during Steps 1 and 2. Without concrete numbers, interviewers cannot evaluate whether your architecture actually handles the stated scale.
+- [Scalability, Availability, and Reliability](scalability.md) — Defines the non-functional requirements vocabulary (SLOs, error budgets, RTO/RPO) that distinguishes senior candidates. Step 1 requires you to state these requirements explicitly; this section provides the framework for doing so.
+- [Distributed Systems](distributed_systems.md) — Covers consensus protocols (Raft, Paxos), replication strategies, and CAP trade-offs that are the most common deep-dive topics in Step 3. Interviewers probe these to assess whether you understand *why* your architecture works under failure, not just the happy path.
+- [Databases](databases.md) — The data store choice (SQL vs. NoSQL, B-tree vs. LSM, strong vs. eventual consistency) is often the most consequential decision in a system design. This section provides the framework for articulating *why* you chose a specific store for a specific access pattern.
+- [API Design](api_design.md) — Step 2 requires defining the system's external interface. Understanding REST constraints, idempotency guarantees, and versioning strategies lets you design clean API boundaries that communicate your architectural intent to the interviewer.
 
 ---
 

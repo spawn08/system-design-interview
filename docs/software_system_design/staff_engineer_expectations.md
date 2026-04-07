@@ -178,10 +178,10 @@ The leadership round is a **dealbreaker** at L6. Prepare 5 stories using the STA
 
 | Resource | Why It Matters for L6 |
 |----------|-----------------------|
-| **Google SRE Book** (free online) | SLOs, error budgets, cascading failures, incident management |
-| **Designing Data-Intensive Applications** (Kleppmann) | The Bible for distributed systems trade-offs |
-| **Staff Engineer** (Larson) | Understanding the Staff role beyond code |
-| **The Staff Engineer's Path** (Reilly) | Practical guidance on operating at the Staff level |
+| **Google SRE Book** (free online) | Google invented the SRE discipline to operationalize reliability as a feature. The book defines SLOs and error budgets as the contract between product and infrastructure teams — a Staff engineer must articulate these quantitatively ("99.95% availability = 22 min/month downtime budget") and design systems around them. The chapters on cascading failures, load shedding, and graceful degradation are directly tested in L6 interviews. |
+| **Designing Data-Intensive Applications** (Kleppmann) | The definitive reference for the distributed systems trade-offs that L6 candidates must reason about: replication vs. partitioning, consistency vs. latency, batch vs. stream processing. Staff engineers are expected to go beyond "use Kafka" to explain *why* — linearizability costs, LSM vs. B-tree write amplification, exactly-once semantics limitations. This book provides that depth. |
+| **Staff Engineer** (Larson) | Will Larson's book defines the four Staff engineer archetypes (Tech Lead, Architect, Solver, Right Hand) and explains what "operating at Staff level" means: technical strategy, organizational influence, sponsoring projects, and creating leverage. Understanding these archetypes helps L6 candidates demonstrate scope and impact beyond individual contributions in behavioral rounds. |
+| **The Staff Engineer's Path** (Reilly) | Tanya Reilly (Google, Squarespace) provides practical guidance on the three pillars of Staff work: big-picture thinking (technical vision and strategy), execution (project management for ambiguous problems), and leveling up (growing other engineers). The book addresses the L6-specific challenge of navigating organizational politics while maintaining technical credibility. |
 
 ---
 

@@ -510,11 +510,11 @@ The following examples assume AWS S3; adjust **endpoint** and **credentials** fo
 
 ## Further Reading
 
-- **Amazon S3 User Guide** — Consistency model, multipart upload, storage classes, and replication (official AWS documentation).
-- **RFC 7234** — HTTP caching semantics (`Cache-Control`, validation).
-- **Mozilla MDN: HTTP caching** — Practical guide to browser and shared caches.
-- **AWS Well-Architected: Cost Optimization** — Data transfer and storage tier patterns.
-- **“High Performance Browser Networking” (Ilya Grigorik)** — CDN, TCP, and HTTP/2 behavior for latency-sensitive designs.
+- **Amazon S3 User Guide** — S3 defined the object storage paradigm: flat namespace, HTTP API, 11 nines of durability via erasure coding across AZs. The guide covers the strong read-after-write consistency model (achieved in 2020 after years of eventual consistency), multipart upload for large objects, lifecycle policies for automated tiering (S3 → S3-IA → Glacier), and cross-region replication. Understanding S3's architecture explains why object storage replaced HDFS for most data lake workloads.
+- **RFC 7234** — This RFC defines how HTTP caching actually works: `Cache-Control` directives (max-age, no-cache, no-store, private, public), conditional requests (ETag, If-None-Match, Last-Modified), and cache validation. Correct CDN behavior depends on these semantics — misconfigured headers cause either stale content or unnecessary origin fetches that defeat the CDN's purpose.
+- **Mozilla MDN: HTTP caching** — A practical, visual guide that explains the caching chain (browser cache → shared proxy cache → CDN → origin) and how `Vary` headers, `stale-while-revalidate`, and cache partitioning work in practice. Particularly useful for understanding why a CDN hit rate is low (often due to missing or overly restrictive cache headers).
+- **AWS Well-Architected: Cost Optimization** — Data transfer (egress) is often the largest hidden cost in cloud architectures. This pillar covers strategies: use CloudFront to reduce S3 egress charges, compress objects before storage, implement intelligent tiering, and avoid cross-region transfers. Essential for system designs where the interviewer asks "how would you optimize cost at scale?"
+- **“High Performance Browser Networking” (Ilya Grigorik)** — Grigorik explains the end-to-end latency chain: TCP slow start, TLS handshake, DNS resolution, and HTTP/2 multiplexing. Understanding these mechanics reveals why CDN PoP placement (reducing RTT), connection reuse (avoiding slow start), and edge TLS termination matter for content delivery performance.
 
 ---
 

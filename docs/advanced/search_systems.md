@@ -660,10 +660,10 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Elasticsearch: The Definitive Guide | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) |
-| Information Retrieval | [nlp.stanford.edu/IR-book](https://nlp.stanford.edu/IR-book/) |
-| BM25 Explained | [The Probabilistic Relevance Framework](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf) |
-| Lucene in Action | Manning Publications |
-| Trie Data Structure | [Wikipedia: Trie](https://en.wikipedia.org/wiki/Trie) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Elasticsearch: The Definitive Guide | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) | Elasticsearch made distributed full-text search accessible by wrapping Apache Lucene in a RESTful API with automatic sharding, replication, and cluster management. The guide covers inverted index internals, analyzers (tokenization, stemming, synonyms), and query DSL — essential for understanding how search systems trade precision for recall and how shard allocation affects query latency. |
+| Information Retrieval | [nlp.stanford.edu/IR-book](https://nlp.stanford.edu/IR-book/) | The Stanford IR textbook (Manning, Raghavan, Schütze) is the foundational reference for search system internals: how inverted indexes are constructed and compressed, tf-idf scoring, boolean and vector space models, and evaluation metrics (precision, recall, F1, MAP). It provides the theoretical framework that makes it possible to reason about *why* one search system returns better results than another. |
+| BM25 Explained | [The Probabilistic Relevance Framework](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf) | BM25 (Best Matching 25) is the default ranking function in Elasticsearch, Solr, and most search engines. It improved on tf-idf by incorporating document length normalization and term frequency saturation (diminishing returns for repeated terms). This review paper explains the probabilistic derivation and the tunable parameters (k1, b) that control ranking behavior — knowledge needed to tune search relevance. |
+| Lucene in Action | Manning Publications | Apache Lucene is the search library underlying Elasticsearch, Solr, and many other search systems. The book explains segment-based indexing (why Lucene writes immutable segments and periodically merges them — analogous to LSM trees), the analyzer chain (character filters → tokenizer → token filters), and near-real-time search. Understanding Lucene internals is essential for diagnosing search performance and relevance problems. |
+| Trie Data Structure | [Wikipedia: Trie](https://en.wikipedia.org/wiki/Trie) | Tries (prefix trees) are the core data structure for search autocomplete: they enable O(m) prefix lookups (where m is query length) regardless of dictionary size. Understanding tries, compressed tries (Patricia/radix trees), and ternary search trees explains how autocomplete systems provide sub-millisecond suggestions from dictionaries of millions of terms. |

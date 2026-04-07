@@ -801,10 +801,10 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Kafka: The Definitive Guide | O'Reilly (Shapira, Palino, et al.) |
-| Designing Event-Driven Systems | [confluent.io/designing-event-driven-systems](https://www.confluent.io/designing-event-driven-systems/) |
-| Flink Documentation | [flink.apache.org](https://flink.apache.org/) |
-| RabbitMQ Tutorials | [rabbitmq.com/tutorials](https://www.rabbitmq.com/tutorials) |
-| Enterprise Integration Patterns | Hohpe & Woolf |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Kafka: The Definitive Guide | O'Reilly (Shapira, Palino, et al.) | Written by the engineers who built Kafka at LinkedIn and Confluent. Kafka was created because LinkedIn needed a unified platform to handle both real-time event streams and batch ETL pipelines — existing message brokers (ActiveMQ, RabbitMQ) couldn't sustain the throughput or retention required. The book covers the log-centric architecture (append-only, immutable partitions), consumer group rebalancing, and exactly-once semantics that make Kafka the backbone of event-driven architectures. |
+| Designing Event-Driven Systems | [confluent.io/designing-event-driven-systems](https://www.confluent.io/designing-event-driven-systems/) | A free book by Ben Stopford that explains *why* event-driven architecture emerged: traditional request-response coupling between microservices creates cascading failures and tight deployment dependencies. Event-driven systems invert this by making services react to facts (events) rather than commands. The book covers event sourcing, CQRS, and the "turning the database inside out" philosophy that Kafka enables. |
+| Flink Documentation | [flink.apache.org](https://flink.apache.org/) | Apache Flink was built to solve the limitations of micro-batch processing (Spark Streaming): true event-at-a-time processing with exactly-once state consistency via distributed snapshots (Chandy-Lamport algorithm). The documentation covers windowing (tumbling, sliding, session), watermarks for handling late data, and savepoints for stateful job upgrades — essential concepts for real-time analytics and fraud detection system designs. |
+| RabbitMQ Tutorials | [rabbitmq.com/tutorials](https://www.rabbitmq.com/tutorials) | RabbitMQ implements AMQP, a protocol designed for reliable message delivery with flexible routing (direct, fanout, topic, headers exchanges). Unlike Kafka's log-based model, RabbitMQ is optimized for task distribution with per-message acknowledgments, dead-letter queues, and priority queues. The tutorials progressively build from simple work queues to complex routing topologies used in request-reply and RPC patterns. |
+| Enterprise Integration Patterns | Hohpe & Woolf | Published in 2003 but still definitive, this book catalogued the 65 messaging patterns (message channel, message router, content-based router, splitter, aggregator) that recur in every distributed system. These patterns are language-agnostic abstractions — whether you implement them with Kafka, RabbitMQ, or SQS, the architectural patterns remain the same. Knowing pattern names helps you communicate design decisions precisely in interviews. |

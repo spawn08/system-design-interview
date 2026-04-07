@@ -916,9 +916,9 @@ sequenceDiagram
 
 ## Further Reading (Patterns)
 
-- Dynamo (2007) — original partitioned quorum KV architecture
-- Cassandra storage architecture — LSM, compaction strategies, repair
-- Bigtable paper — SSTable immutability (conceptual cousin for storage layers)
+- **Dynamo (2007)** — Amazon's Dynamo paper solved the "always writable" problem for the shopping cart service during peak traffic. It introduced the complete architecture for a leaderless, eventually-consistent key-value store: consistent hashing with virtual nodes for data distribution, vector clocks for conflict detection, sloppy quorums with hinted handoff for availability during partitions, and Merkle trees for anti-entropy repair. This paper directly inspired Cassandra, Riak, and Voldemort, and is the reference architecture for any AP key-value store design.
+- **Cassandra storage architecture** — Cassandra combined Dynamo's distributed architecture with Bigtable's storage engine (LSM trees). Understanding its write path (commit log → memtable → SSTable flush) and read path (memtable + Bloom filter → SSTable merge) explains the fundamental read/write amplification trade-off in LSM-based stores. Compaction strategies (size-tiered vs. leveled vs. time-window) directly affect latency predictability and space overhead.
+- **Bigtable paper** — Google's Bigtable (2006) introduced the SSTable (Sorted String Table) as an immutable, sorted, compressed on-disk data structure. SSTables enable efficient range scans and are the storage foundation of LevelDB, RocksDB, HBase, and Cassandra. The paper also introduced the tablet server architecture for horizontal scaling, where key ranges are split across servers with automatic rebalancing — the ancestor of modern shard-based key-value stores.
 
 !!! tip
     Practice drawing **one ring**, **one write sequence**, and **one read with repair** under time pressure; that trio covers most follow-up questions.

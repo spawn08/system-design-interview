@@ -919,11 +919,11 @@ flowchart TD
 
 ## Further Reading
 
-| Topic | Resource |
-|-------|----------|
-| Designing Data-Intensive Applications | Martin Kleppmann — Chapters 5, 7, 9 |
-| CRDTs | [crdt.tech](https://crdt.tech/) |
-| Saga Pattern | [microservices.io/patterns/data/saga](https://microservices.io/patterns/data/saga.html) |
-| Jepsen (correctness testing) | [jepsen.io](https://jepsen.io/) |
-| Consistency Models | [jepsen.io/consistency](https://jepsen.io/consistency) |
-| Transactional Outbox | [microservices.io/patterns/data/transactional-outbox](https://microservices.io/patterns/data/transactional-outbox.html) |
+| Topic | Resource | Why This Matters |
+|-------|----------|-----------------|
+| Designing Data-Intensive Applications | Martin Kleppmann — Chapters 5, 7, 9 | Chapter 5 covers replication (the source of most consistency problems), Chapter 7 dissects transaction isolation levels (read committed, snapshot isolation, serializable) with concrete anomaly examples, and Chapter 9 explains the impossibility results (FLP, CAP) that constrain what consistency guarantees are achievable. Together, they provide the theoretical and practical foundation for reasoning about consistency in any distributed system. |
+| CRDTs | [crdt.tech](https://crdt.tech/) | Conflict-Free Replicated Data Types solve the consistency problem differently: instead of coordinating writes (consensus), they design data structures where concurrent updates *mathematically cannot conflict*. G-Counters (grow-only), OR-Sets (observed-remove), and LWW-Registers enable strong eventual consistency without coordination — critical for offline-first apps, collaborative editors, and multi-region databases where latency makes consensus impractical. |
+| Saga Pattern | [microservices.io/patterns/data/saga](https://microservices.io/patterns/data/saga.html) | Microservices broke the ACID transaction model — you can't hold locks across service boundaries. The saga pattern (coined by Garcia-Molina and Salem, 1987) replaces distributed transactions with a sequence of local transactions, each with a compensating action for rollback. Chris Richardson's documentation explains orchestration vs. choreography implementations and the consistency guarantees (ACD without Isolation) that sagas actually provide. |
+| Jepsen (correctness testing) | [jepsen.io](https://jepsen.io/) | Kyle Kingsbury's Jepsen project empirically tests database consistency claims by injecting network partitions, clock skew, and process pauses, then checking whether linearizability is violated. His analyses have exposed correctness bugs in MongoDB, Elasticsearch, Redis, CockroachDB, and dozens of others. Reading Jepsen reports teaches you *what actually breaks* in distributed systems — far more instructive than theoretical guarantees. |
+| Consistency Models | [jepsen.io/consistency](https://jepsen.io/consistency) | A visual map showing the hierarchy and relationships between consistency models: linearizability, sequential consistency, causal consistency, read-your-writes, eventual consistency, and more. This diagram clarifies common confusions — e.g., serializable isolation is not the same as linearizability, and "strong consistency" means different things in different contexts. |
+| Transactional Outbox | [microservices.io/patterns/data/transactional-outbox](https://microservices.io/patterns/data/transactional-outbox.html) | The dual-write problem (write to database AND publish an event) is inherently non-atomic — if the process crashes between the two operations, the system becomes inconsistent. The outbox pattern solves this by writing events to an outbox table in the same database transaction as the business data, then asynchronously publishing them. This is the standard solution for reliable event publishing in microservice architectures. |
