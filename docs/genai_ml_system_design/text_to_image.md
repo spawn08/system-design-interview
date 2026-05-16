@@ -47,7 +47,7 @@ q(x_t \mid x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}\, x_{t-1}, \beta_t I)
 
 **Reverse process:** learn \(p_\theta(x_{t-1} \mid x_t)\) (or noise \(\epsilon_\theta\)) to denoise.
 
-**Noise schedule:** choices of \(\\beta_t\) or \(\\alpha_t\) (e.g. linear, cosine) control **how fast** information is destroyed/reconstructed — affects **sample quality vs step count**.
+**Noise schedule:** choices of \(\beta_t\) or \(\alpha_t\) (e.g. linear, cosine) control **how fast** information is destroyed/reconstructed — affects **sample quality vs step count**.
 
 **Training objective (common):** predict noise \(\epsilon\) given \(x_t\) and conditioning \(c\):
 
@@ -363,7 +363,7 @@ where \(\bar{\alpha}_t = \prod_{s=1}^{t}(1-\beta_s)\) is the **cumulative alpha*
 x_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\, \hat{x}_{0,t} + \underbrace{\sqrt{1-\bar{\alpha}_{t-1}}\, \epsilon_\theta}_{\text{component parallel to noise direction}}.
 \]
 
-Equivalently, implementations often compute an **epsilon direction** that points from the predicted \(x_0\) toward \(x_t\) (the "pointing to \(x_t\)" term in DDIM-style code paths) and combine with \(\sqrt{\bar{\alpha}_{t-1}}\\hat{x}_0\). The key interview facts: **(1)** \(\bar{\alpha}\) schedule is precomputed once from \(\beta\); **(2)** **CFG** is applied to \(\epsilon\) **before** the DDIM algebra; **(3)** fewer steps = **subsample** a decreasing sequence \(t_K,\ldots,t_0\) with the same formulas.
+Equivalently, implementations often compute an **epsilon direction** that points from the predicted \(x_0\) toward \(x_t\) (the "pointing to \(x_t\)" term in DDIM-style code paths) and combine with \(\sqrt{\bar{\alpha}_{t-1}}\hat{x}_0\). The key interview facts: **(1)** \(\bar{\alpha}\) schedule is precomputed once from \(\beta\); **(2)** **CFG** is applied to \(\epsilon\) **before** the DDIM algebra; **(3)** fewer steps = **subsample** a decreasing sequence \(t_K,\ldots,t_0\) with the same formulas.
 
 ```python
 from typing import Callable, List, Tuple
