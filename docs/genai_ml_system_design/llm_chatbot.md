@@ -910,7 +910,7 @@ For production, I'd recommend Approach 2 as the default, with Approach 3 as an e
 
 **Layer 3: Output filtering.** After generation, classify the full response for toxicity, PII, and policy violations. If it fails, replace with a safe refusal. This catches cases where the input looked benign but the model produced something harmful.
 
-**Layer 4: PII scrubbing.** Always scan outputs for SSNs, credit card numbers, phone numbers using regex + NER models. Never let PII through.
+**Layer 4: PII scrubbing.** Always scan outputs for SSNs, credit card numbers, phone numbers using regex + Named Entity Recognition (NER) models. Never let PII through.
 
 **Layer 5: Audit logging.** Log every input/output pair to BigQuery for offline analysis. A separate safety team reviews flagged interactions daily.
 
