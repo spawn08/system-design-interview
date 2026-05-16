@@ -85,7 +85,7 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 
 ### Position bias
 
-Users click **top slots** more even when lower ads would be more relevant. Models trained on raw logs **overweight** top positions unless you correct (IPS, propensity models, unbiased data collection).
+Users click **top slots** more even when lower ads would be more relevant. Models trained on raw logs **overweight** top positions unless you correct with **IPS** (Inverse Propensity Scoring), propensity models, or unbiased data collection.
 
 ### Explore / exploit for new ads
 
@@ -180,7 +180,7 @@ flowchart TB
 |--------|------|
 | **AUC / PR-AUC** | Discrimination of click vs non-click |
 | **Log loss** | Proper scoring rule; pairs with calibration |
-| **Calibration (ECE, reliability diagrams)** | Align pCTR with reality for auction math |
+| **Calibration (ECE — Expected Calibration Error, reliability diagrams)** | Align pCTR with reality for auction math |
 
 !!! note
     Tie offline metrics to **business**: a 0.001 AUC lift at billion-scale impressions is enormous — but only if **calibration** and **bias correction** hold.
@@ -467,7 +467,7 @@ def build_sparse_example(
 | Era | Model | Notes |
 |-----|-------|--------|
 | 1 | **Logistic regression** on hashed features | Baseline, fast, interpretable |
-| 2 | **GBDT** (XGBoost / LightGBM) | Strong on heterogeneous tabular data |
+| 2 | **GBDT** (Gradient Boosted Decision Trees — XGBoost / LightGBM) | Strong on heterogeneous tabular data |
 | 3 | **Deep models** with **embeddings** | Capture sparse interactions |
 | 4 | **DCN / DeepFM / DLRM** | Explicit crosses + deep nets; DLRM is a common reference architecture |
 
@@ -611,7 +611,7 @@ def assign_slots(ads: list[dict]) -> list[dict]:
     return ranked
 ```
 
-**VCG:** Charges externality on others — **efficient** in theory but **less common** in large display due to complexity and transparency.
+**VCG** (Vickrey–Clarke–Groves): Charges externality on others — **efficient** in theory but **less common** in large display due to complexity and transparency.
 
 | Concept | Role |
 |---------|------|
