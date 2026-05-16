@@ -184,7 +184,7 @@ The content moderation system is built from a **rules engine + ML classifier cas
 |--------|-----------|------------|----------------|
 | **Custom multi-task model (shared backbone)** | One model serves all categories; shared GPU cost; joint training improves rare-class recall | Complex training pipeline; one failure affects all categories | Mature ML team needing many categories simultaneously |
 | **Ensemble of per-category models** | Isolated failure domains; each tuned independently | Higher total GPU cost; more deployment complexity | Category-specific precision matters and GPU budget allows |
-| **CLIP / LLaVA-style vision-language** | Natively multi-modal; understands image-text interaction (memes) | Large GPU footprint; >100ms latency | Content where meaning emerges from image+text combination |
+| **Contrastive Language-Image Pre-Training (CLIP) / LLaVA-style vision-language** | Natively multi-modal; understands image-text interaction (memes) | Large GPU footprint; >100ms latency | Content where meaning emerges from image+text combination |
 
 #### LLM reasoning layer (Stage 4)
 
@@ -707,7 +707,7 @@ class FairnessMonitor:
 
 **Stage 1: Rules engine.** Keyword blocklists, regex patterns, and perceptual hash matching against known-bad content databases (like NCMEC's hash list for CSAM). This catches about 20% of violations — the obvious, unambiguous ones. Near-zero latency, near-zero cost.
 
-**Stage 2: Fast ML classifiers.** Lightweight models — think fine-tuned BERT-tiny or FastText — running on CPUs. One model per category: hate speech classifier, spam classifier, toxicity classifier. Each takes ~5ms. This catches another 15% with high confidence.
+**Stage 2: Fast ML classifiers.** Lightweight models — think fine-tuned Bidirectional Encoder Representations from Transformers (BERT)-tiny or FastText — running on CPUs. One model per category: hate speech classifier, spam classifier, toxicity classifier. Each takes ~5ms. This catches another 15% with high confidence.
 
 **Stage 3: Heavy ML models.** Multi-modal models that can jointly analyze text, images, and video frames. These run on GPUs, take ~50ms. For video, we sample key frames rather than processing every frame. This catches another 5% and refines the classification of edge cases.
 
