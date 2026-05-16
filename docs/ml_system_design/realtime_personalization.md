@@ -1275,7 +1275,7 @@ flowchart LR
 | Exploration | Thompson on 5% slots | ε-greedy inserts | Prior complexity + infra for posteriors |
 | Retrieval | Pure ANN | ANN + rules | Compliance, freshness, business constraints |
 | Feature freshness | 100 ms SLA | 1 s async OK | Whether next **page view** must see update |
-| Objective | Short-term CTR | LTV proxy | Need delayed labels + long holdouts |
+| Objective | Short-term CTR | Lifetime Value (LTV) proxy | Need delayed labels + long holdouts |
 
 **Real-world references (talking points):**
 - Large streamers optimize **watch time** and **session length**, not raw CTR—align metrics with retention.

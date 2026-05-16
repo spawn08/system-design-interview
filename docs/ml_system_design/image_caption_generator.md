@@ -157,7 +157,7 @@ An image caption generator is built from **vision encoder + language decoder + s
 | Option | Strengths | Weaknesses | When to choose |
 |--------|-----------|------------|----------------|
 | **BLIP-2** | Strong image understanding; Q-Former bridges vision-language efficiently | Complex architecture; larger memory | Default for high-quality captioning with efficient vision-language bridging |
-| **LLaVA (Visual Instruction Tuning)** | Simple architecture (CLIP + LLM); instruction-following; open weights | Relies heavily on LLM quality; less efficient than BLIP-2 Q-Former | When instruction-following and conversational captioning are needed |
+| **LLaVA (Visual Instruction Tuning)** | Simple architecture (Contrastive Language-Image Pre-Training (CLIP) + LLM); instruction-following; open weights | Relies heavily on LLM quality; less efficient than BLIP-2 Q-Former | When instruction-following and conversational captioning are needed |
 | **GIT (Generative Image-to-text)** | Simple encoder-decoder; easy to train; fast inference | Lower quality ceiling than BLIP-2/LLaVA on complex scenes | Simpler caption needs; resource-constrained deployments |
 | **CoCa (Contrastive Captioning)** | Dual objective (contrastive + captive); strong representations | Complex training; fewer open weights | When both retrieval and generation from same model are needed |
 

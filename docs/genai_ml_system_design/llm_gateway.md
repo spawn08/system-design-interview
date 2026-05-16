@@ -25,7 +25,7 @@ Design an **LLM gateway** (also called an **AI proxy**): a control plane that si
 | **Product engineering** | N provider SDKs, divergent schemas | One client, stable interface |
 | **FinOps / leadership** | Surprise cloud bills | Budgets, alerts, chargeback |
 | **Security / compliance** | Prompts leak PII to logs & vendors | Scrubbing, retention, audit trail |
-| **SRE / platform** | Cascading vendor outages | Circuit breakers, failover, SLO dashboards |
+| **Site Reliability Engineering (SRE) / platform** | Cascading vendor outages | Circuit breakers, failover, SLO dashboards |
 | **ML / applied science** | No A/B routing between models | Policy engine + experimentation hooks |
 
 ### Real-World Examples
@@ -1136,7 +1136,7 @@ class AuditRecord:
 
 **Alex:** Back to the **architecture** — how do apps **authenticate**?
 
-**Candidate:** **API keys** scoped to tenant, or **OAuth2** client credentials for first-party services; **mTLS** for service-to-service in regulated environments. The gateway resolves **tenant → policy profile → limits**. I’d avoid passing **raw provider keys** to clients — the gateway holds **vaulted** credentials and **rotates** them.
+**Candidate:** **API keys** scoped to tenant, or **OAuth2** client credentials for first-party services; **Mutual TLS (mTLS)** for service-to-service in regulated environments. The gateway resolves **tenant → policy profile → limits**. I’d avoid passing **raw provider keys** to clients — the gateway holds **vaulted** credentials and **rotates** them.
 
 **Alex:** **Idempotency** — two retries submit the same prompt twice; do we double-bill?
 

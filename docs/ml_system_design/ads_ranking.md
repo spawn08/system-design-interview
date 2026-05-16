@@ -55,7 +55,7 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 | Term | Meaning |
 |------|---------|
 | **Bid** | What the advertiser is willing to pay (per click, per conversion, or per mille depending on campaign type) |
-| **eCPM / score** | A **ranking score** combining predicted engagement and bid, e.g. **pCTR × bid** for CPC campaigns in a CPM-normalized form |
+| **effective Cost Per Mille (eCPM) / score** | A **ranking score** combining predicted engagement and bid, e.g. **pCTR × bid** for CPC campaigns in a CPM-normalized form |
 | **Reserve** | Minimum price or minimum quality to enter the auction |
 | **Quality score** | Platform-side adjustment (relevance, landing page quality) — often multiplicative with bid |
 
@@ -136,9 +136,9 @@ flowchart TB
 
 | Question | Why it matters |
 |----------|----------------|
-| **Objective** | Maximize revenue, conversions, ROAS, or a blend with UX quality? |
+| **Objective** | Maximize revenue, conversions, Return on Ad Spend (ROAS), or a blend with UX quality? |
 | **Ad format** | Search vs display vs video — features and auctions differ |
-| **Billing model** | CPC, CPM, CPA, oCPM — changes labels and optimization |
+| **Billing model** | Cost Per Click (CPC), Cost Per Mille (CPM), Cost Per Action (CPA), oCPM — changes labels and optimization |
 | **Attribution** | Click-only vs view-through vs multi-touch |
 | **Privacy / region** | GDPR, ATT — limits tracking and feature richness |
 | **Latency SLO** | Drives model complexity and caching strategy |
@@ -169,7 +169,7 @@ flowchart TB
 
 | Metric | Role |
 |--------|------|
-| **Revenue** | RPM, total $ — north star for the ads business |
+| **Revenue** | Revenue Per Mille (RPM), total $ — north star for the ads business |
 | **CTR** | Health of matching; watch for **bad clicks** |
 | **Advertiser ROI / ROAS** | Long-term ecosystem health |
 | **Coverage / delivery** | Are budgets pacing correctly? |
@@ -803,7 +803,7 @@ def pacing_eligible(
 
 **Throttling:** Reduce **auction participation** or **lower effective bid** when ahead of schedule.
 
-**Spend optimization:** For **tCPA** / **tROAS**, automated bidding adjusts bids — **separate** from the ranker but **constrained** by pacing.
+**Spend optimization:** For **target Cost Per Acquisition (tCPA)** / **target Return on Ad Spend (tROAS)**, automated bidding adjusts bids — **separate** from the ranker but **constrained** by pacing.
 
 !!! tip
     Mention **shadow traffic** and **budget safety** — never blow past **daily caps** due to race conditions without reconciliation.
@@ -985,7 +985,7 @@ def update_beta(prior: tuple[float, float], clicked: bool) -> tuple[float, float
 | Quantity | Meaning |
 |----------|---------|
 | **Bid signal** | Often tied to **predicted conversion value** × **pCVR** / **CPA** target |
-| **Value optimization** | Requires **value labels** (or **predicted LTV**) — sparser than binary conversions |
+| **Value optimization** | Requires **value labels** (or **predicted Lifetime Value (LTV)**) — sparser than binary conversions |
 
 tROAS is **value-weighted**: two clicks are not interchangeable if **expected order value** differs.
 

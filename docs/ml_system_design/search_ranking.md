@@ -27,7 +27,7 @@ Production search is rarely “one model scores everything.” It is typically a
 4. **Re-ranking** — diversity, freshness, business rules, compliance.
 
 !!! tip
-    Saying “we use BERT end-to-end on billions of documents per query” fails the interview. Saying **retrieval → rank → re-rank** with explicit **latency budgets** passes.
+    Saying “we use Bidirectional Encoder Representations from Transformers (BERT) end-to-end on billions of documents per query” fails the interview. Saying **retrieval → rank → re-rank** with explicit **latency budgets** passes.
 
 ---
 
@@ -104,7 +104,7 @@ flowchart LR
 |------|----------|
 | **Query understanding** | Tokenization, language detection, intent |
 | **Candidate retrieval** | Lexical (BM25), semantic (embeddings), hybrid |
-| **ML-based ranking** | GBDT, neural LTR, cross-encoder re-rank |
+| **ML-based ranking** | Gradient Boosted Decision Trees (GBDT), neural LTR, cross-encoder re-rank |
 | **Personalization** | Safe use of history, session, locale |
 | **Spell correction** | “did you mean”, query suggestions |
 | **Query expansion** | synonyms, related queries, embeddings |

@@ -190,7 +190,7 @@ The content moderation system is built from a **rules engine + ML classifier cas
 
 | Option | Strengths | Weaknesses | When to choose |
 |--------|-----------|------------|----------------|
-| **Fine-tuned Llama / Mistral (self-hosted)** | Data stays in-house; predictable cost at scale; customizable to policies | Requires GPU fleet and MLOps; fine-tuning needs labeled data | Production at scale where data residency and cost control matter |
+| **Fine-tuned Llama / Mistral (self-hosted)** | Data stays in-house; predictable cost at scale; customizable to policies | Requires GPU fleet and Machine Learning Operations (MLOps); fine-tuning needs labeled data | Production at scale where data residency and cost control matter |
 | **GPT-4o / Claude via API** | Frontier reasoning; excellent nuance and satire detection | Cost per call; latency (~500ms-2s); data leaves boundary | Low-volume escalation tier; when internal models lack nuance |
 | **Gemini via Vertex AI** | Strong multi-modal reasoning; grounding with search for misinfo | Vendor lock-in; unpredictable pricing at scale | GCP-native; misinformation detection where search grounding helps |
 
