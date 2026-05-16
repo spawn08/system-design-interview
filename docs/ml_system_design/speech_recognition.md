@@ -184,6 +184,36 @@ Combining ASR + diarization: run **VAD/segmentation**, **diarization** to assign
 !!! tip
     Translate “300 ms” into **audio buffer + feature + inference + beam + post** with a rough pie chart in interviews—numbers matter more than buzzwords.
 
+### Technology Selection & Tradeoffs
+
+A speech recognition system is built from **ASR model + audio feature extraction + language model + streaming protocol + serving infrastructure**. Each choice affects word error rate, latency, and language coverage.
+
+#### ASR model architecture
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Whisper (OpenAI)** | Strong multilingual; 99 languages; simple pipeline; open weights | Not streaming-native; higher latency; large model (1.5B) | Batch transcription; multilingual; offline processing |
+| **Conformer (CTC + attention)** | Best WER on benchmarks; streaming-capable; efficient | Complex training; needs large paired audio data | Default for production streaming ASR |
+| **RNN-T (Transducer)** | Natural streaming; emits tokens as audio arrives; low latency | Harder to train; less modular than CTC | Real-time streaming where first-word latency matters |
+| **wav2vec 2.0 / HuBERT** | Self-supervised pre-training on unlabeled audio; strong for low-resource | Needs fine-tuning; CTC decoder limitations | Low-resource languages; limited labeled data |
+
+#### Audio feature extraction
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Log-mel filterbanks (80-dim)** | Standard; well-understood; efficient; works with all models | Fixed representation; misses some temporal detail | Default for all production ASR systems |
+| **Raw waveform (end-to-end)** | Model learns features; potentially richer representation | Needs more training data; higher compute; less interpretable | Research; when standard features are a bottleneck |
+
+#### Language model (rescoring)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **N-gram (KenLM)** | Fast; small memory; domain-adaptable; no GPU needed | Limited context; misses long-range dependencies | Default first-pass LM; domain adaptation via text data |
+| **Transformer LM (GPT-2 class)** | Better perplexity; captures long context; handles rare words | Higher latency; GPU needed for rescoring; cost | Second-pass rescoring for high-accuracy applications |
+| **Domain-adapted (fine-tuned on in-domain text)** | Dramatically improves WER on domain vocabulary | Needs domain text; risk of overfitting; maintenance | Medical, legal, or technical domains with specialized vocabulary |
+
+**Our choice:** **Conformer with RNN-T decoder** for streaming ASR (best WER with natural streaming), **log-mel filterbanks** for features, **KenLM n-gram** for first-pass decoding with **Transformer LM second-pass rescoring** for high-accuracy applications. Serve on GPU with **Triton** for dynamic batching. This delivers sub-300ms end-to-end latency with state-of-the-art WER.
+
 ---
 
 ## Step 2: Estimation

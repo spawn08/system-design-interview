@@ -186,6 +186,45 @@ flowchart LR
 !!! note
     Always separate **per-request latency** (interactive) from **document latency** (minutes acceptable). Interviewers reward this distinction.
 
+### Technology Selection & Tradeoffs
+
+A machine translation system is built from **translation model + tokenizer/vocabulary + serving infrastructure + quality estimation layer**. Each choice affects translation quality, latency, and language coverage.
+
+#### Translation model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **NLLB-200 (Meta)** | 200 languages; strong low-resource coverage; open weights | Large model (3.3B for best quality); higher latency | Default for multilingual production with broad language coverage |
+| **mBART / mT5** | Strong multilingual pre-training; fine-tunable per language pair | Smaller language coverage than NLLB; needs pair-specific fine-tuning | When fine-tuning on specific high-value language pairs |
+| **LLM-based (GPT-4, Claude)** | Excellent quality for high-resource languages; handles context/formality | Cost per token; latency; weaker on low-resource languages | High-value content (marketing, legal) where quality justifies cost |
+| **Pair-specific (EN-DE, EN-ZH)** | Highest quality for specific pair; smallest model per pair | Must train/maintain per pair; doesn't scale to 200 languages | High-traffic pairs where marginal quality improvement justifies dedicated model |
+
+#### Tokenization
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **SentencePiece (BPE/Unigram)** | Language-agnostic; handles any script; standard for multilingual | Shared vocab dilutes per-language coverage; rare scripts get few tokens | Default for multilingual models |
+| **Language-specific tokenizer** | Better coverage for target language; fewer tokens per sentence | Must maintain per language; doesn't scale | High-traffic pairs where tokenization quality affects output |
+| **Character/byte-level** | Universal; no vocabulary issues; handles any input | Much longer sequences; higher compute; slower | Research; extremely diverse language set |
+
+#### Serving infrastructure
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **CTranslate2** | Optimized for seq2seq translation; INT8/FP16 quantization; CPU and GPU | Focused on specific architectures; smaller community | Default for translation-specific serving; best latency |
+| **vLLM** | PagedAttention; continuous batching; broad model support | Optimized for decoder-only; encoder-decoder needs adaptation | LLM-based translation models |
+| **Triton** | Multi-framework; dynamic batching; ensemble support | More complex setup | When running multiple models (translation + quality estimation) |
+
+#### Quality estimation
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **COMET / COMETKiwi** | State-of-the-art QE; reference-free scoring; correlates with human judgment | Requires GPU; adds latency per sentence | Default for production quality gates and routing |
+| **Round-trip translation check** | Simple; no extra model; catches obvious errors | Misses subtle errors; doubles compute cost | Quick sanity check; no QE model available |
+| **Confidence from model logprobs** | Free (comes from translation model); no extra inference | Poorly calibrated; overconfident on fluent but wrong translations | Lightweight signal; combine with QE for better routing |
+
+**Our choice:** **NLLB-200** as the primary multilingual model (200 languages, open weights), with **pair-specific fine-tuned models** for high-traffic routes (EN-DE, EN-ZH, EN-ES) where marginal BLEU improvements matter at scale. **SentencePiece BPE** tokenization. Serve with **CTranslate2** for optimized seq2seq inference (INT8 quantization, 2-4x speedup). **COMETKiwi** for reference-free quality estimation, routing low-confidence translations to the LLM-based fallback or human review.
+
 ---
 
 ## Step 2: Estimation

@@ -144,6 +144,39 @@ Clarify **domain**: web search vs e-commerce vs enterprise documents — metrics
 !!! tip
     Align offline labels with online goals: clicks are **biased by position** — handle with IPS / propensity models (see §4.5).
 
+### Technology Selection & Tradeoffs
+
+A search ranking system is built from **retrieval stage + ranking model + feature store + index infrastructure**. Each choice affects relevance quality, latency, and scale.
+
+#### Retrieval stage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **BM25 (inverted index)** | Fast; interpretable; excellent for exact matches; proven at scale | No semantic understanding; misses synonyms | Default first-stage retrieval; always included |
+| **Dense retrieval (bi-encoder + ANN)** | Semantic matching; finds relevant docs without keyword overlap | Misses exact matches; embedding quality matters | Complement BM25 for semantic coverage |
+| **Hybrid (BM25 + dense with RRF)** | Best recall; covers keyword + semantic failure modes | Two indexes; fusion tuning; more complexity | Production search where both recall modes matter |
+
+#### Ranking model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Cross-encoder (BERT-based)** | Highest relevance accuracy; attends to query-document jointly | Slow (can't pre-compute); limits to re-ranking top-K | Default re-ranker for top-100 candidates |
+| **LambdaMART (LightGBM)** | Fast inference; handles hundreds of features; strong baseline | Cannot learn from raw text; feature engineering needed | When engineered features dominate; latency-critical |
+| **ColBERT (late interaction)** | Better efficiency than cross-encoder; token-level matching | Larger index; more complex than bi-encoder | When cross-encoder is too slow but semantic quality needed |
+
+#### Index infrastructure
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Elasticsearch / OpenSearch** | Full-text + analytics; rich query DSL; mature ecosystem | Operationally heavy; near-real-time (not instant) | Default for full-text search with faceting and analytics |
+| **Vespa** | Unified serving (BM25 + vectors + ML ranking); real-time indexing | Smaller community; steeper learning curve | When you need retrieval + ranking in one system |
+| **Lucene (embedded)** | Direct control; no cluster overhead; fastest for single-node | No distributed story; must build everything | Custom search within a larger application |
+
+**Our choice:** **Hybrid retrieval** (BM25 via Elasticsearch + dense bi-encoder via FAISS/ANN), **cross-encoder re-ranker** on top-100 candidates, and **LambdaMART** as a lightweight final-stage ranker incorporating business features (freshness, popularity, position bias correction). This delivers strong relevance while keeping p99 latency under 200ms.
+
+!!! tip
+    **Interview angle:** Position bias is the sleeper topic. Clicks are biased by rank position -- users click position 1 more than position 5 regardless of relevance. Mention IPS (Inverse Propensity Scoring) or propensity models to show awareness.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

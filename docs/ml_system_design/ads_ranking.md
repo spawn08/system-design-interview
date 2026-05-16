@@ -185,6 +185,40 @@ flowchart TB
 !!! note
     Tie offline metrics to **business**: a 0.001 AUC lift at billion-scale impressions is enormous — but only if **calibration** and **bias correction** hold.
 
+### Technology Selection & Tradeoffs
+
+An ads ranking system is built from **ranking model + feature store + model serving layer + A/B testing framework**. Each choice affects prediction accuracy, auction latency, and experimentation velocity.
+
+#### Ranking model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Deep & Cross Network (DCN-V2)** | Explicit feature crosses + deep layers; strong on mixed sparse/dense features | Higher serving latency; careful tuning of cross layers | Default for ads ranking with rich interaction features |
+| **DLRM (Deep Learning Recommendation Model)** | Industry standard (Meta); handles massive sparse features via embedding tables | Large embedding tables need distributed serving; complex training | Large-scale ads with billions of sparse features |
+| **XGBoost / LightGBM** | Fast inference (~1ms); interpretable; strong calibration | Cannot learn embeddings; manual feature engineering | Early-stage; explainability requirements; lightweight re-ranker |
+| **Multi-task (pCTR + pCVR + value)** | Joint optimization; shared representations; better expected value estimates | Complex loss weighting; harder to debug individual tasks | Mature systems optimizing eCPM = bid * pCTR * pCVR |
+
+#### Feature store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis + custom pipeline** | Sub-ms reads; full control; handles high QPS | Must build versioning, monitoring, backfill yourself | High-QPS ads serving where custom freshness control matters |
+| **Feast + Redis** | Open-source; online/offline; community support | Limited real-time computation | Standard feature platform with batch + lookup features |
+| **Tecton** | Real-time transforms; managed; streaming built in | Cost; lock-in | When real-time session features directly improve ranking |
+
+#### Model serving
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **NVIDIA Triton** | Dynamic batching; ensemble; GPU metrics; multi-framework | Complex config; NVIDIA lock-in | Multi-model pipeline; GPU-served deep models |
+| **Custom C++ serving** | Maximum control; lowest possible latency; custom batching | High engineering investment | When every microsecond matters (auction SLA) |
+| **TorchServe** | Simple; PyTorch-native; model versioning | Less optimization than Triton | Simpler models; development/staging |
+
+**Our choice:** **DCN-V2 with multi-task heads** (pCTR, pCVR) for the ranking model -- captures feature interactions critical for ads while jointly optimizing engagement and conversion. **Redis** with custom materialization pipeline for sub-ms feature serving at auction QPS. **Triton** for model serving with dynamic batching to maximize GPU utilization. This delivers sub-20ms model inference within the auction latency budget.
+
+!!! tip
+    **Interview angle:** A 0.001 AUC lift at billion-scale impressions is enormous revenue. But only if **calibration** holds -- mention isotonic regression or Platt scaling to show awareness of the gap between discrimination and calibration.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

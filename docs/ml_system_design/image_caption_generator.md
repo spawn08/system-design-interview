@@ -148,6 +148,37 @@ Let's design a system for a social media platform that suggests captions when us
 | **Quality** | High BLEU/CIDEr scores | Captions should be accurate |
 | **Cost efficiency** | Minimize GPU usage | GPUs are expensive |
 
+### Technology Selection & Tradeoffs
+
+An image caption generator is built from **vision encoder + language decoder + serving infrastructure + training framework**. Each choice affects caption quality, latency, and cost.
+
+#### Vision-language model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **BLIP-2** | Strong image understanding; Q-Former bridges vision-language efficiently | Complex architecture; larger memory | Default for high-quality captioning with efficient vision-language bridging |
+| **LLaVA (Visual Instruction Tuning)** | Simple architecture (CLIP + LLM); instruction-following; open weights | Relies heavily on LLM quality; less efficient than BLIP-2 Q-Former | When instruction-following and conversational captioning are needed |
+| **GIT (Generative Image-to-text)** | Simple encoder-decoder; easy to train; fast inference | Lower quality ceiling than BLIP-2/LLaVA on complex scenes | Simpler caption needs; resource-constrained deployments |
+| **CoCa (Contrastive Captioning)** | Dual objective (contrastive + captive); strong representations | Complex training; fewer open weights | When both retrieval and generation from same model are needed |
+
+#### Vision encoder
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **ViT-L/14 (CLIP)** | Strong visual features; aligned with text; widely available | 768-dim; may miss fine-grained details | Default for captioning and retrieval tasks |
+| **EVA-CLIP / SigLIP** | Improved training; better fine-grained understanding | Fewer community resources | When CLIP quality is insufficient; need fine-grained detail |
+| **ConvNeXt-XL** | Strong spatial features; good for dense scene understanding | Not pre-aligned with text; needs adaptation layer | Scene-heavy domains (autonomous driving, medical) |
+
+#### Serving infrastructure
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **vLLM** | PagedAttention; continuous batching; optimized for autoregressive generation | Primarily for text-only LLMs; vision pipeline needs custom integration | When LLM decoder dominates latency |
+| **Triton** | Multi-model ensemble; dynamic batching; handles vision + LLM pipeline | Complex setup; NVIDIA-specific | Full pipeline (image encode → bridge → LLM decode) |
+| **TorchServe** | Simple; PyTorch-native; easy model versioning | Less batching optimization | Development; moderate-scale deployment |
+
+**Our choice:** **BLIP-2** architecture (ViT-L/14 encoder + Q-Former + LLM decoder) for the best quality-efficiency tradeoff. Serve the full pipeline on **Triton** with ensemble orchestration (vision encoder → Q-Former → LLM decoder as separate stages). This delivers high-quality captions with efficient GPU utilization through dynamic batching at each stage.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation
