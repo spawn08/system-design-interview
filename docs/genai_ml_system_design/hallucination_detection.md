@@ -198,6 +198,41 @@ Queue **tasks** with: draft answer, risk score, intent, user tier, SLA, and **ev
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+The hallucination detection system is composed of a **retrieval layer for grounding + NLI/entailment model + claim extraction pipeline + confidence scoring framework**. Each layer trades accuracy, latency, and cost.
+
+#### NLI / entailment model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **DeBERTa-v3-large (fine-tuned on MNLI + domain)** | Strong entailment accuracy; ~8ms/pair batched on GPU; well-understood | Requires domain fine-tuning; English-centric | Default for English claim verification; best accuracy/latency ratio |
+| **Cross-encoder reranker (BGE-reranker, Cohere)** | Can double as entailment proxy; already deployed for RAG | Not a true NLI model; conflates relevance with entailment | When you already run a reranker and want to avoid a separate NLI service |
+| **LLM-as-judge (GPT-4o / Claude)** | Highest nuance; can explain reasoning; handles multi-hop claims | 100-500x slower and more expensive than NLI model; non-deterministic | High-stakes claims only; sampled audit; final escalation tier |
+| **Multilingual NLI (XLM-R / mDeBERTa)** | Covers 100+ languages in one model | Lower per-language accuracy vs dedicated model; larger | Multi-language products where per-locale NLI models are impractical |
+
+#### Retrieval layer (evidence acquisition)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Hybrid (dense + BM25 with RRF)** | Best recall combining semantic and lexical signals; covers both failure modes | Two indexes to maintain; fusion weights need tuning | Default production setup for RAG-based grounding |
+| **Dense retrieval only** | Captures semantic similarity; finds paraphrased evidence | Misses exact keyword matches; single embedding space | When corpus has consistent language and few rare terms |
+| **BM25 / lexical only** | Exact keyword matching; no model dependency; fast | Misses paraphrases and synonyms | Structured facts with exact terms (SKU numbers, policy IDs) |
+| **Web search API (Google, Bing)** | Broad coverage for extrinsic facts; fresh data beyond KB | 200-500ms latency; cost per query; compliance risk | Public knowledge verification when KB is insufficient |
+
+#### Claim extraction
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Rule-based sentence splitting (spaCy)** | Fast (sub-ms); deterministic; no model dependency | Doesn't decompose compound sentences into atomic claims | Low-latency tier where sentence-level granularity suffices |
+| **Small LLM decomposition (Llama-3-8B)** | Produces true atomic claims; handles compound sentences | ~50-100ms per answer; requires prompt engineering | Standard tier where claim-level granularity drives quality |
+| **Frontier LLM (GPT-4o, Claude)** | Best decomposition quality; handles ambiguous nested claims | Expensive; 500ms+ latency; overkill for simple answers | High-assurance tier or offline gold-set labeling |
+
+**Our choice:** **DeBERTa-v3-large fine-tuned on MNLI + domain data** as the primary NLI model for the best accuracy/latency ratio at ~8ms/pair. **Hybrid dense + BM25 with RRF** for retrieval to cover both semantic and keyword evidence. **Rule-based sentence splitting on the standard tier** (fast, deterministic) and **small LLM decomposition on the high-assurance tier** for atomic claim granularity. **Weighted linear fusion** of NLI entailment, retrieval margin, self-consistency, and token logprobs for confidence scoring -- simple, interpretable, and tunable without labeled data, graduating to a gradient-boosted model when sufficient human labels accumulate.
+
+!!! tip
+    **Interview angle:** NLI is the backbone but not the whole story -- retrieval quality bounds what NLI can verify (garbage evidence in, garbage verification out). The strongest signal is often "we could not find any evidence" rather than a low NLI score.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

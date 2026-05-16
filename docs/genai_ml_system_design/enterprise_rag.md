@@ -223,6 +223,49 @@ class HybridRetriever:
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+An enterprise RAG system is built from **vector store + embedding model + LLM + retrieval strategy + document processing pipeline + access control layer**. The right combination depends on corpus size, latency budget, accuracy requirements, and security constraints.
+
+#### Vector store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Pinecone** | Fully managed, low-ops, metadata filtering, namespace isolation, fast ANN | Vendor lock-in; cost scales with vector count; limited self-hosting | Teams wanting managed infrastructure; rapid prototyping to production |
+| **Weaviate** | Hybrid search (vector + BM25 built-in), GraphQL API, multi-tenancy, open-source | Higher operational complexity self-hosted; memory-hungry for large indexes | When hybrid retrieval and open-source are both requirements |
+| **pgvector (PostgreSQL)** | Leverage existing Postgres infra; ACID; combine with relational queries; low cost | Slower ANN at scale (no HNSW sharding); limited to single-node index performance | Moderate corpus size (<10M vectors); teams already on PostgreSQL |
+| **Milvus** | High-performance distributed ANN; GPU-accelerated; open-source; multiple index types | Complex cluster operations; steep learning curve; resource-intensive | Billion-scale vector search; teams needing fine-grained index tuning |
+
+#### Embedding model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **OpenAI text-embedding-3-large** | High quality; simple API; 3072 dimensions (configurable); Matryoshka support | External API dependency; data leaves your network; per-token cost | Fast deployment; non-sensitive data; strong baseline quality |
+| **Cohere Embed v3** | Strong multilingual support; compression-aware training; search-optimized | External dependency; cost at high volume | Multilingual enterprise corpora |
+| **Self-hosted (e5-large, BGE, GTE)** | Full data control; no per-call cost; fine-tunable on domain data | GPU infrastructure needed; quality may lag frontier models without fine-tuning | Strict data residency; high volume where API costs are prohibitive |
+| **Sentence-Transformers (all-MiniLM)** | Lightweight; fast inference; good for prototyping | Lower quality on complex queries; 384 dimensions limits expressiveness | Development/testing; edge deployment; cost-sensitive low-stakes use |
+
+#### LLM for generation
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **GPT-4o / GPT-4 Turbo** | Strong reasoning; large context window (128K); good instruction following | Cost; external API; latency for long contexts | High-stakes Q&A where answer quality is paramount |
+| **Claude 3.5 Sonnet / Claude 4** | Excellent long-context handling (200K); strong citation behavior; safety features | External API; cost | Long-document synthesis; safety-sensitive enterprise use |
+| **Self-hosted (Llama 3, Mixtral)** | Full data control; no per-token cost; customizable | GPU infrastructure; quality gap vs frontier models; maintenance burden | Strict data sovereignty; high-volume low-complexity queries |
+
+#### Retrieval strategy
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Hybrid (BM25 + dense + reranker)** | Best recall; handles both keyword and semantic queries; reranker boosts precision | Three components to maintain; higher latency (reranker adds ~100ms) | Production enterprise RAG where recall matters most |
+| **Dense-only** | Simple pipeline; good semantic understanding | Misses exact keyword matches; struggles with rare terms and entity names | Homogeneous corpus with consistent language |
+| **BM25-only** | Fast; no embedding infra; interpretable scores | No semantic understanding; misses synonyms and paraphrases | Structured corpora with consistent terminology (e.g., legal codes) |
+
+!!! tip
+    **Interview angle:** Always start with hybrid retrieval as your default — the combination of BM25 for exact term matching and dense embeddings for semantic understanding covers the most failure modes. The cross-encoder reranker is the single biggest quality lever: it costs ~100ms but dramatically improves precision in the top-5.
+
+**Our choice:** **Pinecone** (or Weaviate for open-source requirements) as the vector store for managed ANN with metadata filtering and namespace-based tenant isolation. **OpenAI text-embedding-3-large** for embeddings as the quality baseline, with a migration path to self-hosted models for data-sensitive deployments. **Claude or GPT-4o** for generation, chosen for strong citation behavior and large context windows. **Hybrid retrieval (BM25 + dense + cross-encoder reranker)** as the retrieval strategy because enterprise corpora mix jargon-heavy exact-match needs with semantic similarity. This stack optimizes for **answer quality and auditability** — the two non-negotiables in enterprise RAG.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

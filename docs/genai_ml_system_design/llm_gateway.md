@@ -182,6 +182,40 @@ Capabilities diverge by **model id** and **API version**. The gateway should tre
 !!! warning
     **Clarify in the interview:** “10K req/s” is **gateway requests**, not 10K concurrent GPU streams. Upstream provider limits still cap *effective* throughput; the gateway’s job is to **shape, route, and fail gracefully**.
 
+### Technology Selection & Tradeoffs
+
+The LLM gateway is assembled from a **routing/proxy layer + semantic cache + rate-limiting store + observability pipeline**. Each category has mature options with different cost, operational complexity, and performance profiles.
+
+#### Routing & proxy framework
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Envoy + custom Lua/WASM filters** | Battle-tested L7 proxy; gRPC and HTTP/2 native; huge ecosystem | LLM-specific logic (token counting, SSE normalization) requires custom filter work | You already run Envoy/Istio and want to extend rather than replace |
+| **LiteLLM** | Purpose-built LLM proxy; 100+ provider adapters out of the box; Python | Single-process Python limits raw throughput; less control over streaming internals | Fast v1 launch with broad provider support; team is Python-native |
+| **Custom Go/Rust service** | Full control over SSE parsing, backpressure, and memory; high single-node throughput | Large upfront engineering; must build every adapter | Extreme latency or throughput requirements; team owns the runtime long-term |
+| **Portkey / cloud-managed gateway** | Turnkey observability, guardrails, and routing; vendor-managed uptime | Vendor lock-in; limited customization; data leaves your boundary | Small team needing full-featured gateway without ops burden |
+
+#### Semantic cache backend
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **pgvector (PostgreSQL)** | Single store for metadata + ANN; familiar ops; ACID transactions | ANN latency degrades past ~5M vectors; single-node ceiling | Moderate cache corpus; existing Postgres infra; simplicity wins |
+| **Redis + RediSearch vector module** | Sub-ms exact lookups; built-in TTL; combine hash + ANN in one call | Memory-bound at scale; ANN recall tuning less mature than dedicated vector DBs | Hot-path exact cache + lightweight semantic search; already running Redis |
+| **Qdrant / Pinecone** | Purpose-built ANN; high recall at millions of vectors; managed options | Additional service to operate; adds network hop; cost scales with vector count | Large multi-tenant cache with strict recall and latency SLOs |
+
+#### Rate limiting & budget store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis (cluster)** | Atomic INCRBY + EXPIRE; well-understood; cluster mode for sharding | Single point of failure without sentinel/cluster; memory cost at high key cardinality | Default choice for most gateway deployments |
+| **In-process sliding window** | Zero network latency; no external dependency | Not shared across gateway replicas; only approximate global limits | Fail-open fallback when Redis is unreachable; local burst protection |
+| **DragonflyDB / Valkey** | Redis-compatible API; multithreaded (Dragonfly) or license-free (Valkey) | Newer ecosystem; fewer production battle scars | Drop-in Redis replacement when memory pressure or licensing is a concern |
+
+**Our choice:** **LiteLLM as the proxy core** for rapid adapter coverage and Python ecosystem alignment, **Redis cluster for rate limiting and budget counters** due to proven atomic operations and easy TTL semantics, **pgvector for the semantic cache** as a unified metadata + ANN store that keeps ops simple until cache corpus exceeds single-node capacity, and **ClickHouse for observability and cost attribution** for high-cardinality, high-volume log analysis. As traffic grows, the semantic cache can migrate to a dedicated vector store (Qdrant or Pinecone) without changing the gateway's cache API contract.
+
+!!! tip
+    **Interview angle:** Justify technology choices by **operational maturity of the team** and **migration path** -- starting simple with pgvector and graduating to a managed vector DB shows pragmatism, not ignorance of purpose-built options.
+
 ---
 
 ## Step 2: Estimation

@@ -231,6 +231,42 @@ flowchart TB
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+A document Q&A system is built from **document parsing pipeline + chunking strategy + embedding model + vector index + LLM + citation extraction layer**. The right combination depends on document types, accuracy requirements, and latency constraints.
+
+#### Document parsing
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Apache Tika + custom extractors** | Broad format support (PDF, DOCX, PPTX, HTML); open-source; extensible | Table extraction quality varies; no native layout understanding; needs post-processing | General-purpose ingestion; mixed document formats |
+| **Azure Document Intelligence** | Excellent table and form extraction; layout-aware OCR; pre-built models | Cloud dependency; per-page cost; latency for large batches | Financial documents, forms, scanned PDFs with complex layouts |
+| **Unstructured.io** | Purpose-built for RAG pipelines; layout-aware chunking; open-source core | Newer ecosystem; hosted version adds cost; complex docs may need tuning | RAG-first pipelines where chunk quality directly drives answer quality |
+| **LlamaParse / LLM-based parsing** | Handles complex layouts via vision models; understands context | Expensive per page; slower; overkill for simple text docs | High-value documents where parsing errors are costly (legal, medical) |
+
+#### Vector index
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **FAISS (Facebook AI Similarity Search)** | Blazing fast; multiple index types (IVF, HNSW, PQ); GPU support; battle-tested | No built-in metadata filtering; single-node (needs wrapper for distributed); no persistence layer | High-performance search on moderate corpus; teams comfortable managing infra |
+| **Pinecone** | Managed; metadata filtering; namespace isolation; consistent sub-50ms latency | Vendor lock-in; cost grows with scale; less index tuning control | Managed production deployment; rapid time-to-market |
+| **Qdrant** | Rich filtering; Rust-based (fast); open-source with managed option; payload indexing | Smaller community than alternatives; distributed mode relatively newer | Open-source requirement with strong filtering needs |
+| **pgvector** | Leverage existing PostgreSQL; transactional consistency; simple ops | Slower at scale; limited index types; no GPU acceleration | Small-to-medium corpus; ACID guarantees needed alongside vector search |
+
+#### Chunking strategy
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Document-aware (section/heading)** | Respects document structure; preserves context boundaries; tables stay intact | Requires layout parsing; section sizes vary widely | Structured documents with clear headings (reports, wikis, specs) |
+| **Semantic chunking** | Groups related sentences by embedding similarity; adaptive boundaries | Slower (needs embedding per sentence); tuning threshold matters | Mixed documents with varying structure |
+| **Parent-child (small embed, large retrieve)** | Best of both: precise embedding match + sufficient context for LLM | More complex indexing; two-level retrieval adds latency | Long documents where answer context spans multiple paragraphs |
+| **Fixed-size with overlap** | Simple; predictable chunk count; easy to implement | Splits mid-sentence or mid-table; context loss at boundaries | Baseline/prototyping; homogeneous text-heavy documents |
+
+!!! tip
+    **Interview angle:** The chunking strategy is often the single biggest lever for answer quality. Start with document-aware chunking for structured PDFs, and mention parent-child as an upgrade path — it lets you embed small precise chunks but retrieve the full parent section for LLM context, solving the "chunk too small for context" problem.
+
+**Our choice:** **Unstructured.io** (or Azure Document Intelligence for scanned/complex PDFs) for parsing, because document Q&A lives or dies on extraction quality — garbage in, garbage out. **Document-aware chunking with parent-child retrieval** to balance embedding precision with sufficient LLM context. **Qdrant** as the vector index for its strong metadata filtering (needed for per-document ACL and page-level references) with **FAISS** as a fallback for teams wanting self-hosted simplicity. This stack optimizes for **citation accuracy and traceability** — the defining requirement that separates document Q&A from generic chatbots.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -451,6 +451,42 @@ flowchart TB
 !!! tip
     Tie **P99 < 10ms** to **in-memory hot set + ANN parameters** — not to “faster CPUs” alone.
 
+### Technology Selection & Tradeoffs
+
+A vector database is built from an **ANN index structure + storage engine + distance metric + metadata filtering layer**. The choices determine recall, latency, memory footprint, and operational profile.
+
+#### ANN index type
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **HNSW** | Best recall/latency tradeoff when graph fits RAM; no training phase | High memory overhead (2-10x vector size for graph); incremental inserts can degrade quality | Hot indices where p99 latency matters most and RAM budget allows |
+| **IVF-PQ** | Dramatically lower memory via product quantization; handles billions | Requires offline training (k-means); nprobe/PQ tuning non-trivial; lower recall vs HNSW | Memory-constrained billion-scale; batch-oriented workloads |
+| **DiskANN / Vamana** | Near-HNSW recall with SSD-resident graph; much lower RAM per vector | Higher tail latency on cold pages; write amplification during builds | Large corpora exceeding RAM that still need single-digit ms p95 |
+| **Flat / brute-force** | Exact k-NN; zero index overhead; no recall loss | O(n*d) per query; unusable beyond ~1M vectors at interactive latency | Ground-truth evaluation; tiny collections; quality benchmarking |
+
+#### Storage engine
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Milvus (etcd + MinIO + Pulsar)** | Cloud-native disaggregated architecture; independent scaling of compute/storage | Many moving parts; operational complexity | Large-scale multi-tenant SaaS; teams comfortable with distributed systems |
+| **Qdrant (WAL + segment files)** | Simple single-binary deployment; built-in WAL and snapshot; Rust performance | Single-node ceiling without sharding; replication is newer | Small-to-medium deployments; fast iteration; minimal ops |
+| **Weaviate (LSM + modules)** | Integrated schema, ML modules, and multi-modal support | Java/Go runtime overhead; less raw performance than Rust-based alternatives | Applications needing built-in ML module orchestration alongside vector search |
+| **pgvector (PostgreSQL)** | Leverage existing Postgres, ACID, and ecosystem tooling | Limited to single-node without Citus; no native PQ | Teams already running Postgres; moderate scale (<10M vectors) |
+
+#### Hybrid search & metadata filtering
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Post-filter** | Simple; ANN index unmodified | May return fewer than k results; wastes compute on ineligible vectors | Low-selectivity filters where most vectors pass |
+| **Pre-filter with bitmaps** | Guarantees exactly k results | Highly selective filters can degrade recall | Known filter cardinality; filters removing <80% of vectors |
+| **Native filtered ANN (Qdrant, Weaviate)** | Intersects filter bitmaps with graph traversal; balanced recall | Engine-specific; harder to tune | Production workloads with mixed selectivity; multi-tenant isolation |
+| **Reciprocal Rank Fusion (vector + BM25)** | Combines dense and sparse for hybrid RAG; improves keyword-heavy recall | Two indexes to maintain; fusion weights need tuning | RAG pipelines needing both semantic and keyword matching |
+
+**Our choice:** **HNSW as the primary index** for hot segments where RAM permits (best recall/latency), with **IVF-PQ for cold tiers** where memory must be conserved. **Qdrant** for simpler ops at moderate scale, **Milvus** when disaggregated compute/storage is needed at billions. **Cosine similarity** (dot product on L2-normalized vectors) as the default metric. **Native filtered ANN** for metadata filtering because post-filter under-returns and pre-filter harms recall at high selectivity. This tiered approach mirrors how production systems like Pinecone and Vertex AI Vector Search actually operate.
+
+!!! tip
+    **Interview angle:** Emphasize that index choice is not one-size-fits-all within a single system -- hot segments use HNSW in RAM, warm use DiskANN on SSD, cold sit in object storage for rebuild-on-demand.
+
 ---
 
 ## Step 2: Estimation

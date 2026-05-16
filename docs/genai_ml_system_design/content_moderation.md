@@ -166,6 +166,47 @@ class PerceptualHashMatcher:
 | **Throughput** | 100K items/sec | Platform scale |
 | **Availability** | 99.99% | Moderation must never go down |
 
+### Technology Selection & Tradeoffs
+
+The content moderation system is built from a **rules engine + ML classifier cascade + LLM reasoning layer + human review platform + streaming pipeline**. Each tier trades accuracy, latency, and cost.
+
+#### Fast ML classifiers (Stage 2)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **FastText** | Sub-ms CPU inference; tiny model; easy to retrain | Bag-of-words misses nuance and word order | High-throughput first-pass filter where speed dominates |
+| **DistilBERT / BERT-tiny** | Captures word order and context; runs on CPU at ~5ms | Still misses long-range context; needs fine-tuning per category | Good speed/accuracy balance for the fast ML stage |
+| **DeBERTa-v3-small** | Better accuracy than DistilBERT on NLU benchmarks | Slightly slower (~10ms); larger model | When Stage 2 gains meaningfully reduce Stage 3 load |
+
+#### Heavy multi-modal models (Stage 3)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Custom multi-task model (shared backbone)** | One model serves all categories; shared GPU cost; joint training improves rare-class recall | Complex training pipeline; one failure affects all categories | Mature ML team needing many categories simultaneously |
+| **Ensemble of per-category models** | Isolated failure domains; each tuned independently | Higher total GPU cost; more deployment complexity | Category-specific precision matters and GPU budget allows |
+| **CLIP / LLaVA-style vision-language** | Natively multi-modal; understands image-text interaction (memes) | Large GPU footprint; >100ms latency | Content where meaning emerges from image+text combination |
+
+#### LLM reasoning layer (Stage 4)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Fine-tuned Llama / Mistral (self-hosted)** | Data stays in-house; predictable cost at scale; customizable to policies | Requires GPU fleet and MLOps; fine-tuning needs labeled data | Production at scale where data residency and cost control matter |
+| **GPT-4o / Claude via API** | Frontier reasoning; excellent nuance and satire detection | Cost per call; latency (~500ms-2s); data leaves boundary | Low-volume escalation tier; when internal models lack nuance |
+| **Gemini via Vertex AI** | Strong multi-modal reasoning; grounding with search for misinfo | Vendor lock-in; unpredictable pricing at scale | GCP-native; misinformation detection where search grounding helps |
+
+#### Event streaming
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka** | Proven at extreme scale; exactly-once; rich ecosystem | Operational burden; higher latency floor | Platform-scale (1B+ items/day); need replay and multiple consumers |
+| **Google Pub/Sub / AWS SQS** | Managed; zero queue ops; built-in DLQ and retry | Less partitioning control; higher per-message cost at volume | Cloud-native teams minimizing infrastructure management |
+| **Pulsar** | Tiered storage; multi-tenancy built in; geo-replication | Smaller community than Kafka | Multi-region with built-in tiered storage needs |
+
+**Our choice:** **FastText for Stage 2** (unmatched CPU throughput for first ML pass), **custom multi-task vision-language model for Stage 3** (amortizes GPU cost across categories, handles multi-modal content natively), **fine-tuned Llama self-hosted for Stage 4** (keeps sensitive content in-house at scale), and **Kafka for streaming** (proven replay and fan-out at billion-scale). The cascade architecture means each expensive tier only processes what the previous tier could not resolve with confidence.
+
+!!! tip
+    **Interview angle:** Stress that the **cascade is the architecture** -- technology choices per stage matter less than getting the confidence thresholds right between stages. A well-tuned cascade with mediocre models outperforms a single expensive model applied uniformly.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -219,6 +219,41 @@ Disadvantage: Higher storage and compute cost
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+A multimodal search system is built from **embedding model + vector index + image/video processing pipeline + fusion strategy + serving infrastructure**. The right combination depends on modality mix, index scale, latency budget, and accuracy requirements.
+
+#### Embedding model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **CLIP (OpenAI)** | Shared text-image embedding space; well-understood; strong zero-shot | 512/768 dims limits expressiveness; weaker on fine-grained attributes; open weights available | Default starting point; product search; general image-text matching |
+| **SigLIP / OpenCLIP** | Open-source CLIP variants with improved training; larger batch sizes; multiple sizes | Still inherits CLIP architecture limits; may need fine-tuning for domain | Open-source requirement; need to fine-tune on domain data |
+| **BLIP-2 / CoCa** | Stronger image understanding; captioning + retrieval; multimodal reasoning | Heavier inference; higher latency per embedding; more GPU memory | When query understanding matters (e.g., complex natural language queries about images) |
+| **Domain-specific (fine-tuned)** | Highest accuracy on target domain; encodes domain-specific attributes | Training cost; data collection; maintenance burden; risk of overfitting | E-commerce product search; medical imaging; fashion where attributes matter |
+
+#### Vector index (at scale)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **FAISS with IVF-PQ** | Handles billions of vectors; product quantization compresses memory; GPU support | Requires careful tuning (nprobe, PQ segments); single-node limits without sharding wrapper | Billion-scale indexes where memory efficiency is critical |
+| **Milvus** | Distributed architecture; multiple index types; GPU acceleration; streaming insert | Operational complexity; resource-hungry cluster; steep learning curve | Billion-scale with need for real-time index updates and distributed queries |
+| **Weaviate** | Hybrid search built-in; multi-modal module support; GraphQL API | Memory-intensive; HNSW index rebuild on large updates | Moderate scale with hybrid (text + vector) search needs |
+| **ScaNN (Google)** | Highly optimized ANN; anisotropic quantization; strong recall/latency tradeoff | Less ecosystem support outside Google; limited distributed story | Maximum recall at minimum latency; teams comfortable with custom integration |
+
+#### Fusion strategy
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Early fusion (joint embedding)** | Single vector per item; simplest retrieval; captures cross-modal interactions | Requires aligned training data; one model to train and maintain; fixed representation | When text and image are tightly coupled (product listings, captioned images) |
+| **Late fusion (score combination)** | Independent modality indexes; easier to update one modality; interpretable per-modal scores | Misses cross-modal interactions; needs score calibration across modalities | When modalities are independently valuable and updated at different rates |
+| **Reciprocal Rank Fusion (RRF)** | Simple; no score calibration needed; robust across modalities | Loses magnitude information; fixed formula may not suit all query types | Default fusion when combining sparse (BM25) + dense retrievers |
+
+!!! tip
+    **Interview angle:** At billion-scale, the vector index choice dominates system cost and latency. FAISS with IVF-PQ is the industry standard for compressing 768-dim float32 vectors (3 KB each) down to ~64 bytes via product quantization — that's the difference between 30 TB and 640 GB for 10B vectors.
+
+**Our choice:** **CLIP** (or fine-tuned OpenCLIP) as the embedding backbone for its proven text-image alignment, with a fine-tuning path for domain-specific accuracy gains. **FAISS with IVF-PQ** for the vector index at billion-scale, sharded by content partition, with product quantization to keep the index memory-feasible. **Early fusion** (joint CLIP embeddings) as the primary retrieval path, augmented with **RRF** to combine dense vector results with sparse BM25 text matches for queries that include specific keywords or product IDs. This stack optimizes for **latency at extreme scale** while maintaining the cross-modal understanding that makes multimodal search valuable.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

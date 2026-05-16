@@ -88,6 +88,40 @@ Content-Type: application/json
 !!! tip
     Use **cursor-based** pagination for stable results under concurrent catalog updates; avoid large `offset` on deep pages at scale.
 
+### Technology Selection & Tradeoffs
+
+A proximity service is built from **geospatial index + primary data store + caching layer + API serving**. The right combination depends on query patterns, update frequency, dataset size, and latency budget.
+
+#### Geospatial index
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Geohash + Redis/Sorted Sets** | Simple to implement; fast lookups via prefix matching; easy horizontal sharding by geohash prefix | Boundary artifacts at cell edges; variable cell sizes near poles; range queries require scanning multiple prefixes | Default for moderate-scale (millions of POIs), latency-critical serving |
+| **S2 Geometry (Google)** | Hierarchical cells with uniform area; excellent coverage queries; no pole distortion | More complex to implement; library support narrower than geohash; harder to explain in interviews | Large-scale global services with non-uniform density (Google Maps, Uber) |
+| **PostGIS (R-tree on GiST)** | Full SQL; exact distance with `ST_DWithin`; rich spatial operations (polygons, intersections) | Higher latency than in-memory index; scaling requires read replicas or sharding; not ideal for extreme QPS | Moderate QPS with complex spatial queries (e.g., polygon search, route proximity) |
+| **Quadtree (in-memory)** | Adaptive resolution; efficient for non-uniform density; fast nearest-neighbor | Must fit in memory; rebuilds on updates; harder to distribute | Small-to-medium datasets where density varies wildly (city centers vs rural) |
+
+!!! tip
+    **Interview angle:** Geohash is the go-to default because it maps naturally to key-value stores (prefix = shard key), but always mention **boundary handling** — a query near a cell edge must check neighboring cells. S2 is stronger technically but harder to whiteboard.
+
+#### Primary data store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL + PostGIS** | ACID, rich spatial types, mature ecosystem, strong consistency for catalog updates | Vertical scaling limits; read replicas for QPS; spatial index rebuilds on heavy writes | Source of truth for POI metadata; moderate write rates |
+| **DynamoDB** | Managed, elastic, predictable latency at scale; geo library available | No native spatial index (must layer geohash); limited query flexibility; eventual consistency by default | High-scale catalog with simple access patterns; AWS-native stacks |
+| **Elasticsearch** | Full-text + geo combined; `geo_distance` queries; aggregations | Operationally heavy; near-real-time indexing (not instant); not ideal as sole source of truth | When search and geo are combined (e.g., "pizza near me" with text relevance) |
+
+#### Caching layer
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis GEO** | Native `GEORADIUS`/`GEOSEARCH` commands; sub-ms latency; built-in distance calculation | Memory-bound; no complex filtering beyond member metadata; cluster mode needed at scale | Hot-path serving of nearby results; pre-computed candidate sets |
+| **Application-level tile cache** | Cache entire grid cells (geohash → POI list); CDN-friendly; simple invalidation | Stale until TTL expires; cache misses on cold cells; storage grows with grid resolution | Read-heavy with acceptable staleness (e.g., restaurant lists, store locators) |
+| **No dedicated cache (direct DB)** | Simplest architecture; always fresh | Higher latency; DB becomes bottleneck at scale | Early-stage products or low QPS |
+
+**Our choice:** **Geohash-based sharding** with **Redis GEO** for the hot read path, backed by **PostgreSQL + PostGIS** as the authoritative catalog store. Geohash gives us natural shard keys and prefix-based neighbor lookups. Redis GEO handles the latency-critical nearby queries at sub-ms speed. PostGIS remains the source of truth for admin updates, feeding the Redis index via CDC or periodic sync. For products needing text + geo combined (e.g., "Italian restaurant near me"), we add **Elasticsearch** as a secondary search layer. This stack optimizes for the **read-heavy, latency-sensitive** profile that proximity services demand.
+
 ### CAP Theorem Analysis
 
 **CAP** (Consistency, Availability, Partition tolerance) states that under a **network partition**, a distributed system cannot simultaneously guarantee both **strong consistency** and **full availability** for reads and writes. Real products rarely pick a single letter globally—they **partition the problem** by data domain and user expectation.

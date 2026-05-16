@@ -55,9 +55,7 @@ plugins:
 extra_css:
   - assets/css/theme.css
 
-extra_javascript:
-  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
-  - assets/js/mermaid-config.js
+extra_javascript: []
 
 extra:
   social:
@@ -70,18 +68,21 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      auto_append:
+        - includes/abbreviations.md
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_div_format
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.arithmatex:
       generic: true
+  - abbr
   - admonition
   - pymdownx.details
   - attr_list
