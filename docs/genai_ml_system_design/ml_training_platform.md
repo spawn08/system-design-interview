@@ -177,6 +177,47 @@ Good MFU targets:
 | **Availability** | 99.9% for control plane | Scheduling, monitoring |
 | **MFU** | > 40% for large distributed jobs | Efficient use of expensive hardware |
 
+### Technology Selection & Tradeoffs
+
+A managed ML training platform is built from **job orchestration + distributed training framework + checkpoint/data storage + experiment tracking**. Each shapes utilization ceiling, fault tolerance, and developer experience.
+
+#### Job orchestration & scheduling
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kubernetes + Volcano / Kueue** | Cloud-native; container isolation; gang scheduling; quota-aware queuing | NCCL networking needs manual tuning; K8s scheduler not HPC-topology-aware | Default for cloud/hybrid clusters up to ~2,000 GPUs |
+| **Slurm** | Gold standard HPC; excellent InfiniBand and topology-aware placement | Weak multi-tenancy; poor container integration | On-prem supercomputer clusters (2,000+ GPUs) with InfiniBand |
+| **Ray Cluster (KubeRay)** | Pythonic job submission; elastic scaling; unified train/tune/serve API | Gang scheduling less mature; overhead on very large jobs | Teams wanting unified framework without deep K8s knowledge |
+
+#### Distributed training framework
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PyTorch FSDP** | Native PyTorch; ZeRO-3-style sharding; large community | Still evolving; less optimized than Megatron for very large models | Default for most jobs where model fits with FSDP sharding |
+| **DeepSpeed (ZeRO-1/2/3)** | Best memory optimization; ZeRO-Infinity offloads to NVMe | Microsoft-centric; can conflict with native PyTorch; config complexity | Extreme memory pressure (70B+ on limited GPUs) |
+| **Megatron-LM** | Highest throughput for LLM pretraining; tensor+pipeline+data parallelism | Steep learning curve; tightly coupled to specific architectures | 512+ GPU pretraining where MFU is primary concern |
+
+#### Checkpoint & data storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Local NVMe + async upload to S3/GCS** | Fastest write latency; zero network overhead during checkpoint | Data at risk until uploaded; requires coordination | Default hybrid: minimize training interruption, async durability |
+| **Cloud object store (S3/GCS) direct** | Infinite capacity; built-in redundancy; accessible from any node | Higher latency (100ms+); throughput limited by network | Pure cloud deployments without local NVMe |
+| **Parallel filesystem (Lustre/WekaFS)** | 100+ GB/s aggregate throughput; low latency; POSIX | Expensive; fixed capacity; operational burden | On-prem with InfiniBand where checkpoint speed is critical |
+
+#### Experiment tracking
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **MLflow** | Open-source; self-hostable; model registry built in | UI less polished; limited real-time streaming | Default for self-hosted platforms with audit requirements |
+| **Weights & Biases** | Best dashboards; real-time streaming; sweep integration | SaaS default; self-hosted option expensive | Teams prioritizing developer experience |
+| **TensorBoard** | Free; native PyTorch/TF integration; familiar | No experiment comparison at scale; no model registry | Per-job visualization complement to primary tracker |
+
+**Our choice:** **Kubernetes + Volcano** for gang scheduling (container isolation, RBAC, self-service APIs), with Slurm backend for teams on dedicated InfiniBand. **PyTorch FSDP** as default distributed strategy with DeepSpeed ZeRO-3 for memory-constrained jobs. **Local NVMe + async S3/GCS upload** for checkpoints (reduces overhead from ~15% to under 3% of wall-clock). **MLflow** for experiment registry with TensorBoard per-job. The platform abstracts framework choice behind the `distributed_strategy` field in the job spec.
+
+!!! tip
+    **Interview angle:** The scheduling deep-dive is where strong candidates differentiate. Explain why gang scheduling causes fragmentation (100 free GPUs scattered across 50 nodes can't serve a 64-GPU job) and how backfill scheduling of small jobs raises utilization from 60% to 80%+.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -186,6 +186,48 @@ Speedup: 2-3x with ~95% acceptance rate on typical text
 # data: [DONE]
 ```
 
+### Technology Selection & Tradeoffs
+
+A production LLM chatbot is assembled from **inference engine + conversation storage + safety classification + model routing strategy**. Each decision affects cost per query, latency, and safety posture.
+
+#### LLM inference engine
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **vLLM** | PagedAttention for near-zero KV-cache waste; continuous batching; OpenAI-compatible API | Tensor parallelism only (no pipeline); less mature on AMD GPUs | Default for production on NVIDIA GPUs with throughput as primary concern |
+| **TensorRT-LLM (NVIDIA)** | Highest absolute throughput; fused kernels; in-flight batching | NVIDIA-only; complex build pipeline; less flexible for custom models | Maximum tokens/second on fixed NVIDIA fleet |
+| **SGLang** | Radix attention for prefix caching; structured generation support | Smaller community; fewer production deployments | When prefix caching (repeated system prompts) is a critical lever |
+| **TGI (HuggingFace)** | Easy to deploy; good model hub integration; token streaming built in | Lower throughput at high concurrency | Quick prototyping or low-scale deployments |
+
+#### Conversation storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Spanner / CockroachDB** | Globally consistent; interleaved tables for conversation locality | Expensive at scale; Spanner GCP-only; CockroachDB adds ops complexity | Global consistency and relational queries required |
+| **DynamoDB / Bigtable** | Massive scale; low-latency point reads; natural row-key design | No cross-row transactions; poor for ad-hoc analytics | Scale exceeds relational limits; queries are primarily key-based |
+| **PostgreSQL** | Open-source; mature; JSONB for flexible messages; strong ecosystem | Single-region default; sharding needs extensions (Citus) | Smaller deployments; avoiding vendor lock-in |
+
+#### Safety classification
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Cascade: keyword + FastText + LLM** | Layered cost: 99% handled by cheap filters; LLM only for ambiguous cases | Keyword lists need maintenance; FastText has limited nuance | Default for high-throughput where per-query safety cost must stay low |
+| **Dedicated safety LLM (Llama Guard)** | High accuracy; understands context and nuance | 50-100ms per call; requires dedicated GPU capacity | Safety accuracy is paramount (children's products, regulated) |
+| **Third-party API (OpenAI Moderation)** | Zero ops; continuously updated; broad language coverage | Data leaves infrastructure; external latency | Prototyping or when internal models aren't mature |
+
+#### Model routing strategy
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Tiered routing (7B + 70B)** | Route simple queries to cheap model; complex to flagship; 3-5x cost reduction | Requires query classifier; misrouted queries degrade quality | Default for cost-sensitive production where complexity varies |
+| **Single flagship (70B)** | Simplest; consistent quality; one model to monitor | Highest cost; over-provisioned for simple queries | Early-stage where quality is the only priority |
+| **Speculative decoding (1B draft + 70B target)** | 2-3x speedup with identical output quality | Added complexity; draft model must match target | Latency reduction without sacrificing quality |
+
+**Our choice:** **vLLM** as inference engine (PagedAttention delivers 2-4x more concurrent requests per GPU, directly reducing cost). **Tiered routing** with 7B for simple queries (60-70% of traffic) and 70B for complex, using a lightweight classifier (distilled BERT, sub-5ms). **Spanner** for conversation storage (global consistency, interleaved tables) with **Redis** caching active conversation windows. **Three-stage safety cascade** (keyword → FastText → Llama Guard) keeping average overhead under 2ms while maintaining accuracy on edge cases.
+
+!!! tip
+    **Interview angle:** The KV-cache memory discussion shows depth. KV-cache per request often exceeds the model weights themselves (10 GB for 70B at 4096 context). PagedAttention solves this the same way virtual memory solved physical memory fragmentation -- this analogy resonates with systems-minded interviewers.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation
