@@ -3528,13 +3528,13 @@ This adds 1 round-trip before any data can flow.</p>
 <p>DNS translates human-readable domain names (google.com) to IP addresses (142.250.80.46).</p>
 <h3 id="how-dns-resolution-works">How DNS Resolution Works<a class="headerlink" href="#how-dns-resolution-works" title="Permanent link">&para;</a></h3>
 <p>When you type <code>www.example.com</code> in your browser:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Browser[Browser] --&gt; Resolver[DNS Resolver]
     Resolver --&gt; Root[Root DNS Server]
     Root --&gt; TLD[".com TLD Server"]
     TLD --&gt; Auth["example.com Authoritative Server"]
     Auth --&gt; Resolver
-    Resolver --&gt; Browser</div>
+    Resolver --&gt; Browser</code></pre>
 <p><strong>Step by step:</strong></p>
 <ol>
 <li><strong>Browser cache:</strong> Check if we recently resolved this domain</li>
@@ -3867,7 +3867,7 @@ This adds 1 round-trip before any data can flow.</p>
 <p><strong>Problem 1: Sticky sessions</strong></p>
 <p>WebSocket connections are stateful. If you have multiple servers, you need to route the same client to the same server.</p>
 <p><strong>Solution:</strong> Use a load balancer with sticky sessions, or use a pub/sub system (Redis, Kafka) so any server can send to any client.</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     Client1[Client 1] --&gt; LB[Load Balancer]
     Client2[Client 2] --&gt; LB
     Client3[Client 3] --&gt; LB
@@ -3876,7 +3876,7 @@ This adds 1 round-trip before any data can flow.</p>
     LB --&gt; Server2[Server 2]
 
     Server1 --&gt; Redis[(Redis Pub/Sub)]
-    Server2 --&gt; Redis</div>
+    Server2 --&gt; Redis</code></pre>
 <p><strong>Problem 2: Connection limits</strong></p>
 <p>Each WebSocket connection uses a file descriptor. Servers have limits on open file descriptors.</p>
 <p><strong>Solution:</strong> Tune OS limits, use connection pooling, or use multiple server instances.</p>
@@ -3988,12 +3988,12 @@ This adds 1 round-trip before any data can flow.</p>
 <h2 id="proxies-and-load-balancers">Proxies and Load Balancers<a class="headerlink" href="#proxies-and-load-balancers" title="Permanent link">&para;</a></h2>
 <h3 id="forward-proxy">Forward Proxy<a class="headerlink" href="#forward-proxy" title="Permanent link">&para;</a></h3>
 <p>A forward proxy sits between clients and the internet. Clients talk to the proxy, proxy talks to servers.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Client1[Client] --&gt; Proxy[Forward Proxy]
     Client2[Client] --&gt; Proxy
     Proxy --&gt; Internet[Internet]
     Internet --&gt; Server1[Server]
-    Internet --&gt; Server2[Server]</div>
+    Internet --&gt; Server2[Server]</code></pre>
 <p><strong>Use cases:</strong>
 - <strong>Privacy:</strong> Hide client IP from servers
 - <strong>Filtering:</strong> Block certain sites (corporate/school)
@@ -4001,11 +4001,11 @@ This adds 1 round-trip before any data can flow.</p>
 - <strong>Bypass restrictions:</strong> Access geo-blocked content</p>
 <h3 id="reverse-proxy">Reverse Proxy<a class="headerlink" href="#reverse-proxy" title="Permanent link">&para;</a></h3>
 <p>A reverse proxy sits between clients and your servers. Clients talk to the proxy, proxy routes to servers.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Internet[Internet] --&gt; Proxy[Reverse Proxy]
     Proxy --&gt; Server1[Server 1]
     Proxy --&gt; Server2[Server 2]
-    Proxy --&gt; Server3[Server 3]</div>
+    Proxy --&gt; Server3[Server 3]</code></pre>
 <p><strong>Use cases:</strong>
 - <strong>Load balancing:</strong> Distribute requests across servers
 - <strong>SSL termination:</strong> Handle HTTPS, send HTTP to backend
@@ -4329,10 +4329,6 @@ Injecting malicious code through user input.</p>
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

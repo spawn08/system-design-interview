@@ -2493,6 +2493,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3349,6 +3358,143 @@
 </span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="c1"># data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;choices&quot;:[{&quot;delta&quot;:{},&quot;finish_reason&quot;:&quot;stop&quot;}]}</span>
 </span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1"># data: [DONE]</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A production LLM chatbot is assembled from <strong>inference engine + conversation storage + safety classification + model routing strategy</strong>. Each decision affects cost per query, latency, and safety posture.</p>
+<h4 id="llm-inference-engine">LLM inference engine<a class="headerlink" href="#llm-inference-engine" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>PagedAttention for near-zero KV-cache waste; continuous batching; OpenAI-compatible API</td>
+<td>Tensor parallelism only (no pipeline); less mature on AMD GPUs</td>
+<td>Default for production on NVIDIA GPUs with throughput as primary concern</td>
+</tr>
+<tr>
+<td><strong>TensorRT-LLM (NVIDIA)</strong></td>
+<td>Highest absolute throughput; fused kernels; in-flight batching</td>
+<td>NVIDIA-only; complex build pipeline; less flexible for custom models</td>
+<td>Maximum tokens/second on fixed NVIDIA fleet</td>
+</tr>
+<tr>
+<td><strong>SGLang</strong></td>
+<td>Radix attention for prefix caching; structured generation support</td>
+<td>Smaller community; fewer production deployments</td>
+<td>When prefix caching (repeated system prompts) is a critical lever</td>
+</tr>
+<tr>
+<td><strong>TGI (HuggingFace)</strong></td>
+<td>Easy to deploy; good model hub integration; token streaming built in</td>
+<td>Lower throughput at high concurrency</td>
+<td>Quick prototyping or low-scale deployments</td>
+</tr>
+</tbody>
+</table>
+<h4 id="conversation-storage">Conversation storage<a class="headerlink" href="#conversation-storage" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spanner / CockroachDB</strong></td>
+<td>Globally consistent; interleaved tables for conversation locality</td>
+<td>Expensive at scale; Spanner GCP-only; CockroachDB adds ops complexity</td>
+<td>Global consistency and relational queries required</td>
+</tr>
+<tr>
+<td><strong>DynamoDB / Bigtable</strong></td>
+<td>Massive scale; low-latency point reads; natural row-key design</td>
+<td>No cross-row transactions; poor for ad-hoc analytics</td>
+<td>Scale exceeds relational limits; queries are primarily key-based</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Open-source; mature; JSONB for flexible messages; strong ecosystem</td>
+<td>Single-region default; sharding needs extensions (Citus)</td>
+<td>Smaller deployments; avoiding vendor lock-in</td>
+</tr>
+</tbody>
+</table>
+<h4 id="safety-classification">Safety classification<a class="headerlink" href="#safety-classification" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cascade: keyword + FastText + LLM</strong></td>
+<td>Layered cost: 99% handled by cheap filters; LLM only for ambiguous cases</td>
+<td>Keyword lists need maintenance; FastText has limited nuance</td>
+<td>Default for high-throughput where per-query safety cost must stay low</td>
+</tr>
+<tr>
+<td><strong>Dedicated safety LLM (Llama Guard)</strong></td>
+<td>High accuracy; understands context and nuance</td>
+<td>50-100ms per call; requires dedicated GPU capacity</td>
+<td>Safety accuracy is paramount (children's products, regulated)</td>
+</tr>
+<tr>
+<td><strong>Third-party API (OpenAI Moderation)</strong></td>
+<td>Zero ops; continuously updated; broad language coverage</td>
+<td>Data leaves infrastructure; external latency</td>
+<td>Prototyping or when internal models aren't mature</td>
+</tr>
+</tbody>
+</table>
+<h4 id="model-routing-strategy">Model routing strategy<a class="headerlink" href="#model-routing-strategy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tiered routing (7B + 70B)</strong></td>
+<td>Route simple queries to cheap model; complex to flagship; 3-5x cost reduction</td>
+<td>Requires query classifier; misrouted queries degrade quality</td>
+<td>Default for cost-sensitive production where complexity varies</td>
+</tr>
+<tr>
+<td><strong>Single flagship (70B)</strong></td>
+<td>Simplest; consistent quality; one model to monitor</td>
+<td>Highest cost; over-provisioned for simple queries</td>
+<td>Early-stage where quality is the only priority</td>
+</tr>
+<tr>
+<td><strong>Speculative decoding (1B draft + 70B target)</strong></td>
+<td>2-3x speedup with identical output quality</td>
+<td>Added complexity; draft model must match target</td>
+<td>Latency reduction without sacrificing quality</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>vLLM</strong> as inference engine (PagedAttention delivers 2-4x more concurrent requests per GPU, directly reducing cost). <strong>Tiered routing</strong> with 7B for simple queries (60-70% of traffic) and 70B for complex, using a lightweight classifier (distilled BERT, sub-5ms). <strong>Spanner</strong> for conversation storage (global consistency, interleaved tables) with <strong>Redis</strong> caching active conversation windows. <strong>Three-stage safety cascade</strong> (keyword → FastText → Llama Guard) keeping average overhead under 2ms while maintaining accuracy on edge cases.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> The KV-cache memory discussion shows depth. KV-cache per request often exceeds the model weights themselves (10 GB for 70B at 4096 context). PagedAttention solves this the same way virtual memory solved physical memory fragmentation -- this analogy resonates with systems-minded interviewers.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3392,7 +3538,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
@@ -3451,7 +3597,7 @@
     serve --&gt; stor
     safe --&gt; AuditLog
     cli --&gt; fb
-    fb --&gt; Eval</div>
+    fb --&gt; Eval</code></pre>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3668,7 +3814,7 @@
 </span><span id="__span-11-95"><a id="__codelineno-11-95" name="__codelineno-11-95" href="#__codelineno-11-95"></a><span class="n">EOS_TOKEN</span> <span class="o">=</span> <span class="mi">2</span>
 </span></code></pre></div>
 <h3 id="43-streaming-architecture">4.3 Streaming Architecture<a class="headerlink" href="#43-streaming-architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant Client
     participant Gateway
     participant Safety
@@ -3693,7 +3839,7 @@
         Gateway--&gt;&gt;Client: SSE: data: {"error": "response_filtered"}
     end
 
-    Gateway-&gt;&gt;Gateway: log(audit_record)</div>
+    Gateway-&gt;&gt;Gateway: log(audit_record)</code></pre>
 <p><strong>Key design decisions for streaming:</strong></p>
 <table>
 <thead>
@@ -3727,7 +3873,7 @@
 </tbody>
 </table>
 <h3 id="44-safety-pipeline">4.4 Safety Pipeline<a class="headerlink" href="#44-safety-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph inp["Input Safety - Pre-Generation"]
         I1[Keyword&lt;br/&gt;Blocklist] --&gt; I2[ML Classifier&lt;br/&gt;FastText]
         I2 --&gt; I3[LLM Safety&lt;br/&gt;Classifier]
@@ -3746,7 +3892,7 @@
 
     inp --&gt;|SAFE| gen
     gen --&gt; out
-    inp --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</div>
+    inp --&gt;|BLOCKED| Reject[Return safe&lt;br/&gt;refusal message]</code></pre>
 <p><strong>Cascade design — fast filters first:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SafetyPipeline</span><span class="p">:</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-stage safety pipeline. Fast checks first, expensive checks last.&quot;&quot;&quot;</span>
@@ -3886,7 +4032,7 @@
 </tbody>
 </table>
 <h3 id="46-model-routing-and-ab-testing">4.6 Model Routing and A/B Testing<a class="headerlink" href="#46-model-routing-and-ab-testing" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Request[User Request] --&gt; Router{Model Router}
     Router --&gt;|"90%"| ModelA[Gemini Pro&lt;br/&gt;Production]
     Router --&gt;|"5%"| ModelB[Gemini Pro v2&lt;br/&gt;Experiment A]
@@ -3895,7 +4041,7 @@
     ModelA --&gt; Logger[Metrics Logger]
     ModelB --&gt; Logger
     ModelC --&gt; Logger
-    Logger --&gt; Dashboard[A/B Dashboard]</div>
+    Logger --&gt; Dashboard[A/B Dashboard]</code></pre>
 <p><strong>Routing criteria:</strong></p>
 <table>
 <thead>
@@ -3958,7 +4104,7 @@
 </span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">  </span><span class="n">INTERLEAVE</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">PARENT</span><span class="w"> </span><span class="n">conversations</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">;</span>
 </span></code></pre></div>
 <h3 id="48-evaluation-and-feedback-loop">4.8 Evaluation and Feedback Loop<a class="headerlink" href="#48-evaluation-and-feedback-loop" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph onl["Online Signals"]
         ThumbsUp["Thumbs Up / Down"]
         Regen[Regenerate Clicks]
@@ -3983,7 +4129,7 @@
     offl --&gt; trainp
     trainp --&gt; NewModel[New Model&lt;br/&gt;Candidate]
     NewModel --&gt; ABTest[A/B Test]
-    ABTest --&gt; Production[Promote to&lt;br/&gt;Production]</div>
+    ABTest --&gt; Production[Promote to&lt;br/&gt;Production]</code></pre>
 <p><strong>Evaluation dimensions:</strong></p>
 <table>
 <thead>
@@ -4385,10 +4531,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

@@ -2547,6 +2547,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3309,6 +3318,112 @@
 </span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a>    <span class="s2">&quot;time_to_accept_ms&quot;</span><span class="p">:</span> <span class="mi">1200</span>
 </span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A production AI code assistant requires choosing across <strong>completion model + code parsing/indexing + context retrieval + IDE integration layer</strong>. Each directly affects latency, accuracy, and developer experience.</p>
+<h4 id="completion-model">Completion model<a class="headerlink" href="#completion-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>StarCoder2 (3B/7B/15B)</strong></td>
+<td>Open-weight; strong fill-in-the-middle (FIM) support; trained on permissive licenses</td>
+<td>Smaller context than proprietary models; weaker on rare languages</td>
+<td>Default for inline completions; on-prem deployment needed</td>
+</tr>
+<tr>
+<td><strong>CodeLlama (7B/13B/34B)</strong></td>
+<td>Excellent infilling via FIM training; long context (100K)</td>
+<td>Meta license restrictions at scale; 34B too slow for inline</td>
+<td>Long-context understanding; licensing acceptable</td>
+</tr>
+<tr>
+<td><strong>GPT-4o / Claude (API)</strong></td>
+<td>Highest reasoning quality; broad language coverage</td>
+<td>Latency too high for inline (300ms+); cost; privacy concerns</td>
+<td>Chat surface only; enterprises accepting cloud inference</td>
+</tr>
+<tr>
+<td><strong>DeepSeek-Coder-V2</strong></td>
+<td>State-of-the-art benchmarks; MoE reduces active parameters</td>
+<td>Large download; MoE inference needs careful memory management</td>
+<td>Benchmark accuracy over operational simplicity</td>
+</tr>
+</tbody>
+</table>
+<h4 id="code-parsing-indexing">Code parsing &amp; indexing<a class="headerlink" href="#code-parsing-indexing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tree-sitter</strong></td>
+<td>Incremental parsing; 50+ grammars; sub-ms updates; battle-tested in editors</td>
+<td>Grammar quality varies; no semantic type resolution</td>
+<td>Default for real-time AST extraction and symbol-level chunking</td>
+</tr>
+<tr>
+<td><strong>Language Server Protocol (LSP)</strong></td>
+<td>Full semantic understanding (types, go-to-definition, references)</td>
+<td>Heavy per-language setup; latency too high for inline path</td>
+<td>Precise type-aware cross-file resolution beyond syntax</td>
+</tr>
+<tr>
+<td><strong>SCIP / LSIF index</strong></td>
+<td>Pre-computed precise code intelligence; language-agnostic format</td>
+<td>Requires CI to generate; stale between builds</td>
+<td>Enterprise repos with CI pipelines where pre-indexed precision is justified</td>
+</tr>
+</tbody>
+</table>
+<h4 id="context-retrieval">Context retrieval<a class="headerlink" href="#context-retrieval" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code-specific embedding (StarEncoder, Jina-Code)</strong></td>
+<td>Trained on code; understands syntax and semantics</td>
+<td>Smaller community; fewer pre-trained options</td>
+<td>Default for code similarity search in snippet retriever</td>
+</tr>
+<tr>
+<td><strong>BM25 / sparse retrieval</strong></td>
+<td>No GPU required; fast; excellent for exact identifier matching</td>
+<td>Misses semantic similarity</td>
+<td>Hybrid alongside dense embeddings for keyword precision</td>
+</tr>
+<tr>
+<td><strong>General text embedding (text-embedding-3-small)</strong></td>
+<td>Widely available; good zero-shot on code</td>
+<td>Not optimized for code structure</td>
+<td>Quick bootstrap before code-specific models</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>StarCoder2-7B</strong> for inline completions (fits on a single A100 with room for KV-cache, sub-200ms latency) and a <strong>70B chat model</strong> for the chat surface (tolerates higher latency, stronger reasoning). <strong>Tree-sitter</strong> for real-time parsing supplemented by <strong>SCIP/LSIF</strong> for enterprise repos. <strong>Hybrid retrieval</strong> (code-specific embeddings + BM25) for context, keeping combined latency under 20ms. Dedicated <strong>VS Code and JetBrains plugins</strong> using native completion APIs for proper ghost-text rendering.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> The completion model choice is inseparable from the latency budget. A 70B model cannot serve inline completions at 200ms without aggressive speculative decoding or distillation. Showing awareness of this coupling signals real-world experience.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3361,7 +3476,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph ide["IDE Plugin Layer"]
         VSCode[VS Code&lt;br/&gt;Extension]
         JetBrains[JetBrains&lt;br/&gt;Plugin]
@@ -3408,7 +3523,7 @@
     srv --&gt; post
     post --&gt; gw
     gw --&gt; ide
-    ide --&gt; tel</div>
+    ide --&gt; tel</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-context-assembly-pipeline">4.1 Context Assembly Pipeline<a class="headerlink" href="#41-context-assembly-pipeline" title="Permanent link">&para;</a></h3>
@@ -3530,7 +3645,7 @@
 </span><span id="__span-10-60"><a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a>        <span class="k">return</span> <span class="kc">False</span>
 </span></code></pre></div>
 <h3 id="43-repository-indexing-pipeline">4.3 Repository Indexing Pipeline<a class="headerlink" href="#43-repository-indexing-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph trig["Triggers"]
         Clone[Repo Clone]
         Push[Git Push]
@@ -3550,7 +3665,7 @@
         DepGraph[(Dependency Graph)]
     end
 
-    trig --&gt; pipe --&gt; istore</div>
+    trig --&gt; pipe --&gt; istore</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">RepositoryIndexer</span><span class="p">:</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Index a repository for code-aware context retrieval.&quot;&quot;&quot;</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
@@ -3721,7 +3836,7 @@
 </tbody>
 </table>
 <h3 id="46-ide-integration-architecture">4.6 IDE Integration Architecture<a class="headerlink" href="#46-ide-integration-architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant Dev as Developer
     participant IDE as IDE
     participant Plugin as Extension
@@ -3750,7 +3865,7 @@
     else Developer keeps typing
         Dev-&gt;&gt;IDE: Reject (keep typing)
         Plugin-&gt;&gt;Server: POST /telemetry (rejected)
-    end</div>
+    end</code></pre>
 <p><strong>Debouncing strategy:</strong></p>
 <table>
 <thead>
@@ -4069,10 +4184,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

@@ -2496,6 +2496,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3071,14 +3080,14 @@
 <hr />
 <h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="the-rag-pipeline">The RAG Pipeline<a class="headerlink" href="#the-rag-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Q[User Query] --&gt; QU[Query&lt;br/&gt;Understanding]
     QU --&gt; Retrieval[Retrieval&lt;br/&gt;BM25 + Dense]
     Retrieval --&gt; Rerank[Re-Ranking&lt;br/&gt;Cross-Encoder]
     Rerank --&gt; Prompt[Prompt&lt;br/&gt;Assembly]
     Prompt --&gt; LLM[LLM&lt;br/&gt;Generation]
     LLM --&gt; Citation[Citation&lt;br/&gt;Injection]
-    Citation --&gt; Answer[Cited&lt;br/&gt;Answer]</div>
+    Citation --&gt; Answer[Cited&lt;br/&gt;Answer]</code></pre>
 <h3 id="chunking-strategies">Chunking Strategies<a class="headerlink" href="#chunking-strategies" title="Permanent link">&para;</a></h3>
 <p>Documents must be split into chunks for embedding. Chunking quality directly determines retrieval quality.</p>
 <table>
@@ -3380,6 +3389,149 @@
 </span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>    <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;conv-123&quot;</span>
 </span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>An enterprise RAG system is built from <strong>vector store + embedding model + LLM + retrieval strategy + document processing pipeline + access control layer</strong>. The right combination depends on corpus size, latency budget, accuracy requirements, and security constraints.</p>
+<h4 id="vector-store">Vector store<a class="headerlink" href="#vector-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pinecone</strong></td>
+<td>Fully managed, low-ops, metadata filtering, namespace isolation, fast ANN</td>
+<td>Vendor lock-in; cost scales with vector count; limited self-hosting</td>
+<td>Teams wanting managed infrastructure; rapid prototyping to production</td>
+</tr>
+<tr>
+<td><strong>Weaviate</strong></td>
+<td>Hybrid search (vector + BM25 built-in), GraphQL API, multi-tenancy, open-source</td>
+<td>Higher operational complexity self-hosted; memory-hungry for large indexes</td>
+<td>When hybrid retrieval and open-source are both requirements</td>
+</tr>
+<tr>
+<td><strong>pgvector (PostgreSQL)</strong></td>
+<td>Leverage existing Postgres infra; ACID; combine with relational queries; low cost</td>
+<td>Slower ANN at scale (no HNSW sharding); limited to single-node index performance</td>
+<td>Moderate corpus size (&lt;10M vectors); teams already on PostgreSQL</td>
+</tr>
+<tr>
+<td><strong>Milvus</strong></td>
+<td>High-performance distributed ANN; GPU-accelerated; open-source; multiple index types</td>
+<td>Complex cluster operations; steep learning curve; resource-intensive</td>
+<td>Billion-scale vector search; teams needing fine-grained index tuning</td>
+</tr>
+</tbody>
+</table>
+<h4 id="embedding-model">Embedding model<a class="headerlink" href="#embedding-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenAI text-embedding-3-large</strong></td>
+<td>High quality; simple API; 3072 dimensions (configurable); Matryoshka support</td>
+<td>External API dependency; data leaves your network; per-token cost</td>
+<td>Fast deployment; non-sensitive data; strong baseline quality</td>
+</tr>
+<tr>
+<td><strong>Cohere Embed v3</strong></td>
+<td>Strong multilingual support; compression-aware training; search-optimized</td>
+<td>External dependency; cost at high volume</td>
+<td>Multilingual enterprise corpora</td>
+</tr>
+<tr>
+<td><strong>Self-hosted (e5-large, BGE, GTE)</strong></td>
+<td>Full data control; no per-call cost; fine-tunable on domain data</td>
+<td>GPU infrastructure needed; quality may lag frontier models without fine-tuning</td>
+<td>Strict data residency; high volume where API costs are prohibitive</td>
+</tr>
+<tr>
+<td><strong>Sentence-Transformers (all-MiniLM)</strong></td>
+<td>Lightweight; fast inference; good for prototyping</td>
+<td>Lower quality on complex queries; 384 dimensions limits expressiveness</td>
+<td>Development/testing; edge deployment; cost-sensitive low-stakes use</td>
+</tr>
+</tbody>
+</table>
+<h4 id="llm-for-generation">LLM for generation<a class="headerlink" href="#llm-for-generation" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPT-4o / GPT-4 Turbo</strong></td>
+<td>Strong reasoning; large context window (128K); good instruction following</td>
+<td>Cost; external API; latency for long contexts</td>
+<td>High-stakes Q&amp;A where answer quality is paramount</td>
+</tr>
+<tr>
+<td><strong>Claude 3.5 Sonnet / Claude 4</strong></td>
+<td>Excellent long-context handling (200K); strong citation behavior; safety features</td>
+<td>External API; cost</td>
+<td>Long-document synthesis; safety-sensitive enterprise use</td>
+</tr>
+<tr>
+<td><strong>Self-hosted (Llama 3, Mixtral)</strong></td>
+<td>Full data control; no per-token cost; customizable</td>
+<td>GPU infrastructure; quality gap vs frontier models; maintenance burden</td>
+<td>Strict data sovereignty; high-volume low-complexity queries</td>
+</tr>
+</tbody>
+</table>
+<h4 id="retrieval-strategy">Retrieval strategy<a class="headerlink" href="#retrieval-strategy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hybrid (BM25 + dense + reranker)</strong></td>
+<td>Best recall; handles both keyword and semantic queries; reranker boosts precision</td>
+<td>Three components to maintain; higher latency (reranker adds ~100ms)</td>
+<td>Production enterprise RAG where recall matters most</td>
+</tr>
+<tr>
+<td><strong>Dense-only</strong></td>
+<td>Simple pipeline; good semantic understanding</td>
+<td>Misses exact keyword matches; struggles with rare terms and entity names</td>
+<td>Homogeneous corpus with consistent language</td>
+</tr>
+<tr>
+<td><strong>BM25-only</strong></td>
+<td>Fast; no embedding infra; interpretable scores</td>
+<td>No semantic understanding; misses synonyms and paraphrases</td>
+<td>Structured corpora with consistent terminology (e.g., legal codes)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Always start with hybrid retrieval as your default — the combination of BM25 for exact term matching and dense embeddings for semantic understanding covers the most failure modes. The cross-encoder reranker is the single biggest quality lever: it costs ~100ms but dramatically improves precision in the top-5.</p>
+</div>
+<p><strong>Our choice:</strong> <strong>Pinecone</strong> (or Weaviate for open-source requirements) as the vector store for managed ANN with metadata filtering and namespace-based tenant isolation. <strong>OpenAI text-embedding-3-large</strong> for embeddings as the quality baseline, with a migration path to self-hosted models for data-sensitive deployments. <strong>Claude or GPT-4o</strong> for generation, chosen for strong citation behavior and large context windows. <strong>Hybrid retrieval (BM25 + dense + cross-encoder reranker)</strong> as the retrieval strategy because enterprise corpora mix jargon-heavy exact-match needs with semantic similarity. This stack optimizes for <strong>answer quality and auditability</strong> — the two non-negotiables in enterprise RAG.</p>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3427,7 +3579,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph ingest["Ingestion Pipeline"]
         Connectors[Source Connectors&lt;br/&gt;Drive, Confluence, Slack]
         Parser[Document Parser&lt;br/&gt;PDF, HTML, Markdown]
@@ -3474,11 +3626,11 @@
 
     CitationEngine --&gt; FeedbackAPI
     FeedbackAPI --&gt; EvalPipeline
-    EvalPipeline --&gt; Analytics</div>
+    EvalPipeline --&gt; Analytics</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-ingestion-pipeline">4.1 Ingestion Pipeline<a class="headerlink" href="#41-ingestion-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph src["Data Sources"]
         GDrive[Google Drive]
         Confluence[Confluence]
@@ -3507,7 +3659,7 @@
         Meta[(Metadata Store)]
     end
 
-    src --&gt; conn --&gt; proc --&gt; stor</div>
+    src --&gt; conn --&gt; proc --&gt; stor</code></pre>
 <p><strong>Connector design per source:</strong></p>
 <table>
 <thead>
@@ -3854,7 +4006,7 @@
 </tbody>
 </table>
 <h3 id="46-incremental-index-updates">4.6 Incremental Index Updates<a class="headerlink" href="#46-incremental-index-updates" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph evts["Change Events"]
         Create[Doc Created]
         Update[Doc Updated]
@@ -3878,7 +4030,7 @@
         ACL[(ACL Index)]
     end
 
-    evts --&gt; qu --&gt; wrk --&gt; indx</div>
+    evts --&gt; qu --&gt; wrk --&gt; indx</code></pre>
 <p><strong>Update strategies:</strong></p>
 <table>
 <thead>
@@ -4214,10 +4366,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

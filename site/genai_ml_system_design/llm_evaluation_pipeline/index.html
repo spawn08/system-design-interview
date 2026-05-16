@@ -2751,6 +2751,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3247,7 +3256,7 @@
 </tbody>
 </table>
 <p><strong>Best practice:</strong> Offline gates <strong>block</strong> obviously bad releases; online experiments <strong>validate</strong> impact on <strong>task completion</strong>, <strong>CSAT</strong>, <strong>safety incidents</strong>, and <strong>cost</strong>.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph Offline["Offline"]
         B[Benchmarks]
         M[Task Metrics]
@@ -3262,7 +3271,7 @@
     end
     Offline --&gt;|release candidate| Ship[Ship / Canary]
     Ship --&gt; Online
-    Online --&gt;|feedback loops| Offline</div>
+    Online --&gt;|feedback loops| Offline</code></pre>
 <h3 id="automated-benchmarks-regression-detection">Automated Benchmarks (Regression Detection)<a class="headerlink" href="#automated-benchmarks-regression-detection" title="Permanent link">&para;</a></h3>
 <p><strong>Standard suites</strong> (e.g. <strong>MMLU</strong>, <strong>HumanEval</strong>, <strong>GSM8K</strong>) provide <strong>comparable</strong> scores across model versions. In production systems you rarely run <strong>full</strong> public sets continuously; you run <strong>representative subsets</strong>, <strong>internal mirrors</strong>, or <strong>task-aligned</strong> derivatives with <strong>licensing</strong> clearance.</p>
 <table>
@@ -3529,6 +3538,118 @@
 </span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="s2">&quot;artifacts_uri&quot;</span><span class="p">:</span> <span class="s2">&quot;s3://eval-artifacts/eru_8f3c2a/&quot;</span>
 </span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The evaluation pipeline is assembled from <strong>workflow orchestration + metric computation + LLM judge infrastructure + human evaluation tooling</strong>. Each choice shapes cost, latency, reproducibility, and organizational adoption.</p>
+<h4 id="workflow-orchestration">Workflow orchestration<a class="headerlink" href="#workflow-orchestration" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Temporal / Cadence</strong></td>
+<td>Durable execution with retries and timeouts; code-first workflows; shard-level checkpointing</td>
+<td>Steeper learning curve; smaller plugin ecosystem than Airflow</td>
+<td>Long-running eval runs with spot preemption; need shard-level resume</td>
+</tr>
+<tr>
+<td><strong>Airflow</strong></td>
+<td>Mature ecosystem; rich operator library; DAG-native scheduling</td>
+<td>Scheduler bottlenecks at high fan-out; cold-start latency</td>
+<td>Established data-eng orgs; moderate eval cadence (nightly runs)</td>
+</tr>
+<tr>
+<td><strong>Argo Workflows (K8s)</strong></td>
+<td>Kubernetes-native; container-per-step isolation; native GPU scheduling</td>
+<td>Tied to K8s; YAML-heavy; debugging opaque</td>
+<td>GPU-heavy eval pipelines already on K8s</td>
+</tr>
+<tr>
+<td><strong>Step Functions / Cloud Workflows</strong></td>
+<td>Serverless; pay-per-invocation; built-in error handling</td>
+<td>Vendor lock-in; expression limits; payload size caps</td>
+<td>Cloud-native shops wanting minimal infra; smaller eval scale</td>
+</tr>
+</tbody>
+</table>
+<h4 id="llm-judge-provider">LLM judge provider<a class="headerlink" href="#llm-judge-provider" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontier API (GPT-4o, Claude 3.5 Sonnet)</strong></td>
+<td>Highest reasoning quality; strong rubric adherence; no GPU infra</td>
+<td>Cost at scale; rate limits; data leaves compliance boundary</td>
+<td>High-stakes release gates; safety-sensitive dimensions</td>
+</tr>
+<tr>
+<td><strong>Self-hosted open model (Llama 3, Mixtral)</strong></td>
+<td>Full data control; no per-call cost; no rate limits</td>
+<td>Lower rubric fidelity; GPU fleet overhead; calibration drift</td>
+<td>Regulated environments; very high volume judge calls (millions/day)</td>
+</tr>
+<tr>
+<td><strong>Distilled evaluator (fine-tuned small model)</strong></td>
+<td>Cheapest per call; fastest latency; tailored to your rubric</td>
+<td>Requires labeled data to train; narrow domain; maintenance burden</td>
+<td>Bulk screening tier before expensive frontier judges</td>
+</tr>
+<tr>
+<td><strong>Multi-judge ensemble</strong></td>
+<td>Reduces position bias; higher agreement with human preferences</td>
+<td>Multiplicative cost; fusion logic adds complexity</td>
+<td>Critical release gates; when single-judge variance is unacceptable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="metric-storage">Metric storage<a class="headerlink" href="#metric-storage" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BigQuery / Snowflake</strong></td>
+<td>Serverless OLAP; SQL-native slicing; scales to petabytes</td>
+<td>Query latency not ideal for real-time dashboards</td>
+<td>Primary warehouse for eval results; ad-hoc analyst queries</td>
+</tr>
+<tr>
+<td><strong>ClickHouse</strong></td>
+<td>Sub-second OLAP; excellent high-cardinality drill-down; open-source</td>
+<td>Operational burden if self-hosted</td>
+<td>Low-latency dashboards; real-time regression detection</td>
+</tr>
+<tr>
+<td><strong>DuckDB (embedded)</strong></td>
+<td>Zero-infra for local analysis; native Parquet support</td>
+<td>Single-node only; not a production serving layer</td>
+<td>CI metric validation; developer notebooks; prototyping</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Temporal</strong> for orchestration (durable execution handles long-running, retry-heavy eval jobs with shard-level checkpointing). <strong>Frontier API judges</strong> (Claude 3.5 Sonnet or GPT-4o) gated behind stratified sampling and hash-based caching for cost control, with a <strong>distilled screening tier</strong> for high-volume nightly runs. <strong>BigQuery/Snowflake</strong> for metric storage with SQL-native slicing and long retention. This optimizes for reproducibility (Temporal event history), judge quality on release gates (frontier models), and cost discipline (distilled bulk screening + caching).</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> "Why not just Airflow?" Eval runs with 100K items, judge retries on rate limits, and spot-preempted GPU workers benefit from Temporal's built-in checkpointing, whereas Airflow requires custom idempotency logic per operator.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic-orchestration-scoring">Traffic (Orchestration &amp; Scoring)<a class="headerlink" href="#traffic-orchestration-scoring" title="Permanent link">&para;</a></h3>
@@ -3668,7 +3789,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph Sources["Data &amp; Config"]
         DS[Dataset Registry]
         GR[Golden Dataset Manager]
@@ -3720,7 +3841,7 @@
     LJS --&gt; DW
     STE --&gt; DW
     DW --&gt; DASH
-    DW --&gt; ALT</div>
+    DW --&gt; ALT</code></pre>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3765,7 +3886,7 @@
 </tbody>
 </table>
 <h3 id="evaluation-pipeline-flow-offline">Evaluation Pipeline Flow (Offline)<a class="headerlink" href="#evaluation-pipeline-flow-offline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     A[Select suites + model candidates] --&gt; B[Materialize run manifest]
     B --&gt; C[Shard work units]
     C --&gt; D[Generate completions]
@@ -3778,9 +3899,9 @@
     H --&gt; I
     I --&gt; J[Gates vs thresholds]
     J --&gt;|pass| K[Publish report]
-    J --&gt;|fail| L[Block / notify owner]</div>
+    J --&gt;|fail| L[Block / notify owner]</code></pre>
 <h3 id="online-ab-testing-framework">Online A/B Testing Framework<a class="headerlink" href="#online-ab-testing-framework" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     U[User request] --&gt; FE[Feature flags / Assigner]
     FE --&gt;|stable bucket| M[Model arm A/B]
     M --&gt; R[Response]
@@ -3792,9 +3913,9 @@
         SLT[Safety real-time tier]
         CAP[Spend caps]
     end
-    M --&gt; Guardrails</div>
+    M --&gt; Guardrails</code></pre>
 <h3 id="llm-as-judge-scoring-flow">LLM-as-Judge Scoring Flow<a class="headerlink" href="#llm-as-judge-scoring-flow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     autonumber
     participant O as Orchestrator
     participant G as Generation Worker
@@ -3812,7 +3933,7 @@
     else cache hit
         C--&gt;&gt;O: cached scores
     end
-    O-&gt;&gt;W: Emit EvalScoreRow (immutable)</div>
+    O-&gt;&gt;W: Emit EvalScoreRow (immutable)</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-data-model-for-evaluation-results">4.1 Data Model for Evaluation Results<a class="headerlink" href="#41-data-model-for-evaluation-results" title="Permanent link">&para;</a></h3>
@@ -4611,10 +4732,6 @@ R_A' = R_A + K \cdot (S_A - E_A)
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

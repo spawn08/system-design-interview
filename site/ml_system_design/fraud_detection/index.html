@@ -2221,6 +2221,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3172,7 +3181,7 @@
 </tbody>
 </table>
 <h3 id="the-detection-challenge">The Detection Challenge<a class="headerlink" href="#the-detection-challenge" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph Reality [Reality]
         direction TB
         Legit[99.9% Legitimate]
@@ -3187,7 +3196,7 @@
         C4[Evolving patterns]
     end
 
-    Reality --&gt; Challenge</div>
+    Reality --&gt; Challenge</code></pre>
 <hr />
 <h2 id="ml-concepts-for-fraud-detection">ML Concepts for Fraud Detection<a class="headerlink" href="#ml-concepts-for-fraud-detection" title="Permanent link">&para;</a></h2>
 <h3 id="why-its-difficult">Why It's Difficult<a class="headerlink" href="#why-its-difficult" title="Permanent link">&para;</a></h3>
@@ -3430,10 +3439,112 @@
 </tr>
 </tbody>
 </table>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A real-time fraud detection system is built from <strong>ML model + feature store + streaming engine + model serving layer</strong>. Each choice affects detection latency, accuracy, and explainability.</p>
+<h4 id="ml-model">ML model<a class="headerlink" href="#ml-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gradient Boosted Trees (XGBoost/LightGBM)</strong></td>
+<td>Fast inference (~1ms); excellent on tabular features; interpretable with SHAP</td>
+<td>Cannot learn from raw sequences; feature engineering required</td>
+<td>Default for transaction fraud with engineered features; regulatory explainability</td>
+</tr>
+<tr>
+<td><strong>Neural network (MLP / Transformer)</strong></td>
+<td>Learns complex patterns; handles sequential data; higher ceiling</td>
+<td>Slower inference; less interpretable; needs more training data</td>
+<td>Large-scale with rich sequential signals (session sequences, click streams)</td>
+</tr>
+<tr>
+<td><strong>Ensemble (GBT + neural)</strong></td>
+<td>Best accuracy; GBT handles tabular, neural handles sequences</td>
+<td>Complex serving; two models to maintain; longer latency</td>
+<td>When marginal accuracy gains justify operational complexity</td>
+</tr>
+<tr>
+<td><strong>Rules engine (first layer)</strong></td>
+<td>Sub-ms; deterministic; handles known patterns; fully explainable</td>
+<td>Cannot generalize; maintenance burden grows with rule count</td>
+<td>Always as first layer; catches obvious fraud before ML</td>
+</tr>
+</tbody>
+</table>
+<h4 id="feature-store">Feature store<a class="headerlink" href="#feature-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Feast</strong></td>
+<td>Open-source; supports online/offline stores; good community</td>
+<td>Limited real-time feature computation; needs separate streaming infra</td>
+<td>Default open-source choice; batch + real-time features</td>
+</tr>
+<tr>
+<td><strong>Tecton</strong></td>
+<td>Purpose-built for real-time ML; streaming feature computation; managed</td>
+<td>Cost; vendor lock-in; opinionated architecture</td>
+<td>When real-time feature freshness is critical and budget allows</td>
+</tr>
+<tr>
+<td><strong>Redis + custom pipeline</strong></td>
+<td>Sub-ms reads; full control; simple for point lookups</td>
+<td>Must build feature computation, versioning, monitoring yourself</td>
+<td>Simple feature sets; teams preferring custom infra</td>
+</tr>
+</tbody>
+</table>
+<h4 id="streaming-engine">Streaming engine<a class="headerlink" href="#streaming-engine" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Flink</strong></td>
+<td>True streaming; exactly-once; complex event processing; state management</td>
+<td>Operational complexity; steep learning curve</td>
+<td>Default for real-time fraud where stateful window aggregates matter</td>
+</tr>
+<tr>
+<td><strong>Kafka Streams</strong></td>
+<td>Lightweight; embedded in app; no separate cluster</td>
+<td>Less powerful CEP; limited state management at scale</td>
+<td>Simpler streaming needs; teams already deep in Kafka</td>
+</tr>
+<tr>
+<td><strong>Spark Structured Streaming</strong></td>
+<td>Unified batch + stream; familiar Spark API</td>
+<td>Micro-batch adds latency (100ms+); not true streaming</td>
+<td>When unified batch/stream processing outweighs latency needs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Rules engine</strong> as first layer (catches known patterns at sub-ms), followed by <strong>XGBoost/LightGBM</strong> on engineered features for the primary ML scorer (fast inference, SHAP explainability for regulatory compliance). <strong>Feast</strong> for feature store with Redis online backend. <strong>Apache Flink</strong> for real-time feature aggregation (transaction velocity, rolling sums). This stack delivers sub-100ms end-to-end latency with the explainability that regulations demand.</p>
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph ing["Transaction Ingestion"]
         API[Transaction API]
         Stream[Kafka Stream]
@@ -3492,9 +3603,9 @@
     Events --&gt; Analytics
     Actions --&gt; Cases
     Cases --&gt; Labels
-    Labels --&gt; Training</div>
+    Labels --&gt; Training</code></pre>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant Client as Payment Client
     participant API as Scoring API
     participant Features as Feature Service
@@ -3533,7 +3644,7 @@
         Decision--&gt;&gt;Client: ALLOW
     end
 
-    Note over Client,Cases: Total time &lt; 100ms</div>
+    Note over Client,Cases: Total time &lt; 100ms</code></pre>
 <hr />
 <h2 id="step-3-feature-engineering">Step 3: Feature Engineering<a class="headerlink" href="#step-3-feature-engineering" title="Permanent link">&para;</a></h2>
 <p>Features are the heart of fraud detection. The model is only as good as its features.</p>
@@ -4747,10 +4858,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

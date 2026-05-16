@@ -3470,7 +3470,7 @@
 </tbody>
 </table>
 <p><strong>Interview takeaway:</strong> treat the <strong>serving tier as AP-oriented</strong>: prefer <strong>stale suggestions</strong> over <strong>no suggestions</strong> when dependencies are unhealthy (Redis down → trie-only; partial shard → return what you have with lower K). Strong consistency across regions for “everyone sees the same top-10 instantly” is <strong>not</strong> worth the latency cost; <strong>bounded staleness</strong> (snapshot age, overlay TTL) is the right language.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph ap_path["AP-biased serving path"]
     U[User keystroke]
     E[Edge / CDN optional]
@@ -3491,7 +3491,7 @@
     K --&gt; A
   end
 
-  OB -. "async publish / swap" .-&gt; L</div>
+  OB -. "async publish / swap" .-&gt; L</code></pre>
 <p><strong>Why:</strong> the <strong>index</strong> can sacrifice immediate cross-replica consistency because <strong>search logs</strong> are noisy and <strong>rebuilds</strong> are batch-oriented. The <strong>user</strong> cannot sacrifice <strong>prompt feedback</strong>—so the system <strong>prioritizes partition tolerance + availability</strong> on the read path, with <strong>monotonic snapshot versions</strong> to make staleness <strong>explainable</strong> (not random).</p>
 <hr />
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
@@ -3726,7 +3726,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level, separate <strong>online serving</strong> (milliseconds) from <strong>offline / nearline analytics</strong> (minutes to hours) that rebuilds suggestion models.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   Client[Browser / App]
   CDN[CDN / Edge Cache]
   GW[API Gateway]
@@ -3748,7 +3748,7 @@
   SP --&gt; Obj
   SP --&gt; TB
   TB --&gt; Obj
-  TB --&gt; Trie</div>
+  TB --&gt; Trie</code></pre>
 <h3 id="two-major-subsystems">Two major subsystems<a class="headerlink" href="#two-major-subsystems" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Online serving (fast path):</strong> resolve prefix → candidates → rank → filter → respond. Dominated by <strong>in-memory structures</strong> and <strong>caches</strong>.</li>
@@ -4143,7 +4143,7 @@
 <li><strong>Trending</strong> spikes vs baseline (e.g., z-score on deltas)</li>
 </ul>
 <p>Use <strong>sliding windows</strong> (1h, 24h, 7d) with <strong>watermarks</strong> for event time.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   LB[Load Balancer]
   API[Autocomplete API]
   K[Kafka Topics]
@@ -4159,7 +4159,7 @@
   F --&gt; DW
   K --&gt; OFF
   OFF --&gt; JOB
-  JOB --&gt; FS</div>
+  JOB --&gt; FS</code></pre>
 <h4 id="python-batch-aggregation-sketch-pandas-style">Python: batch aggregation sketch (pandas-style)<a class="headerlink" href="#python-batch-aggregation-sketch-pandas-style" title="Permanent link">&para;</a></h4>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -4328,7 +4328,7 @@
 <li><strong>Hash of full query / prefix:</strong> better balance; requires <strong>routing</strong> that preserves prefix locality—often <strong>consistent hashing</strong> on a canonicalized prefix key.</li>
 </ul>
 <p><strong>Replication:</strong> each shard has <strong>N replicas</strong> behind a load balancer for availability.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   R[Shard Router]
   S1["Shard: A-F"]
   S2["Shard: G-M"]
@@ -4342,7 +4342,7 @@
   R --&gt; S3
   S1 --&gt; LB1
   S2 --&gt; LB2
-  S3 --&gt; LB3</div>
+  S3 --&gt; LB3</code></pre>
 <h4 id="go-shard-router">Go: shard router<a class="headerlink" href="#go-shard-router" title="Permanent link">&para;</a></h4>
 <div class="language-go highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">package</span><span class="w"> </span><span class="nx">shard</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4380,7 +4380,7 @@
 </ol>
 <p><strong>Invalidation:</strong> on trie snapshot swap, bump a <strong>generation token</strong> included in cache keys:</p>
 <p><code>ac:v{generation}:{locale}:{prefix}</code></p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   U[User]
   B[Browser Cache]
   E[Edge CDN]
@@ -4392,7 +4392,7 @@
   B --&gt;|miss| E
   E --&gt;|miss| A
   A --&gt; R
-  A --&gt; T</div>
+  A --&gt; T</code></pre>
 <hr />
 <h3 id="48-filtering-safety">4.8 Filtering &amp; Safety<a class="headerlink" href="#48-filtering-safety" title="Permanent link">&para;</a></h3>
 <ul>
@@ -4687,11 +4687,11 @@
 </div>
 <hr />
 <h2 id="failure-modes-resilience">Failure Modes &amp; Resilience<a class="headerlink" href="#failure-modes-resilience" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   A[Autocomplete Pod] --&gt;|timeout| R[Fallback cache-only]
   A --&gt;|overload| RL[Rate limit / shed load]
   R --&gt; E[Empty or stale suggestions]
-  RL --&gt; E</div>
+  RL --&gt; E</code></pre>
 <table>
 <thead>
 <tr>
@@ -5181,7 +5181,7 @@
 </div>
 <hr />
 <h2 id="optional-multi-tier-caching-expanded">Optional: Multi-Tier Caching (Expanded)<a class="headerlink" href="#optional-multi-tier-caching-expanded" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph client [Client]
     D[Debounce 100ms]
     BC[Browser cache]
@@ -5196,7 +5196,7 @@
   D --&gt; BC
   BC --&gt;|miss| CDN
   CDN --&gt;|miss| R
-  R --&gt;|miss| T</div>
+  R --&gt;|miss| T</code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Surrogate keys</strong> at the CDN allow invalidating all keys tied to trie generation <code>vN</code> without enumerating prefixes.</p>
@@ -5330,10 +5330,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

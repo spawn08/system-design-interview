@@ -2242,6 +2242,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3105,14 +3114,14 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph sess["Current session"]
         i1[item_1] --&gt; i2[item_2] --&gt; i3[item_3] --&gt; dots[...]
     end
     subgraph smod["Session model"]
         enc[Encoder] --&gt; logits[Scores over candidates]
     end
-    sess --&gt; enc</div>
+    sess --&gt; enc</code></pre>
 <h3 id="multi-armed-bandits">Multi-Armed Bandits<a class="headerlink" href="#multi-armed-bandits" title="Permanent link">&para;</a></h3>
 <p>Bandits formalize <strong>exploration vs. exploitation</strong>: show items likely to reward (exploit) while still learning (explore). Useful for <strong>cold items</strong>, <strong>new users</strong>, or <strong>slots</strong> where supervised scores are uncertain.</p>
 <table>
@@ -3258,6 +3267,121 @@
 <p class="admonition-title">Tip</p>
 <p>Mention <strong>interleaving</strong> or <strong>counterfactual</strong> evaluation when discussing online metrics—shows maturity.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A real-time personalization system is built from <strong>ranking model + feature store + event streaming + A/B testing infrastructure</strong>. Each choice affects personalization quality, latency, and experimentation velocity.</p>
+<h4 id="ranking-model">Ranking model<a class="headerlink" href="#ranking-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Two-tower (candidate + user embeddings)</strong></td>
+<td>Fast ANN retrieval at scale; decoupled training; sub-10ms serving</td>
+<td>Misses fine-grained feature interactions at retrieval stage</td>
+<td>Default for candidate retrieval from millions of items</td>
+</tr>
+<tr>
+<td><strong>Deep &amp; Cross Network (DCN-V2)</strong></td>
+<td>Captures explicit cross-features; strong on tabular + embedding mix</td>
+<td>Higher serving latency; needs careful feature engineering</td>
+<td>Re-ranking stage where feature interactions drive quality</td>
+</tr>
+<tr>
+<td><strong>XGBoost / LightGBM</strong></td>
+<td>Fast inference; interpretable; strong on engineered features</td>
+<td>Cannot learn embeddings; needs manual feature crosses</td>
+<td>Lightweight re-ranker; cold-start or simple use cases</td>
+</tr>
+</tbody>
+</table>
+<h4 id="feature-store">Feature store<a class="headerlink" href="#feature-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Feast + Redis</strong></td>
+<td>Open-source; online/offline separation; sub-ms reads from Redis</td>
+<td>Limited real-time computation; needs separate streaming for fresh features</td>
+<td>Default when batch + lookup features dominate</td>
+</tr>
+<tr>
+<td><strong>Tecton</strong></td>
+<td>Real-time feature computation; managed; streaming transforms built in</td>
+<td>Cost; vendor lock-in</td>
+<td>When real-time feature freshness (last-click, session features) is critical</td>
+</tr>
+<tr>
+<td><strong>Custom (Redis + Flink)</strong></td>
+<td>Full control over freshness; sub-ms reads; streaming aggregations</td>
+<td>Must build versioning, monitoring, and backfill yourself</td>
+<td>Teams with strong infra; unique freshness requirements</td>
+</tr>
+</tbody>
+</table>
+<h4 id="event-streaming">Event streaming<a class="headerlink" href="#event-streaming" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Proven at scale; exactly-once; rich ecosystem; replay for retraining</td>
+<td>Operational burden; higher latency floor</td>
+<td>Default for user event ingestion and feature computation</td>
+</tr>
+<tr>
+<td><strong>Pub/Sub / Kinesis</strong></td>
+<td>Managed; auto-scaling; low ops</td>
+<td>Less control; higher per-message cost at volume</td>
+<td>Cloud-native teams minimizing infra</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ab-testing">A/B testing<a class="headerlink" href="#ab-testing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interleaving</strong></td>
+<td>Detects ranking quality changes with fewer samples; user-level comparison</td>
+<td>Complex implementation; not suited for all metric types</td>
+<td>Online ranking evaluation; fast signal</td>
+</tr>
+<tr>
+<td><strong>Traditional A/B (randomized)</strong></td>
+<td>Well-understood; broad metric coverage; statistically rigorous</td>
+<td>Needs large sample sizes; slower to detect small effects</td>
+<td>Default for business metrics; complement to interleaving</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Two-tower model</strong> for candidate retrieval (sub-10ms ANN), <strong>DCN-V2</strong> for re-ranking (captures feature interactions), <strong>Feast + Redis</strong> for feature serving, <strong>Kafka + Flink</strong> for real-time feature aggregation, and <strong>interleaving</strong> for fast online ranking evaluation. This stack delivers personalized results in under 50ms while maintaining experimentation velocity.</p>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <p><strong>Assumptions:</strong>
@@ -3286,7 +3410,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-architecture">End-to-end architecture<a class="headerlink" href="#end-to-end-architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph cli["Clients"]
         WEB["Web / App"]
     end
@@ -3318,7 +3442,7 @@
     RFS --&gt; FS
     RFS --&gt; SM
     SM --&gt; RS
-    EMB --&gt; RS</div>
+    EMB --&gt; RS</code></pre>
 <p><strong>Offline:</strong> batch features, embedding tables, training data joins, model export.</p>
 <p><strong>Online:</strong> capture events, serve low-latency features, run retrieval + ranking.</p>
 <p><strong>Near-line:</strong> session state, rolling aggregates, trending, delayed corrections (e.g., purchase confirmation).</p>
@@ -3927,7 +4051,7 @@
 <p><strong>Online:</strong> Redis, DynamoDB, Aerospike — <strong>low latency</strong>, key-value or wide columns.</p>
 <p><strong>Offline:</strong> Hive, Iceberg, S3 — <strong>training datasets</strong>, backfills, point-in-time correctness.</p>
 <p><strong>Consistency:</strong> same <strong>feature name → definition</strong> in Feast/Tecton or internal registry; <strong>point-in-time joins</strong> for training.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph trn2["Training"]
         OFS[("Offline Store\nHive / Iceberg")]
         PIT[Point-in-time joins]
@@ -3943,7 +4067,7 @@
     OFS --&gt; PIT --&gt; DS
     SP --&gt; OLF
     OLF --&gt; API
-    DS --&gt;|"Export embeddings"| OLF</div>
+    DS --&gt;|"Export embeddings"| OLF</code></pre>
 <p><strong>Python: feature store client (read-through + batch):</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4255,7 +4379,7 @@
 </span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;item_id required&quot;</span>
 </span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span>
 </span></code></pre></div>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph rec["Recall"]
         ANN["ANN index\nTwo-tower / co-vis"]
         POP["Popular + rules"]
@@ -4271,7 +4395,7 @@
         B[Bandit slot]
     end
     ANN --&gt; LR --&gt; DNN --&gt; MMR --&gt; B
-    POP --&gt; LR</div>
+    POP --&gt; LR</code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In interviews, explicitly budget <strong>latency per stage</strong>: e.g., 5 ms recall + 10 ms pre-rank + 25 ms rank + 10 ms re-rank with parallel fan-out where possible.</p>
@@ -4636,10 +4760,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

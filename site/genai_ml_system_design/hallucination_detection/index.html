@@ -2625,6 +2625,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3240,7 +3249,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph gen["Generation Path"]
         U[User Query] --&gt; RAG[RAG / Grounding Layer]
         RAG --&gt; LLM[LLM Generate]
@@ -3254,7 +3263,7 @@
         GR --&gt; ROUTE{Policy Router}
         ROUTE --&gt;|high confidence| SERVE[Serve + Citations]
         ROUTE --&gt;|low / fail| HITL[Human Queue / Safe Fallback]
-    end</div>
+    end</code></pre>
 <h3 id="grounding-via-rag-and-citations">Grounding via RAG and Citations<a class="headerlink" href="#grounding-via-rag-and-citations" title="Permanent link">&para;</a></h3>
 <p><strong>Grounding</strong> ties each substantive statement to <strong>evidence spans</strong> in retrieved documents. <strong>Citations</strong> are the UX and audit layer; <strong>NLI or entailment</strong> checks are the enforcement layer.</p>
 <div class="admonition tip">
@@ -3497,6 +3506,118 @@
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="s2">&quot;policy_flags&quot;</span><span class="p">:</span> <span class="p">[]</span>
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The hallucination detection system is composed of a <strong>retrieval layer for grounding + NLI/entailment model + claim extraction pipeline + confidence scoring framework</strong>. Each layer trades accuracy, latency, and cost.</p>
+<h4 id="nli-entailment-model">NLI / entailment model<a class="headerlink" href="#nli-entailment-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DeBERTa-v3-large (fine-tuned on MNLI + domain)</strong></td>
+<td>Strong entailment accuracy; ~8ms/pair batched on GPU; well-understood</td>
+<td>Requires domain fine-tuning; English-centric</td>
+<td>Default for English claim verification; best accuracy/latency ratio</td>
+</tr>
+<tr>
+<td><strong>Cross-encoder reranker (BGE-reranker, Cohere)</strong></td>
+<td>Can double as entailment proxy; already deployed for RAG</td>
+<td>Not a true NLI model; conflates relevance with entailment</td>
+<td>When you already run a reranker and want to avoid a separate NLI service</td>
+</tr>
+<tr>
+<td><strong>LLM-as-judge (GPT-4o / Claude)</strong></td>
+<td>Highest nuance; can explain reasoning; handles multi-hop claims</td>
+<td>100-500x slower and more expensive than NLI model; non-deterministic</td>
+<td>High-stakes claims only; sampled audit; final escalation tier</td>
+</tr>
+<tr>
+<td><strong>Multilingual NLI (XLM-R / mDeBERTa)</strong></td>
+<td>Covers 100+ languages in one model</td>
+<td>Lower per-language accuracy vs dedicated model; larger</td>
+<td>Multi-language products where per-locale NLI models are impractical</td>
+</tr>
+</tbody>
+</table>
+<h4 id="retrieval-layer-evidence-acquisition">Retrieval layer (evidence acquisition)<a class="headerlink" href="#retrieval-layer-evidence-acquisition" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hybrid (dense + BM25 with RRF)</strong></td>
+<td>Best recall combining semantic and lexical signals; covers both failure modes</td>
+<td>Two indexes to maintain; fusion weights need tuning</td>
+<td>Default production setup for RAG-based grounding</td>
+</tr>
+<tr>
+<td><strong>Dense retrieval only</strong></td>
+<td>Captures semantic similarity; finds paraphrased evidence</td>
+<td>Misses exact keyword matches; single embedding space</td>
+<td>When corpus has consistent language and few rare terms</td>
+</tr>
+<tr>
+<td><strong>BM25 / lexical only</strong></td>
+<td>Exact keyword matching; no model dependency; fast</td>
+<td>Misses paraphrases and synonyms</td>
+<td>Structured facts with exact terms (SKU numbers, policy IDs)</td>
+</tr>
+<tr>
+<td><strong>Web search API (Google, Bing)</strong></td>
+<td>Broad coverage for extrinsic facts; fresh data beyond KB</td>
+<td>200-500ms latency; cost per query; compliance risk</td>
+<td>Public knowledge verification when KB is insufficient</td>
+</tr>
+</tbody>
+</table>
+<h4 id="claim-extraction">Claim extraction<a class="headerlink" href="#claim-extraction" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rule-based sentence splitting (spaCy)</strong></td>
+<td>Fast (sub-ms); deterministic; no model dependency</td>
+<td>Doesn't decompose compound sentences into atomic claims</td>
+<td>Low-latency tier where sentence-level granularity suffices</td>
+</tr>
+<tr>
+<td><strong>Small LLM decomposition (Llama-3-8B)</strong></td>
+<td>Produces true atomic claims; handles compound sentences</td>
+<td>~50-100ms per answer; requires prompt engineering</td>
+<td>Standard tier where claim-level granularity drives quality</td>
+</tr>
+<tr>
+<td><strong>Frontier LLM (GPT-4o, Claude)</strong></td>
+<td>Best decomposition quality; handles ambiguous nested claims</td>
+<td>Expensive; 500ms+ latency; overkill for simple answers</td>
+<td>High-assurance tier or offline gold-set labeling</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>DeBERTa-v3-large fine-tuned on MNLI + domain data</strong> as the primary NLI model for the best accuracy/latency ratio at ~8ms/pair. <strong>Hybrid dense + BM25 with RRF</strong> for retrieval to cover both semantic and keyword evidence. <strong>Rule-based sentence splitting on the standard tier</strong> (fast, deterministic) and <strong>small LLM decomposition on the high-assurance tier</strong> for atomic claim granularity. <strong>Weighted linear fusion</strong> of NLI entailment, retrieval margin, self-consistency, and token logprobs for confidence scoring -- simple, interpretable, and tunable without labeled data, graduating to a gradient-boosted model when sufficient human labels accumulate.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> NLI is the backbone but not the whole story -- retrieval quality bounds what NLI can verify (garbage evidence in, garbage verification out). The strongest signal is often "we could not find any evidence" rather than a low NLI score.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3567,7 +3688,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph clients["Clients"]
         WEB[Web / Mobile App]
         API[Partner API]
@@ -3638,7 +3759,7 @@
     SC -.-&gt;|optional pre-merge| LLM
     MET --&gt; CE
     MET --&gt; VE
-    MET --&gt; GR</div>
+    MET --&gt; GR</code></pre>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3738,7 +3859,7 @@
 </span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a>    <span class="n">routing</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;served&quot;</span><span class="p">,</span> <span class="s2">&quot;rewritten&quot;</span><span class="p">,</span> <span class="s2">&quot;blocked&quot;</span><span class="p">,</span> <span class="s2">&quot;human_pending&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="42-claim-extraction-and-verification-pipeline">4.2 Claim Extraction and Verification Pipeline<a class="headerlink" href="#42-claim-extraction-and-verification-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph in["Input"]
         A[Draft Answer]
         CTX[Retrieved Context]
@@ -3768,7 +3889,7 @@
     LOC --&gt; NLI
     SEA --&gt; NLI
     NLI --&gt; XREF --&gt; AGG
-    CTX --&gt; NLI</div>
+    CTX --&gt; NLI</code></pre>
 <p><strong>Algorithms (claim extraction):</strong></p>
 <ol>
 <li><strong>Syntactic split</strong> on sentence boundaries (spaCy, blingfire, or language-specific).  </li>
@@ -3965,7 +4086,7 @@
 </span><span id="__span-8-38"><a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a>    <span class="k">return</span> <span class="n">w_e</span> <span class="o">*</span> <span class="n">entailment</span> <span class="o">+</span> <span class="n">w_r</span> <span class="o">*</span> <span class="n">retrieval</span> <span class="o">+</span> <span class="n">w_a</span> <span class="o">*</span> <span class="n">consistency_agreement</span> <span class="o">+</span> <span class="n">w_t</span> <span class="o">*</span> <span class="n">token_conf</span>
 </span></code></pre></div>
 <h3 id="45-confidence-scoring-flow">4.5 Confidence Scoring Flow<a class="headerlink" href="#45-confidence-scoring-flow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     LP[Token Logprobs] --&gt; NORM[Normalize / calibrate]
     NLI[NLI Entailment&lt;br/&gt;per claim] --&gt; AGG[Per-claim score]
     RET[Retrieval margin] --&gt; AGG
@@ -3977,7 +4098,7 @@
     POL --&gt;|serve| OK[Return answer]
     POL --&gt;|rewrite| RW[Constrained regen&lt;br/&gt;or strip claims]
     POL --&gt;|block| BL[Safe refusal]
-    POL --&gt;|queue| HQ[Human review]</div>
+    POL --&gt;|queue| HQ[Human review]</code></pre>
 <h3 id="46-self-consistency-checker">4.6 Self-Consistency Checker<a class="headerlink" href="#46-self-consistency-checker" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
@@ -4095,7 +4216,7 @@
 </span><span id="__span-11-40"><a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a>    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bSKU-\d+\b|\bpolicy\s+id\b&quot;</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
 </span></code></pre></div>
 <h3 id="49-human-in-the-loop-workflow">4.9 Human-in-the-Loop Workflow<a class="headerlink" href="#49-human-in-the-loop-workflow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant U as User
     participant API as API Gateway
     participant V as Verifier Stack
@@ -4115,7 +4236,7 @@
         Q-&gt;&gt;L: labeled bundle
         L-&gt;&gt;V: threshold / prompt updates
         Q-&gt;&gt;U: async notification (if async path)
-    end</div>
+    end</code></pre>
 <p><strong>Queue priorities:</strong> <code>priority = risk_tier * (1 - confidence) * business_value</code> with <strong>WDRR</strong> scheduling so low-value traffic cannot starve regulated intents.</p>
 <h3 id="410-caching-and-circuit-breakers">4.10 Caching and Circuit Breakers<a class="headerlink" href="#410-caching-and-circuit-breakers" title="Permanent link">&para;</a></h3>
 <table>
@@ -4458,10 +4579,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

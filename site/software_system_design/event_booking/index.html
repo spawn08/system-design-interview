@@ -3661,7 +3661,7 @@
 <p class="admonition-title">Note</p>
 <p>“CP vs AP” is shorthand. Interviewers often reward naming <strong>linearizability</strong> for a single seat record, <strong>serializable</strong> transactions for multi-seat holds, and <strong>bounded staleness</strong> for read replicas and caches.</p>
 </div>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph CP["CP-style paths (correctness first)"]
     R[Seat hold / confirm in OLTP]
     P[Payment intent + capture + ledger]
@@ -3680,7 +3680,7 @@
   R --&gt; P
 
   M -.-&gt;|stale OK| C
-  R -.-&gt;|invalidates or version-checks| C</div>
+  R -.-&gt;|invalidates or version-checks| C</code></pre>
 <p><strong>How to say it in one breath:</strong> We are <strong>CP on inventory and money</strong>, <strong>AP on browse and queue UX</strong>, and we <strong>never trust the cache</strong> for the final seat claim.</p>
 <hr />
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
@@ -4113,7 +4113,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph Clients["Clients"]
     W[Web]
     M[Mobile apps]
@@ -4156,7 +4156,7 @@
   HS --&gt; PG
   IS --&gt; PG
   OS --&gt; PG
-  NS --&gt; KQ</div>
+  NS --&gt; KQ</code></pre>
 <p><strong>Responsibilities</strong></p>
 <table>
 <thead>
@@ -4284,14 +4284,14 @@
 <li>Provide <strong>fair-ish</strong> ordering without exposing the system to full flash load</li>
 <li>Degrade gracefully: show <strong>position</strong> and <strong>ETA</strong>, not raw 500s</li>
 </ul>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   A[User hits on-sale] --&gt; B{Admission token valid?}
   B --&gt;|No| C[Enqueue waiting room]
   C --&gt; D[Poll position]
   D --&gt; E{Admitted?}
   E --&gt;|Yes| F[Shop checkout with token]
   E --&gt;|No| D
-  B --&gt;|Yes| F</div>
+  B --&gt;|Yes| F</code></pre>
 <p><strong>Implementation sketch</strong></p>
 <ul>
 <li>Issue signed, short-lived <strong>JWT</strong> or opaque server ticket with <code>show_id</code>, <code>queue_id</code>, <code>exp</code>.</li>
@@ -4480,7 +4480,7 @@
 <hr />
 <h2 id="appendix-diagrams-and-code">Appendix: Diagrams and Code<a class="headerlink" href="#appendix-diagrams-and-code" title="Permanent link">&para;</a></h2>
 <h3 id="booking-sequence-hold-pay-confirm">Booking sequence (hold, pay, confirm)<a class="headerlink" href="#booking-sequence-hold-pay-confirm" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant U as User
   participant G as API Gateway
   participant H as Hold service
@@ -4505,17 +4505,17 @@
   P--&gt;&gt;O: webhook captured
   O-&gt;&gt;I: mark seats sold (transaction)
   O--&gt;&gt;G: order confirmed
-  G--&gt;&gt;U: tickets issued async</div>
+  G--&gt;&gt;U: tickets issued async</code></pre>
 <h3 id="seat-locking-state-machine">Seat locking state machine<a class="headerlink" href="#seat-locking-state-machine" title="Permanent link">&para;</a></h3>
-<div class="mermaid">stateDiagram-v2
+<pre class="mermaid"><code>stateDiagram-v2
   [*] --&gt; available
   available --&gt; held: hold (TTL starts)
   held --&gt; sold: payment success
   held --&gt; available: expiry or release
   sold --&gt; refunded: refund flow (out of scope detail)
-  refunded --&gt; available: resale rules (optional)</div>
+  refunded --&gt; available: resale rules (optional)</code></pre>
 <h3 id="virtual-queue-promotion">Virtual queue (promotion)<a class="headerlink" href="#virtual-queue-promotion" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph Ingress["Ingress"]
     R[Requests]
     T[Token bucket admit/sec]
@@ -4527,7 +4527,7 @@
   R --&gt; T
   T --&gt;|allowed| Q
   Q --&gt;|promotion job| A
-  A --&gt;|signed cookie| Shop[Checkout tier]</div>
+  A --&gt;|signed cookie| Shop[Checkout tier]</code></pre>
 <h3 id="java-optimistic-seat-reservation-jdbc-style">Java: optimistic seat reservation (JDBC-style)<a class="headerlink" href="#java-optimistic-seat-reservation-jdbc-style" title="Permanent link">&para;</a></h3>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.sql.Connection</span><span class="p">;</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.sql.PreparedStatement</span><span class="p">;</span>
@@ -4840,10 +4840,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

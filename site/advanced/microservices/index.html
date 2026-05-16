@@ -3013,7 +3013,7 @@
 <hr />
 <h2 id="monolith-vs-microservices">Monolith vs Microservices<a class="headerlink" href="#monolith-vs-microservices" title="Permanent link">&para;</a></h2>
 <p>A monolithic application is a single deployable unit where all components (user management, orders, payments, notifications) share one codebase, one database, and one deployment pipeline. A microservices architecture decomposes the application into small, independently deployable services, each owning its own data and communicating over the network.</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     subgraph Monolith
         M[Single Application&lt;br/&gt;Users + Orders + Payments + Notifications]
         M --&gt; MDB[(Single Database)]
@@ -3029,7 +3029,7 @@
         OS --&gt; OSDB[(Order DB)]
         PS --&gt; PSDB[(Payment DB)]
         NS --&gt; NSDB[(Notification DB)]
-    end</div>
+    end</code></pre>
 <h3 id="when-to-choose-each">When to Choose Each<a class="headerlink" href="#when-to-choose-each" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3080,7 +3080,7 @@
 <h2 id="service-discovery">Service Discovery<a class="headerlink" href="#service-discovery" title="Permanent link">&para;</a></h2>
 <p>In a microservices architecture, services need to find each other. Hard-coded IP addresses don't work when instances are created and destroyed dynamically (auto-scaling, deployments, failures).</p>
 <h3 id="approaches">Approaches<a class="headerlink" href="#approaches" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     subgraph csd["Client-Side Discovery"]
         C1[Client] --&gt; REG1["Service Registry&lt;br/&gt;Consul, Eureka"]
         REG1 --&gt;|"returns instances"| C1
@@ -3091,7 +3091,7 @@
         C2[Client] --&gt; LB["Load Balancer&lt;br/&gt;or DNS"]
         LB --&gt; REG2[Service Registry]
         LB --&gt; S2[Service Instance]
-    end</div>
+    end</code></pre>
 <table>
 <thead>
 <tr>
@@ -3315,7 +3315,7 @@
 <hr />
 <h2 id="api-gateway">API Gateway<a class="headerlink" href="#api-gateway" title="Permanent link">&para;</a></h2>
 <p>An API gateway is the single entry point for all client requests. It handles cross-cutting concerns so individual services don't have to.</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     MOBILE[Mobile App] --&gt; GW
     WEB[Web App] --&gt; GW
     EXT[External API] --&gt; GW
@@ -3335,7 +3335,7 @@
         CACHE[Response Caching]
         LOG["Logging / Tracing"]
         TRANSFORM[Request Transform]
-    end</div>
+    end</code></pre>
 <h3 id="gateway-responsibilities">Gateway Responsibilities<a class="headerlink" href="#gateway-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3489,9 +3489,9 @@
 <hr />
 <h2 id="communication-patterns">Communication Patterns<a class="headerlink" href="#communication-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="synchronous-communication">Synchronous Communication<a class="headerlink" href="#synchronous-communication" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     A[Service A] --&gt;|REST / gRPC| B[Service B]
-    B --&gt;|response| A</div>
+    B --&gt;|response| A</code></pre>
 <table>
 <thead>
 <tr>
@@ -3523,10 +3523,10 @@
 </tbody>
 </table>
 <h3 id="asynchronous-communication">Asynchronous Communication<a class="headerlink" href="#asynchronous-communication" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     A[Service A] --&gt;|event| MQ[Message Queue]
     MQ --&gt;|consume| B[Service B]
-    MQ --&gt;|consume| C[Service C]</div>
+    MQ --&gt;|consume| C[Service C]</code></pre>
 <table>
 <thead>
 <tr>
@@ -3622,12 +3622,12 @@
 <h2 id="resilience-patterns">Resilience Patterns<a class="headerlink" href="#resilience-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="circuit-breaker">Circuit Breaker<a class="headerlink" href="#circuit-breaker" title="Permanent link">&para;</a></h3>
 <p>Prevents cascading failures by stopping requests to a failing downstream service.</p>
-<div class="mermaid">stateDiagram-v2
+<pre class="mermaid"><code>stateDiagram-v2
     [*] --&gt; Closed
     Closed --&gt; Open: Failure rate &gt; threshold
     Open --&gt; HalfOpen: After timeout period
     HalfOpen --&gt; Closed: Probe requests succeed
-    HalfOpen --&gt; Open: Probe requests fail</div>
+    HalfOpen --&gt; Open: Probe requests fail</code></pre>
 <h3 id="bulkhead">Bulkhead<a class="headerlink" href="#bulkhead" title="Permanent link">&para;</a></h3>
 <p>Isolates resources per downstream service so one slow service can't exhaust all threads.</p>
 <h3 id="timeout-retry-backoff">Timeout + Retry + Backoff<a class="headerlink" href="#timeout-retry-backoff" title="Permanent link">&para;</a></h3>
@@ -3693,7 +3693,7 @@
 </span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">ENTRYPOINT</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;/service&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="kubernetes-architecture">Kubernetes Architecture<a class="headerlink" href="#kubernetes-architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     subgraph cp["Control Plane"]
         API[API Server]
         SCHED[Scheduler]
@@ -3717,7 +3717,7 @@
     API --&gt; KUB2
     API --&gt; ETCD
     SCHED --&gt; API
-    CM --&gt; API</div>
+    CM --&gt; API</code></pre>
 <h3 id="key-kubernetes-concepts">Key Kubernetes Concepts<a class="headerlink" href="#key-kubernetes-concepts" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3874,7 +3874,7 @@
 </tbody>
 </table>
 <h3 id="distributed-tracing">Distributed Tracing<a class="headerlink" href="#distributed-tracing" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     GW[API Gateway&lt;br/&gt;Span A] --&gt; US[User Service&lt;br/&gt;Span B]
     US --&gt; OS[Order Service&lt;br/&gt;Span C]
     OS --&gt; PS[Payment Service&lt;br/&gt;Span D]
@@ -3886,13 +3886,13 @@
         OS
         PS
         IS
-    end</div>
+    end</code></pre>
 <p>Each request gets a <strong>trace ID</strong> propagated through all services. Each service creates a <strong>span</strong> with timing information. Together, they form a trace that shows the complete request path and where time was spent.</p>
 <hr />
 <h2 id="migration-monolith-to-microservices">Migration: Monolith to Microservices<a class="headerlink" href="#migration-monolith-to-microservices" title="Permanent link">&para;</a></h2>
 <h3 id="strangler-fig-pattern">Strangler Fig Pattern<a class="headerlink" href="#strangler-fig-pattern" title="Permanent link">&para;</a></h3>
 <p>Gradually replace monolith functionality with microservices, routing traffic to the new service as it's built.</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     LB[Load Balancer / Router]
 
     LB --&gt;|/users/*| NEW_US[New User Service&lt;br/&gt;Microservice]
@@ -3900,7 +3900,7 @@
     LB --&gt;|/payments/*| MONO
 
     NEW_US --&gt; USDB[(User DB)]
-    MONO --&gt; MONODB[(Monolith DB)]</div>
+    MONO --&gt; MONODB[(Monolith DB)]</code></pre>
 <p><strong>Steps:</strong>
 1. Identify a bounded context to extract (start with the simplest)
 2. Build the new microservice alongside the monolith
@@ -3910,7 +3910,7 @@
 6. Repeat for the next bounded context</p>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     Q[Architecture Question] --&gt; SIZE{Team &amp; scale?}
     SIZE --&gt;|Small team, MVP| MONO[Modular Monolith]
     SIZE --&gt;|Large team, established| MICRO[Microservices]
@@ -3928,7 +3928,7 @@
     MICRO --&gt; GW{API Gateway?}
     GW --&gt;|AWS| APIGW[AWS API Gateway]
     GW --&gt;|K8s| ING[Nginx Ingress / Traefik]
-    GW --&gt;|Feature-rich| KONG[Kong / Envoy]</div>
+    GW --&gt;|Feature-rich| KONG[Kong / Envoy]</code></pre>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>In interviews, demonstrate that you understand the <strong>trade-offs</strong> of microservices, not just the benefits. Mention: increased operational complexity, distributed transactions, network latency, data consistency challenges, and the need for robust monitoring. Show that you know when a monolith is the right choice.</p>
@@ -4095,10 +4095,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

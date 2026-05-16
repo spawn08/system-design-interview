@@ -2353,6 +2353,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3396,7 +3405,7 @@
 <hr />
 <h3 id="point-in-time-joins-preventing-future-data-leakage">Point-in-time joins: preventing future data leakage<a class="headerlink" href="#point-in-time-joins-preventing-future-data-leakage" title="Permanent link">&para;</a></h3>
 <p><strong>PIT correctness:</strong> For each training example at <strong>decision time</strong> <span class="arithmatex">\(t\)</span>, features may only use information <strong>available at or before</strong> <span class="arithmatex">\(t\)</span> according to the <strong>feature’s own event-time semantics</strong>.</p>
-<div class="mermaid">gantt
+<pre class="mermaid"><code>gantt
     title Point-in-time correctness (conceptual timeline)
     dateFormat X
     axisFormat %s
@@ -3405,10 +3414,10 @@
     "Account created"           :milestone, 0, 0
     "Feature window eligible"   :active, 1, 4
     "Label event (click)"       :crit, 5, 5
-    "Future purchase"           :done, 7, 7</div>
+    "Future purchase"           :done, 7, 7</code></pre>
 <p><strong>Wrong join:</strong> joining “all purchases ever” would include the purchase at <span class="arithmatex">\(t=7\)</span> when predicting at <span class="arithmatex">\(t=5\)</span>.</p>
 <p><strong>Right join:</strong> for each example at <span class="arithmatex">\(t=5\)</span>, join feature rows with <code>feature_time &lt;= t5</code> and pick the <strong>latest</strong> such row per feature (depending on semantics).</p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant L as Label row (decision_time = t)
     participant PIT as PIT join engine
     participant F as Feature history
@@ -3416,7 +3425,7 @@
     PIT-&gt;&gt;F: filter feature_time &lt;= t
     F--&gt;&gt;PIT: candidate rows (possibly many)
     PIT-&gt;&gt;PIT: pick latest per feature version
-    PIT--&gt;&gt;L: training row with no future info</div>
+    PIT--&gt;&gt;L: training row with no future info</code></pre>
 <hr />
 <h3 id="feature-freshness-when-staleness-actually-hurts">Feature freshness: when staleness actually hurts<a class="headerlink" href="#feature-freshness-when-staleness-actually-hurts" title="Permanent link">&para;</a></h3>
 <table>
@@ -3458,20 +3467,20 @@
 <h3 id="streaming-feature-computation-windows-with-diagrams">Streaming feature computation: windows (with diagrams)<a class="headerlink" href="#streaming-feature-computation-windows-with-diagrams" title="Permanent link">&para;</a></h3>
 <p>Stateful stream processors compute keyed aggregates using <strong>windows</strong>.</p>
 <h4 id="tumbling-window-fixed-size-non-overlapping">Tumbling window (fixed-size, non-overlapping)<a class="headerlink" href="#tumbling-window-fixed-size-non-overlapping" title="Permanent link">&para;</a></h4>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph tum["Tumbling 1h"]
         a1["00:00-01:00"] --&gt; a2["01:00-02:00"] --&gt; a3["02:00-03:00"]
-    end</div>
+    end</code></pre>
 <h4 id="sliding-window-fixed-length-moves-with-time">Sliding window (fixed length, moves with time)<a class="headerlink" href="#sliding-window-fixed-length-moves-with-time" title="Permanent link">&para;</a></h4>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph sli["Sliding 1h step 10m"]
         s1[W ends 01:10] --&gt; s2[W ends 01:20] --&gt; s3[W ends 01:30]
-    end</div>
+    end</code></pre>
 <h4 id="session-window-gap-based">Session window (gap-based)<a class="headerlink" href="#session-window-gap-based" title="Permanent link">&para;</a></h4>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph sess["Gap 30m"]
         e1[e1] --&gt; e2[e2] --&gt; gap[gap &amp;gt; 30m] --&gt; e3[e3]
-    end</div>
+    end</code></pre>
 <p><strong>Operational note:</strong> sliding windows are <strong>more expensive</strong> (more overlapping state) than tumbling; session windows need <strong>gap timers</strong> and <strong>state eviction</strong> policies.</p>
 <hr />
 <h3 id="feature-versioning-schema-evolution-backwards-compatibility">Feature versioning, schema evolution, backwards compatibility<a class="headerlink" href="#feature-versioning-schema-evolution-backwards-compatibility" title="Permanent link">&para;</a></h3>
@@ -3623,6 +3632,137 @@
 <p class="admonition-title">Note</p>
 <p>Latency budgets are <strong>end-to-end agreements</strong>: feature platform, model server, and RPC fan-out must be negotiated as one <strong>SLO chain</strong>.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A feature platform is built from <strong>offline store + online store + compute engine + transformation framework + orchestration</strong>. Each choice affects feature freshness, serving latency, and operational complexity.</p>
+<h4 id="online-store">Online store<a class="headerlink" href="#online-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis (Cluster)</strong></td>
+<td>Sub-ms p99; rich data structures; battle-tested</td>
+<td>Memory-bound; cost at scale; volatile without persistence config</td>
+<td>Default for low-latency serving; feature vectors and lookups</td>
+</tr>
+<tr>
+<td><strong>DynamoDB</strong></td>
+<td>Managed; single-digit-ms reads; auto-scaling; durable</td>
+<td>Higher p99 than Redis; cost per read at extreme QPS</td>
+<td>AWS-native; need durability guarantees; moderate latency OK</td>
+</tr>
+<tr>
+<td><strong>Bigtable</strong></td>
+<td>Massive scale; low-latency reads; wide-column for feature groups</td>
+<td>GCP-only; less flexible than Redis for complex structures</td>
+<td>GCP shops at very large scale with wide feature groups</td>
+</tr>
+</tbody>
+</table>
+<h4 id="offline-store">Offline store<a class="headerlink" href="#offline-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Delta Lake / Iceberg on S3/GCS</strong></td>
+<td>ACID on data lakes; time travel; schema evolution; open format</td>
+<td>Needs Spark/Trino for queries; additional complexity</td>
+<td>Default for large-scale feature history with backfill support</td>
+</tr>
+<tr>
+<td><strong>BigQuery / Snowflake</strong></td>
+<td>Serverless OLAP; SQL-native; zero infra management</td>
+<td>Cost at high scan volume; ingestion latency</td>
+<td>Teams wanting managed warehouse for feature analytics</td>
+</tr>
+<tr>
+<td><strong>Hive / Parquet on HDFS</strong></td>
+<td>Proven at PB scale; co-located with existing Hadoop pipelines</td>
+<td>Slow schema evolution; no ACID without Delta/Iceberg</td>
+<td>Legacy Hadoop environments</td>
+</tr>
+</tbody>
+</table>
+<h4 id="compute-engine-transformations">Compute engine (transformations)<a class="headerlink" href="#compute-engine-transformations" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Spark</strong></td>
+<td>Mature batch processing; rich transformations; large ecosystem</td>
+<td>Not true streaming; micro-batch adds latency; JVM overhead</td>
+<td>Default for batch feature computation at scale</td>
+</tr>
+<tr>
+<td><strong>Apache Flink</strong></td>
+<td>True streaming; stateful aggregations; low latency</td>
+<td>Steeper learning curve; smaller ecosystem than Spark</td>
+<td>Real-time features (session aggregates, sliding windows)</td>
+</tr>
+<tr>
+<td><strong>dbt + SQL</strong></td>
+<td>Familiar SQL; version-controlled; great for analytics engineers</td>
+<td>Limited to batch; cannot do streaming; no complex ML transforms</td>
+<td>Simple feature transformations on warehouse data</td>
+</tr>
+</tbody>
+</table>
+<h4 id="orchestration">Orchestration<a class="headerlink" href="#orchestration" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Airflow</strong></td>
+<td>Mature; rich operator library; DAG scheduling; large community</td>
+<td>Scheduler bottleneck at high fan-out; UI dated</td>
+<td>Default for batch feature pipeline scheduling</td>
+</tr>
+<tr>
+<td><strong>Temporal</strong></td>
+<td>Durable execution; code-first workflows; retries built in</td>
+<td>Steeper learning curve; smaller plugin ecosystem</td>
+<td>Long-running pipelines with complex retry logic</td>
+</tr>
+<tr>
+<td><strong>Prefect</strong></td>
+<td>Modern Python-native; good UI; easy local development</td>
+<td>Smaller community; fewer production battle scars</td>
+<td>Teams wanting Airflow alternative with better DX</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Redis Cluster</strong> for online serving (sub-ms p99), <strong>Delta Lake on S3/GCS</strong> for offline store (ACID, time travel for point-in-time joins), <strong>Spark</strong> for batch transformations + <strong>Flink</strong> for streaming features, and <strong>Airflow</strong> for orchestration. This gives a clean offline-to-online materialization path: Spark computes features → writes to Delta Lake → materializes to Redis for serving, while Flink handles streaming features with sub-second freshness.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> The hardest problem in feature platforms is <strong>point-in-time correctness</strong> -- ensuring training features match what was available at serving time. Mention time-travel joins and feature versioning to show production awareness.</p>
+</div>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="offline-store-sizing-illustrative">Offline store sizing (illustrative)<a class="headerlink" href="#offline-store-sizing-illustrative" title="Permanent link">&para;</a></h3>
@@ -3699,7 +3839,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-dual-path-batch-streaming-with-unified-semantics">Architecture: dual path (batch + streaming) with unified semantics<a class="headerlink" href="#architecture-dual-path-batch-streaming-with-unified-semantics" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph bpath["Batch path"]
         DW[("Data Warehouse / Lake")]
         SP[Batch Compute Spark SQL]
@@ -3727,7 +3867,7 @@
         TJ --&gt; DS[Training Dataset PIT joins]
     end
 
-    SP -. backfill .-&gt; ON</div>
+    SP -. backfill .-&gt; ON</code></pre>
 <p><strong>Paths (interview checklist):</strong></p>
 <table>
 <thead>
@@ -4720,10 +4860,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

@@ -2365,6 +2365,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3367,7 +3376,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph hire["High-resource pairs"]
         A[Large parallel corpora]
     end
@@ -3381,7 +3390,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     B --&gt; D
     C --&gt; E["Back-translation &amp; denoising"]
     E --&gt; D
-    D --&gt; F["Pivot: X→EN→Y as fallback"]</div>
+    D --&gt; F["Pivot: X→EN→Y as fallback"]</code></pre>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3477,6 +3486,139 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 <p class="admonition-title">Note</p>
 <p>Always separate <strong>per-request latency</strong> (interactive) from <strong>document latency</strong> (minutes acceptable). Interviewers reward this distinction.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A machine translation system is built from <strong>translation model + tokenizer/vocabulary + serving infrastructure + quality estimation layer</strong>. Each choice affects translation quality, latency, and language coverage.</p>
+<h4 id="translation-model">Translation model<a class="headerlink" href="#translation-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NLLB-200 (Meta)</strong></td>
+<td>200 languages; strong low-resource coverage; open weights</td>
+<td>Large model (3.3B for best quality); higher latency</td>
+<td>Default for multilingual production with broad language coverage</td>
+</tr>
+<tr>
+<td><strong>mBART / mT5</strong></td>
+<td>Strong multilingual pre-training; fine-tunable per language pair</td>
+<td>Smaller language coverage than NLLB; needs pair-specific fine-tuning</td>
+<td>When fine-tuning on specific high-value language pairs</td>
+</tr>
+<tr>
+<td><strong>LLM-based (GPT-4, Claude)</strong></td>
+<td>Excellent quality for high-resource languages; handles context/formality</td>
+<td>Cost per token; latency; weaker on low-resource languages</td>
+<td>High-value content (marketing, legal) where quality justifies cost</td>
+</tr>
+<tr>
+<td><strong>Pair-specific (EN-DE, EN-ZH)</strong></td>
+<td>Highest quality for specific pair; smallest model per pair</td>
+<td>Must train/maintain per pair; doesn't scale to 200 languages</td>
+<td>High-traffic pairs where marginal quality improvement justifies dedicated model</td>
+</tr>
+</tbody>
+</table>
+<h4 id="tokenization">Tokenization<a class="headerlink" href="#tokenization" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SentencePiece (BPE/Unigram)</strong></td>
+<td>Language-agnostic; handles any script; standard for multilingual</td>
+<td>Shared vocab dilutes per-language coverage; rare scripts get few tokens</td>
+<td>Default for multilingual models</td>
+</tr>
+<tr>
+<td><strong>Language-specific tokenizer</strong></td>
+<td>Better coverage for target language; fewer tokens per sentence</td>
+<td>Must maintain per language; doesn't scale</td>
+<td>High-traffic pairs where tokenization quality affects output</td>
+</tr>
+<tr>
+<td><strong>Character/byte-level</strong></td>
+<td>Universal; no vocabulary issues; handles any input</td>
+<td>Much longer sequences; higher compute; slower</td>
+<td>Research; extremely diverse language set</td>
+</tr>
+</tbody>
+</table>
+<h4 id="serving-infrastructure">Serving infrastructure<a class="headerlink" href="#serving-infrastructure" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CTranslate2</strong></td>
+<td>Optimized for seq2seq translation; INT8/FP16 quantization; CPU and GPU</td>
+<td>Focused on specific architectures; smaller community</td>
+<td>Default for translation-specific serving; best latency</td>
+</tr>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>PagedAttention; continuous batching; broad model support</td>
+<td>Optimized for decoder-only; encoder-decoder needs adaptation</td>
+<td>LLM-based translation models</td>
+</tr>
+<tr>
+<td><strong>Triton</strong></td>
+<td>Multi-framework; dynamic batching; ensemble support</td>
+<td>More complex setup</td>
+<td>When running multiple models (translation + quality estimation)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="quality-estimation">Quality estimation<a class="headerlink" href="#quality-estimation" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>COMET / COMETKiwi</strong></td>
+<td>State-of-the-art QE; reference-free scoring; correlates with human judgment</td>
+<td>Requires GPU; adds latency per sentence</td>
+<td>Default for production quality gates and routing</td>
+</tr>
+<tr>
+<td><strong>Round-trip translation check</strong></td>
+<td>Simple; no extra model; catches obvious errors</td>
+<td>Misses subtle errors; doubles compute cost</td>
+<td>Quick sanity check; no QE model available</td>
+</tr>
+<tr>
+<td><strong>Confidence from model logprobs</strong></td>
+<td>Free (comes from translation model); no extra inference</td>
+<td>Poorly calibrated; overconfident on fluent but wrong translations</td>
+<td>Lightweight signal; combine with QE for better routing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>NLLB-200</strong> as the primary multilingual model (200 languages, open weights), with <strong>pair-specific fine-tuned models</strong> for high-traffic routes (EN-DE, EN-ZH, EN-ES) where marginal BLEU improvements matter at scale. <strong>SentencePiece BPE</strong> tokenization. Serve with <strong>CTranslate2</strong> for optimized seq2seq inference (INT8 quantization, 2-4x speedup). <strong>COMETKiwi</strong> for reference-free quality estimation, routing low-confidence translations to the LLM-based fallback or human review.</p>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
 <p>Back-of-the-envelope reasoning ties product requirements to <strong>GPU/TPU capacity</strong>, <strong>memory</strong>, and <strong>network</strong>.</p>
@@ -3564,7 +3706,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-flow">End-to-end flow<a class="headerlink" href="#end-to-end-flow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph inp["Inputs"]
         T[Text]
         I["Image / OCR"]
@@ -3583,15 +3725,15 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     I --&gt; OCR["OCR + script detection"] --&gt; LD
     S --&gt; ASR[ASR] --&gt; LD
 
-    BATCH["Batch / Document Pipeline"] --&gt; SEG["Segmentation + doc context cache"] --&gt; ROUTE</div>
+    BATCH["Batch / Document Pipeline"] --&gt; SEG["Segmentation + doc context cache"] --&gt; ROUTE</code></pre>
 <h3 id="batch-and-document-path">Batch and document path<a class="headerlink" href="#batch-and-document-path" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     DOC[User uploads 40-page PDF] --&gt; EXTRACT[Extract text + layout]
     EXTRACT --&gt; CHUNK[Chunk / sentence segmentation]
     CHUNK --&gt; CACHE_CTX[Cross-sentence context window]
     CACHE_CTX --&gt; MTB[MT workers with KV-cache]
     MTB --&gt; STITCH[Stitch + format preservation]
-    STITCH --&gt; QE2[QE + glossary enforcement]</div>
+    STITCH --&gt; QE2[QE + glossary enforcement]</code></pre>
 <p><strong>Router</strong> chooses:</p>
 <ul>
 <li><strong>Model variant</strong> (tiny vs large; speech vs text)</li>
@@ -4346,7 +4488,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph offev["Offline regression"]
         G[Golden parallel sets per pair]
         M["Metrics: BLEU/chrF/COMET"]
@@ -4361,7 +4503,7 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     G --&gt; M --&gt; Gate{Release gate}
     L --&gt; Gate
     Q --&gt; Gate
-    U --&gt; Gate</div>
+    U --&gt; Gate</code></pre>
 <h3 id="trade-offs-interview-gold">Trade-offs (interview gold)<a class="headerlink" href="#trade-offs-interview-gold" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4601,10 +4743,6 @@ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

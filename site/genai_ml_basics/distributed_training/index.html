@@ -3152,7 +3152,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
-<div class="mermaid">graph TB
+<pre class="mermaid"><code>graph TB
     subgraph tc["Training Cluster"]
         subgraph n1["Node 1"]
             GPU0[GPU 0&lt;br/&gt;Worker]
@@ -3193,11 +3193,11 @@
     LOADER --&gt; GPU3
     GPU0 --&gt; CKPT
     GPU0 --&gt; TRACK
-    MONITOR --&gt; SCHED</div>
+    MONITOR --&gt; SCHED</code></pre>
 <hr />
 <h2 id="step-4-data-parallelism">Step 4: Data Parallelism<a class="headerlink" href="#step-4-data-parallelism" title="Permanent link">&para;</a></h2>
 <p>Data parallelism is the most common strategy: each GPU holds a <strong>complete copy</strong> of the model, processes a different shard of data, and synchronizes gradients after each step.</p>
-<div class="mermaid">graph TB
+<pre class="mermaid"><code>graph TB
     DATA[Training Data] --&gt; SHARD1[Shard 1]
     DATA --&gt; SHARD2[Shard 2]
     DATA --&gt; SHARD3[Shard 3]
@@ -3216,7 +3216,7 @@
     AR --&gt;|averaged gradients| W1
     AR --&gt;|averaged gradients| W2
     AR --&gt;|averaged gradients| W3
-    AR --&gt;|averaged gradients| W4</div>
+    AR --&gt;|averaged gradients| W4</code></pre>
 <h3 id="pytorch-ddp-implementation">PyTorch DDP Implementation<a class="headerlink" href="#pytorch-ddp-implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
@@ -3383,7 +3383,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">graph LR
+<pre class="mermaid"><code>graph LR
     subgraph s0["Stage 0: DDP"]
         G0_M[Model ✓]
         G0_O[Optimizer ✓]
@@ -3406,7 +3406,7 @@
         G3_M[Model ⅛]
         G3_O[Optimizer ⅛]
         G3_G[Gradients ⅛]
-    end</div>
+    end</code></pre>
 <h3 id="deepspeed-zero-implementation">DeepSpeed ZeRO Implementation<a class="headerlink" href="#deepspeed-zero-implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">deepspeed</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -3565,7 +3565,7 @@
 </tbody>
 </table>
 <h3 id="tensor-parallelism">Tensor Parallelism<a class="headerlink" href="#tensor-parallelism" title="Permanent link">&para;</a></h3>
-<div class="mermaid">graph LR
+<pre class="mermaid"><code>graph LR
     subgraph g0["GPU 0"]
         ATT_0[Attention Heads 0-15]
         MLP_0[MLP Column 0]
@@ -3584,7 +3584,7 @@
     AR1 --&gt; MLP_1
     MLP_0 --&gt; AR2[All-Reduce]
     MLP_1 --&gt; AR2
-    AR2 --&gt; OUTPUT[Output]</div>
+    AR2 --&gt; OUTPUT[Output]</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
@@ -3704,7 +3704,7 @@
 </span><span id="__span-5-117"><a id="__codelineno-5-117" name="__codelineno-5-117" href="#__codelineno-5-117"></a>        <span class="k">return</span> <span class="n">x</span>
 </span></code></pre></div>
 <h3 id="pipeline-parallelism">Pipeline Parallelism<a class="headerlink" href="#pipeline-parallelism" title="Permanent link">&para;</a></h3>
-<div class="mermaid">graph TB
+<pre class="mermaid"><code>graph TB
     subgraph tdir["Time →"]
         subgraph gpu0st["GPU 0 (Layers 0-7)"]
             MB1_S0[μ-batch 1&lt;br/&gt;Forward]
@@ -3725,7 +3725,7 @@
             MB2_S1B[μ-batch 2&lt;br/&gt;Backward]
             MB1_S1B[μ-batch 1&lt;br/&gt;Backward]
         end
-    end</div>
+    end</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
@@ -4606,10 +4606,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

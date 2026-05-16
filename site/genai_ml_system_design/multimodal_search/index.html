@@ -2652,6 +2652,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3125,7 +3134,7 @@
 <h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="clip-siglip-contrastive-language-image-pre-training">CLIP / SigLIP — Contrastive Language-Image Pre-training<a class="headerlink" href="#clip-siglip-contrastive-language-image-pre-training" title="Permanent link">&para;</a></h3>
 <p>The foundation of multi-modal search. CLIP trains an image encoder and a text encoder <strong>jointly</strong> so that matching image-text pairs have high cosine similarity:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph ctr["Contrastive Training"]
         Img["Image:&lt;br/&gt;A photo of a cat"]
         Txt["Text:&lt;br/&gt;A photo of a cat"]
@@ -3136,7 +3145,7 @@
         Img --&gt; ImgEnc --&gt; ImgEmb
         Txt --&gt; TxtEnc --&gt; TxtEmb
         ImgEmb &lt;--&gt;|"maximize&lt;br/&gt;similarity"| TxtEmb
-    end</div>
+    end</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
@@ -3403,6 +3412,118 @@
 </span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>    <span class="s2">&quot;latency_ms&quot;</span><span class="p">:</span> <span class="mi">187</span>
 </span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A multimodal search system is built from <strong>embedding model + vector index + image/video processing pipeline + fusion strategy + serving infrastructure</strong>. The right combination depends on modality mix, index scale, latency budget, and accuracy requirements.</p>
+<h4 id="embedding-model">Embedding model<a class="headerlink" href="#embedding-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLIP (OpenAI)</strong></td>
+<td>Shared text-image embedding space; well-understood; strong zero-shot</td>
+<td>512/768 dims limits expressiveness; weaker on fine-grained attributes; open weights available</td>
+<td>Default starting point; product search; general image-text matching</td>
+</tr>
+<tr>
+<td><strong>SigLIP / OpenCLIP</strong></td>
+<td>Open-source CLIP variants with improved training; larger batch sizes; multiple sizes</td>
+<td>Still inherits CLIP architecture limits; may need fine-tuning for domain</td>
+<td>Open-source requirement; need to fine-tune on domain data</td>
+</tr>
+<tr>
+<td><strong>BLIP-2 / CoCa</strong></td>
+<td>Stronger image understanding; captioning + retrieval; multimodal reasoning</td>
+<td>Heavier inference; higher latency per embedding; more GPU memory</td>
+<td>When query understanding matters (e.g., complex natural language queries about images)</td>
+</tr>
+<tr>
+<td><strong>Domain-specific (fine-tuned)</strong></td>
+<td>Highest accuracy on target domain; encodes domain-specific attributes</td>
+<td>Training cost; data collection; maintenance burden; risk of overfitting</td>
+<td>E-commerce product search; medical imaging; fashion where attributes matter</td>
+</tr>
+</tbody>
+</table>
+<h4 id="vector-index-at-scale">Vector index (at scale)<a class="headerlink" href="#vector-index-at-scale" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FAISS with IVF-PQ</strong></td>
+<td>Handles billions of vectors; product quantization compresses memory; GPU support</td>
+<td>Requires careful tuning (nprobe, PQ segments); single-node limits without sharding wrapper</td>
+<td>Billion-scale indexes where memory efficiency is critical</td>
+</tr>
+<tr>
+<td><strong>Milvus</strong></td>
+<td>Distributed architecture; multiple index types; GPU acceleration; streaming insert</td>
+<td>Operational complexity; resource-hungry cluster; steep learning curve</td>
+<td>Billion-scale with need for real-time index updates and distributed queries</td>
+</tr>
+<tr>
+<td><strong>Weaviate</strong></td>
+<td>Hybrid search built-in; multi-modal module support; GraphQL API</td>
+<td>Memory-intensive; HNSW index rebuild on large updates</td>
+<td>Moderate scale with hybrid (text + vector) search needs</td>
+</tr>
+<tr>
+<td><strong>ScaNN (Google)</strong></td>
+<td>Highly optimized ANN; anisotropic quantization; strong recall/latency tradeoff</td>
+<td>Less ecosystem support outside Google; limited distributed story</td>
+<td>Maximum recall at minimum latency; teams comfortable with custom integration</td>
+</tr>
+</tbody>
+</table>
+<h4 id="fusion-strategy">Fusion strategy<a class="headerlink" href="#fusion-strategy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Early fusion (joint embedding)</strong></td>
+<td>Single vector per item; simplest retrieval; captures cross-modal interactions</td>
+<td>Requires aligned training data; one model to train and maintain; fixed representation</td>
+<td>When text and image are tightly coupled (product listings, captioned images)</td>
+</tr>
+<tr>
+<td><strong>Late fusion (score combination)</strong></td>
+<td>Independent modality indexes; easier to update one modality; interpretable per-modal scores</td>
+<td>Misses cross-modal interactions; needs score calibration across modalities</td>
+<td>When modalities are independently valuable and updated at different rates</td>
+</tr>
+<tr>
+<td><strong>Reciprocal Rank Fusion (RRF)</strong></td>
+<td>Simple; no score calibration needed; robust across modalities</td>
+<td>Loses magnitude information; fixed formula may not suit all query types</td>
+<td>Default fusion when combining sparse (BM25) + dense retrievers</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> At billion-scale, the vector index choice dominates system cost and latency. FAISS with IVF-PQ is the industry standard for compressing 768-dim float32 vectors (3 KB each) down to ~64 bytes via product quantization — that's the difference between 30 TB and 640 GB for 10B vectors.</p>
+</div>
+<p><strong>Our choice:</strong> <strong>CLIP</strong> (or fine-tuned OpenCLIP) as the embedding backbone for its proven text-image alignment, with a fine-tuning path for domain-specific accuracy gains. <strong>FAISS with IVF-PQ</strong> for the vector index at billion-scale, sharded by content partition, with product quantization to keep the index memory-feasible. <strong>Early fusion</strong> (joint CLIP embeddings) as the primary retrieval path, augmented with <strong>RRF</strong> to combine dense vector results with sparse BM25 text matches for queries that include specific keywords or product IDs. This stack optimizes for <strong>latency at extreme scale</strong> while maintaining the cross-modal understanding that makes multimodal search valuable.</p>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3454,7 +3575,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph qp["Query Pipeline"]
         QU[Query&lt;br/&gt;Understanding]
         ImgEnc[Image&lt;br/&gt;Encoder]
@@ -3491,7 +3612,7 @@
     Crawler --&gt; MediaProc --&gt; Embedder --&gt; IndexBuilder
     IndexBuilder --&gt; VectorIdx
     MediaProc --&gt; MetaStore
-    MediaProc --&gt; MediaStore</div>
+    MediaProc --&gt; MediaStore</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-query-understanding-and-fusion">4.1 Query Understanding and Fusion<a class="headerlink" href="#41-query-understanding-and-fusion" title="Permanent link">&para;</a></h3>
@@ -3644,7 +3765,7 @@
 - Each shard fits in ~30 GB RAM (with PQ compression)
 - 256 × 3 = 768 machines for the vector index</p>
 <h3 id="43-indexing-pipeline">4.3 Indexing Pipeline<a class="headerlink" href="#43-indexing-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph ing["Content Ingestion"]
         Crawl["Web Crawler /&lt;br/&gt;Product Feed"]
         Dedup[Deduplication&lt;br/&gt;Content Hash]
@@ -3668,7 +3789,7 @@
         IndexWriter[Index&lt;br/&gt;Writer]
     end
 
-    ing --&gt; proc --&gt; emb --&gt; idxb</div>
+    ing --&gt; proc --&gt; emb --&gt; idxb</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IndexingPipeline</span><span class="p">:</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Process and index new content for multi-modal search.&quot;&quot;&quot;</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
@@ -4153,10 +4274,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

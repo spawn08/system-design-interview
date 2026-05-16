@@ -3286,11 +3286,11 @@
 <h3 id="cdn-content-delivery-network">CDN (Content Delivery Network)<a class="headerlink" href="#cdn-content-delivery-network" title="Permanent link">&para;</a></h3>
 <p>A CDN is a distributed network of servers positioned geographically close to users. They cache your content at "edge locations" around the world.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     User1[User in Tokyo] --&gt; Edge1[CDN Edge Tokyo]
     User2[User in London] --&gt; Edge2[CDN Edge London]
     Edge1 --&gt; Origin[Origin Server in US]
-    Edge2 --&gt; Origin</div>
+    Edge2 --&gt; Origin</code></pre>
 <ol>
 <li>User in Tokyo requests your image</li>
 <li>Request goes to nearest CDN edge server (Tokyo)</li>
@@ -3377,7 +3377,7 @@
 <h3 id="distributed-cache-redis-memcached">Distributed Cache (Redis, Memcached)<a class="headerlink" href="#distributed-cache-redis-memcached" title="Permanent link">&para;</a></h3>
 <p>A distributed cache is a separate caching service that multiple application servers can access. This solves the main limitations of in-process caching.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     subgraph srv["Application Servers"]
         S1[Server 1]
         S2[Server 2]
@@ -3395,7 +3395,7 @@
     S1 --&gt; Redis
     S2 --&gt; Redis
     S3 --&gt; Redis
-    Redis -.-&gt; DB</div>
+    Redis -.-&gt; DB</code></pre>
 <p>All servers share the same cache, so when Server 1 caches a value, Server 2 and Server 3 can read it.</p>
 <p><strong>Redis vs Memcached:</strong></p>
 <table>
@@ -3489,12 +3489,12 @@
 <h3 id="cache-aside-lazy-loading">Cache-Aside (Lazy Loading)<a class="headerlink" href="#cache-aside-lazy-loading" title="Permanent link">&para;</a></h3>
 <p>This is the most common caching pattern. The application is responsible for reading from and writing to the cache.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     A[Application needs data] --&gt; B{Check Cache}
     B --&gt;|Cache Hit| C[Return cached data]
     B --&gt;|Cache Miss| D[Query Database]
     D --&gt; E[Store in Cache]
-    E --&gt; F[Return data]</div>
+    E --&gt; F[Return data]</code></pre>
 <p><strong>Implementation:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_product</span><span class="p">(</span><span class="n">product_id</span><span class="p">):</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="c1"># Step 1: Check cache</span>
@@ -3532,9 +3532,9 @@
 <h3 id="read-through">Read-Through<a class="headerlink" href="#read-through" title="Permanent link">&para;</a></h3>
 <p>Similar to cache-aside, but the cache itself is responsible for loading data from the database on a miss.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     App[Application] --&gt; Cache[(Cache)]
-    Cache --&gt; DB[(Database)]</div>
+    Cache --&gt; DB[(Database)]</code></pre>
 <p>The application only talks to the cache. The cache transparently loads from the database on misses.</p>
 <p><strong>Implementation concept:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ReadThroughCache</span><span class="p">:</span>
@@ -3607,7 +3607,7 @@
 <h3 id="write-through">Write-Through<a class="headerlink" href="#write-through" title="Permanent link">&para;</a></h3>
 <p>Write to the cache AND the database synchronously. The cache always has the latest data.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant App as Application
     participant Cache as Cache
     participant DB as Database
@@ -3615,7 +3615,7 @@
     App-&gt;&gt;Cache: Write data
     Cache-&gt;&gt;DB: Write data
     DB--&gt;&gt;Cache: Confirm
-    Cache--&gt;&gt;App: Confirm</div>
+    Cache--&gt;&gt;App: Confirm</code></pre>
 <p><strong>Implementation:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">update_product</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">new_data</span><span class="p">):</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;product:</span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -3646,7 +3646,7 @@
 <h3 id="write-behind-write-back">Write-Behind (Write-Back)<a class="headerlink" href="#write-behind-write-back" title="Permanent link">&para;</a></h3>
 <p>Write to the cache immediately, then asynchronously write to the database later.</p>
 <p><strong>How it works:</strong></p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant App as Application
     participant Cache as Cache
     participant Queue as Queue
@@ -3658,7 +3658,7 @@
     Cache-&gt;&gt;Queue: Enqueue write
     Note over App: Application continues
     Queue-&gt;&gt;Worker: Process write
-    Worker-&gt;&gt;DB: Write to database</div>
+    Worker-&gt;&gt;DB: Write to database</code></pre>
 <p><strong>Implementation concept:</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
@@ -3930,13 +3930,13 @@
 </ol>
 <h3 id="strategy-3-event-driven-invalidation">Strategy 3: Event-Driven Invalidation<a class="headerlink" href="#strategy-3-event-driven-invalidation" title="Permanent link">&para;</a></h3>
 <p>Use an event system to notify caches when data changes.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     App[Application] --&gt; DB[(Database)]
     DB --&gt; CDC[Change Data Capture]
     CDC --&gt; Kafka[Kafka]
     Kafka --&gt; Service1[Service 1 Cache]
     Kafka --&gt; Service2[Service 2 Cache]
-    Kafka --&gt; Service3[Service 3 Cache]</div>
+    Kafka --&gt; Service3[Service 3 Cache]</code></pre>
 <p><strong>How it works:</strong></p>
 <ol>
 <li>Application updates the database</li>
@@ -3986,7 +3986,7 @@
 - Client-side cache bypass after writes</p>
 <h3 id="problem-2-cache-stampede-thundering-herd">Problem 2: Cache Stampede (Thundering Herd)<a class="headerlink" href="#problem-2-cache-stampede-thundering-herd" title="Permanent link">&para;</a></h3>
 <p><strong>Scenario:</strong> A popular cache entry expires. Suddenly 1000 requests hit the database simultaneously.</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     Expire[Cache Entry Expires] --&gt; R1[Request 1]
     Expire --&gt; R2[Request 2]
     Expire --&gt; R3[Request 3]
@@ -3995,7 +3995,7 @@
     R2 --&gt; DB
     R3 --&gt; DB
     R100 --&gt; DB
-    DB --&gt; Crash[Database Overloaded!]</div>
+    DB --&gt; Crash[Database Overloaded!]</code></pre>
 <p><strong>Solutions:</strong></p>
 <p><strong>1. Locking (Mutex)</strong></p>
 <p>Only one request fetches from the database. Others wait for the cache to be populated.</p>
@@ -4380,10 +4380,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

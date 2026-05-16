@@ -2772,6 +2772,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3258,7 +3267,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph author["Authoring Plane"]
         IDE[IDE / YAML / UI]
         PR[Review + Approval]
@@ -3282,7 +3291,7 @@
     Meta --&gt; Lineage
     Meta --&gt; Router
     Blobs --&gt; Cache
-    Router --&gt; Cache --&gt; LLM</div>
+    Router --&gt; Cache --&gt; LLM</code></pre>
 <h3 id="templating-jinja-style">Templating (Jinja-Style)<a class="headerlink" href="#templating-jinja-style" title="Permanent link">&para;</a></h3>
 <p><strong>Goals:</strong> Variable substitution, optional conditionals, strict <strong>allowlists</strong> for variables (no arbitrary code execution), and <strong>schema validation</strong> of inputs before render.</p>
 <table>
@@ -3371,7 +3380,7 @@
 </tbody>
 </table>
 <p><strong>Practical split:</strong> Use the <strong>custom registry</strong> as the <strong>source of truth</strong> for immutable <code>version_id</code> and promotion; <strong>sync or tag</strong> runs in LangSmith so debugging stays one click away. Prompt flow–style DAGs can <strong>call</strong> your render API as a node so toolchains stay portable.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph custom["Custom Registry"]
         REG[Registry API]
         ENV[Environment Manager]
@@ -3389,7 +3398,7 @@
     REG --&gt;|"render + version_id"| GW
     GW --&gt;|"trace tags: version_id, arm"| LS
     GW --&gt; OTEL
-    REG -.-&gt;|"optional: eval webhook"| LS</div>
+    REG -.-&gt;|"optional: eval webhook"| LS</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Minimal mental model: prompt version = content-addressed document</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -3612,6 +3621,137 @@
 </span><span id="__span-1-58"><a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a>  <span class="s2">&quot;experiment_arm&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span>
 </span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The prompt management system is built from a <strong>metadata store + blob store for prompt payloads + cache layer + template engine + event bus for invalidation</strong>. Each choice affects resolve latency, durability, and multi-region behavior.</p>
+<h4 id="metadata-database">Metadata database<a class="headerlink" href="#metadata-database" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Mature, ACID, rich indexing (GIN for JSON), strong tooling</td>
+<td>Single-region leader by default; manual sharding at extreme scale</td>
+<td>Single-region; moderate version throughput (tens of thousands/month)</td>
+</tr>
+<tr>
+<td><strong>CockroachDB</strong></td>
+<td>Serializable with multi-region replication; PostgreSQL-compatible</td>
+<td>Higher write latency (consensus); operational complexity</td>
+<td>Multi-region where strong consistency on pointer moves is required</td>
+</tr>
+<tr>
+<td><strong>DynamoDB</strong></td>
+<td>Serverless; single-digit-ms reads; global tables for multi-region</td>
+<td>Eventually consistent global tables; no joins; limited query flexibility</td>
+<td>AWS-native; simple key-value access; massive read throughput</td>
+</tr>
+</tbody>
+</table>
+<h4 id="prompt-content-store">Prompt content store<a class="headerlink" href="#prompt-content-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>S3 / GCS</strong></td>
+<td>Unlimited capacity; content-addressable layout natural; built-in versioning</td>
+<td>Per-request cost at high QPS; not ideal for sub-ms hot path</td>
+<td>Default for immutable prompt bundles; large few-shot payloads</td>
+</tr>
+<tr>
+<td><strong>Database BLOB column</strong></td>
+<td>Single transaction for metadata + content; simpler deployment</td>
+<td>Row size limits; DB backup grows; poor for payloads above tens of KB</td>
+<td>Small templates without large few-shot packs</td>
+</tr>
+<tr>
+<td><strong>Git-backed store</strong></td>
+<td>Engineers know Git; built-in diff/blame; CI/CD integration natural</td>
+<td>Not a serving-time store; needs sync to registry</td>
+<td>Source-of-truth for authoring with sync to serving layer</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cache-layer-serving-hot-path">Cache layer (serving hot path)<a class="headerlink" href="#cache-layer-serving-hot-path" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis Cluster</strong></td>
+<td>Sub-ms p99; pub/sub for invalidation; well-understood operationally</td>
+<td>Memory cost at scale; failover complexity</td>
+<td>Default for compiled prompt cache with pub/sub invalidation</td>
+</tr>
+<tr>
+<td><strong>Application-level LRU</strong></td>
+<td>Zero network hop; fastest reads; no external dependency</td>
+<td>Per-instance; cold on deploy; inconsistent across replicas</td>
+<td>L1 cache in front of Redis; small catalogs where staleness is OK</td>
+</tr>
+<tr>
+<td><strong>CDN (immutable bundles)</strong></td>
+<td>Global edge; infinite cache for content-addressed bundles</td>
+<td>Cannot invalidate (content-addressed keys solve this)</td>
+<td>Immutable compiled bundles keyed by version_id; global SDK clients</td>
+</tr>
+</tbody>
+</table>
+<h4 id="template-engine">Template engine<a class="headerlink" href="#template-engine" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Jinja2 (sandboxed)</strong></td>
+<td>Industry standard; rich control flow; SandboxedEnvironment for safety</td>
+<td>Powerful enough to be dangerous without sandboxing; Python-only native</td>
+<td>Default; need conditionals and loops; Python backend</td>
+</tr>
+<tr>
+<td><strong>Mustache / Handlebars</strong></td>
+<td>Logic-less by design; cross-language implementations; harder to abuse</td>
+<td>No conditionals or loops; limited expressiveness</td>
+<td>Strict security; multi-language SDKs; simple variable substitution</td>
+</tr>
+<tr>
+<td><strong>Custom DSL</strong></td>
+<td>Tailored to prompt needs; can enforce domain rules at parse time</td>
+<td>Engineering investment; no community; onboarding cost</td>
+<td>Unique requirements like built-in token counting or model-specific escaping</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>PostgreSQL</strong> for metadata (ACID guarantees on pointer moves, rich JSON indexing), with CockroachDB as upgrade path for multi-region. <strong>S3/GCS</strong> with content-addressed keys for immutable prompt bundles. <strong>Redis Cluster</strong> with pub/sub invalidation fronted by <strong>in-process LRU as L1</strong>. <strong>Sandboxed Jinja2</strong> for templates. This hits sub-5ms p99 on cache hit, degrades to sub-50ms on cold path (Redis miss → S3 fetch), and provides the ACID pointer semantics needed for safe rollback/promotion.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> "What if Postgres is down?" Redis holds last-known-good immutable bundles; high-risk prompts (medical, financial) return 503 instead of degrading, controlled by a risk tier in prompt metadata.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3708,7 +3848,7 @@
 </div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph clients["Clients"]
         SDK[SDKs&lt;br/&gt;Python / Go / Java]
         GW[LLM Gateway]
@@ -3761,7 +3901,7 @@
     Env --&gt; Kafka
 
     Reg --&gt; Kafka --&gt; Aud
-    Aud --&gt; Audit</div>
+    Aud --&gt; Audit</code></pre>
 <p><strong>Component responsibilities:</strong></p>
 <table>
 <thead>
@@ -3805,7 +3945,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph lifecycle["Prompt Lifecycle"]
         C[Create Draft]
         T[Test / Eval]
@@ -3816,7 +3956,7 @@
     C --&gt;|"commit version"| T
     T --&gt;|"pass gates"| P
     P --&gt;|"env pointer"| S
-    S --&gt;|"metrics + incidents"| T</div>
+    S --&gt;|"metrics + incidents"| T</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-prompt-schema-template-variables-metadata-few-shots">4.1 Prompt Schema (Template, Variables, Metadata, Few-Shots)<a class="headerlink" href="#41-prompt-schema-template-variables-metadata-few-shots" title="Permanent link">&para;</a></h3>
@@ -3888,7 +4028,7 @@
 </span></code></pre></div>
 <h3 id="42-version-dag-and-lineage">4.2 Version DAG and Lineage<a class="headerlink" href="#42-version-dag-and-lineage" title="Permanent link">&para;</a></h3>
 <p>Each version stores <code>parents: list[version_id]</code>. <strong>Fork</strong> = multiple children from one parent; <strong>merge</strong> = version with two parents (like Git). The registry rejects <strong>cycles</strong> in composition graphs.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph vc["Version Control Flow"]
         V0[v0 baseline]
         V1[v1 tighten preamble]
@@ -3900,7 +4040,7 @@
     V0 --&gt; V1 --&gt; V2
     V1 --&gt; V3
     V2 --&gt; M1
-    V3 --&gt; M1</div>
+    V3 --&gt; M1</code></pre>
 <p><strong>Java sketch — lineage record (immutability in DB):</strong></p>
 <div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">record</span> <span class="nc">PromptLineage</span><span class="p">(</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">versionId</span><span class="p">,</span>
@@ -3963,7 +4103,7 @@
 </span></code></pre></div>
 <h3 id="44-ab-testing-traffic-routing">4.4 A/B Testing Traffic Routing<a class="headerlink" href="#44-ab-testing-traffic-routing" title="Permanent link">&para;</a></h3>
 <p><strong>Sticky bucketing:</strong> <code>bucket = hash(experiment_salt + key) % N</code>. <strong>Overlapping experiments:</strong> layered buckets only if product defines orthogonality; otherwise <strong>priority list</strong> (first match wins).</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     REQ[Render Request] --&gt; E{Experiment&lt;br/&gt;active?}
     E --&gt;|no| STABLE[Stable version]
     E --&gt;|yes| H[Hash bucket]
@@ -3971,7 +4111,7 @@
     H --&gt; B[Arm B&lt;br/&gt;version Vb]
     A --&gt; REN[Render]
     B --&gt; REN
-    STABLE --&gt; REN</div>
+    STABLE --&gt; REN</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
@@ -4073,7 +4213,7 @@
 </span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>        <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)),</span>
 </span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>    <span class="p">}</span>
 </span></code></pre></div>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph inputs["Inputs"]
         VNEW[Candidate version_id]
         VBASE[Baseline version_id]
@@ -4101,7 +4241,7 @@
     W1 --&gt; W2 --&gt; MET --&gt; CMP --&gt; GATE
     VBASE --&gt; CMP
     GATE --&gt;|yes| OK
-    GATE --&gt;|no| BLOCK</div>
+    GATE --&gt;|no| BLOCK</code></pre>
 <h3 id="46-rollback-mechanism">4.6 Rollback Mechanism<a class="headerlink" href="#46-rollback-mechanism" title="Permanent link">&para;</a></h3>
 <p>Rollback = <strong>move environment pointer</strong> to prior <code>version_id</code> + <strong>invalidate caches</strong> + <strong>emit audit event</strong>. No deletion of history.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -4134,11 +4274,11 @@
 </span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a>    <span class="p">)</span>
 </span></code></pre></div>
 <h3 id="47-environment-promotion-pipeline">4.7 Environment Promotion Pipeline<a class="headerlink" href="#47-environment-promotion-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     D[Dev pointer] --&gt;|CI smoke eval| S[Staging pointer]
     S --&gt;|full golden + approvers| P[Prod pointer]
     P --&gt;|canary 1%| P2[Prod 100%]
-    P2 --&gt;|rollback| S</div>
+    P2 --&gt;|rollback| S</code></pre>
 <table>
 <thead>
 <tr>
@@ -4633,10 +4773,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

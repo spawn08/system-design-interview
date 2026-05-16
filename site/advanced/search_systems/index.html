@@ -2943,7 +2943,7 @@
 <p>Search is one of the most common and most complex features in modern applications. Whether it's Google, Amazon product search, Slack message search, or autocomplete suggestions — every large-scale system has a search component. Interviewers love search questions because they touch on data structures, distributed systems, relevance ranking, and user experience.</p>
 <hr />
 <h2 id="how-search-works-the-big-picture">How Search Works: The Big Picture<a class="headerlink" href="#how-search-works-the-big-picture" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph ip["Indexing Pipeline"]
         DATA["Data Sources&lt;br/&gt;DB, Files, APIs"] --&gt; CRAWL["Crawler / CDC"]
         CRAWL --&gt; PROC[Document Processor&lt;br/&gt;Tokenize, Normalize]
@@ -2958,7 +2958,7 @@
         RANK --&gt; RESULT[Results]
     end
 
-    STORE --&gt; SEARCH</div>
+    STORE --&gt; SEARCH</code></pre>
 <p>Search systems have two main pipelines:
 1. <strong>Indexing pipeline</strong> — processes documents and builds a searchable index (offline/near-real-time)
 2. <strong>Query pipeline</strong> — processes user queries and retrieves ranked results (online, low-latency)</p>
@@ -2984,12 +2984,12 @@
 </span></code></pre></div>
 <p>To find all documents containing "fox", you look up one entry — O(1).</p>
 <h3 id="building-an-inverted-index">Building an Inverted Index<a class="headerlink" href="#building-an-inverted-index" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     DOC[Raw Document] --&gt; TOK[Tokenizer&lt;br/&gt;Split into words]
     TOK --&gt; NORM[Normalizer&lt;br/&gt;Lowercase, stemming]
     NORM --&gt; STOP[Stop Word Removal&lt;br/&gt;Remove 'the', 'is', 'a']
     STOP --&gt; POST[Build Postings List&lt;br/&gt;Term → Doc IDs + positions]
-    POST --&gt; IDX[(Inverted Index)]</div>
+    POST --&gt; IDX[(Inverted Index)]</code></pre>
 <h3 id="building-an-inverted-index_1">Building an inverted index<a class="headerlink" href="#building-an-inverted-index_1" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">Java</label></div>
 <div class="tabbed-content">
@@ -3218,7 +3218,7 @@
 <h2 id="elasticsearch">Elasticsearch<a class="headerlink" href="#elasticsearch" title="Permanent link">&para;</a></h2>
 <p>Elasticsearch is the most widely used distributed search engine. Built on Apache Lucene, it provides full-text search, analytics, and near-real-time indexing.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     CLIENT[Client] --&gt; COORD[Coordinating Node]
     COORD --&gt; N1[Data Node 1]
     COORD --&gt; N2[Data Node 2]
@@ -3237,7 +3237,7 @@
     subgraph N3[Data Node 3]
         S2P["Index: products&lt;br/&gt;Shard 2 - Primary"]
         S1R["Index: products&lt;br/&gt;Shard 1 - Replica"]
-    end</div>
+    end</code></pre>
 <h3 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3286,7 +3286,7 @@
 </tbody>
 </table>
 <h3 id="how-a-search-query-executes">How a Search Query Executes<a class="headerlink" href="#how-a-search-query-executes" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant C as Client
     participant CN as Coordinating Node
     participant S0 as Shard 0
@@ -3313,7 +3313,7 @@
     S1-&gt;&gt;CN: doc 88, 91 content
     S2-&gt;&gt;CN: doc 15 content
 
-    CN-&gt;&gt;C: Final ranked results</div>
+    CN-&gt;&gt;C: Final ranked results</code></pre>
 <p>This is a <strong>scatter-gather</strong> pattern:
 1. <strong>Scatter:</strong> query is sent to all shards in parallel
 2. <strong>Local search:</strong> each shard finds its top-K matches using its local index
@@ -3592,13 +3592,13 @@
 </tbody>
 </table>
 <h3 id="near-real-time-indexing">Near-Real-Time Indexing<a class="headerlink" href="#near-real-time-indexing" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     DB[(Primary DB)] --&gt;|CDC stream| KAFKA[Kafka]
     KAFKA --&gt; INDEXER[Indexing Service]
     INDEXER --&gt; ES[(Elasticsearch)]
 
     APP[Application] --&gt;|reads| DB
-    APP --&gt;|search queries| ES</div>
+    APP --&gt;|search queries| ES</code></pre>
 <p><strong>Change Data Capture (CDC)</strong> streams database changes to Kafka, and an indexing service continuously updates Elasticsearch. Typical latency: 1-5 seconds from write to searchable.</p>
 <h3 id="handling-typos-fuzzy-search">Handling Typos: Fuzzy Search<a class="headerlink" href="#handling-typos-fuzzy-search" title="Permanent link">&para;</a></h3>
 <p>Fuzzy search uses <strong>edit distance</strong> (Levenshtein distance) to find terms similar to the query term:</p>
@@ -3609,7 +3609,7 @@
 <p>Most search engines support fuzzy queries with configurable maximum edit distance (typically 1-2).</p>
 <hr />
 <h2 id="interview-decision-framework">Interview Decision Framework<a class="headerlink" href="#interview-decision-framework" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     Q[Search Requirement] --&gt; TYPE{Search type?}
     TYPE --&gt;|Full-text search| FTS["Elasticsearch / Solr"]
     TYPE --&gt;|Autocomplete| AC{Scale?}
@@ -3626,7 +3626,7 @@
 
     FTS --&gt; IDX{Indexing latency?}
     IDX --&gt;|Real-time| CDC[CDC → Kafka → ES]
-    IDX --&gt;|Minutes OK| BATCH[Periodic batch reindex]</div>
+    IDX --&gt;|Minutes OK| BATCH[Periodic batch reindex]</code></pre>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>When designing a search system in an interview, always address: (1) how data gets into the index (indexing pipeline), (2) how queries are executed (scatter-gather), (3) how results are ranked (BM25 + optional re-ranking), and (4) how the system scales (sharding, replication).</p>
@@ -3788,10 +3788,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

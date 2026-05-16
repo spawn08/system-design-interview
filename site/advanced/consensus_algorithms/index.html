@@ -2931,7 +2931,7 @@
 <li>Acceptors accept if they have not promised a higher number</li>
 <li>Once a majority accepts, the value is <strong>chosen</strong></li>
 </ol>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant P as Proposer
   participant A1 as Acceptor 1
   participant A2 as Acceptor 2
@@ -2947,7 +2947,7 @@
   P-&gt;&gt;A2: "Accept(n=1, value=X)"
   A1--&gt;&gt;P: Accepted
   A2--&gt;&gt;P: Accepted
-  Note over P: Value X is chosen</div>
+  Note over P: Value X is chosen</code></pre>
 <h3 id="why-paxos-is-hard-in-practice">Why Paxos Is Hard in Practice<a class="headerlink" href="#why-paxos-is-hard-in-practice" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3011,13 +3011,13 @@
 <li>A candidate that receives votes from a majority becomes leader</li>
 <li>The leader sends periodic heartbeats to maintain authority</li>
 </ol>
-<div class="mermaid">stateDiagram-v2
+<pre class="mermaid"><code>stateDiagram-v2
   [*] --&gt; Follower
   Follower --&gt; Candidate: Election timeout
   Candidate --&gt; Leader: Receives majority votes
   Candidate --&gt; Follower: Discovers higher term
   Leader --&gt; Follower: Discovers higher term
-  Candidate --&gt; Candidate: Election timeout (split vote)</div>
+  Candidate --&gt; Candidate: Election timeout (split vote)</code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Randomized election timeouts prevent perpetual split votes. This is Raft's practical solution to the FLP impossibility result.</p>
@@ -3031,7 +3031,7 @@
 <li>Leader applies the committed entry to its state machine and responds to the client</li>
 <li>Followers apply committed entries to their state machines</li>
 </ol>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant C as Client
   participant L as Leader
   participant F1 as Follower 1
@@ -3045,7 +3045,7 @@
   F2--&gt;&gt;L: Success
   Note over L: Majority replicated; commit index 5
   L-&gt;&gt;L: Apply X to state machine
-  L--&gt;&gt;C: Result</div>
+  L--&gt;&gt;C: Result</code></pre>
 <h3 id="safety-properties">Safety Properties<a class="headerlink" href="#safety-properties" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3329,10 +3329,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

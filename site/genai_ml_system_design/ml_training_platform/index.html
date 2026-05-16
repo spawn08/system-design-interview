@@ -2601,6 +2601,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3111,7 +3120,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph dpar["Data Parallelism"]
         GPU1_DP[GPU 0&lt;br/&gt;Full Model&lt;br/&gt;Batch 0]
         GPU2_DP[GPU 1&lt;br/&gt;Full Model&lt;br/&gt;Batch 1]
@@ -3132,7 +3141,7 @@
         GPU1_TP[GPU 0&lt;br/&gt;Col 0-2047]
         GPU2_TP[GPU 1&lt;br/&gt;Col 2048-4095]
         GPU1_TP &lt;--&gt;|AllGather| GPU2_TP
-    end</div>
+    end</code></pre>
 <h3 id="gang-scheduling">Gang Scheduling<a class="headerlink" href="#gang-scheduling" title="Permanent link">&para;</a></h3>
 <p>ML training jobs need <strong>all their GPUs simultaneously</strong>. If a job requests 64 GPUs and only 60 are free, it must wait. This is called gang scheduling — all-or-nothing allocation.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Regular scheduling:          Gang scheduling:
@@ -3323,6 +3332,137 @@
 </tr>
 </tbody>
 </table>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A managed ML training platform is built from <strong>job orchestration + distributed training framework + checkpoint/data storage + experiment tracking</strong>. Each shapes utilization ceiling, fault tolerance, and developer experience.</p>
+<h4 id="job-orchestration-scheduling">Job orchestration &amp; scheduling<a class="headerlink" href="#job-orchestration-scheduling" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kubernetes + Volcano / Kueue</strong></td>
+<td>Cloud-native; container isolation; gang scheduling; quota-aware queuing</td>
+<td>NCCL networking needs manual tuning; K8s scheduler not HPC-topology-aware</td>
+<td>Default for cloud/hybrid clusters up to ~2,000 GPUs</td>
+</tr>
+<tr>
+<td><strong>Slurm</strong></td>
+<td>Gold standard HPC; excellent InfiniBand and topology-aware placement</td>
+<td>Weak multi-tenancy; poor container integration</td>
+<td>On-prem supercomputer clusters (2,000+ GPUs) with InfiniBand</td>
+</tr>
+<tr>
+<td><strong>Ray Cluster (KubeRay)</strong></td>
+<td>Pythonic job submission; elastic scaling; unified train/tune/serve API</td>
+<td>Gang scheduling less mature; overhead on very large jobs</td>
+<td>Teams wanting unified framework without deep K8s knowledge</td>
+</tr>
+</tbody>
+</table>
+<h4 id="distributed-training-framework">Distributed training framework<a class="headerlink" href="#distributed-training-framework" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PyTorch FSDP</strong></td>
+<td>Native PyTorch; ZeRO-3-style sharding; large community</td>
+<td>Still evolving; less optimized than Megatron for very large models</td>
+<td>Default for most jobs where model fits with FSDP sharding</td>
+</tr>
+<tr>
+<td><strong>DeepSpeed (ZeRO-1/2/3)</strong></td>
+<td>Best memory optimization; ZeRO-Infinity offloads to NVMe</td>
+<td>Microsoft-centric; can conflict with native PyTorch; config complexity</td>
+<td>Extreme memory pressure (70B+ on limited GPUs)</td>
+</tr>
+<tr>
+<td><strong>Megatron-LM</strong></td>
+<td>Highest throughput for LLM pretraining; tensor+pipeline+data parallelism</td>
+<td>Steep learning curve; tightly coupled to specific architectures</td>
+<td>512+ GPU pretraining where MFU is primary concern</td>
+</tr>
+</tbody>
+</table>
+<h4 id="checkpoint-data-storage">Checkpoint &amp; data storage<a class="headerlink" href="#checkpoint-data-storage" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local NVMe + async upload to S3/GCS</strong></td>
+<td>Fastest write latency; zero network overhead during checkpoint</td>
+<td>Data at risk until uploaded; requires coordination</td>
+<td>Default hybrid: minimize training interruption, async durability</td>
+</tr>
+<tr>
+<td><strong>Cloud object store (S3/GCS) direct</strong></td>
+<td>Infinite capacity; built-in redundancy; accessible from any node</td>
+<td>Higher latency (100ms+); throughput limited by network</td>
+<td>Pure cloud deployments without local NVMe</td>
+</tr>
+<tr>
+<td><strong>Parallel filesystem (Lustre/WekaFS)</strong></td>
+<td>100+ GB/s aggregate throughput; low latency; POSIX</td>
+<td>Expensive; fixed capacity; operational burden</td>
+<td>On-prem with InfiniBand where checkpoint speed is critical</td>
+</tr>
+</tbody>
+</table>
+<h4 id="experiment-tracking">Experiment tracking<a class="headerlink" href="#experiment-tracking" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MLflow</strong></td>
+<td>Open-source; self-hostable; model registry built in</td>
+<td>UI less polished; limited real-time streaming</td>
+<td>Default for self-hosted platforms with audit requirements</td>
+</tr>
+<tr>
+<td><strong>Weights &amp; Biases</strong></td>
+<td>Best dashboards; real-time streaming; sweep integration</td>
+<td>SaaS default; self-hosted option expensive</td>
+<td>Teams prioritizing developer experience</td>
+</tr>
+<tr>
+<td><strong>TensorBoard</strong></td>
+<td>Free; native PyTorch/TF integration; familiar</td>
+<td>No experiment comparison at scale; no model registry</td>
+<td>Per-job visualization complement to primary tracker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Kubernetes + Volcano</strong> for gang scheduling (container isolation, RBAC, self-service APIs), with Slurm backend for teams on dedicated InfiniBand. <strong>PyTorch FSDP</strong> as default distributed strategy with DeepSpeed ZeRO-3 for memory-constrained jobs. <strong>Local NVMe + async S3/GCS upload</strong> for checkpoints (reduces overhead from ~15% to under 3% of wall-clock). <strong>MLflow</strong> for experiment registry with TensorBoard per-job. The platform abstracts framework choice behind the <code>distributed_strategy</code> field in the job spec.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> The scheduling deep-dive is where strong candidates differentiate. Explain why gang scheduling causes fragmentation (100 free GPUs scattered across 50 nodes can't serve a 64-GPU job) and how backfill scheduling of small jobs raises utilization from 60% to 80%+.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="cluster-size">Cluster Size<a class="headerlink" href="#cluster-size" title="Permanent link">&para;</a></h3>
@@ -3370,7 +3510,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph users["Users"]
         CLI["CLI / SDK"]
         WebUI[Web UI]
@@ -3416,7 +3556,7 @@
     cplane --&gt; dplane
     dplane --&gt; storl
     dplane --&gt; obs
-    cplane --&gt; obs</div>
+    cplane --&gt; obs</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-job-submission-and-lifecycle">4.1 Job Submission and Lifecycle<a class="headerlink" href="#41-job-submission-and-lifecycle" title="Permanent link">&para;</a></h3>
@@ -4116,10 +4256,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

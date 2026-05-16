@@ -2377,6 +2377,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3285,13 +3294,13 @@
 </div>
 <h3 id="traditional-asr-pipeline-acoustic-model-language-model-decoder">Traditional ASR Pipeline: Acoustic Model → Language Model → Decoder<a class="headerlink" href="#traditional-asr-pipeline-acoustic-model-language-model-decoder" title="Permanent link">&para;</a></h3>
 <p>Classical systems decomposed the problem:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     A[Audio] --&gt; F[Feature Extraction]
     F --&gt; AM[Acoustic Model&lt;br/&gt;HMM-DNN / GMM]
     AM --&gt; D[Decoder&lt;br/&gt;WFST search]
     LM[Language Model&lt;br/&gt;n-gram] --&gt; D
     Lex[Lexicon / Pronunciations] --&gt; D
-    D --&gt; T[Text + alignment]</div>
+    D --&gt; T[Text + alignment]</code></pre>
 <table>
 <thead>
 <tr>
@@ -3357,7 +3366,7 @@
 </div>
 <h3 id="whisper-architecture-representative">Whisper Architecture (Representative)<a class="headerlink" href="#whisper-architecture-representative" title="Permanent link">&para;</a></h3>
 <p>Whisper is an <strong>encoder-decoder Transformer</strong> trained on <strong>weakly supervised</strong> web-scale audio with <strong>multitask</strong> objectives:</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph Enc[Encoder]
         M[Log-mel spectrogram patches] --&gt; T[Transformer encoder]
     end
@@ -3365,7 +3374,7 @@
         T --&gt; TD[Transformer decoder]
         TD --&gt; O[Token outputs]
     end
-    MT["Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps"] --&gt; Dec</div>
+    MT["Special tokens: transcribe / translate&lt;br/&gt;language id, timestamps"] --&gt; Dec</code></pre>
 <p><strong>Multitask training</strong> includes:</p>
 <ul>
 <li><strong>Transcription</strong> in many languages</li>
@@ -3544,6 +3553,102 @@
 <p class="admonition-title">Tip</p>
 <p>Translate “300 ms” into <strong>audio buffer + feature + inference + beam + post</strong> with a rough pie chart in interviews—numbers matter more than buzzwords.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A speech recognition system is built from <strong>ASR model + audio feature extraction + language model + streaming protocol + serving infrastructure</strong>. Each choice affects word error rate, latency, and language coverage.</p>
+<h4 id="asr-model-architecture">ASR model architecture<a class="headerlink" href="#asr-model-architecture" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Whisper (OpenAI)</strong></td>
+<td>Strong multilingual; 99 languages; simple pipeline; open weights</td>
+<td>Not streaming-native; higher latency; large model (1.5B)</td>
+<td>Batch transcription; multilingual; offline processing</td>
+</tr>
+<tr>
+<td><strong>Conformer (CTC + attention)</strong></td>
+<td>Best WER on benchmarks; streaming-capable; efficient</td>
+<td>Complex training; needs large paired audio data</td>
+<td>Default for production streaming ASR</td>
+</tr>
+<tr>
+<td><strong>RNN-T (Transducer)</strong></td>
+<td>Natural streaming; emits tokens as audio arrives; low latency</td>
+<td>Harder to train; less modular than CTC</td>
+<td>Real-time streaming where first-word latency matters</td>
+</tr>
+<tr>
+<td><strong>wav2vec 2.0 / HuBERT</strong></td>
+<td>Self-supervised pre-training on unlabeled audio; strong for low-resource</td>
+<td>Needs fine-tuning; CTC decoder limitations</td>
+<td>Low-resource languages; limited labeled data</td>
+</tr>
+</tbody>
+</table>
+<h4 id="audio-feature-extraction">Audio feature extraction<a class="headerlink" href="#audio-feature-extraction" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Log-mel filterbanks (80-dim)</strong></td>
+<td>Standard; well-understood; efficient; works with all models</td>
+<td>Fixed representation; misses some temporal detail</td>
+<td>Default for all production ASR systems</td>
+</tr>
+<tr>
+<td><strong>Raw waveform (end-to-end)</strong></td>
+<td>Model learns features; potentially richer representation</td>
+<td>Needs more training data; higher compute; less interpretable</td>
+<td>Research; when standard features are a bottleneck</td>
+</tr>
+</tbody>
+</table>
+<h4 id="language-model-rescoring">Language model (rescoring)<a class="headerlink" href="#language-model-rescoring" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>N-gram (KenLM)</strong></td>
+<td>Fast; small memory; domain-adaptable; no GPU needed</td>
+<td>Limited context; misses long-range dependencies</td>
+<td>Default first-pass LM; domain adaptation via text data</td>
+</tr>
+<tr>
+<td><strong>Transformer LM (GPT-2 class)</strong></td>
+<td>Better perplexity; captures long context; handles rare words</td>
+<td>Higher latency; GPU needed for rescoring; cost</td>
+<td>Second-pass rescoring for high-accuracy applications</td>
+</tr>
+<tr>
+<td><strong>Domain-adapted (fine-tuned on in-domain text)</strong></td>
+<td>Dramatically improves WER on domain vocabulary</td>
+<td>Needs domain text; risk of overfitting; maintenance</td>
+<td>Medical, legal, or technical domains with specialized vocabulary</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Conformer with RNN-T decoder</strong> for streaming ASR (best WER with natural streaming), <strong>log-mel filterbanks</strong> for features, <strong>KenLM n-gram</strong> for first-pass decoding with <strong>Transformer LM second-pass rescoring</strong> for high-accuracy applications. Serve on GPU with <strong>Triton</strong> for dynamic batching. This delivers sub-300ms end-to-end latency with state-of-the-art WER.</p>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
 <p>Estimation is interviewer-specific; treat numbers as <strong>Fermi-style</strong> anchors you can defend.</p>
@@ -3617,22 +3722,22 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="batch-offline-path">Batch / Offline Path<a class="headerlink" href="#batch-offline-path" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     IN[Audio Input&lt;br/&gt;file or chunk] --&gt; FE[Feature Extraction&lt;br/&gt;log-mel spectrogram]
     FE --&gt; AM[ASR Model&lt;br/&gt;encoder-decoder / CTC / RNN-T]
     AM --&gt; DEC[Decoder&lt;br/&gt;beam search / RNN-T joint]
     DEC --&gt; PP[Post-processing&lt;br/&gt;punctuation, ITN, formatting]
     PP --&gt; OUT[Text + timestamps]
-    LM[Language model&lt;br/&gt;optional fusion / rescoring] --&gt; DEC</div>
+    LM[Language model&lt;br/&gt;optional fusion / rescoring] --&gt; DEC</code></pre>
 <h3 id="streaming-path-conceptual">Streaming Path (Conceptual)<a class="headerlink" href="#streaming-path-conceptual" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     MIC[Mic / Stream] --&gt; BUF[Ring buffer&lt;br/&gt;chunked frames]
     BUF --&gt; FE[Streaming features&lt;br/&gt;causal frontend]
     FE --&gt; ENC[Streaming encoder&lt;br/&gt;chunked Conformer / RNN-T]
     ENC --&gt; EP[Endpointer / VAD]
     ENC --&gt; DEC[Incremental decoder&lt;br/&gt;partial + final]
     DEC --&gt; PP[Stabilization + punctuation policy]
-    PP --&gt; UI[Client UI / API callbacks]</div>
+    PP --&gt; UI[Client UI / API callbacks]</code></pre>
 <p><strong>Key differences:</strong></p>
 <ul>
 <li><strong>Chunked inference</strong> every <span class="arithmatex">\(\Delta t\)</span>.</li>
@@ -4297,7 +4402,7 @@
 <p>Regulated customers (healthcare, finance) often require <strong>on-device</strong> or <strong>VPC-isolated</strong> deployment even if cloud accuracy is higher—design for <strong>both</strong>.</p>
 </div>
 <h3 id="training-and-release-pipeline">Training and Release Pipeline<a class="headerlink" href="#training-and-release-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph dplane["Data plane"]
         RAW["Raw corpora + user opt-in"] --&gt; LIC["License &amp; PII scrub"]
         LIC --&gt; VER[Versioned datasets]
@@ -4312,7 +4417,7 @@
         EVAL --&gt; SHADOW[Shadow traffic]
         SHADOW --&gt; CAN[Canary]
         CAN --&gt; ROLL["Rollout + rollback hooks"]
-    end</div>
+    end</code></pre>
 <h3 id="capacity-planning-snapshot">Capacity Planning Snapshot<a class="headerlink" href="#capacity-planning-snapshot" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4680,10 +4785,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

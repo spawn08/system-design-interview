@@ -2200,6 +2200,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3190,7 +3199,7 @@
 <h2 id="ml-concepts-primer">ML Concepts Primer<a class="headerlink" href="#ml-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="collaborative-filtering">Collaborative Filtering<a class="headerlink" href="#collaborative-filtering" title="Permanent link">&para;</a></h3>
 <p>The core idea: <strong>Users with similar taste will like similar items.</strong></p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph users["Users"]
         U1["User A&lt;br/&gt;Likes: Inception, Matrix"]
         U2["User B&lt;br/&gt;Likes: Inception, Matrix, Interstellar"]
@@ -3201,7 +3210,7 @@
     end
 
     U1 --&gt; R
-    U2 --&gt; R</div>
+    U2 --&gt; R</code></pre>
 <p><strong>Two approaches:</strong></p>
 <table>
 <thead>
@@ -3436,10 +3445,137 @@
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Daily interactions: 1 billion (views, clicks, purchases)
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Recommendations served: 500 million/day
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A recommendation system is built from <strong>candidate generation model + ranking model + feature store + serving infrastructure</strong>. Each choice affects recommendation quality, latency, and cold-start handling.</p>
+<h4 id="candidate-generation">Candidate generation<a class="headerlink" href="#candidate-generation" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Two-tower (user + item embeddings)</strong></td>
+<td>Fast ANN retrieval; decoupled; scales to billions of items</td>
+<td>Misses fine-grained interactions at retrieval</td>
+<td>Default for large catalog retrieval</td>
+</tr>
+<tr>
+<td><strong>Item-based collaborative filtering</strong></td>
+<td>Simple; interpretable; no training needed for item similarity</td>
+<td>Cold-start problem; sparse for long-tail items</td>
+<td>Complementary signal; warm items with interaction data</td>
+</tr>
+<tr>
+<td><strong>Content-based (embedding similarity)</strong></td>
+<td>Handles cold-start items; uses item metadata</td>
+<td>Limited to content features; misses behavioral patterns</td>
+<td>New items without interaction history</td>
+</tr>
+<tr>
+<td><strong>Graph-based (PinSage, LightGCN)</strong></td>
+<td>Captures multi-hop relationships; strong on social/interaction graphs</td>
+<td>Complex training; graph must fit in memory or use sampling</td>
+<td>Social platforms; graph-structured data (follows, shares)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ranking-model">Ranking model<a class="headerlink" href="#ranking-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Deep &amp; Cross Network (DCN-V2)</strong></td>
+<td>Explicit feature crosses + deep learning; strong on mixed features</td>
+<td>Higher serving latency than GBT; careful tuning needed</td>
+<td>Default for production ranking with rich feature interactions</td>
+</tr>
+<tr>
+<td><strong>XGBoost / LightGBM</strong></td>
+<td>Fast inference (~1ms); interpretable; strong baselines</td>
+<td>Cannot learn embeddings; manual feature engineering</td>
+<td>Early-stage or when explainability is required</td>
+</tr>
+<tr>
+<td><strong>Multi-task (engagement + satisfaction)</strong></td>
+<td>Optimizes multiple objectives simultaneously; balances clicks vs quality</td>
+<td>Complex loss weighting; harder to debug</td>
+<td>Mature systems optimizing beyond click-through rate</td>
+</tr>
+</tbody>
+</table>
+<h4 id="feature-store">Feature store<a class="headerlink" href="#feature-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Feast + Redis</strong></td>
+<td>Open-source; online/offline separation; sub-ms reads</td>
+<td>Limited real-time computation</td>
+<td>Default for batch + lookup features</td>
+</tr>
+<tr>
+<td><strong>Tecton</strong></td>
+<td>Real-time transforms; managed; streaming built in</td>
+<td>Cost; vendor lock-in</td>
+<td>Real-time session features critical for quality</td>
+</tr>
+</tbody>
+</table>
+<h4 id="model-serving">Model serving<a class="headerlink" href="#model-serving" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NVIDIA Triton</strong></td>
+<td>Multi-framework; dynamic batching; ensemble pipelines; GPU metrics</td>
+<td>Complex config; NVIDIA dependency</td>
+<td>Multi-model pipeline (retrieval → ranking → re-ranking)</td>
+</tr>
+<tr>
+<td><strong>TorchServe</strong></td>
+<td>Native PyTorch; simple setup; model versioning</td>
+<td>Less batching optimization; single-framework</td>
+<td>PyTorch-only models; simpler serving needs</td>
+</tr>
+<tr>
+<td><strong>TensorFlow Serving</strong></td>
+<td>Mature; well-optimized for TF models; gRPC native</td>
+<td>TensorFlow-only; less relevant as industry shifts to PyTorch</td>
+<td>Legacy TF model stacks</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Two-tower model</strong> for candidate generation with ANN retrieval (sub-10ms from billions), <strong>DCN-V2</strong> for ranking (captures feature interactions), <strong>content-based embedding</strong> for cold-start items, <strong>Feast + Redis</strong> for feature serving, and <strong>Triton</strong> for model serving (handles the multi-stage pipeline efficiently). This delivers personalized recommendations in under 100ms end-to-end.</p>
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph onl["Online Serving"]
         API[Recommendation API]
         Ranker[Re-ranking Service]
@@ -3485,10 +3621,10 @@
     Train --&gt; Batch
     Batch --&gt; Cache
 
-    ANN --&gt; ModelReg</div>
+    ANN --&gt; ModelReg</code></pre>
 <h3 id="the-two-stage-architecture">The Two-Stage Architecture<a class="headerlink" href="#the-two-stage-architecture" title="Permanent link">&para;</a></h3>
 <p>Recommendations typically use a <strong>retrieval + ranking</strong> pipeline:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph s1["Stage 1: Retrieval"]
         direction TB
         All[10M Products] --&gt; Candidates[1000 Candidates]
@@ -3504,7 +3640,7 @@
         Ranked --&gt; Final[Final 10-20]
     end
 
-    s1 --&gt; s2 --&gt; s3</div>
+    s1 --&gt; s2 --&gt; s3</code></pre>
 <table>
 <thead>
 <tr>
@@ -4057,7 +4193,7 @@
 <hr />
 <h2 id="step-8-training-pipeline">Step 8: Training Pipeline<a class="headerlink" href="#step-8-training-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="data-pipeline">Data Pipeline<a class="headerlink" href="#data-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph ing["Data Ingestion"]
         Events[User Events] --&gt; Kafka[Kafka]
         Kafka --&gt; Flink[Flink Processing]
@@ -4078,7 +4214,7 @@
     subgraph depl["Deployment"]
         Eval --&gt; Registry[Model Registry]
         Registry --&gt; Serving[Model Serving]
-    end</div>
+    end</code></pre>
 <h3 id="training-data-generation">Training Data Generation<a class="headerlink" href="#training-data-generation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">TrainingDataGenerator</span><span class="p">:</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate training data from user interactions.&quot;&quot;&quot;</span>
@@ -4543,10 +4679,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

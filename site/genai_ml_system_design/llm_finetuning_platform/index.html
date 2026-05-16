@@ -2631,6 +2631,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3198,7 +3207,7 @@
 </table>
 <p>Enterprise platforms most often emphasize <strong>SFT</strong> (and sometimes <strong>DPO</strong>) because behavior is controllable and evaluable per task.</p>
 <h3 id="parameter-efficient-fine-tuning-peft-family">Parameter-Efficient Fine-Tuning (PEFT) Family<a class="headerlink" href="#parameter-efficient-fine-tuning-peft-family" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph base["Frozen base weights"]
         W[Transformer blocks&lt;br/&gt;W_q, W_k, W_v, W_o, FFN...]
     end
@@ -3210,7 +3219,7 @@
     end
 
     base --&gt; OUT[Logits / hidden states]
-    peft --&gt; base</div>
+    peft --&gt; base</code></pre>
 <table>
 <thead>
 <tr>
@@ -3474,6 +3483,112 @@
 </span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>    <span class="s2">&quot;metric_gates&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;win_rate_vs_base_min&quot;</span><span class="p">:</span> <span class="mf">0.52</span><span class="p">,</span> <span class="s2">&quot;toxicity_max_delta&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">}</span>
 </span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>An LLM fine-tuning platform is assembled from <strong>training framework + GPU orchestration + experiment tracking + data versioning</strong>. Each choice affects cost, VPC isolation, and flexibility.</p>
+<h4 id="training-framework">Training framework<a class="headerlink" href="#training-framework" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Axolotl</strong></td>
+<td>YAML-driven config; supports LoRA, QLoRA, DPO out of the box; active OSS community</td>
+<td>Opinionated abstractions; tight HuggingFace coupling</td>
+<td>Default for SFT/DPO without writing boilerplate (covers 70%+ of workloads)</td>
+</tr>
+<tr>
+<td><strong>TRL (HuggingFace)</strong></td>
+<td>First-class SFT, DPO, PPO trainers; tight PEFT integration</td>
+<td>Less flexibility for custom distributed strategies</td>
+<td>HuggingFace-invested teams needing well-tested RLHF primitives</td>
+</tr>
+<tr>
+<td><strong>NeMo / Megatron-LM (NVIDIA)</strong></td>
+<td>Best multi-node performance; tensor/pipeline parallelism; optimized NCCL</td>
+<td>Steep learning curve; NVIDIA lock-in; harder to customize</td>
+<td>Large-scale full FT (64+ GPUs) where throughput dominates cost</td>
+</tr>
+<tr>
+<td><strong>Custom PyTorch loop</strong></td>
+<td>Maximum flexibility; full control over gradient flow</td>
+<td>Maintenance burden; easy to introduce distributed bugs</td>
+<td>Research teams with non-standard training objectives</td>
+</tr>
+</tbody>
+</table>
+<h4 id="gpu-orchestration">GPU orchestration<a class="headerlink" href="#gpu-orchestration" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kubernetes + Volcano</strong></td>
+<td>Native K8s; gang scheduling; broad cloud support; container isolation</td>
+<td>NCCL networking needs manual tuning; Volcano maturity lags Slurm</td>
+<td>Cloud-native with mixed workloads (training + serving on same cluster)</td>
+</tr>
+<tr>
+<td><strong>Slurm</strong></td>
+<td>Gold standard HPC; decades reliable; excellent InfiniBand support</td>
+<td>Poor containers; hard CI/CD integration; no built-in multi-tenancy</td>
+<td>On-prem GPU clusters with InfiniBand where HPC tooling is established</td>
+</tr>
+<tr>
+<td><strong>Ray Train</strong></td>
+<td>Pythonic API; elastic training; unified train/tune/serve</td>
+<td>Less mature for very large (512+ GPU) jobs</td>
+<td>Teams wanting unified API without deep K8s knowledge</td>
+</tr>
+</tbody>
+</table>
+<h4 id="experiment-tracking">Experiment tracking<a class="headerlink" href="#experiment-tracking" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MLflow</strong></td>
+<td>Open-source; self-hostable in VPC; model registry built in</td>
+<td>UI less polished; limited real-time streaming</td>
+<td>Default for enterprises requiring fully self-hosted tracking</td>
+</tr>
+<tr>
+<td><strong>Weights &amp; Biases</strong></td>
+<td>Best dashboards; real-time metrics; sweep integration</td>
+<td>SaaS default; data leaves VPC unless self-hosted</td>
+<td>Teams prioritizing developer experience who can self-host</td>
+</tr>
+<tr>
+<td><strong>TensorBoard + custom DB</strong></td>
+<td>Free; native PyTorch integration; well-understood</td>
+<td>No experiment comparison at scale; no model registry</td>
+<td>Lightweight complement to a primary tracker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Axolotl</strong> as the default training backend for LoRA/QLoRA jobs, with <strong>NeMo/Megatron-LM</strong> for rare full fine-tuning on 64+ GPUs. <strong>Kubernetes + Volcano</strong> for gang scheduling inside tenant-scoped VPCs. <strong>MLflow</strong> self-hosted for experiment tracking and model registry (no data egress). <strong>DVC</strong> for dataset versioning (lightweight, git-integrated). This keeps gradients and data inside the same trust zone -- critical for regulated industries where managed fine-tuning APIs are a non-starter.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> "Why not just use a managed fine-tuning API?" Managed APIs shift the trust boundary so raw data leaves the tenant VPC. For finance, healthcare, and government, this is a non-starter. Self-hosted frameworks keep data inside the trust zone.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic-control-plane">Traffic (Control Plane)<a class="headerlink" href="#traffic-control-plane" title="Permanent link">&para;</a></h3>
@@ -3525,7 +3640,7 @@
 </div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph ingest["Data ingestion &amp; curation"]
         DC[Document connectors]
         LZ[(Landing zone&lt;br/&gt;tenant object store)]
@@ -3585,7 +3700,7 @@
     priv -.-&gt; WK
     priv -.-&gt; AUD
     DP -.-&gt; WK
-    MR --&gt; BG</div>
+    MR --&gt; BG</code></pre>
 <h3 id="component-descriptions">Component Descriptions<a class="headerlink" href="#component-descriptions" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3626,7 +3741,7 @@
 </tbody>
 </table>
 <h3 id="training-orchestration-flow">Training orchestration flow<a class="headerlink" href="#training-orchestration-flow" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     subgraph submit["Job submission"]
         U[User / CI] --&gt; API2[Platform API]
         API2 --&gt; VAL[Validate spec + quotas]
@@ -3659,7 +3774,7 @@
     TR --&gt; DONE[Completed]
     DONE --&gt; REG[Register in model registry]
     REG --&gt; DEP{User promotes?}
-    DEP --&gt;|yes| DM[Deployment manager]</div>
+    DEP --&gt;|yes| DM[Deployment manager]</code></pre>
 <h3 id="managed-service-vs-self-hosted-stacks">Managed service vs. self-hosted stacks<a class="headerlink" href="#managed-service-vs-self-hosted-stacks" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3702,7 +3817,7 @@
 <p>Interviewers often probe <strong>where the gradient is computed</strong> relative to <strong>customer data</strong>. A crisp answer: “Gradients touch private activations; therefore training workers must sit in the <strong>same trust zone</strong> as the dataset, unless we use <strong>federated</strong> or <strong>homomorphic</strong> approaches — which are rare at LLM scale today.”</p>
 </div>
 <h3 id="blue-green-deployment-flow-control-plane">Blue-green deployment flow (control plane)<a class="headerlink" href="#blue-green-deployment-flow-control-plane" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph pools["Inference pools"]
         B2[Blue replicas&lt;br/&gt;model vN]
         G2[Green replicas&lt;br/&gt;model vN+1]
@@ -3714,11 +3829,11 @@
     FLIP --&gt; OBS[Watch SLO + safety metrics]
     OBS --&gt; OK{OK?}
     OK --&gt;|yes| RET[Retire blue after TTL]
-    OK --&gt;|no| RB[Rollback traffic to blue]</div>
+    OK --&gt;|no| RB[Rollback traffic to blue]</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-data-curation-pipeline-formatting-dedupe-quality">4.1 Data Curation Pipeline (Formatting, Dedupe, Quality)<a class="headerlink" href="#41-data-curation-pipeline-formatting-dedupe-quality" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     RAW[Raw sources] --&gt; SCAN[PII / malware scan]
     SCAN --&gt; PARSE[Parse &amp; normalize]
     PARSE --&gt; CHUNK[Chunk long docs]
@@ -3726,7 +3841,7 @@
     PAIR --&gt; DEDUP[Near-dup removal&lt;br/&gt;MinHash / embeddings]
     DEDUP --&gt; FILTER[Quality heuristics&lt;br/&gt;length, perplexity, toxicity]
     FILTER --&gt; SPLIT[Train / val / hold-out]
-    SPLIT --&gt; SNAP[Immutable dataset snapshot + manifest]</div>
+    SPLIT --&gt; SNAP[Immutable dataset snapshot + manifest]</code></pre>
 <p><strong>Instruction formatting (Python)</strong> — canonical chat template for SFT:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -3822,7 +3937,7 @@
 </tbody>
 </table>
 <p><strong>LoRA adapter architecture (Mermaid)</strong></p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph layer["Single linear layer W (frozen)"]
         X[x] --&gt; MUL["h = x @ W^T"]
     end
@@ -3834,7 +3949,7 @@
     end
 
     MUL --&gt; ADD["h + (x @ A @ B) * (α/r)"]
-    ADD --&gt; OUT[output]</div>
+    ADD --&gt; OUT[output]</code></pre>
 <h3 id="43-lora-configuration-gradient-accumulation-and-checkpoints">4.3 LoRA Configuration, Gradient Accumulation, and Checkpoints<a class="headerlink" href="#43-lora-configuration-gradient-accumulation-and-checkpoints" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Conceptual Hugging Face PEFT + Transformers style (simplified)</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
@@ -4130,7 +4245,7 @@
 <p>Production DP requires <strong>careful accounting</strong> (privacy ledger), <strong>secure aggregation</strong> in distributed settings, and often <strong>Opacus</strong> / <strong>JAX DP</strong> libraries — not hand-rolled noise. Mention <strong>(ε, δ)</strong> reporting to compliance.</p>
 </div>
 <h3 id="49-blue-green-deployment-controller">4.9 Blue-Green Deployment Controller<a class="headerlink" href="#49-blue-green-deployment-controller" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant DM as Deployment Manager
     participant GW as Inference Gateway
     participant B as Blue pool
@@ -4145,7 +4260,7 @@
     GW-&gt;&gt;G: Production traffic
     Note over B,G: Blue kept hot for fast rollback
     EV--&gt;&gt;DM: Regression detected
-    DM-&gt;&gt;GW: Rollback to blue (instant)</div>
+    DM-&gt;&gt;GW: Rollback to blue (instant)</code></pre>
 <p><strong>Python controller (simplified)</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 </span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
@@ -4528,10 +4643,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

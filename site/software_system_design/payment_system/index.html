@@ -3383,7 +3383,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph cp["CP surfaces — strongly consistent"]
     PI[Payment initiation &amp; commits]
     LD[Ledger writes &amp; balances]
@@ -3405,7 +3405,7 @@
   QS -.-&gt;|"stale OK with TTL"| PI
   NOTIF --&gt; MERCH_WH
   P --&gt;|"prefer errors or queued work"| PI
-  P --&gt;|"do not serve wrong balance"| LD</div>
+  P --&gt;|"do not serve wrong balance"| LD</code></pre>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>PSPs are <strong>external CP-ish systems</strong> with their own failure modes: your design must <strong>reconcile</strong> and <strong>never assume</strong> your DB and Stripe agree without verification.</p>
@@ -3582,7 +3582,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph clients["Clients"]
     WEB[Web / Mobile]
     PARTNER[Partner API]
@@ -3634,7 +3634,7 @@
   WH --&gt; PSP
   PS --&gt; PSP
   PSP --&gt; WH
-  PS --&gt; REDIS</div>
+  PS --&gt; REDIS</code></pre>
 <p><strong>Responsibilities:</strong></p>
 <table>
 <thead>
@@ -3717,7 +3717,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">stateDiagram-v2
+<pre class="mermaid"><code>stateDiagram-v2
   [*] --&gt; pending
   pending --&gt; authorized: Auth OK
   pending --&gt; failed: Decline / timeout
@@ -3732,9 +3732,9 @@
   chargeback_open --&gt; settled: Won
   chargeback_open --&gt; refunded: Lost
   failed --&gt; [*]
-  refunded --&gt; [*]</div>
+  refunded --&gt; [*]</code></pre>
 <p><strong>Sequence: authorize and capture via PSP</strong></p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant C as Client
   participant PS as Payment Service
   participant PSP as PSP API
@@ -3757,7 +3757,7 @@
   PS-&gt;&gt;PSP: capture
   PSP--&gt;&gt;PS: captured
   PSP-&gt;&gt;WH: charge.captured
-  WH-&gt;&gt;PS: mark captured / enqueue settlement</div>
+  WH-&gt;&gt;PS: mark captured / enqueue settlement</code></pre>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p><strong>Settlement</strong> timing is PSP-specific. Your <code>captured</code> state usually means “we got a successful capture from PSP,” while <strong>bank settlement</strong> may lag; use <code>settled</code> when your reconciliation matches PSP reports and bank deposits.</p>
@@ -3904,7 +3904,7 @@
 <li><strong>PSP reports</strong> (charges, fees, refunds, disputes).</li>
 <li><strong>Bank deposits</strong> (cash in your account).</li>
 </ol>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   subgraph daily["Daily reconciliation job"]
     A[Download PSP report CSV / API]
     B[Normalize to canonical rows]
@@ -3916,7 +3916,7 @@
 
   A --&gt; B --&gt; C --&gt; D
   D --&gt;|yes| E
-  D --&gt;|no| F</div>
+  D --&gt;|no| F</code></pre>
 <table>
 <thead>
 <tr>
@@ -4202,10 +4202,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

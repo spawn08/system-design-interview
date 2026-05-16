@@ -2526,6 +2526,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3147,7 +3156,7 @@
 <hr />
 <h2 id="key-concepts-primer">Key Concepts Primer<a class="headerlink" href="#key-concepts-primer" title="Permanent link">&para;</a></h2>
 <h3 id="end-to-end-rag-over-pdfs">End-to-End RAG over PDFs<a class="headerlink" href="#end-to-end-rag-over-pdfs" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph ingest["Ingestion"]
         PDF[PDF Blob] --&gt; Parse[Parser&lt;br/&gt;PyMuPDF / Unstructured]
         Parse --&gt; Chunk[Chunking&lt;br/&gt;512 / overlap 50]
@@ -3165,7 +3174,7 @@
         XR --&gt; Gen[LLM +&lt;br/&gt;citations]
     end
 
-    VDB --&gt; ANN</div>
+    VDB --&gt; ANN</code></pre>
 <h3 id="bi-encoder-vs-cross-encoder">Bi-Encoder vs. Cross-Encoder<a class="headerlink" href="#bi-encoder-vs-cross-encoder" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3225,11 +3234,11 @@
 </span></code></pre></div>
 <h3 id="chunking-and-overlap-intuition">Chunking and Overlap (Intuition)<a class="headerlink" href="#chunking-and-overlap-intuition" title="Permanent link">&para;</a></h3>
 <p><strong>Recursive character splitting</strong> with <strong>512-token chunks</strong> and <strong>50-token overlap</strong> preserves local context across boundaries while keeping vectors within model limits. <strong>Section-aware</strong> splitting (headings from parser or heuristic rules) reduces mid-sentence cuts.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     Doc[Full document text] --&gt; Sec[Split on&lt;br/&gt;section boundaries]
     Sec --&gt; Rec[Recursive split:&lt;br/&gt;paragraph → sentence → char]
     Rec --&gt; Tok[Token budget:&lt;br/&gt;max 512, overlap 50]
-    Tok --&gt; Meta[Attach metadata:&lt;br/&gt;doc_id, page, section, bbox]</div>
+    Tok --&gt; Meta[Attach metadata:&lt;br/&gt;doc_id, page, section, bbox]</code></pre>
 <h3 id="hnsw-at-a-glance">HNSW at a Glance<a class="headerlink" href="#hnsw-at-a-glance" title="Permanent link">&para;</a></h3>
 <p><strong>Hierarchical Navigable Small World (HNSW)</strong> builds a multi-layer graph for approximate nearest neighbor search. Key knobs: <code>M</code> (max edges per node), <code>efConstruction</code> (build quality), <code>efSearch</code> (query accuracy vs. latency).</p>
 <div class="admonition tip">
@@ -3447,6 +3456,124 @@
 </span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a>    <span class="s2">&quot;latency_ms&quot;</span><span class="p">:</span> <span class="mi">3200</span>
 </span><span id="__span-1-60"><a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A document Q&amp;A system is built from <strong>document parsing pipeline + chunking strategy + embedding model + vector index + LLM + citation extraction layer</strong>. The right combination depends on document types, accuracy requirements, and latency constraints.</p>
+<h4 id="document-parsing">Document parsing<a class="headerlink" href="#document-parsing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Tika + custom extractors</strong></td>
+<td>Broad format support (PDF, DOCX, PPTX, HTML); open-source; extensible</td>
+<td>Table extraction quality varies; no native layout understanding; needs post-processing</td>
+<td>General-purpose ingestion; mixed document formats</td>
+</tr>
+<tr>
+<td><strong>Azure Document Intelligence</strong></td>
+<td>Excellent table and form extraction; layout-aware OCR; pre-built models</td>
+<td>Cloud dependency; per-page cost; latency for large batches</td>
+<td>Financial documents, forms, scanned PDFs with complex layouts</td>
+</tr>
+<tr>
+<td><strong>Unstructured.io</strong></td>
+<td>Purpose-built for RAG pipelines; layout-aware chunking; open-source core</td>
+<td>Newer ecosystem; hosted version adds cost; complex docs may need tuning</td>
+<td>RAG-first pipelines where chunk quality directly drives answer quality</td>
+</tr>
+<tr>
+<td><strong>LlamaParse / LLM-based parsing</strong></td>
+<td>Handles complex layouts via vision models; understands context</td>
+<td>Expensive per page; slower; overkill for simple text docs</td>
+<td>High-value documents where parsing errors are costly (legal, medical)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="vector-index">Vector index<a class="headerlink" href="#vector-index" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FAISS (Facebook AI Similarity Search)</strong></td>
+<td>Blazing fast; multiple index types (IVF, HNSW, PQ); GPU support; battle-tested</td>
+<td>No built-in metadata filtering; single-node (needs wrapper for distributed); no persistence layer</td>
+<td>High-performance search on moderate corpus; teams comfortable managing infra</td>
+</tr>
+<tr>
+<td><strong>Pinecone</strong></td>
+<td>Managed; metadata filtering; namespace isolation; consistent sub-50ms latency</td>
+<td>Vendor lock-in; cost grows with scale; less index tuning control</td>
+<td>Managed production deployment; rapid time-to-market</td>
+</tr>
+<tr>
+<td><strong>Qdrant</strong></td>
+<td>Rich filtering; Rust-based (fast); open-source with managed option; payload indexing</td>
+<td>Smaller community than alternatives; distributed mode relatively newer</td>
+<td>Open-source requirement with strong filtering needs</td>
+</tr>
+<tr>
+<td><strong>pgvector</strong></td>
+<td>Leverage existing PostgreSQL; transactional consistency; simple ops</td>
+<td>Slower at scale; limited index types; no GPU acceleration</td>
+<td>Small-to-medium corpus; ACID guarantees needed alongside vector search</td>
+</tr>
+</tbody>
+</table>
+<h4 id="chunking-strategy">Chunking strategy<a class="headerlink" href="#chunking-strategy" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Document-aware (section/heading)</strong></td>
+<td>Respects document structure; preserves context boundaries; tables stay intact</td>
+<td>Requires layout parsing; section sizes vary widely</td>
+<td>Structured documents with clear headings (reports, wikis, specs)</td>
+</tr>
+<tr>
+<td><strong>Semantic chunking</strong></td>
+<td>Groups related sentences by embedding similarity; adaptive boundaries</td>
+<td>Slower (needs embedding per sentence); tuning threshold matters</td>
+<td>Mixed documents with varying structure</td>
+</tr>
+<tr>
+<td><strong>Parent-child (small embed, large retrieve)</strong></td>
+<td>Best of both: precise embedding match + sufficient context for LLM</td>
+<td>More complex indexing; two-level retrieval adds latency</td>
+<td>Long documents where answer context spans multiple paragraphs</td>
+</tr>
+<tr>
+<td><strong>Fixed-size with overlap</strong></td>
+<td>Simple; predictable chunk count; easy to implement</td>
+<td>Splits mid-sentence or mid-table; context loss at boundaries</td>
+<td>Baseline/prototyping; homogeneous text-heavy documents</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> The chunking strategy is often the single biggest lever for answer quality. Start with document-aware chunking for structured PDFs, and mention parent-child as an upgrade path — it lets you embed small precise chunks but retrieve the full parent section for LLM context, solving the "chunk too small for context" problem.</p>
+</div>
+<p><strong>Our choice:</strong> <strong>Unstructured.io</strong> (or Azure Document Intelligence for scanned/complex PDFs) for parsing, because document Q&amp;A lives or dies on extraction quality — garbage in, garbage out. <strong>Document-aware chunking with parent-child retrieval</strong> to balance embedding precision with sufficient LLM context. <strong>Qdrant</strong> as the vector index for its strong metadata filtering (needed for per-document ACL and page-level references) with <strong>FAISS</strong> as a fallback for teams wanting self-hosted simplicity. This stack optimizes for <strong>citation accuracy and traceability</strong> — the defining requirement that separates document Q&amp;A from generic chatbots.</p>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3532,7 +3659,7 @@
 </div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph clients["Clients"]
         UI[Web / API Clients]
     end
@@ -3586,7 +3713,7 @@
     Ret --&gt; Rerank
     Rerank --&gt; Gen
     Gen --&gt; CiteExt
-    CiteExt --&gt; UI</div>
+    CiteExt --&gt; UI</code></pre>
 <h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3639,7 +3766,7 @@
 </tbody>
 </table>
 <h3 id="document-ingestion-pipeline">Document Ingestion Pipeline<a class="headerlink" href="#document-ingestion-pipeline" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph input["Input"]
         Raw[PDF bytes]
     end
@@ -3657,7 +3784,7 @@
     Norm --&gt; Chunk[Chunking Engine]
     Chunk --&gt; Emb[Embedding Service]
     Emb --&gt; Idx[Vector + BM25&lt;br/&gt;upsert]
-    Chunk --&gt; Idx</div>
+    Chunk --&gt; Idx</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-pdf-parsing-strategies-pymupdf-vs-unstructured-vs-multimodal">4.1 PDF Parsing Strategies (PyMuPDF vs. Unstructured vs. Multimodal)<a class="headerlink" href="#41-pdf-parsing-strategies-pymupdf-vs-unstructured-vs-multimodal" title="Permanent link">&para;</a></h3>
@@ -3854,7 +3981,7 @@
 <p><strong>Partition</strong> the index by <code>collection_id</code> (or tenant). Each partition holds fewer points → lower <code>efSearch</code> for same recall, <strong>and</strong> ACL scoping can skip whole partitions.</p>
 </div>
 <h3 id="44-retrieval-hybrid-fusion-and-cross-encoder-re-ranking">4.4 Retrieval, Hybrid Fusion, and Cross-Encoder Re-Ranking<a class="headerlink" href="#44-retrieval-hybrid-fusion-and-cross-encoder-re-ranking" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     Q[Query] --&gt; EQ[Encode query&lt;br/&gt;bi-encoder]
     Q --&gt; BM[BM25 top-20]
 
@@ -3864,7 +3991,7 @@
     Fuse --&gt; ACL[ACL filter&lt;br/&gt;+ over-fetch]
     ACL --&gt; XR[Cross-encoder&lt;br/&gt;score 20 pairs]
     XR --&gt; Top5[Take top-5&lt;br/&gt;passages]
-    Top5 --&gt; LLM[LLM prompt]</div>
+    Top5 --&gt; LLM[LLM prompt]</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">reciprocal_rank_fusion</span><span class="p">(</span><span class="n">rank_lists</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">scores</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="k">for</span> <span class="n">ranked</span> <span class="ow">in</span> <span class="n">rank_lists</span><span class="p">:</span>
@@ -3966,7 +4093,7 @@
 <p><strong>Optional:</strong> run lightweight <strong>NLI</strong> (premise = cited passage, hypothesis = atomic claim) to drop unsupported sentences before returning to the client.</p>
 <h3 id="46-multi-document-query-resolution">4.6 Multi-Document Query Resolution<a class="headerlink" href="#46-multi-document-query-resolution" title="Permanent link">&para;</a></h3>
 <p>Users often ask questions that <strong>require evidence from multiple PDFs</strong> (compare Q2 vs. Q3; policy + exception memo).</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     Q[Multi-doc style query] --&gt; Cls{Query&lt;br/&gt;classifier}
 
     Cls --&gt;|single retrieval| R1[Standard hybrid&lt;br/&gt;retrieval]
@@ -3976,7 +4103,7 @@
     R1 --&gt; Pool[Candidate pool]
     Merge --&gt; Pool
     Pool --&gt; XR[Cross-encoder&lt;br/&gt;global re-rank]
-    XR --&gt; Gen[Single LLM call&lt;br/&gt;with merged top-K]</div>
+    XR --&gt; Gen[Single LLM call&lt;br/&gt;with merged top-K]</code></pre>
 <p><strong>Go sketch — parallel retrieval fan-out:</strong></p>
 <div class="language-go highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">type</span><span class="w"> </span><span class="nx">SubQuery</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="nx">Text</span><span class="w"> </span><span class="kt">string</span>
@@ -4053,7 +4180,7 @@
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     E[Doc event:&lt;br/&gt;create/update/delete] --&gt; Q[Ingest queue]
     Q --&gt; W[Indexer worker]
     W --&gt; P[Parse + chunk]
@@ -4068,7 +4195,7 @@
     subgraph delprop["Deletion propagation"]
         D[Delete document] --&gt; Tomb[tombstone record]
         Tomb --&gt; Purge[Async purge job&lt;br/&gt;chunk_ids from all indexes]
-    end</div>
+    end</code></pre>
 <p><strong>Incremental index update (Python):</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IncrementalIndexer</span><span class="p">:</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector_index</span><span class="p">,</span> <span class="n">bm25_index</span><span class="p">,</span> <span class="n">chunk_store</span><span class="p">):</span>
@@ -4364,10 +4491,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

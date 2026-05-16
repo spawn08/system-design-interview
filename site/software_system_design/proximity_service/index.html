@@ -1611,6 +1611,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cap-theorem-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       CAP Theorem Analysis
@@ -3173,6 +3182,112 @@
 <p class="admonition-title">Tip</p>
 <p>Use <strong>cursor-based</strong> pagination for stable results under concurrent catalog updates; avoid large <code>offset</code> on deep pages at scale.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A proximity service is built from <strong>geospatial index + primary data store + caching layer + API serving</strong>. The right combination depends on query patterns, update frequency, dataset size, and latency budget.</p>
+<h4 id="geospatial-index">Geospatial index<a class="headerlink" href="#geospatial-index" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geohash + Redis/Sorted Sets</strong></td>
+<td>Simple to implement; fast lookups via prefix matching; easy horizontal sharding by geohash prefix</td>
+<td>Boundary artifacts at cell edges; variable cell sizes near poles; range queries require scanning multiple prefixes</td>
+<td>Default for moderate-scale (millions of POIs), latency-critical serving</td>
+</tr>
+<tr>
+<td><strong>S2 Geometry (Google)</strong></td>
+<td>Hierarchical cells with uniform area; excellent coverage queries; no pole distortion</td>
+<td>More complex to implement; library support narrower than geohash; harder to explain in interviews</td>
+<td>Large-scale global services with non-uniform density (Google Maps, Uber)</td>
+</tr>
+<tr>
+<td><strong>PostGIS (R-tree on GiST)</strong></td>
+<td>Full SQL; exact distance with <code>ST_DWithin</code>; rich spatial operations (polygons, intersections)</td>
+<td>Higher latency than in-memory index; scaling requires read replicas or sharding; not ideal for extreme QPS</td>
+<td>Moderate QPS with complex spatial queries (e.g., polygon search, route proximity)</td>
+</tr>
+<tr>
+<td><strong>Quadtree (in-memory)</strong></td>
+<td>Adaptive resolution; efficient for non-uniform density; fast nearest-neighbor</td>
+<td>Must fit in memory; rebuilds on updates; harder to distribute</td>
+<td>Small-to-medium datasets where density varies wildly (city centers vs rural)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Geohash is the go-to default because it maps naturally to key-value stores (prefix = shard key), but always mention <strong>boundary handling</strong> — a query near a cell edge must check neighboring cells. S2 is stronger technically but harder to whiteboard.</p>
+</div>
+<h4 id="primary-data-store">Primary data store<a class="headerlink" href="#primary-data-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL + PostGIS</strong></td>
+<td>ACID, rich spatial types, mature ecosystem, strong consistency for catalog updates</td>
+<td>Vertical scaling limits; read replicas for QPS; spatial index rebuilds on heavy writes</td>
+<td>Source of truth for POI metadata; moderate write rates</td>
+</tr>
+<tr>
+<td><strong>DynamoDB</strong></td>
+<td>Managed, elastic, predictable latency at scale; geo library available</td>
+<td>No native spatial index (must layer geohash); limited query flexibility; eventual consistency by default</td>
+<td>High-scale catalog with simple access patterns; AWS-native stacks</td>
+</tr>
+<tr>
+<td><strong>Elasticsearch</strong></td>
+<td>Full-text + geo combined; <code>geo_distance</code> queries; aggregations</td>
+<td>Operationally heavy; near-real-time indexing (not instant); not ideal as sole source of truth</td>
+<td>When search and geo are combined (e.g., "pizza near me" with text relevance)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="caching-layer">Caching layer<a class="headerlink" href="#caching-layer" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis GEO</strong></td>
+<td>Native <code>GEORADIUS</code>/<code>GEOSEARCH</code> commands; sub-ms latency; built-in distance calculation</td>
+<td>Memory-bound; no complex filtering beyond member metadata; cluster mode needed at scale</td>
+<td>Hot-path serving of nearby results; pre-computed candidate sets</td>
+</tr>
+<tr>
+<td><strong>Application-level tile cache</strong></td>
+<td>Cache entire grid cells (geohash → POI list); CDN-friendly; simple invalidation</td>
+<td>Stale until TTL expires; cache misses on cold cells; storage grows with grid resolution</td>
+<td>Read-heavy with acceptable staleness (e.g., restaurant lists, store locators)</td>
+</tr>
+<tr>
+<td><strong>No dedicated cache (direct DB)</strong></td>
+<td>Simplest architecture; always fresh</td>
+<td>Higher latency; DB becomes bottleneck at scale</td>
+<td>Early-stage products or low QPS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Geohash-based sharding</strong> with <strong>Redis GEO</strong> for the hot read path, backed by <strong>PostgreSQL + PostGIS</strong> as the authoritative catalog store. Geohash gives us natural shard keys and prefix-based neighbor lookups. Redis GEO handles the latency-critical nearby queries at sub-ms speed. PostGIS remains the source of truth for admin updates, feeding the Redis index via CDC or periodic sync. For products needing text + geo combined (e.g., "Italian restaurant near me"), we add <strong>Elasticsearch</strong> as a secondary search layer. This stack optimizes for the <strong>read-heavy, latency-sensitive</strong> profile that proximity services demand.</p>
 <h3 id="cap-theorem-analysis">CAP Theorem Analysis<a class="headerlink" href="#cap-theorem-analysis" title="Permanent link">&para;</a></h3>
 <p><strong>CAP</strong> (Consistency, Availability, Partition tolerance) states that under a <strong>network partition</strong>, a distributed system cannot simultaneously guarantee both <strong>strong consistency</strong> and <strong>full availability</strong> for reads and writes. Real products rarely pick a single letter globally—they <strong>partition the problem</strong> by data domain and user expectation.</p>
 <p><strong>Why it matters for proximity:</strong> Nearby search is <strong>latency-sensitive</strong> and <strong>read-dominated</strong>. Clients expect an answer even if a replica is stale; missing results during an outage hurts UX more than seeing a POI that opened <strong>30 seconds</strong> ago on another shard. That pushes the <strong>geospatial query path</strong> toward <strong>AP</strong>: stay <strong>available</strong>, accept <strong>eventually consistent</strong> index views, and rely on <strong>partition-tolerant</strong> regional shards (geohash/S2) so failures isolate to a slice of the world.</p>
@@ -3203,7 +3318,7 @@
 </tbody>
 </table>
 <p><strong>Interview narrative:</strong> “We don’t choose C or A once—we <strong>separate the hot read path</strong> (AP, fast) from <strong>transactional truth</strong> for edits (CP where it matters) and <strong>fan-out aggregates</strong> (eventual).”</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph ap_path["AP: serving path"]
     Q[Nearby query]
     IX[(Geospatial shards / Redis GEO)]
@@ -3226,7 +3341,7 @@
 
   OLTP -. async index build .-&gt; IX
   OLTP -. publish change .-&gt; AGG
-  SUM -. read model for cards .-&gt; IX</div>
+  SUM -. read model for cards .-&gt; IX</code></pre>
 <p><strong>Takeaway:</strong> Geospatial <strong>reads</strong> optimize for <strong>availability</strong> and <strong>low latency</strong>; <strong>canonical</strong> place records optimize for <strong>consistency</strong> where the business requires a single truth; <strong>social proof</strong> numbers are <strong>eventually</strong> consistent to protect throughput.</p>
 <h3 id="sla-and-slo-definitions">SLA and SLO Definitions<a class="headerlink" href="#sla-and-slo-definitions" title="Permanent link">&para;</a></h3>
 <p><strong>Terminology (for interviews):</strong></p>
@@ -3476,7 +3591,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <p>At a high level: <strong>clients</strong> call a <strong>stateless API</strong>; <strong>geospatial index</strong> partitions the world so each query touches only <strong>nearby buckets</strong>; <strong>ranking</strong> merges distance with business scores; <strong>caches</strong> absorb hot tiles.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph clients [Clients]
     M[Mobile / Web Maps]
   end
@@ -3508,7 +3623,7 @@
   PS --&gt; RD
   RS --&gt; GS
   PG --&gt; Q --&gt; IDX --&gt; GS
-  OS --&gt; Q</div>
+  OS --&gt; Q</code></pre>
 <h3 id="request-path">Request path<a class="headerlink" href="#request-path" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Validate</strong> lat/lon, radius, limits (reject absurd radii).</li>
@@ -3618,7 +3733,7 @@
 <p>Geohash cells are <strong>rectangles</strong> in lat/lon space, not equal-area on the sphere; distortion grows toward poles. Production systems often pair geohash with <strong>Haversine</strong> filtering or use <strong>S2/H3</strong> when uniformity matters.</p>
 </div>
 <p><strong>Neighbor cells:</strong> A point near a cell edge may need <strong>neighboring</strong> geohashes in queries. Libraries expose <strong>neighbor</strong> APIs (8 neighbors in 2D) to avoid missing POIs just across a boundary.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   subgraph grid["Geohash cells conceptual"]
     A["9q8yy"]
     B["9q8yz"]
@@ -3626,9 +3741,9 @@
     D["9q8yq"]
   end
   Q[Query point near edge] --&gt; A
-  Q -. neighbor scan .-&gt; B</div>
+  Q -. neighbor scan .-&gt; B</code></pre>
 <p><strong>Grid visualization (prefix nesting):</strong></p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph l4["Prefix length 4 — large cell"]
     W[Whole metro area]
   end
@@ -3641,7 +3756,7 @@
   W --&gt; C1
   W --&gt; C2
   W --&gt; C3
-  W --&gt; C4</div>
+  W --&gt; C4</code></pre>
 <hr />
 <h3 id="43-quadtree">4.3 QuadTree<a class="headerlink" href="#43-quadtree" title="Permanent link">&para;</a></h3>
 <p>A <strong>quadtree</strong> recursively subdivides 2D space into four quadrants until each leaf satisfies a <strong>capacity</strong> (e.g., max 50 POIs) or <strong>minimum cell size</strong> is reached.</p>
@@ -3649,13 +3764,13 @@
 <li><strong>Dynamic splitting:</strong> inserting a 51st point into a leaf triggers <strong>split</strong> into four children and redistribution.</li>
 <li><strong>Search:</strong> traverse nodes overlapping the <strong>query circle</strong> (or bbox); descend only into intersecting children.</li>
 </ul>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
   R["Root: world bbox"]
   R --&gt; NW[NW quadrant]
   R --&gt; NE[NE quadrant]
   R --&gt; SW[SW quadrant]
   R --&gt; SE[SE quadrant]
-  NE --&gt; NE1[Further split if dense]</div>
+  NE --&gt; NE1[Further split if dense]</code></pre>
 <p><strong>Trade-offs:</strong> Excellent for <strong>memory</strong> resident, <strong>skewed</strong> densities; harder to <strong>partition cleanly</strong> across thousands of machines than <strong>fixed geohash/S2</strong> shards. Hybrid: <strong>in-memory quadtree per city shard</strong>.</p>
 <hr />
 <h3 id="44-google-s2-geometry">4.4 Google S2 Geometry<a class="headerlink" href="#44-google-s2-geometry" title="Permanent link">&para;</a></h3>
@@ -3757,7 +3872,7 @@ d = R \cdot c
 </tr>
 </tbody>
 </table>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant C as Client
   participant API as Proximity API
   participant IX as Index
@@ -3768,7 +3883,7 @@ d = R \cdot c
   IX--&gt;&gt;API: place IDs + coarse keys
   API-&gt;&gt;R: features distance rating
   R--&gt;&gt;API: ordered list + cursor
-  API--&gt;&gt;C: JSON</div>
+  API--&gt;&gt;C: JSON</code></pre>
 <hr />
 <h3 id="47-real-time-location-updates">4.7 Real-Time Location Updates<a class="headerlink" href="#47-real-time-location-updates" title="Permanent link">&para;</a></h3>
 <p>Not every proximity product tracks <strong>moving</strong> users against static POIs. If requirements include <strong>live</strong> dots (delivery couriers, friends):</p>
@@ -4297,10 +4412,6 @@ d = R \cdot c
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

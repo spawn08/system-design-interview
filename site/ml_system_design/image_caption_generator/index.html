@@ -2152,6 +2152,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3263,7 +3272,7 @@
 <p>If you're not from an ML background, here's what you need to know to understand this design.</p>
 <h3 id="how-image-captioning-works">How Image Captioning Works<a class="headerlink" href="#how-image-captioning-works" title="Permanent link">&para;</a></h3>
 <p>Image captioning uses a two-part architecture:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph enc["Image Encoder"]
         Image[Image] --&gt; CNN[CNN/ViT]
         CNN --&gt; Features[Feature Vector]
@@ -3275,7 +3284,7 @@
         LM --&gt; Words[Word by Word]
     end
 
-    Words --&gt; Caption["A dog on a beach"]</div>
+    Words --&gt; Caption["A dog on a beach"]</code></pre>
 <p><strong>Step 1: Encode the Image</strong></p>
 <p>A Convolutional Neural Network (CNN) or Vision Transformer (ViT) processes the image and produces a "feature vector"—a numerical representation capturing what's in the image.</p>
 <p>Think of it like this: the encoder looks at the image and creates a 2048-dimensional summary (just a list of 2048 numbers) that encodes "there's a dog, it's brown, there's sand, there's water, it's sunny."</p>
@@ -3519,6 +3528,108 @@
 </tr>
 </tbody>
 </table>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>An image caption generator is built from <strong>vision encoder + language decoder + serving infrastructure + training framework</strong>. Each choice affects caption quality, latency, and cost.</p>
+<h4 id="vision-language-model">Vision-language model<a class="headerlink" href="#vision-language-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BLIP-2</strong></td>
+<td>Strong image understanding; Q-Former bridges vision-language efficiently</td>
+<td>Complex architecture; larger memory</td>
+<td>Default for high-quality captioning with efficient vision-language bridging</td>
+</tr>
+<tr>
+<td><strong>LLaVA (Visual Instruction Tuning)</strong></td>
+<td>Simple architecture (CLIP + LLM); instruction-following; open weights</td>
+<td>Relies heavily on LLM quality; less efficient than BLIP-2 Q-Former</td>
+<td>When instruction-following and conversational captioning are needed</td>
+</tr>
+<tr>
+<td><strong>GIT (Generative Image-to-text)</strong></td>
+<td>Simple encoder-decoder; easy to train; fast inference</td>
+<td>Lower quality ceiling than BLIP-2/LLaVA on complex scenes</td>
+<td>Simpler caption needs; resource-constrained deployments</td>
+</tr>
+<tr>
+<td><strong>CoCa (Contrastive Captioning)</strong></td>
+<td>Dual objective (contrastive + captive); strong representations</td>
+<td>Complex training; fewer open weights</td>
+<td>When both retrieval and generation from same model are needed</td>
+</tr>
+</tbody>
+</table>
+<h4 id="vision-encoder">Vision encoder<a class="headerlink" href="#vision-encoder" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ViT-L/14 (CLIP)</strong></td>
+<td>Strong visual features; aligned with text; widely available</td>
+<td>768-dim; may miss fine-grained details</td>
+<td>Default for captioning and retrieval tasks</td>
+</tr>
+<tr>
+<td><strong>EVA-CLIP / SigLIP</strong></td>
+<td>Improved training; better fine-grained understanding</td>
+<td>Fewer community resources</td>
+<td>When CLIP quality is insufficient; need fine-grained detail</td>
+</tr>
+<tr>
+<td><strong>ConvNeXt-XL</strong></td>
+<td>Strong spatial features; good for dense scene understanding</td>
+<td>Not pre-aligned with text; needs adaptation layer</td>
+<td>Scene-heavy domains (autonomous driving, medical)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="serving-infrastructure">Serving infrastructure<a class="headerlink" href="#serving-infrastructure" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>PagedAttention; continuous batching; optimized for autoregressive generation</td>
+<td>Primarily for text-only LLMs; vision pipeline needs custom integration</td>
+<td>When LLM decoder dominates latency</td>
+</tr>
+<tr>
+<td><strong>Triton</strong></td>
+<td>Multi-model ensemble; dynamic batching; handles vision + LLM pipeline</td>
+<td>Complex setup; NVIDIA-specific</td>
+<td>Full pipeline (image encode → bridge → LLM decode)</td>
+</tr>
+<tr>
+<td><strong>TorchServe</strong></td>
+<td>Simple; PyTorch-native; easy model versioning</td>
+<td>Less batching optimization</td>
+<td>Development; moderate-scale deployment</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>BLIP-2</strong> architecture (ViT-L/14 encoder + Q-Former + LLM decoder) for the best quality-efficiency tradeoff. Serve the full pipeline on <strong>Triton</strong> with ensemble orchestration (vision encoder → Q-Former → LLM decoder as separate stages). This delivers high-quality captions with efficient GPU utilization through dynamic batching at each stage.</p>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic-estimation">Traffic Estimation<a class="headerlink" href="#traffic-estimation" title="Permanent link">&para;</a></h3>
@@ -3569,7 +3680,7 @@
 <hr />
 <h2 id="step-3-high-level-architecture">Step 3: High-Level Architecture<a class="headerlink" href="#step-3-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph cli["Client Layer"]
         Web[Web App]
         Mobile[Mobile App]
@@ -3634,10 +3745,10 @@
     Preprocessor --&gt; Storage
 
     Triton1 --&gt; Metrics
-    APIGw --&gt; Logs</div>
+    APIGw --&gt; Logs</code></pre>
 <h3 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h3>
 <p>Let's trace a complete request:</p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant Client
     participant API as API Gateway
     participant Pre as Preprocessor
@@ -3672,7 +3783,7 @@
 
         Batcher-&gt;&gt;Cache: Store results
         Batcher--&gt;&gt;Client: Return caption
-    end</div>
+    end</code></pre>
 <hr />
 <h2 id="step-4-component-deep-dive">Step 4: Component Deep Dive<a class="headerlink" href="#step-4-component-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-image-preprocessing">4.1 Image Preprocessing<a class="headerlink" href="#41-image-preprocessing" title="Permanent link">&para;</a></h3>
@@ -4157,14 +4268,14 @@
 </span></code></pre></div>
 <h3 id="52-multi-model-strategy">5.2 Multi-Model Strategy<a class="headerlink" href="#52-multi-model-strategy" title="Permanent link">&para;</a></h3>
 <p>Use different models based on requirements:</p>
-<div class="mermaid">flowchart TD
+<pre class="mermaid"><code>flowchart TD
     Request[Request] --&gt; Classify{Image Type?}
 
     Classify --&gt;|Simple| Fast["Small/Fast Model&lt;br/&gt;50ms, 90% quality"]
     Classify --&gt;|Complex| Quality["Large/Quality Model&lt;br/&gt;200ms, 99% quality"]
 
     Fast --&gt; Response[Return Caption]
-    Quality --&gt; Response</div>
+    Quality --&gt; Response</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveModelRouter</span><span class="p">:</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fast_model</span> <span class="o">=</span> <span class="n">load_small_model</span><span class="p">()</span>   <span class="c1"># MobileNet + small decoder</span>
@@ -4185,7 +4296,7 @@
 </span></code></pre></div>
 <h3 id="53-preprocessing-pipeline-optimization">5.3 Preprocessing Pipeline Optimization<a class="headerlink" href="#53-preprocessing-pipeline-optimization" title="Permanent link">&para;</a></h3>
 <p>Move preprocessing to CPU workers, keep GPUs for inference:</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph cpu["CPU Workers"]
         P1[Preprocess 1]
         P2[Preprocess 2]
@@ -4205,7 +4316,7 @@
     P2 --&gt; Q
     P3 --&gt; Q
     Q --&gt; G1
-    Q --&gt; G2</div>
+    Q --&gt; G2</code></pre>
 <p>This keeps expensive GPU resources focused on inference, not waiting for I/O or preprocessing.</p>
 <hr />
 <h2 id="step-6-caption-quality-improvements">Step 6: Caption Quality Improvements<a class="headerlink" href="#step-6-caption-quality-improvements" title="Permanent link">&para;</a></h2>
@@ -4414,7 +4525,7 @@
 <hr />
 <h2 id="step-8-training-pipeline-and-model-updates">Step 8: Training Pipeline and Model Updates<a class="headerlink" href="#step-8-training-pipeline-and-model-updates" title="Permanent link">&para;</a></h2>
 <h3 id="training-infrastructure">Training Infrastructure<a class="headerlink" href="#training-infrastructure" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph dpipe["Data Pipeline"]
         Raw[Raw Images] --&gt; Clean[Cleaning]
         Clean --&gt; Label[Human Labeling]
@@ -4433,7 +4544,7 @@
         Register --&gt; Shadow[Shadow Deployment]
         Shadow --&gt; Canary[Canary Rollout]
         Canary --&gt; Production[Production]
-    end</div>
+    end</code></pre>
 <h3 id="evaluation-metrics">Evaluation Metrics<a class="headerlink" href="#evaluation-metrics" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4926,10 +5037,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

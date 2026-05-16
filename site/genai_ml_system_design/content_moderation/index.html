@@ -2550,6 +2550,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3261,6 +3270,137 @@
 </tr>
 </tbody>
 </table>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The content moderation system is built from a <strong>rules engine + ML classifier cascade + LLM reasoning layer + human review platform + streaming pipeline</strong>. Each tier trades accuracy, latency, and cost.</p>
+<h4 id="fast-ml-classifiers-stage-2">Fast ML classifiers (Stage 2)<a class="headerlink" href="#fast-ml-classifiers-stage-2" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FastText</strong></td>
+<td>Sub-ms CPU inference; tiny model; easy to retrain</td>
+<td>Bag-of-words misses nuance and word order</td>
+<td>High-throughput first-pass filter where speed dominates</td>
+</tr>
+<tr>
+<td><strong>DistilBERT / BERT-tiny</strong></td>
+<td>Captures word order and context; runs on CPU at ~5ms</td>
+<td>Still misses long-range context; needs fine-tuning per category</td>
+<td>Good speed/accuracy balance for the fast ML stage</td>
+</tr>
+<tr>
+<td><strong>DeBERTa-v3-small</strong></td>
+<td>Better accuracy than DistilBERT on NLU benchmarks</td>
+<td>Slightly slower (~10ms); larger model</td>
+<td>When Stage 2 gains meaningfully reduce Stage 3 load</td>
+</tr>
+</tbody>
+</table>
+<h4 id="heavy-multi-modal-models-stage-3">Heavy multi-modal models (Stage 3)<a class="headerlink" href="#heavy-multi-modal-models-stage-3" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Custom multi-task model (shared backbone)</strong></td>
+<td>One model serves all categories; shared GPU cost; joint training improves rare-class recall</td>
+<td>Complex training pipeline; one failure affects all categories</td>
+<td>Mature ML team needing many categories simultaneously</td>
+</tr>
+<tr>
+<td><strong>Ensemble of per-category models</strong></td>
+<td>Isolated failure domains; each tuned independently</td>
+<td>Higher total GPU cost; more deployment complexity</td>
+<td>Category-specific precision matters and GPU budget allows</td>
+</tr>
+<tr>
+<td><strong>CLIP / LLaVA-style vision-language</strong></td>
+<td>Natively multi-modal; understands image-text interaction (memes)</td>
+<td>Large GPU footprint; &gt;100ms latency</td>
+<td>Content where meaning emerges from image+text combination</td>
+</tr>
+</tbody>
+</table>
+<h4 id="llm-reasoning-layer-stage-4">LLM reasoning layer (Stage 4)<a class="headerlink" href="#llm-reasoning-layer-stage-4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fine-tuned Llama / Mistral (self-hosted)</strong></td>
+<td>Data stays in-house; predictable cost at scale; customizable to policies</td>
+<td>Requires GPU fleet and MLOps; fine-tuning needs labeled data</td>
+<td>Production at scale where data residency and cost control matter</td>
+</tr>
+<tr>
+<td><strong>GPT-4o / Claude via API</strong></td>
+<td>Frontier reasoning; excellent nuance and satire detection</td>
+<td>Cost per call; latency (~500ms-2s); data leaves boundary</td>
+<td>Low-volume escalation tier; when internal models lack nuance</td>
+</tr>
+<tr>
+<td><strong>Gemini via Vertex AI</strong></td>
+<td>Strong multi-modal reasoning; grounding with search for misinfo</td>
+<td>Vendor lock-in; unpredictable pricing at scale</td>
+<td>GCP-native; misinformation detection where search grounding helps</td>
+</tr>
+</tbody>
+</table>
+<h4 id="event-streaming">Event streaming<a class="headerlink" href="#event-streaming" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Proven at extreme scale; exactly-once; rich ecosystem</td>
+<td>Operational burden; higher latency floor</td>
+<td>Platform-scale (1B+ items/day); need replay and multiple consumers</td>
+</tr>
+<tr>
+<td><strong>Google Pub/Sub / AWS SQS</strong></td>
+<td>Managed; zero queue ops; built-in DLQ and retry</td>
+<td>Less partitioning control; higher per-message cost at volume</td>
+<td>Cloud-native teams minimizing infrastructure management</td>
+</tr>
+<tr>
+<td><strong>Pulsar</strong></td>
+<td>Tiered storage; multi-tenancy built in; geo-replication</td>
+<td>Smaller community than Kafka</td>
+<td>Multi-region with built-in tiered storage needs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>FastText for Stage 2</strong> (unmatched CPU throughput for first ML pass), <strong>custom multi-task vision-language model for Stage 3</strong> (amortizes GPU cost across categories, handles multi-modal content natively), <strong>fine-tuned Llama self-hosted for Stage 4</strong> (keeps sensitive content in-house at scale), and <strong>Kafka for streaming</strong> (proven replay and fan-out at billion-scale). The cascade architecture means each expensive tier only processes what the previous tier could not resolve with confidence.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Stress that the <strong>cascade is the architecture</strong> -- technology choices per stage matter less than getting the confidence thresholds right between stages. A well-tuned cascade with mediocre models outperforms a single expensive model applied uniformly.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="traffic">Traffic<a class="headerlink" href="#traffic" title="Permanent link">&para;</a></h3>
@@ -3300,7 +3440,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph ing["Content Ingestion"]
         Upload[Content Upload&lt;br/&gt;API]
         Stream[Event Stream&lt;br/&gt;Kafka]
@@ -3346,7 +3486,7 @@
 
     hitl --&gt; FeedbackLoop
     app --&gt; FeedbackLoop
-    FeedbackLoop --&gt; casc</div>
+    FeedbackLoop --&gt; casc</code></pre>
 <hr />
 <h2 id="step-4-deep-dive">Step 4: Deep Dive<a class="headerlink" href="#step-4-deep-dive" title="Permanent link">&para;</a></h2>
 <h3 id="41-multi-stage-classification-pipeline">4.1 Multi-Stage Classification Pipeline<a class="headerlink" href="#41-multi-stage-classification-pipeline" title="Permanent link">&para;</a></h3>
@@ -3515,7 +3655,7 @@
 </span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>        <span class="p">)</span>
 </span></code></pre></div>
 <h3 id="44-human-review-system">4.4 Human Review System<a class="headerlink" href="#44-human-review-system" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph pq["Priority Queue"]
         P1["P0: CSAM / Imminent Threat&lt;br/&gt;SLA: 15 min"]
         P2["P1: Severe Harassment&lt;br/&gt;SLA: 1 hour"]
@@ -3536,7 +3676,7 @@
         InterRater[Inter-Rater&lt;br/&gt;Agreement]
     end
 
-    pq --&gt; rev --&gt; qas</div>
+    pq --&gt; rev --&gt; qas</code></pre>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">HumanReviewQueue</span><span class="p">:</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority-based human review queue with SLA tracking.&quot;&quot;&quot;</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
@@ -3943,10 +4083,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

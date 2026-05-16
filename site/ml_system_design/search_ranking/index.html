@@ -2236,6 +2236,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3165,13 +3174,13 @@
 </table>
 <p><strong>RankNet</strong> uses pairwise cross-entropy on score differences; <strong>LambdaRank</strong> and <strong>LambdaMART</strong> use gradients weighted by <strong>ΔNDCG</strong> (or similar) so mistakes that hurt NDCG more get larger updates — a key production favorite when trees are used.</p>
 <h3 id="two-stage-architecture">Two-Stage Architecture<a class="headerlink" href="#two-stage-architecture" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     Q[Query] --&gt; QU[Query Understanding]
     QU --&gt; R[Retrieval&lt;br/&gt;Inverted Index + ANN]
     R --&gt; P[Candidate Pool&lt;br/&gt;~1e3 docs]
     P --&gt; M[Ranking Model&lt;br/&gt;LTR / Neural]
     M --&gt; RR[Re-ranking&lt;br/&gt;diversity / rules]
-    RR --&gt; Out[Results]</div>
+    RR --&gt; Out[Results]</code></pre>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Retrieval</strong> must be sub-linear in corpus size (inverted index, ANN). <strong>Full cross-attention over billions</strong> of docs per query is not feasible — narrow the set first.</p>
@@ -3301,6 +3310,106 @@
 <p class="admonition-title">Tip</p>
 <p>Align offline labels with online goals: clicks are <strong>biased by position</strong> — handle with IPS / propensity models (see §4.5).</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A search ranking system is built from <strong>retrieval stage + ranking model + feature store + index infrastructure</strong>. Each choice affects relevance quality, latency, and scale.</p>
+<h4 id="retrieval-stage">Retrieval stage<a class="headerlink" href="#retrieval-stage" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BM25 (inverted index)</strong></td>
+<td>Fast; interpretable; excellent for exact matches; proven at scale</td>
+<td>No semantic understanding; misses synonyms</td>
+<td>Default first-stage retrieval; always included</td>
+</tr>
+<tr>
+<td><strong>Dense retrieval (bi-encoder + ANN)</strong></td>
+<td>Semantic matching; finds relevant docs without keyword overlap</td>
+<td>Misses exact matches; embedding quality matters</td>
+<td>Complement BM25 for semantic coverage</td>
+</tr>
+<tr>
+<td><strong>Hybrid (BM25 + dense with RRF)</strong></td>
+<td>Best recall; covers keyword + semantic failure modes</td>
+<td>Two indexes; fusion tuning; more complexity</td>
+<td>Production search where both recall modes matter</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ranking-model">Ranking model<a class="headerlink" href="#ranking-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cross-encoder (BERT-based)</strong></td>
+<td>Highest relevance accuracy; attends to query-document jointly</td>
+<td>Slow (can't pre-compute); limits to re-ranking top-K</td>
+<td>Default re-ranker for top-100 candidates</td>
+</tr>
+<tr>
+<td><strong>LambdaMART (LightGBM)</strong></td>
+<td>Fast inference; handles hundreds of features; strong baseline</td>
+<td>Cannot learn from raw text; feature engineering needed</td>
+<td>When engineered features dominate; latency-critical</td>
+</tr>
+<tr>
+<td><strong>ColBERT (late interaction)</strong></td>
+<td>Better efficiency than cross-encoder; token-level matching</td>
+<td>Larger index; more complex than bi-encoder</td>
+<td>When cross-encoder is too slow but semantic quality needed</td>
+</tr>
+</tbody>
+</table>
+<h4 id="index-infrastructure">Index infrastructure<a class="headerlink" href="#index-infrastructure" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Elasticsearch / OpenSearch</strong></td>
+<td>Full-text + analytics; rich query DSL; mature ecosystem</td>
+<td>Operationally heavy; near-real-time (not instant)</td>
+<td>Default for full-text search with faceting and analytics</td>
+</tr>
+<tr>
+<td><strong>Vespa</strong></td>
+<td>Unified serving (BM25 + vectors + ML ranking); real-time indexing</td>
+<td>Smaller community; steeper learning curve</td>
+<td>When you need retrieval + ranking in one system</td>
+</tr>
+<tr>
+<td><strong>Lucene (embedded)</strong></td>
+<td>Direct control; no cluster overhead; fastest for single-node</td>
+<td>No distributed story; must build everything</td>
+<td>Custom search within a larger application</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>Hybrid retrieval</strong> (BM25 via Elasticsearch + dense bi-encoder via FAISS/ANN), <strong>cross-encoder re-ranker</strong> on top-100 candidates, and <strong>LambdaMART</strong> as a lightweight final-stage ranker incorporating business features (freshness, popularity, position bias correction). This delivers strong relevance while keeping p99 latency under 200ms.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Position bias is the sleeper topic. Clicks are biased by rank position -- users click position 1 more than position 5 regardless of relevance. Mention IPS (Inverse Propensity Scoring) or propensity models to show awareness.</p>
+</div>
 <hr />
 <h2 id="step-2-back-of-envelope-estimation">Step 2: Back-of-Envelope Estimation<a class="headerlink" href="#step-2-back-of-envelope-estimation" title="Permanent link">&para;</a></h2>
 <p><strong>Assumptions (interview scenario):</strong></p>
@@ -3366,7 +3475,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="online-path">Online path<a class="headerlink" href="#online-path" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph cli["Client"]
         U[User]
     end
@@ -3404,9 +3513,9 @@
     RER --&gt; U
     FUS -.-&gt; DOC
     FE -.-&gt; DOC
-    LB -.-&gt; CACHE</div>
+    LB -.-&gt; CACHE</code></pre>
 <h3 id="offline-ml-path">Offline / ML path<a class="headerlink" href="#offline-ml-path" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph Data [Data]
         LOGS[Click / Impression Logs]
         LABELS[Editorial / Human Labels]
@@ -3427,7 +3536,7 @@
 
     LOGS --&gt; ETL --&gt; FE --&gt; TR --&gt; EV
     LABELS --&gt; FE
-    TR --&gt; REG --&gt; CAN --&gt; ONNX</div>
+    TR --&gt; REG --&gt; CAN --&gt; ONNX</code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Training-serving skew</strong> is a classic failure mode: log features and serving features must come from the same definitions (feature store, versioned transforms).</p>
@@ -3589,7 +3698,7 @@
 </tbody>
 </table>
 <p><strong>ANN</strong> (Approximate Nearest Neighbor): <strong>FAISS</strong>, <strong>ScaNN</strong>, <strong>HNSW</strong> in vector DBs — trade recall vs latency.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph Lex [Lexical]
         II[Inverted Index]
         BM[BM25 Scoring]
@@ -3604,7 +3713,7 @@
     ED --&gt; ANN
     BM --&gt; FUS[Fusion / RRF]
     ANN --&gt; FUS
-    FUS --&gt; OUT[Top-K Candidates]</div>
+    FUS --&gt; OUT[Top-K Candidates]</code></pre>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Embedding staleness</strong>: if the encoder updates, <strong>re-embed</strong> documents on a schedule; version embeddings in the index.</p>
@@ -4020,7 +4129,7 @@
 w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 \]</div>
 <p>Use logged propensities or a position model to debias.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph Collect [Collection]
         IMP[Impression Logs]
         CLK[Click Stream]
@@ -4037,7 +4146,7 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
     end
     IMP --&gt; SESS
     CLK --&gt; SESS
-    SESS --&gt; JOIN --&gt; PROP --&gt; WG --&gt; LTR --&gt; OFF</div>
+    SESS --&gt; JOIN --&gt; PROP --&gt; WG --&gt; LTR --&gt; OFF</code></pre>
 <p><strong>Python: pairwise-style dataset + IPW weights (illustrative)</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
@@ -4440,7 +4549,7 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 </tr>
 </tbody>
 </table>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph met["Metrics"]
         LAT[Latency histogram]
         CTR["CTR / conversion"]
@@ -4453,7 +4562,7 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
     end
     LAT --&gt; ALERT
     CTR --&gt; EXP
-    NULL --&gt; ROLL</div>
+    NULL --&gt; ROLL</code></pre>
 <p><strong>Python: simple query-level debug record (for tooling)</strong></p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4526,7 +4635,7 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
 </tbody>
 </table>
 <p><strong>Sharding sketch:</strong> with <span class="arithmatex">\(B\)</span> shards, doc id <code>d</code> routes to shard <code>hash(d) mod B</code>. Each shard holds an inverted index <strong>subset</strong> and an ANN partition. Queries fan out to <strong>all shards</strong> (for global recall), merge by score, then take global top-K — this is expensive at scale; optimizations include <strong>query routing</strong> (only shards likely to contain relevant docs) and <strong>tiered</strong> retrieval.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph glob["Global layer"]
         Q[Query]
         M[Merge top-K per shard]
@@ -4537,7 +4646,7 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
         SB[Shard B-1]
     end
     Q --&gt; S0 &amp; S1 &amp; SB
-    S0 &amp; S1 &amp; SB --&gt; M</div>
+    S0 &amp; S1 &amp; SB --&gt; M</code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Real systems</strong> often combine <strong>shard-local</strong> candidate generation with a <strong>central</strong> re-ranker, or use <strong>two-phase</strong> query processing (e.g., Block-Max indexes) to reduce work — name the idea even if you skip details.</p>
@@ -4935,10 +5044,6 @@ w_i = \frac{1}{p(\text{click} \mid \text{shown at position } i)}
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

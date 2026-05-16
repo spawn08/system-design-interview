@@ -2721,6 +2721,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3426,6 +3435,112 @@
 <p class="admonition-title">Warning</p>
 <p><strong>Clarify in the interview:</strong> “10K req/s” is <strong>gateway requests</strong>, not 10K concurrent GPU streams. Upstream provider limits still cap <em>effective</em> throughput; the gateway’s job is to <strong>shape, route, and fail gracefully</strong>.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The LLM gateway is assembled from a <strong>routing/proxy layer + semantic cache + rate-limiting store + observability pipeline</strong>. Each category has mature options with different cost, operational complexity, and performance profiles.</p>
+<h4 id="routing-proxy-framework">Routing &amp; proxy framework<a class="headerlink" href="#routing-proxy-framework" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Envoy + custom Lua/WASM filters</strong></td>
+<td>Battle-tested L7 proxy; gRPC and HTTP/2 native; huge ecosystem</td>
+<td>LLM-specific logic (token counting, SSE normalization) requires custom filter work</td>
+<td>You already run Envoy/Istio and want to extend rather than replace</td>
+</tr>
+<tr>
+<td><strong>LiteLLM</strong></td>
+<td>Purpose-built LLM proxy; 100+ provider adapters out of the box; Python</td>
+<td>Single-process Python limits raw throughput; less control over streaming internals</td>
+<td>Fast v1 launch with broad provider support; team is Python-native</td>
+</tr>
+<tr>
+<td><strong>Custom Go/Rust service</strong></td>
+<td>Full control over SSE parsing, backpressure, and memory; high single-node throughput</td>
+<td>Large upfront engineering; must build every adapter</td>
+<td>Extreme latency or throughput requirements; team owns the runtime long-term</td>
+</tr>
+<tr>
+<td><strong>Portkey / cloud-managed gateway</strong></td>
+<td>Turnkey observability, guardrails, and routing; vendor-managed uptime</td>
+<td>Vendor lock-in; limited customization; data leaves your boundary</td>
+<td>Small team needing full-featured gateway without ops burden</td>
+</tr>
+</tbody>
+</table>
+<h4 id="semantic-cache-backend">Semantic cache backend<a class="headerlink" href="#semantic-cache-backend" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>pgvector (PostgreSQL)</strong></td>
+<td>Single store for metadata + ANN; familiar ops; ACID transactions</td>
+<td>ANN latency degrades past ~5M vectors; single-node ceiling</td>
+<td>Moderate cache corpus; existing Postgres infra; simplicity wins</td>
+</tr>
+<tr>
+<td><strong>Redis + RediSearch vector module</strong></td>
+<td>Sub-ms exact lookups; built-in TTL; combine hash + ANN in one call</td>
+<td>Memory-bound at scale; ANN recall tuning less mature than dedicated vector DBs</td>
+<td>Hot-path exact cache + lightweight semantic search; already running Redis</td>
+</tr>
+<tr>
+<td><strong>Qdrant / Pinecone</strong></td>
+<td>Purpose-built ANN; high recall at millions of vectors; managed options</td>
+<td>Additional service to operate; adds network hop; cost scales with vector count</td>
+<td>Large multi-tenant cache with strict recall and latency SLOs</td>
+</tr>
+</tbody>
+</table>
+<h4 id="rate-limiting-budget-store">Rate limiting &amp; budget store<a class="headerlink" href="#rate-limiting-budget-store" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis (cluster)</strong></td>
+<td>Atomic INCRBY + EXPIRE; well-understood; cluster mode for sharding</td>
+<td>Single point of failure without sentinel/cluster; memory cost at high key cardinality</td>
+<td>Default choice for most gateway deployments</td>
+</tr>
+<tr>
+<td><strong>In-process sliding window</strong></td>
+<td>Zero network latency; no external dependency</td>
+<td>Not shared across gateway replicas; only approximate global limits</td>
+<td>Fail-open fallback when Redis is unreachable; local burst protection</td>
+</tr>
+<tr>
+<td><strong>DragonflyDB / Valkey</strong></td>
+<td>Redis-compatible API; multithreaded (Dragonfly) or license-free (Valkey)</td>
+<td>Newer ecosystem; fewer production battle scars</td>
+<td>Drop-in Redis replacement when memory pressure or licensing is a concern</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>LiteLLM as the proxy core</strong> for rapid adapter coverage and Python ecosystem alignment, <strong>Redis cluster for rate limiting and budget counters</strong> due to proven atomic operations and easy TTL semantics, <strong>pgvector for the semantic cache</strong> as a unified metadata + ANN store that keeps ops simple until cache corpus exceeds single-node capacity, and <strong>ClickHouse for observability and cost attribution</strong> for high-cardinality, high-volume log analysis. As traffic grows, the semantic cache can migrate to a dedicated vector store (Qdrant or Pinecone) without changing the gateway's cache API contract.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Justify technology choices by <strong>operational maturity of the team</strong> and <strong>migration path</strong> -- starting simple with pgvector and graduating to a managed vector DB shows pragmatism, not ignorance of purpose-built options.</p>
+</div>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="request-volume-illustrative">Request Volume (Illustrative)<a class="headerlink" href="#request-volume-illustrative" title="Permanent link">&para;</a></h3>
@@ -3535,7 +3650,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-mermaid">Architecture (Mermaid)<a class="headerlink" href="#architecture-mermaid" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph Clients["Client Apps"]
         A[Web / Mobile / Batch Jobs]
     end
@@ -3574,9 +3689,9 @@
     ANT --&gt; PII
     GOO --&gt; PII
     SH --&gt; PII
-    PII --&gt; COST --&gt; LOG --&gt; CW</div>
+    PII --&gt; COST --&gt; LOG --&gt; CW</code></pre>
 <h3 id="streaming-request-lifecycle-sequence">Streaming Request Lifecycle (Sequence)<a class="headerlink" href="#streaming-request-lifecycle-sequence" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     autonumber
     participant C as Client
     participant G as LLM Gateway
@@ -3612,7 +3727,7 @@
         end
         P--&gt;&gt;G: stream end + usage (tokens)
         G-&gt;&gt;SCR: Final scrub + audit record + cache write (if eligible)
-    end</div>
+    end</code></pre>
 <h3 id="request-path-narrative">Request Path (Narrative)<a class="headerlink" href="#request-path-narrative" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Authenticate</strong> the caller → resolve <strong>tenant</strong>, quotas, and routing profile.  </li>
@@ -4128,13 +4243,13 @@
 <li><strong>Streaming</strong> failures need special casing: you generally <strong>cannot</strong> safely retry mid-stream without idempotent generation or user-visible duplication.</li>
 </ul>
 <h4 id="circuit-breaker-state-machine">Circuit breaker state machine<a class="headerlink" href="#circuit-breaker-state-machine" title="Permanent link">&para;</a></h4>
-<div class="mermaid">stateDiagram-v2
+<pre class="mermaid"><code>stateDiagram-v2
     [*] --&gt; Closed
     Closed --&gt; Open : "failures &gt;= threshold\nor error_rate &gt; limit"
     Open --&gt; HalfOpen : "cooldown elapsed"
     HalfOpen --&gt; Closed : "probe success"
     HalfOpen --&gt; Open : "probe failure"
-    Closed --&gt; Closed : "success resets failure window"</div>
+    Closed --&gt; Closed : "success resets failure window"</code></pre>
 <h4 id="provider-health-scoring-weighted-error-rate-latency">Provider health scoring (weighted error rate + latency)<a class="headerlink" href="#provider-health-scoring-weighted-error-rate-latency" title="Permanent link">&para;</a></h4>
 <p>Maintain a rolling window per <strong>(provider, region, model)</strong>. Example <strong>score</strong> in <span class="arithmatex">\([0,100]\)</span> — higher is healthier:</p>
 <div class="arithmatex">\[
@@ -4625,10 +4740,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

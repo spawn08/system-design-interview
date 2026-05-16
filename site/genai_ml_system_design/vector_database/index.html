@@ -2794,6 +2794,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3565,13 +3574,13 @@
 </tbody>
 </table>
 <p><strong>Pre-filter vs post-filter (interview diagram):</strong></p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph pre["Pre-filter"]
     P1[Compute eligible ID set] --&gt; P2[ANN only on eligible]
   end
   subgraph post["Post-filter"]
     Q1[ANN top L &gt;&gt; k] --&gt; Q2[Keep first k passing filter]
-  end</div>
+  end</code></pre>
 <hr />
 <h2 id="step-1-requirements">Step 1: Requirements<a class="headerlink" href="#step-1-requirements" title="Permanent link">&para;</a></h2>
 <h3 id="functional-requirements">Functional Requirements<a class="headerlink" href="#functional-requirements" title="Permanent link">&para;</a></h3>
@@ -3648,6 +3657,124 @@
 <p class="admonition-title">Tip</p>
 <p>Tie <strong>P99 &lt; 10ms</strong> to <strong>in-memory hot set + ANN parameters</strong> — not to “faster CPUs” alone.</p>
 </div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>A vector database is built from an <strong>ANN index structure + storage engine + distance metric + metadata filtering layer</strong>. The choices determine recall, latency, memory footprint, and operational profile.</p>
+<h4 id="ann-index-type">ANN index type<a class="headerlink" href="#ann-index-type" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HNSW</strong></td>
+<td>Best recall/latency tradeoff when graph fits RAM; no training phase</td>
+<td>High memory overhead (2-10x vector size for graph); incremental inserts can degrade quality</td>
+<td>Hot indices where p99 latency matters most and RAM budget allows</td>
+</tr>
+<tr>
+<td><strong>IVF-PQ</strong></td>
+<td>Dramatically lower memory via product quantization; handles billions</td>
+<td>Requires offline training (k-means); nprobe/PQ tuning non-trivial; lower recall vs HNSW</td>
+<td>Memory-constrained billion-scale; batch-oriented workloads</td>
+</tr>
+<tr>
+<td><strong>DiskANN / Vamana</strong></td>
+<td>Near-HNSW recall with SSD-resident graph; much lower RAM per vector</td>
+<td>Higher tail latency on cold pages; write amplification during builds</td>
+<td>Large corpora exceeding RAM that still need single-digit ms p95</td>
+</tr>
+<tr>
+<td><strong>Flat / brute-force</strong></td>
+<td>Exact k-NN; zero index overhead; no recall loss</td>
+<td>O(n*d) per query; unusable beyond ~1M vectors at interactive latency</td>
+<td>Ground-truth evaluation; tiny collections; quality benchmarking</td>
+</tr>
+</tbody>
+</table>
+<h4 id="storage-engine">Storage engine<a class="headerlink" href="#storage-engine" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Milvus (etcd + MinIO + Pulsar)</strong></td>
+<td>Cloud-native disaggregated architecture; independent scaling of compute/storage</td>
+<td>Many moving parts; operational complexity</td>
+<td>Large-scale multi-tenant SaaS; teams comfortable with distributed systems</td>
+</tr>
+<tr>
+<td><strong>Qdrant (WAL + segment files)</strong></td>
+<td>Simple single-binary deployment; built-in WAL and snapshot; Rust performance</td>
+<td>Single-node ceiling without sharding; replication is newer</td>
+<td>Small-to-medium deployments; fast iteration; minimal ops</td>
+</tr>
+<tr>
+<td><strong>Weaviate (LSM + modules)</strong></td>
+<td>Integrated schema, ML modules, and multi-modal support</td>
+<td>Java/Go runtime overhead; less raw performance than Rust-based alternatives</td>
+<td>Applications needing built-in ML module orchestration alongside vector search</td>
+</tr>
+<tr>
+<td><strong>pgvector (PostgreSQL)</strong></td>
+<td>Leverage existing Postgres, ACID, and ecosystem tooling</td>
+<td>Limited to single-node without Citus; no native PQ</td>
+<td>Teams already running Postgres; moderate scale (&lt;10M vectors)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hybrid-search-metadata-filtering">Hybrid search &amp; metadata filtering<a class="headerlink" href="#hybrid-search-metadata-filtering" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Post-filter</strong></td>
+<td>Simple; ANN index unmodified</td>
+<td>May return fewer than k results; wastes compute on ineligible vectors</td>
+<td>Low-selectivity filters where most vectors pass</td>
+</tr>
+<tr>
+<td><strong>Pre-filter with bitmaps</strong></td>
+<td>Guarantees exactly k results</td>
+<td>Highly selective filters can degrade recall</td>
+<td>Known filter cardinality; filters removing &lt;80% of vectors</td>
+</tr>
+<tr>
+<td><strong>Native filtered ANN (Qdrant, Weaviate)</strong></td>
+<td>Intersects filter bitmaps with graph traversal; balanced recall</td>
+<td>Engine-specific; harder to tune</td>
+<td>Production workloads with mixed selectivity; multi-tenant isolation</td>
+</tr>
+<tr>
+<td><strong>Reciprocal Rank Fusion (vector + BM25)</strong></td>
+<td>Combines dense and sparse for hybrid RAG; improves keyword-heavy recall</td>
+<td>Two indexes to maintain; fusion weights need tuning</td>
+<td>RAG pipelines needing both semantic and keyword matching</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>HNSW as the primary index</strong> for hot segments where RAM permits (best recall/latency), with <strong>IVF-PQ for cold tiers</strong> where memory must be conserved. <strong>Qdrant</strong> for simpler ops at moderate scale, <strong>Milvus</strong> when disaggregated compute/storage is needed at billions. <strong>Cosine similarity</strong> (dot product on L2-normalized vectors) as the default metric. <strong>Native filtered ANN</strong> for metadata filtering because post-filter under-returns and pre-filter harms recall at high selectivity. This tiered approach mirrors how production systems like Pinecone and Vertex AI Vector Search actually operate.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Emphasize that index choice is not one-size-fits-all within a single system -- hot segments use HNSW in RAM, warm use DiskANN on SSD, cold sit in object storage for rebuild-on-demand.</p>
+</div>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
 <h3 id="storage-per-vector">Storage per Vector<a class="headerlink" href="#storage-per-vector" title="Permanent link">&para;</a></h3>
@@ -3711,7 +3838,7 @@
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
 <h3 id="architecture-write-vs-read-path">Architecture (Write vs Read Path)<a class="headerlink" href="#architecture-write-vs-read-path" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   Client[Client / Data Plane SDK]
   GW[API Gateway\nAuth, rate limits]
   QC[Query Coordinator\nfan-out, merge top-k]
@@ -3738,9 +3865,9 @@
   WAL --&gt; SEG
   SEG --&gt; OS
   S1 --&gt; OS
-  S2 --&gt; OS</div>
+  S2 --&gt; OS</code></pre>
 <p><strong>Read path (fan-out / merge):</strong></p>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
   participant C as Client
   participant G as API Gateway
   participant Q as Query Coordinator
@@ -3756,7 +3883,7 @@
   S2--&gt;&gt;Q: candidates + scores
   Q-&gt;&gt;Q: merge-heap + dedupe + filter
   Q--&gt;&gt;G: global top-k
-  G--&gt;&gt;C: JSON response</div>
+  G--&gt;&gt;C: JSON response</code></pre>
 <p><strong>Flow:</strong> <strong>Writes</strong> → ingestion → <strong>WAL</strong> → memtable → flushed <strong>immutable segments</strong> in <strong>object storage</strong> with background index <strong>merge</strong>; <strong>reads</strong> → <strong>Query Coordinator</strong> → parallel per-shard <strong>ANN</strong> → <strong>merge-heap</strong> for global top-\(k\).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -4435,10 +4562,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

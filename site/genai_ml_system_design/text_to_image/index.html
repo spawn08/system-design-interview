@@ -2766,6 +2766,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3215,7 +3224,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
 </table>
 <h3 id="super-resolution-cascades">Super-Resolution Cascades<a class="headerlink" href="#super-resolution-cascades" title="Permanent link">&para;</a></h3>
 <p>Generate <strong>base</strong> (e.g. 64→256 latent) then <strong>refine</strong> with <strong>image-conditioned</strong> SR models (sometimes <strong>multi-stage</strong>: 256→512→1024). Reduces cost of <strong>full-resolution</strong> diffusion in one shot.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph base["Base generation (cheap latent)"]
     zT[z_T ~ noise]
     zT --&gt; UN[U-Net denoising N steps]
@@ -3228,7 +3237,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
     SR1 --&gt; mid[Mid-res]
     mid --&gt; SR2[SR 2× or refiner]
     SR2 --&gt; hi[Final high-res]
-  end</div>
+  end</code></pre>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Preview vs final:</strong> many products show <strong>fast</strong> low-step or low-res outputs first, then <strong>replace</strong> with the SR-enhanced asset once ready — this improves <strong>perceived latency</strong> without breaking the <strong>&lt;10s</strong> SLO for <em>final</em> pixels.</p>
@@ -3317,6 +3326,112 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Translate <strong>1000 images/min</strong> into <strong>GPU occupancy</strong>: if one GPU does ~6–12 images/min depending on settings, you need <strong>O(100)</strong> GPU streams (order-of-magnitude), plus headroom for failures and spikes.</p>
+</div>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>The text-to-image system is assembled from a <strong>diffusion backbone + text conditioning encoder + GPU serving infrastructure + image storage/delivery + safety classifier</strong>. Each choice affects latency, cost-per-image, quality, and safety.</p>
+<h4 id="diffusion-model-architecture">Diffusion model architecture<a class="headerlink" href="#diffusion-model-architecture" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>U-Net Latent Diffusion (Stable Diffusion)</strong></td>
+<td>Proven at scale; strong spatial inductive bias; large LoRA/ControlNet ecosystem</td>
+<td>Scales less gracefully than transformers at extreme param counts</td>
+<td>Rapid iteration with community adapters; moderate model size (1-2B)</td>
+</tr>
+<tr>
+<td><strong>DiT (Diffusion Transformer)</strong></td>
+<td>Scales cleanly with compute; strong at high resolution; used by frontier models</td>
+<td>Less community tooling; patchification adds complexity; larger memory</td>
+<td>Frontier quality targets; large GPU budgets</td>
+</tr>
+<tr>
+<td><strong>Consistency Models</strong></td>
+<td>One/few-step generation; dramatically lower latency</td>
+<td>Quality gap vs full diffusion; separate training objective; less mature</td>
+<td>Preview/draft tier where latency matters more than peak fidelity</td>
+</tr>
+<tr>
+<td><strong>Cascaded pipeline (base + SR)</strong></td>
+<td>Low-res base is cheap; SR stages add detail; progressive preview UX</td>
+<td>Multi-model complexity; each stage needs separate versioning</td>
+<td>Fast preview + high final resolution; cost-tiered quality</td>
+</tr>
+</tbody>
+</table>
+<h4 id="text-conditioning-encoder">Text conditioning encoder<a class="headerlink" href="#text-conditioning-encoder" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLIP ViT-L/14</strong></td>
+<td>Strong image-text alignment; compact; fast inference</td>
+<td>Limited to 77 tokens; weaker on compositional prompts</td>
+<td>Short prompts; style-focused generation</td>
+</tr>
+<tr>
+<td><strong>T5-XXL / Flan-T5</strong></td>
+<td>Excellent linguistic understanding; handles long compositional prompts</td>
+<td>Large (11B params); higher latency and memory</td>
+<td>Detailed instructions; compositional scenes</td>
+</tr>
+<tr>
+<td><strong>Dual encoder (CLIP + T5)</strong></td>
+<td>Combines alignment + linguistic depth; used by SDXL-class systems</td>
+<td>Double encoding cost; two models to version</td>
+<td>Production systems needing both short creative and detailed prompts</td>
+</tr>
+</tbody>
+</table>
+<h4 id="gpu-serving-infrastructure">GPU serving infrastructure<a class="headerlink" href="#gpu-serving-infrastructure" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NVIDIA Triton</strong></td>
+<td>Multi-framework; dynamic batching; model ensembles; GPU metrics built in</td>
+<td>Complex config; steep learning curve; NVIDIA dependency</td>
+<td>Multi-model pipelines (encoder + U-Net + VAE + SR) on NVIDIA hardware</td>
+</tr>
+<tr>
+<td><strong>Ray Serve</strong></td>
+<td>Python-native; easy horizontal scaling; composable deployment graphs</td>
+<td>Less GPU-kernel optimization than Triton; overhead at extreme QPS</td>
+<td>Teams already using Ray; mixed CPU/GPU workloads</td>
+</tr>
+<tr>
+<td><strong>Custom (torch.compile + CUDA graphs)</strong></td>
+<td>Maximum control; lowest possible per-image latency</td>
+<td>High engineering investment; maintenance burden</td>
+<td>Teams with deep CUDA expertise; last-millisecond optimization</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>U-Net latent diffusion</strong> with <strong>dual CLIP + T5 encoder</strong> for the best balance of quality, ecosystem maturity, and adapter support. Serve with <strong>Triton</strong> for its native ensemble pipeline (text encode → denoise → VAE decode → SR → safety in one graph) on A100/H100 GPUs. Store images in <strong>S3/GCS with CDN</strong> and aggressive lifecycle policies. This delivers production-grade quality because U-Net is the most battle-tested architecture with the widest optimization surface (quantization, CUDA graphs, DPM-Solver++ step reduction), and Triton handles the multi-model pipeline without custom glue.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Interview angle:</strong> Text-to-image is not one model but four or five (encoder, denoiser, VAE, SR, safety). The serving layer must orchestrate them efficiently -- saying "just call model.forward()" misses the system design point.</p>
 </div>
 <hr />
 <h2 id="step-2-estimation">Step 2: Estimation<a class="headerlink" href="#step-2-estimation" title="Permanent link">&para;</a></h2>
@@ -3408,7 +3523,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
 <p><strong>Total per replica:</strong> <strong>single-digit GB</strong> in FP16 — fits in <strong>one</strong> high-end GPU <strong>if</strong> activations fit; large batches or giant models may require <strong>tensor parallel</strong> or <strong>pipeline parallel</strong>.</p>
 <hr />
 <h2 id="step-3-high-level-design">Step 3: High-Level Design<a class="headerlink" href="#step-3-high-level-design" title="Permanent link">&para;</a></h2>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
   U[User / Client] --&gt; API[API Gateway + Auth]
   API --&gt; Q[Queue + Scheduler]
   Q --&gt; INSAFE[Input Safety &amp; Policy]
@@ -3422,7 +3537,7 @@ L = \mathbb{E}<em>{t,\epsilon}\big[\lVert \epsilon - \epsilon</em>\theta(x_t, t,
   OBJ --&gt; CDN[CDN]
   CDN --&gt; U
   Q -.-&gt; MET[Metrics + Tracing]
-  LD -.-&gt; MET</div>
+  LD -.-&gt; MET</code></pre>
 <p><strong>Path highlights:</strong></p>
 <ol>
 <li><strong>Input safety</strong> before expensive GPU work (cheap wins).</li>
@@ -4107,7 +4222,7 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
 <p><strong>Fine-tuning.</strong> <strong>LoRA</strong>: low-rank updates to attention/MLP weights for <strong>cheap</strong> style adapters. <strong>DreamBooth</strong>: few images of a subject + rare token for <strong>identity</strong> without full retrain. <strong>Textual inversion</strong>: learn <strong>pseudo-tokens</strong> in embedding space for <strong>new concepts</strong>.</p>
 <p><strong>Preference alignment (image).</strong> Train a <strong>reward model</strong> (often <strong>CLIP + human ratings</strong> or a <strong>ViT head</strong>) on pairwise <strong>which image is better</strong> data. Optimize with <strong>RL</strong> (policy gradient on denoising — expensive) or <strong>DPO</strong>-style <strong>direct preference</strong> losses on <strong>completed samples</strong> or <strong>last-step</strong> latents depending on setup — product stacks often use <strong>offline</strong> preference batches + <strong>KL</strong> to a <strong>reference</strong> model.</p>
 <p><strong>Compute &amp; distributed training.</strong> <strong>Multi-GPU</strong> data parallel for throughput; <strong>FSDP / ZeRO</strong> for <strong>large</strong> U-Nets/DiTs; <strong>gradient checkpointing</strong> to fit <strong>activation</strong> memory. <strong>BF16</strong> mixed precision; <strong>EMA</strong> weights for evaluation. Typical <strong>cluster</strong>: hundreds–thousands of <strong>A100/H100</strong> GPU-hours per <strong>large</strong> run — <strong>checkpoint</strong> to object storage every <strong>N</strong> thousand steps.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
   subgraph data["Data"]
     RAW[Web crawl / licensed sets]
     DEDUP[pHash + CLIP dedup]
@@ -4134,7 +4249,7 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
   SHARD --&gt; RM
   RM --&gt; RL
   DM --&gt; RL
-  CKPT --&gt; EVAL --&gt; SRV</div>
+  CKPT --&gt; EVAL --&gt; SRV</code></pre>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><strong>Copyright</strong> on training data is a <strong>legal and product</strong> issue: <strong>document</strong> sources, honor <strong>robots.txt</strong> / <strong>licenses</strong>, support <strong>creator opt-out</strong>, and separate <strong>technical</strong> dedup from <strong>licensing</strong> compliance.</p>
@@ -4529,10 +4644,6 @@ s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \q
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>

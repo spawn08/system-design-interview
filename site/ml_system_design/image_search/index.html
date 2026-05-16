@@ -2224,6 +2224,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#technology-selection-tradeoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Selection &amp; Tradeoffs
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3178,7 +3187,7 @@
 <h2 id="ml-concepts-for-image-search">ML Concepts for Image Search<a class="headerlink" href="#ml-concepts-for-image-search" title="Permanent link">&para;</a></h2>
 <h3 id="how-image-similarity-works">How Image Similarity Works<a class="headerlink" href="#how-image-similarity-works" title="Permanent link">&para;</a></h3>
 <p>The key insight: Convert images to <strong>embeddings</strong> (vectors), then find similar vectors.</p>
-<div class="mermaid">flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph enc1["Encoding"]
         Image[Image] --&gt; CNN[CNN/ViT&lt;br/&gt;Encoder]
         CNN --&gt; Embedding[512-dim&lt;br/&gt;Vector]
@@ -3187,7 +3196,7 @@
     subgraph srch1["Search"]
         Embedding --&gt; ANN[ANN Index]
         ANN --&gt; Similar[Similar&lt;br/&gt;Images]
-    end</div>
+    end</code></pre>
 <p><strong>Embeddings:</strong> A neural network compresses an image into a compact vector (e.g., 512 numbers) that captures its visual meaning. Similar images have similar vectors.</p>
 <h3 id="visual-similarity-vs-semantic-similarity">Visual Similarity vs Semantic Similarity<a class="headerlink" href="#visual-similarity-vs-semantic-similarity" title="Permanent link">&para;</a></h3>
 <table>
@@ -3398,10 +3407,106 @@
 </tr>
 </tbody>
 </table>
+<h3 id="technology-selection-tradeoffs">Technology Selection &amp; Tradeoffs<a class="headerlink" href="#technology-selection-tradeoffs" title="Permanent link">&para;</a></h3>
+<p>An image search system is built from <strong>embedding model + vector index + image processing pipeline + serving infrastructure</strong>. Each choice affects recall, latency, and cost at scale.</p>
+<h4 id="embedding-model">Embedding model<a class="headerlink" href="#embedding-model" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLIP (ViT-L/14)</strong></td>
+<td>Shared text-image space; strong zero-shot; well-understood</td>
+<td>768 dims limits expressiveness; weaker on fine-grained attributes</td>
+<td>Default for text-to-image and image-to-image search</td>
+</tr>
+<tr>
+<td><strong>DINOv2</strong></td>
+<td>Excellent visual features without text alignment; self-supervised</td>
+<td>No text-image alignment; text queries need separate encoder</td>
+<td>Image-only similarity (visual duplicates, style matching)</td>
+</tr>
+<tr>
+<td><strong>Domain fine-tuned (OpenCLIP + contrastive)</strong></td>
+<td>Highest accuracy on target domain; encodes domain attributes</td>
+<td>Training cost; data collection; maintenance</td>
+<td>E-commerce, medical imaging where domain attributes matter</td>
+</tr>
+</tbody>
+</table>
+<h4 id="vector-index">Vector index<a class="headerlink" href="#vector-index" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FAISS (IVF-PQ)</strong></td>
+<td>Handles billions; product quantization compresses memory; GPU support</td>
+<td>Careful tuning needed; offline training required</td>
+<td>Billion-scale with memory efficiency as priority</td>
+</tr>
+<tr>
+<td><strong>HNSW (Milvus/Qdrant)</strong></td>
+<td>Best recall/latency; no training; incremental insert</td>
+<td>High memory (2-10x vector size); degrades with scale</td>
+<td>Hot index where p99 latency matters and RAM allows</td>
+</tr>
+<tr>
+<td><strong>ScaNN (Google)</strong></td>
+<td>Highly optimized ANN; strong recall/latency tradeoff</td>
+<td>Less ecosystem support; limited distributed story</td>
+<td>Maximum recall at minimum latency</td>
+</tr>
+</tbody>
+</table>
+<h4 id="image-processing">Image processing<a class="headerlink" href="#image-processing" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+<th>When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPU batch pipeline (Ray/Spark)</strong></td>
+<td>High throughput; parallel processing; GPU for encode</td>
+<td>Infrastructure complexity; cost at idle</td>
+<td>Large catalog re-indexing; batch updates</td>
+</tr>
+<tr>
+<td><strong>Serverless (Lambda + SQS)</strong></td>
+<td>Pay-per-use; auto-scaling; simple ops</td>
+<td>Cold starts; GPU support limited; per-invoke cost at volume</td>
+<td>Low/bursty ingestion; event-driven updates</td>
+</tr>
+<tr>
+<td><strong>Streaming (Kafka + Flink)</strong></td>
+<td>Real-time; exactly-once semantics; handles backpressure</td>
+<td>More infra to operate; overkill for batch-only</td>
+<td>Near-real-time index updates (new products searchable in minutes)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Our choice:</strong> <strong>CLIP</strong> (or fine-tuned OpenCLIP) for embeddings, <strong>FAISS with IVF-PQ</strong> for billion-scale vector search (compresses 768-dim floats to ~64 bytes per vector), and a <strong>Kafka + GPU batch pipeline</strong> for indexing new images. This stack delivers sub-100ms search latency at billion-scale while keeping memory feasible through product quantization.</p>
 <hr />
 <h2 id="step-2-high-level-architecture">Step 2: High-Level Architecture<a class="headerlink" href="#step-2-high-level-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h3>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph qry["Query Layer"]
         API[Search API]
         ImageProc[Image Processor]
@@ -3450,9 +3555,9 @@
     VectorDB --&gt; ANN
 
     ANN --&gt; Cache
-    Filter --&gt; Metadata</div>
+    Filter --&gt; Metadata</code></pre>
 <h3 id="request-flow-image-search">Request Flow: Image Search<a class="headerlink" href="#request-flow-image-search" title="Permanent link">&para;</a></h3>
-<div class="mermaid">sequenceDiagram
+<pre class="mermaid"><code>sequenceDiagram
     participant Client
     participant API
     participant Encoder as Image Encoder
@@ -3484,7 +3589,7 @@
         API-&gt;&gt;Cache: Cache results
     end
 
-    API--&gt;&gt;Client: Top-N similar products</div>
+    API--&gt;&gt;Client: Top-N similar products</code></pre>
 <hr />
 <h2 id="step-3-image-encoding-pipeline">Step 3: Image Encoding Pipeline<a class="headerlink" href="#step-3-image-encoding-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="preprocessing">Preprocessing<a class="headerlink" href="#preprocessing" title="Permanent link">&para;</a></h3>
@@ -3619,13 +3724,13 @@
 <h2 id="step-4-vector-index">Step 4: Vector Index<a class="headerlink" href="#step-4-vector-index" title="Permanent link">&para;</a></h2>
 <h3 id="index-architecture">Index Architecture<a class="headerlink" href="#index-architecture" title="Permanent link">&para;</a></h3>
 <p>For 100 million vectors, we need an approximate nearest neighbor (ANN) index.</p>
-<div class="mermaid">flowchart TB
+<pre class="mermaid"><code>flowchart TB
     subgraph vidx["Vector Index Architecture"]
         Query[Query Vector] --&gt; Coarse[Coarse Quantizer&lt;br/&gt;Find clusters]
         Coarse --&gt; Clusters[Search relevant clusters]
         Clusters --&gt; Fine[Fine-grained search&lt;br/&gt;within clusters]
         Fine --&gt; TopK[Top-K results]
-    end</div>
+    end</code></pre>
 <h3 id="faiss-implementation">FAISS Implementation<a class="headerlink" href="#faiss-implementation" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -4617,10 +4722,6 @@
     
     
       <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-      
-        <script src="../../assets/js/mermaid-config.js"></script>
       
     
   </body>
