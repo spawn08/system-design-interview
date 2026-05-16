@@ -189,6 +189,40 @@ def get_relevant_context(cursor_position, ast):
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+A production AI code assistant requires choosing across **completion model + code parsing/indexing + context retrieval + IDE integration layer**. Each directly affects latency, accuracy, and developer experience.
+
+#### Completion model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **StarCoder2 (3B/7B/15B)** | Open-weight; strong fill-in-the-middle (FIM) support; trained on permissive licenses | Smaller context than proprietary models; weaker on rare languages | Default for inline completions; on-prem deployment needed |
+| **CodeLlama (7B/13B/34B)** | Excellent infilling via FIM training; long context (100K) | Meta license restrictions at scale; 34B too slow for inline | Long-context understanding; licensing acceptable |
+| **GPT-4o / Claude (API)** | Highest reasoning quality; broad language coverage | Latency too high for inline (300ms+); cost; privacy concerns | Chat surface only; enterprises accepting cloud inference |
+| **DeepSeek-Coder-V2** | State-of-the-art benchmarks; MoE reduces active parameters | Large download; MoE inference needs careful memory management | Benchmark accuracy over operational simplicity |
+
+#### Code parsing & indexing
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Tree-sitter** | Incremental parsing; 50+ grammars; sub-ms updates; battle-tested in editors | Grammar quality varies; no semantic type resolution | Default for real-time AST extraction and symbol-level chunking |
+| **Language Server Protocol (LSP)** | Full semantic understanding (types, go-to-definition, references) | Heavy per-language setup; latency too high for inline path | Precise type-aware cross-file resolution beyond syntax |
+| **SCIP / LSIF index** | Pre-computed precise code intelligence; language-agnostic format | Requires CI to generate; stale between builds | Enterprise repos with CI pipelines where pre-indexed precision is justified |
+
+#### Context retrieval
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Code-specific embedding (StarEncoder, Jina-Code)** | Trained on code; understands syntax and semantics | Smaller community; fewer pre-trained options | Default for code similarity search in snippet retriever |
+| **BM25 / sparse retrieval** | No GPU required; fast; excellent for exact identifier matching | Misses semantic similarity | Hybrid alongside dense embeddings for keyword precision |
+| **General text embedding (text-embedding-3-small)** | Widely available; good zero-shot on code | Not optimized for code structure | Quick bootstrap before code-specific models |
+
+**Our choice:** **StarCoder2-7B** for inline completions (fits on a single A100 with room for KV-cache, sub-200ms latency) and a **70B chat model** for the chat surface (tolerates higher latency, stronger reasoning). **Tree-sitter** for real-time parsing supplemented by **SCIP/LSIF** for enterprise repos. **Hybrid retrieval** (code-specific embeddings + BM25) for context, keeping combined latency under 20ms. Dedicated **VS Code and JetBrains plugins** using native completion APIs for proper ghost-text rendering.
+
+!!! tip
+    **Interview angle:** The completion model choice is inseparable from the latency budget. A 70B model cannot serve inline completions at 200ms without aggressive speculative decoding or distillation. Showing awareness of this coupling signals real-world experience.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -276,6 +276,47 @@ class PromptVersionRef:
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+The prompt management system is built from a **metadata store + blob store for prompt payloads + cache layer + template engine + event bus for invalidation**. Each choice affects resolve latency, durability, and multi-region behavior.
+
+#### Metadata database
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **PostgreSQL** | Mature, ACID, rich indexing (GIN for JSON), strong tooling | Single-region leader by default; manual sharding at extreme scale | Single-region; moderate version throughput (tens of thousands/month) |
+| **CockroachDB** | Serializable with multi-region replication; PostgreSQL-compatible | Higher write latency (consensus); operational complexity | Multi-region where strong consistency on pointer moves is required |
+| **DynamoDB** | Serverless; single-digit-ms reads; global tables for multi-region | Eventually consistent global tables; no joins; limited query flexibility | AWS-native; simple key-value access; massive read throughput |
+
+#### Prompt content store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **S3 / GCS** | Unlimited capacity; content-addressable layout natural; built-in versioning | Per-request cost at high QPS; not ideal for sub-ms hot path | Default for immutable prompt bundles; large few-shot payloads |
+| **Database BLOB column** | Single transaction for metadata + content; simpler deployment | Row size limits; DB backup grows; poor for payloads above tens of KB | Small templates without large few-shot packs |
+| **Git-backed store** | Engineers know Git; built-in diff/blame; CI/CD integration natural | Not a serving-time store; needs sync to registry | Source-of-truth for authoring with sync to serving layer |
+
+#### Cache layer (serving hot path)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis Cluster** | Sub-ms p99; pub/sub for invalidation; well-understood operationally | Memory cost at scale; failover complexity | Default for compiled prompt cache with pub/sub invalidation |
+| **Application-level LRU** | Zero network hop; fastest reads; no external dependency | Per-instance; cold on deploy; inconsistent across replicas | L1 cache in front of Redis; small catalogs where staleness is OK |
+| **CDN (immutable bundles)** | Global edge; infinite cache for content-addressed bundles | Cannot invalidate (content-addressed keys solve this) | Immutable compiled bundles keyed by version_id; global SDK clients |
+
+#### Template engine
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Jinja2 (sandboxed)** | Industry standard; rich control flow; SandboxedEnvironment for safety | Powerful enough to be dangerous without sandboxing; Python-only native | Default; need conditionals and loops; Python backend |
+| **Mustache / Handlebars** | Logic-less by design; cross-language implementations; harder to abuse | No conditionals or loops; limited expressiveness | Strict security; multi-language SDKs; simple variable substitution |
+| **Custom DSL** | Tailored to prompt needs; can enforce domain rules at parse time | Engineering investment; no community; onboarding cost | Unique requirements like built-in token counting or model-specific escaping |
+
+**Our choice:** **PostgreSQL** for metadata (ACID guarantees on pointer moves, rich JSON indexing), with CockroachDB as upgrade path for multi-region. **S3/GCS** with content-addressed keys for immutable prompt bundles. **Redis Cluster** with pub/sub invalidation fronted by **in-process LRU as L1**. **Sandboxed Jinja2** for templates. This hits sub-5ms p99 on cache hit, degrades to sub-50ms on cold path (Redis miss → S3 fetch), and provides the ACID pointer semantics needed for safe rollback/promotion.
+
+!!! tip
+    **Interview angle:** "What if Postgres is down?" Redis holds last-known-good immutable bundles; high-risk prompts (medical, financial) return 503 instead of degrading, controlled by a risk tier in prompt metadata.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

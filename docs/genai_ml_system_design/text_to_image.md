@@ -152,6 +152,40 @@ flowchart TB
 !!! note
     Translate **1000 images/min** into **GPU occupancy**: if one GPU does ~6–12 images/min depending on settings, you need **O(100)** GPU streams (order-of-magnitude), plus headroom for failures and spikes.
 
+### Technology Selection & Tradeoffs
+
+The text-to-image system is assembled from a **diffusion backbone + text conditioning encoder + GPU serving infrastructure + image storage/delivery + safety classifier**. Each choice affects latency, cost-per-image, quality, and safety.
+
+#### Diffusion model architecture
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **U-Net Latent Diffusion (Stable Diffusion)** | Proven at scale; strong spatial inductive bias; large LoRA/ControlNet ecosystem | Scales less gracefully than transformers at extreme param counts | Rapid iteration with community adapters; moderate model size (1-2B) |
+| **DiT (Diffusion Transformer)** | Scales cleanly with compute; strong at high resolution; used by frontier models | Less community tooling; patchification adds complexity; larger memory | Frontier quality targets; large GPU budgets |
+| **Consistency Models** | One/few-step generation; dramatically lower latency | Quality gap vs full diffusion; separate training objective; less mature | Preview/draft tier where latency matters more than peak fidelity |
+| **Cascaded pipeline (base + SR)** | Low-res base is cheap; SR stages add detail; progressive preview UX | Multi-model complexity; each stage needs separate versioning | Fast preview + high final resolution; cost-tiered quality |
+
+#### Text conditioning encoder
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **CLIP ViT-L/14** | Strong image-text alignment; compact; fast inference | Limited to 77 tokens; weaker on compositional prompts | Short prompts; style-focused generation |
+| **T5-XXL / Flan-T5** | Excellent linguistic understanding; handles long compositional prompts | Large (11B params); higher latency and memory | Detailed instructions; compositional scenes |
+| **Dual encoder (CLIP + T5)** | Combines alignment + linguistic depth; used by SDXL-class systems | Double encoding cost; two models to version | Production systems needing both short creative and detailed prompts |
+
+#### GPU serving infrastructure
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **NVIDIA Triton** | Multi-framework; dynamic batching; model ensembles; GPU metrics built in | Complex config; steep learning curve; NVIDIA dependency | Multi-model pipelines (encoder + U-Net + VAE + SR) on NVIDIA hardware |
+| **Ray Serve** | Python-native; easy horizontal scaling; composable deployment graphs | Less GPU-kernel optimization than Triton; overhead at extreme QPS | Teams already using Ray; mixed CPU/GPU workloads |
+| **Custom (torch.compile + CUDA graphs)** | Maximum control; lowest possible per-image latency | High engineering investment; maintenance burden | Teams with deep CUDA expertise; last-millisecond optimization |
+
+**Our choice:** **U-Net latent diffusion** with **dual CLIP + T5 encoder** for the best balance of quality, ecosystem maturity, and adapter support. Serve with **Triton** for its native ensemble pipeline (text encode → denoise → VAE decode → SR → safety in one graph) on A100/H100 GPUs. Store images in **S3/GCS with CDN** and aggressive lifecycle policies. This delivers production-grade quality because U-Net is the most battle-tested architecture with the widest optimization surface (quantization, CUDA graphs, DPM-Solver++ step reduction), and Triton handles the multi-model pipeline without custom glue.
+
+!!! tip
+    **Interview angle:** Text-to-image is not one model but four or five (encoder, denoiser, VAE, SR, safety). The serving layer must orchestrate them efficiently -- saying "just call model.forward()" misses the system design point.
+
 ---
 
 ## Step 2: Estimation

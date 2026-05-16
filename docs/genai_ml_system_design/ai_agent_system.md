@@ -237,6 +237,49 @@ flowchart LR
 !!! warning
     Always tie NFRs to **measurement**: what is a “task,” what is included in “tool latency,” and are we counting queueing?
 
+### Technology Selection & Tradeoffs
+
+The AI agent system is assembled from an **LLM reasoning backbone + tool orchestration framework + memory/state store + sandboxed execution environment**. Each choice shapes task success, latency, cost, and security.
+
+#### LLM provider (planner/reasoning)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Frontier API (GPT-4o, Claude 3.5 Sonnet)** | Strongest reasoning and tool-calling fidelity; managed scaling | Cost per token is high; data leaves boundary; rate limits | Complex multi-step tasks where reasoning quality drives success |
+| **Self-hosted (Llama 3 70B, Mixtral 8x22B)** | Full data control; no per-call cost; customizable with fine-tuning | Weaker tool-calling reliability; GPU fleet management | Regulated environments; high-volume simple tasks |
+| **Small router + large worker** | Route simple tasks cheaply (7B); large model only for hard steps; 3-5x cost reduction | Router errors misroute; two models to version and monitor | Cost optimization at scale; query complexity varies |
+
+#### Tool orchestration framework
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Custom orchestrator (state machine)** | Full control over loop logic, retry policy, budget enforcement, HITL gates | Significant engineering; must build checkpointing and tracing | Unique control flow requirements; performance-critical paths |
+| **LangGraph** | Graph-based agent loops; built-in state management; persistence; LangSmith integration | Tied to LangChain ecosystem; abstraction overhead; debugging opaque | Teams already using LangChain; need HITL gates and checkpointing |
+| **Temporal workflows** | Durable execution; built-in retries, timeouts, versioning | Not designed for tight LLM-tool loops; overhead per activity call | Long-running tasks; need crash recovery and resumption |
+| **CrewAI / AutoGen** | Quick multi-agent prototyping; role-based definitions | Less production-hardened; limited cost/memory control at scale | Prototyping; exploring multi-agent patterns before building custom |
+
+#### Memory and state store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis (scratchpad) + Pinecone/Weaviate (semantic)** | Sub-ms ephemeral access; managed vector DB for long-term semantic recall | Two systems to operate; Redis volatile by default | Default: ephemeral scratchpad + durable semantic memory |
+| **PostgreSQL + pgvector** | Single DB for metadata, logs, and vector search; ACID; simpler deployment | Vector search degrades beyond tens of millions; limited ANN options | Smaller scale (<50M vectors); operational simplicity |
+| **Qdrant / Milvus (self-hosted)** | Full control; rich filtering; good performance at scale | Operational burden for clustering and backups | Fine-grained index control; on-premises deployments |
+
+#### Sandboxed code execution
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **gVisor (runsc)** | Userspace kernel intercepts syscalls; container-compatible; K8s-native | Performance overhead on syscall-heavy workloads; not all syscalls supported | Good security/simplicity balance; Kubernetes environments |
+| **Firecracker microVMs** | VM-level isolation; sub-200ms cold start; used by AWS Lambda at scale | Requires Linux KVM; more complex than containers | Highest security; untrusted code; multi-tenant isolation |
+| **Hardened containers (seccomp + AppArmor)** | Familiar tooling; fast startup; easy K8s integration | Weaker isolation than VMs; kernel shared with host | Lower-risk code (read-only analysis, data transforms) |
+| **WASM sandbox (Wasmtime)** | Near-native speed; capability-based security; tiny cold start | Limited library ecosystem; immature for complex workloads | Lightweight tool execution (calculators, parsers, validators) |
+
+**Our choice:** **Frontier API** (Claude 3.5 Sonnet or GPT-4o) as primary planner with a **small router model** (8B, self-hosted) for simple tasks -- this hybrid keeps average cost per task well below $1 while maintaining high success on complex work. **Custom state-machine orchestrator** with explicit budget enforcement, retry policies, and HITL gates, because agent control loops have unique requirements (dynamic replanning, tool-error feedback, cost caps) that generic workflow engines don't model cleanly. **Redis** for working scratchpad + **Pinecone/Weaviate** for semantic memory. **gVisor-sandboxed containers** with egress proxy for untrusted code -- strong isolation without Firecracker's operational complexity.
+
+!!! tip
+    **Interview angle:** "Why not LangGraph/CrewAI?" Frameworks accelerate prototyping but hide control flow that matters in production -- budget enforcement mid-loop, deterministic retry with error feedback, HITL gates at arbitrary points. A custom state machine makes these first-class concerns.
+
 ---
 
 ## Step 2: Estimation

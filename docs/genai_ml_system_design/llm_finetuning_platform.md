@@ -182,6 +182,40 @@ Trade-off:           Lower ε → more noise → slower convergence, worse final
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+An LLM fine-tuning platform is assembled from **training framework + GPU orchestration + experiment tracking + data versioning**. Each choice affects cost, VPC isolation, and flexibility.
+
+#### Training framework
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Axolotl** | YAML-driven config; supports LoRA, QLoRA, DPO out of the box; active OSS community | Opinionated abstractions; tight HuggingFace coupling | Default for SFT/DPO without writing boilerplate (covers 70%+ of workloads) |
+| **TRL (HuggingFace)** | First-class SFT, DPO, PPO trainers; tight PEFT integration | Less flexibility for custom distributed strategies | HuggingFace-invested teams needing well-tested RLHF primitives |
+| **NeMo / Megatron-LM (NVIDIA)** | Best multi-node performance; tensor/pipeline parallelism; optimized NCCL | Steep learning curve; NVIDIA lock-in; harder to customize | Large-scale full FT (64+ GPUs) where throughput dominates cost |
+| **Custom PyTorch loop** | Maximum flexibility; full control over gradient flow | Maintenance burden; easy to introduce distributed bugs | Research teams with non-standard training objectives |
+
+#### GPU orchestration
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kubernetes + Volcano** | Native K8s; gang scheduling; broad cloud support; container isolation | NCCL networking needs manual tuning; Volcano maturity lags Slurm | Cloud-native with mixed workloads (training + serving on same cluster) |
+| **Slurm** | Gold standard HPC; decades reliable; excellent InfiniBand support | Poor containers; hard CI/CD integration; no built-in multi-tenancy | On-prem GPU clusters with InfiniBand where HPC tooling is established |
+| **Ray Train** | Pythonic API; elastic training; unified train/tune/serve | Less mature for very large (512+ GPU) jobs | Teams wanting unified API without deep K8s knowledge |
+
+#### Experiment tracking
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **MLflow** | Open-source; self-hostable in VPC; model registry built in | UI less polished; limited real-time streaming | Default for enterprises requiring fully self-hosted tracking |
+| **Weights & Biases** | Best dashboards; real-time metrics; sweep integration | SaaS default; data leaves VPC unless self-hosted | Teams prioritizing developer experience who can self-host |
+| **TensorBoard + custom DB** | Free; native PyTorch integration; well-understood | No experiment comparison at scale; no model registry | Lightweight complement to a primary tracker |
+
+**Our choice:** **Axolotl** as the default training backend for LoRA/QLoRA jobs, with **NeMo/Megatron-LM** for rare full fine-tuning on 64+ GPUs. **Kubernetes + Volcano** for gang scheduling inside tenant-scoped VPCs. **MLflow** self-hosted for experiment tracking and model registry (no data egress). **DVC** for dataset versioning (lightweight, git-integrated). This keeps gradients and data inside the same trust zone -- critical for regulated industries where managed fine-tuning APIs are a non-starter.
+
+!!! tip
+    **Interview angle:** "Why not just use a managed fine-tuning API?" Managed APIs shift the trust boundary so raw data leaves the tenant VPC. For finance, healthcare, and government, this is a non-starter. Self-hosted frameworks keep data inside the trust zone.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -213,6 +213,41 @@ Use **rubric-based** scoring, **pairwise preference**, **user simulation** tasks
 }
 ```
 
+### Technology Selection & Tradeoffs
+
+The evaluation pipeline is assembled from **workflow orchestration + metric computation + LLM judge infrastructure + human evaluation tooling**. Each choice shapes cost, latency, reproducibility, and organizational adoption.
+
+#### Workflow orchestration
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Temporal / Cadence** | Durable execution with retries and timeouts; code-first workflows; shard-level checkpointing | Steeper learning curve; smaller plugin ecosystem than Airflow | Long-running eval runs with spot preemption; need shard-level resume |
+| **Airflow** | Mature ecosystem; rich operator library; DAG-native scheduling | Scheduler bottlenecks at high fan-out; cold-start latency | Established data-eng orgs; moderate eval cadence (nightly runs) |
+| **Argo Workflows (K8s)** | Kubernetes-native; container-per-step isolation; native GPU scheduling | Tied to K8s; YAML-heavy; debugging opaque | GPU-heavy eval pipelines already on K8s |
+| **Step Functions / Cloud Workflows** | Serverless; pay-per-invocation; built-in error handling | Vendor lock-in; expression limits; payload size caps | Cloud-native shops wanting minimal infra; smaller eval scale |
+
+#### LLM judge provider
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Frontier API (GPT-4o, Claude 3.5 Sonnet)** | Highest reasoning quality; strong rubric adherence; no GPU infra | Cost at scale; rate limits; data leaves compliance boundary | High-stakes release gates; safety-sensitive dimensions |
+| **Self-hosted open model (Llama 3, Mixtral)** | Full data control; no per-call cost; no rate limits | Lower rubric fidelity; GPU fleet overhead; calibration drift | Regulated environments; very high volume judge calls (millions/day) |
+| **Distilled evaluator (fine-tuned small model)** | Cheapest per call; fastest latency; tailored to your rubric | Requires labeled data to train; narrow domain; maintenance burden | Bulk screening tier before expensive frontier judges |
+| **Multi-judge ensemble** | Reduces position bias; higher agreement with human preferences | Multiplicative cost; fusion logic adds complexity | Critical release gates; when single-judge variance is unacceptable |
+
+#### Metric storage
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **BigQuery / Snowflake** | Serverless OLAP; SQL-native slicing; scales to petabytes | Query latency not ideal for real-time dashboards | Primary warehouse for eval results; ad-hoc analyst queries |
+| **ClickHouse** | Sub-second OLAP; excellent high-cardinality drill-down; open-source | Operational burden if self-hosted | Low-latency dashboards; real-time regression detection |
+| **DuckDB (embedded)** | Zero-infra for local analysis; native Parquet support | Single-node only; not a production serving layer | CI metric validation; developer notebooks; prototyping |
+
+**Our choice:** **Temporal** for orchestration (durable execution handles long-running, retry-heavy eval jobs with shard-level checkpointing). **Frontier API judges** (Claude 3.5 Sonnet or GPT-4o) gated behind stratified sampling and hash-based caching for cost control, with a **distilled screening tier** for high-volume nightly runs. **BigQuery/Snowflake** for metric storage with SQL-native slicing and long retention. This optimizes for reproducibility (Temporal event history), judge quality on release gates (frontier models), and cost discipline (distilled bulk screening + caching).
+
+!!! tip
+    **Interview angle:** "Why not just Airflow?" Eval runs with 100K items, judge retries on rate limits, and spot-preempted GPU workers benefit from Temporal's built-in checkpointing, whereas Airflow requires custom idempotency logic per operator.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation
