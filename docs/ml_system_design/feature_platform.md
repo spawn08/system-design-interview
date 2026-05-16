@@ -7,7 +7,7 @@
 We are designing a **real-time feature platform**: a system that **computes**, **stores**, **versions**, and **serves** machine learning features at **sub-millisecond to low-single-digit millisecond** latency for online inference, while providing **consistent offline datasets** for training via **point-in-time (PIT) correct joins**. Think **Feast**, **Tecton**, **Databricks Feature Store**, or large-scale internal platforms at hyperscalers.
 
 !!! note
-    **Why this matters:** **Train–serve skew** is often the **#1 silent killer** of production ML. The model learns from one distribution of features in training and sees a different distribution (or semantics) at serving time—**AUC drops**, **calibration breaks**, and **business metrics regress** without an obvious “bug” in model code.
+    **Why this matters:** **Train–serve skew** is often the **#1 silent killer** of production ML. The model learns from one distribution of features in training and sees a different distribution (or semantics) at serving time—**Area Under the ROC Curve (AUC) drops**, **calibration breaks**, and **business metrics regress** without an obvious “bug” in model code.
 
 ### The problem in one sentence
 
@@ -41,7 +41,7 @@ We are designing a **real-time feature platform**: a system that **computes**, *
 |------------------|-------------------|-------------------------|-------------------------|
 | **Feast (open source)** | Interoperability across clouds; **registry + offline/online** split | Parquet / warehouse offline; Redis / Dynamo **online**; optional **push** sources | Great for **standardizing** definitions; teams still own **compute** quality |
 | **Tecton (managed)** | **Managed** streaming + **declarative** features + SLAs | Spark/Flink under the hood; **materialization** jobs; **monitoring** | Trade **vendor coupling** for faster time-to-correctness |
-| **Internal “Google-scale” platforms** | Global **low tail latency** + **strong governance** | Custom control planes; **colocated** caches; **provenance** everywhere | Emphasize **SRE**, **blast radius**, and **tenancy** |
+| **Internal “Google-scale” platforms** | Global **low tail latency** + **strong governance** | Custom control planes; **colocated** caches; **provenance** everywhere | Emphasize **Site Reliability Engineering (SRE)**, **blast radius**, and **tenancy** |
 
 !!! tip
     **Sub-millisecond** reads usually require **in-memory** or **NVMe-local** hot tiers, **batching**, and **avoiding Python** on the critical path for assembly—often **C++/Rust** microservices with generated clients.
@@ -97,7 +97,7 @@ The model learned weights assuming **12** as a “typical high-engagement user.�
 | Metric | Before fix | After skew introduced |
 |--------|------------|------------------------|
 | Offline AUC | 0.82 | 0.82 (unchanged—training eval is “wrong world”) |
-| Online CTR | 2.0% | 1.6% (over-exposure to supposedly “hot” users) |
+| Online Click-Through Rate (CTR) | 2.0% | 1.6% (over-exposure to supposedly “hot” users) |
 | Log-loss | Healthy | **Silent** unless calibration monitored |
 
 !!! note

@@ -71,7 +71,7 @@ A **real-time messaging platform** that supports one-to-one (1:1) conversations,
 | Group messaging | Must have | Channels with membership; post to all members |
 | Online/offline presence | Must have | Show availability; last seen optional |
 | Read receipts | Must have | Delivered/read markers per conversation |
-| Push notifications | Must have | FCM/APNs when user offline or app backgrounded |
+| Push notifications | Must have | Firebase Cloud Messaging (FCM)/Apple Push Notification Service (APNs) when user offline or app backgrounded |
 | Message history | Must have | Paginated sync for new devices and scrollback |
 | Media sharing | Should have | Upload to object store; reference in message |
 | Typing indicators | Nice to have | Ephemeral signals; can be dropped under load |

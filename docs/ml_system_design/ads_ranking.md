@@ -22,7 +22,7 @@ We are designing an **ads ranking system** that selects and ranks advertisements
 
 | Reason | Explanation |
 |--------|---------------|
-| **Direct revenue tie** | Small lifts in **CTR**, **CVR**, or **auction efficiency** translate to massive dollars at scale |
+| **Direct revenue tie** | Small lifts in **Click-Through Rate (CTR)**, **Conversion Rate (CVR)**, or **auction efficiency** translate to massive dollars at scale |
 | **High-frequency decisions** | Every impression is an **online decision** with a fresh feature vector and budget state |
 | **Multi-objective** | Platform revenue, **advertiser ROI**, **user experience**, and **policy compliance** must coexist |
 | **Cold start forever** | New campaigns, creatives, and landing pages constantly enter the system |
