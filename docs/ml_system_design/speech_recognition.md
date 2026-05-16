@@ -29,7 +29,7 @@ We are designing an **automatic speech recognition (ASR)** platform comparable i
 
 1. **Ambiguity:** Acoustics underdetermine words (“ice cream” vs “I scream”); **language models** resolve ambiguity.
 2. **Variability:** Speaker age, accent, microphone, codec, and room acoustics shift the **feature distribution**.
-3. **Alignment:** Audio is a **continuous** signal; text is **discrete**. Models must solve **time-to-text alignment** (HMM, CTC, attention, RNN-T).
+3. **Alignment:** Audio is a **continuous** signal; text is **discrete**. Models must solve **time-to-text alignment** (HMM, Connectionist Temporal Classification (CTC), attention, RNN-T).
 4. **Streaming constraint:** Future audio is unknown—you cannot “look ahead” indefinitely without violating latency budgets.
 5. **Long tail:** Rare names, entities, and code-switching break naive LMs unless you add **contextual biasing** and **personalization**.
 

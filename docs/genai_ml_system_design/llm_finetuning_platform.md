@@ -68,7 +68,7 @@ flowchart TB
 |--------|------------------|------------|-------------|
 | **Full fine-tuning** | 100% | Highest | Small models or you own the whole stack |
 | **LoRA** | ~0.1–2% | Medium | Default for 7B–70B in enterprise |
-| **QLoRA** | ~0.1–2% | Low (4-bit base) | Cost-constrained; watch eval regressions |
+| **Quantized Low-Rank Adaptation (QLoRA)** | ~0.1–2% | Low (4-bit base) | Cost-constrained; watch eval regressions |
 | **Prompt tuning** | <<0.01% | Lowest | Very small data or rapid iteration only |
 
 ### Differential Privacy (DP-SGD) Intuition

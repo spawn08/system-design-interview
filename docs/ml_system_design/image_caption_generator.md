@@ -69,7 +69,7 @@ Think of it like this: the encoder looks at the image and creates a 2048-dimensi
 
 **Step 2: Decode to Text**
 
-A language model (often LSTM or Transformer) takes the feature vector and generates text word by word:
+A language model (often Long Short-Term Memory (LSTM) or Transformer) takes the feature vector and generates text word by word:
 1. Given the image features, what's the most likely first word? → "A"
 2. Given image features + "A", what's next? → "dog"
 3. Given image features + "A dog", what's next? → "running"
@@ -145,7 +145,7 @@ Let's design a system for a social media platform that suggests captions when us
 | **Latency** | < 1 second | User shouldn't wait long |
 | **Throughput** | 1,000 img/sec | Handle peak social media traffic |
 | **Availability** | 99.9% | Users expect it to work |
-| **Quality** | High BLEU/CIDEr scores | Captions should be accurate |
+| **Quality** | High Bilingual Evaluation Understudy (BLEU)/CIDEr scores | Captions should be accurate |
 | **Cost efficiency** | Minimize GPU usage | GPUs are expensive |
 
 ### Technology Selection & Tradeoffs

@@ -667,6 +667,121 @@
   }
 }
 
+/* ── Abbreviation Tooltips ────────────────────────────────────── */
+
+/*
+ * The MkDocs abbr extension wraps every matched term in <abbr title="...">
+ * By default, browsers show a plain OS tooltip on hover.
+ * We replace that with a styled floating card using CSS content: attr(title).
+ */
+
+abbr[title] {
+  position: relative;
+  cursor: help;
+  /* dotted underline so readers know it's expandable */
+  text-decoration: underline dotted currentColor;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* the tooltip card */
+abbr[title]::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  max-width: 320px;
+  min-width: 120px;
+  width: max-content;
+
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
+  text-decoration: none;
+
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+/* the small arrow caret below the card */
+abbr[title]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border: 5px solid transparent;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+abbr[title]:hover::after,
+abbr[title]:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+abbr[title]:hover::before,
+abbr[title]:focus::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Dark mode variant */
+[data-md-color-scheme="slate"] abbr[title]::after {
+  background: rgba(30, 27, 75, 0.97);
+  color: #e8e6f0;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+[data-md-color-scheme="slate"] abbr[title]::before {
+  border-top-color: rgba(124, 58, 237, 0.35);
+}
+
+[data-md-color-scheme="slate"] abbr[title] {
+  text-decoration-color: rgba(167, 139, 250, 0.6);
+  color: inherit;
+}
+
+/* Light mode variant */
+[data-md-color-scheme="default"] abbr[title]::after {
+  background: #1e1b4b;
+  color: #f0eef8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-md-color-scheme="default"] abbr[title]::before {
+  border-top-color: #1e1b4b;
+}
+
+[data-md-color-scheme="default"] abbr[title] {
+  text-decoration-color: rgba(99, 102, 241, 0.5);
+}
+
+/* Avoid overflow clipping inside table cells */
+.md-typeset table abbr[title] {
+  overflow: visible;
+}
+
 /* ── Print ────────────────────────────────────────────────────── */
 @media print {
   .md-typeset h1 {

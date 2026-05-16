@@ -40,11 +40,11 @@ A managed ML training platform — like Google Vertex AI, AWS SageMaker, or an i
 | Paradigm | What It Distributes | When to Use |
 |----------|-------------------|-------------|
 | **Data Parallel (DDP)** | Same model on each GPU; split data | Model fits in 1 GPU; need more throughput |
-| **ZeRO (DeepSpeed)** | Shard optimizer states, gradients, params | Model nearly fits; need memory savings |
+| **Zero Redundancy Optimizer (ZeRO, DeepSpeed)** | Shard optimizer states, gradients, params | Model nearly fits; need memory savings |
 | **Tensor Parallel** | Split individual layers across GPUs | Very large models (70B+); within a node |
 | **Pipeline Parallel** | Split layer groups across GPUs | Very large models; across nodes |
 | **Expert Parallel** | Split MoE experts across GPUs | Mixture-of-Experts models |
-| **FSDP** | Fully shard model + optimizer | PyTorch-native ZeRO equivalent |
+| **Fully Sharded Data Parallel (FSDP)** | Fully shard model + optimizer | PyTorch-native ZeRO equivalent |
 
 ```mermaid
 flowchart LR

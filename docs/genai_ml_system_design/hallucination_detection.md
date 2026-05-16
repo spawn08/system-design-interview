@@ -15,7 +15,7 @@ A **customer-facing generative AI product** (support assistant, copilot, or Q&A 
 | **Open-ended outputs** | Unlike classification, every completion can introduce new unsupported claims |
 | **Plausible fluency** | Models sound authoritative even when wrong; users over-trust fluent text |
 | **No single oracle** | Ground truth is partial (KB stale), expensive (human labels), or absent (novel queries) |
-| **Latency vs. depth** | Strong verification (search, NLI, multi-sample) adds hundreds of ms to seconds |
+| **Latency vs. depth** | Strong verification (search, Natural Language Inference (NLI), multi-sample) adds hundreds of ms to seconds |
 | **Calibration mismatch** | Token probabilities are often **poorly calibrated** for “truth”; low perplexity ≠ factual |
 | **Long contexts** | More retrieved text increases grounding opportunity **and** contradiction / lost-in-middle risk |
 | **Adversarial & edge cases** | Jailbreaks, leading questions, and domain drift break naive guardrails |

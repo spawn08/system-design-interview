@@ -66,7 +66,7 @@ flowchart LR
 | **Visual** | Appearance, colors, patterns | Two red dresses look similar |
 | **Semantic** | Meaning, concept | Dog photo & "dog" text match |
 
-Modern models like CLIP capture both.
+Modern models like Contrastive Language-Image Pre-Training (CLIP) capture both.
 
 ### Key Components
 

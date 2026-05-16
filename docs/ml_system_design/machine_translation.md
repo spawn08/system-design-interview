@@ -4,7 +4,7 @@
 
 ## What We're Building
 
-We are designing a **large-scale neural machine translation (NMT)** platform comparable in spirit to **Google Translate**: support for **100+ languages**, **billions of translations per day**, and **multiple modalities**—plain text, **image/OCR** (translate text in photos), **speech** (ASR → translate → TTS), and **real-time conversation** (streaming, low-latency turn-taking).
+We are designing a **large-scale neural machine translation (NMT)** platform comparable in spirit to **Google Translate**: support for **100+ languages**, **billions of translations per day**, and **multiple modalities**—plain text, **image/Optical Character Recognition (OCR)** (translate text in photos), **speech** (Automatic Speech Recognition (ASR) → translate → Text-to-Speech (TTS)), and **real-time conversation** (streaming, low-latency turn-taking).
 
 !!! tip
     In interviews, anchor numbers to public ballparks (orders of magnitude), then show how you derive capacity from QPS, sequence length, and model FLOPs—interviewers care about structured reasoning more than exact figures.
@@ -16,7 +16,7 @@ We are designing a **large-scale neural machine translation (NMT)** platform com
 | **Daily volume** | On the order of **100B+ words/day** translated globally (industry-scale aggregate) |
 | **Language coverage** | **100+ languages** in major consumer products; **133** languages cited for Google Translate coverage |
 | **Modalities** | Web/mobile text, documents, camera/OCR, voice, conversation |
-| **Quality bar** | Strong pairs often report **high BLEU/chrF** in research; production uses **human eval + side-by-side** |
+| **Quality bar** | Strong pairs often report **high Bilingual Evaluation Understudy (BLEU)/chrF** in research; production uses **human eval + side-by-side** |
 
 ### Why this problem is hard at scale
 
@@ -32,11 +32,11 @@ We are designing a **large-scale neural machine translation (NMT)** platform com
 
 ## ML Concepts Primer
 
-This section is the conceptual backbone for the rest of the design. Production MT is less “one giant LSTM” and more **data + tokenization + multilingual training + serving math**.
+This section is the conceptual backbone for the rest of the design. Production MT is less “one giant Long Short-Term Memory (LSTM)” and more **data + tokenization + multilingual training + serving math**.
 
 ### Encoder–decoder and sequence-to-sequence (seq2seq)
 
-**Seq2seq** maps a source sequence \(x_{1:T}\) to a target sequence \(y_{1:S}\). Classic RNN seq2seq used two recurrent networks: an **encoder** summarizes the source into a context vector; a **decoder** generates the target token by token.
+**Seq2seq** maps a source sequence \(x_{1:T}\) to a target sequence \(y_{1:S}\). Classic Recurrent Neural Network (RNN) seq2seq used two recurrent networks: an **encoder** summarizes the source into a context vector; a **decoder** generates the target token by token.
 
 **Bottleneck problem:** A single fixed-size vector cannot faithfully represent long or ambiguous sentences.
 

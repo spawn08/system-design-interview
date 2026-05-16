@@ -95,6 +95,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Notation Reference: reference/abbreviations.md
   - Fundamentals:
     - basics/index.md
     - Interview Framework: basics/interview_framework.md
