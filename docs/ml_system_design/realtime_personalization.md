@@ -123,6 +123,42 @@ Bandits formalize **exploration vs. exploitation**: show items likely to reward 
 !!! tip
     Mention **interleaving** or **counterfactual** evaluation when discussing online metrics—shows maturity.
 
+### Technology Selection & Tradeoffs
+
+A real-time personalization system is built from **ranking model + feature store + event streaming + A/B testing infrastructure**. Each choice affects personalization quality, latency, and experimentation velocity.
+
+#### Ranking model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Two-tower (candidate + user embeddings)** | Fast ANN retrieval at scale; decoupled training; sub-10ms serving | Misses fine-grained feature interactions at retrieval stage | Default for candidate retrieval from millions of items |
+| **Deep & Cross Network (DCN-V2)** | Captures explicit cross-features; strong on tabular + embedding mix | Higher serving latency; needs careful feature engineering | Re-ranking stage where feature interactions drive quality |
+| **XGBoost / LightGBM** | Fast inference; interpretable; strong on engineered features | Cannot learn embeddings; needs manual feature crosses | Lightweight re-ranker; cold-start or simple use cases |
+
+#### Feature store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Feast + Redis** | Open-source; online/offline separation; sub-ms reads from Redis | Limited real-time computation; needs separate streaming for fresh features | Default when batch + lookup features dominate |
+| **Tecton** | Real-time feature computation; managed; streaming transforms built in | Cost; vendor lock-in | When real-time feature freshness (last-click, session features) is critical |
+| **Custom (Redis + Flink)** | Full control over freshness; sub-ms reads; streaming aggregations | Must build versioning, monitoring, and backfill yourself | Teams with strong infra; unique freshness requirements |
+
+#### Event streaming
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Kafka** | Proven at scale; exactly-once; rich ecosystem; replay for retraining | Operational burden; higher latency floor | Default for user event ingestion and feature computation |
+| **Pub/Sub / Kinesis** | Managed; auto-scaling; low ops | Less control; higher per-message cost at volume | Cloud-native teams minimizing infra |
+
+#### A/B testing
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Interleaving** | Detects ranking quality changes with fewer samples; user-level comparison | Complex implementation; not suited for all metric types | Online ranking evaluation; fast signal |
+| **Traditional A/B (randomized)** | Well-understood; broad metric coverage; statistically rigorous | Needs large sample sizes; slower to detect small effects | Default for business metrics; complement to interleaving |
+
+**Our choice:** **Two-tower model** for candidate retrieval (sub-10ms ANN), **DCN-V2** for re-ranking (captures feature interactions), **Feast + Redis** for feature serving, **Kafka + Flink** for real-time feature aggregation, and **interleaving** for fast online ranking evaluation. This stack delivers personalized results in under 50ms while maintaining experimentation velocity.
+
 ---
 
 ## Step 2: Back-of-Envelope Estimation

@@ -239,6 +239,47 @@ flowchart LR
 !!! note
     Latency budgets are **end-to-end agreements**: feature platform, model server, and RPC fan-out must be negotiated as one **SLO chain**.
 
+### Technology Selection & Tradeoffs
+
+A feature platform is built from **offline store + online store + compute engine + transformation framework + orchestration**. Each choice affects feature freshness, serving latency, and operational complexity.
+
+#### Online store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Redis (Cluster)** | Sub-ms p99; rich data structures; battle-tested | Memory-bound; cost at scale; volatile without persistence config | Default for low-latency serving; feature vectors and lookups |
+| **DynamoDB** | Managed; single-digit-ms reads; auto-scaling; durable | Higher p99 than Redis; cost per read at extreme QPS | AWS-native; need durability guarantees; moderate latency OK |
+| **Bigtable** | Massive scale; low-latency reads; wide-column for feature groups | GCP-only; less flexible than Redis for complex structures | GCP shops at very large scale with wide feature groups |
+
+#### Offline store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Delta Lake / Iceberg on S3/GCS** | ACID on data lakes; time travel; schema evolution; open format | Needs Spark/Trino for queries; additional complexity | Default for large-scale feature history with backfill support |
+| **BigQuery / Snowflake** | Serverless OLAP; SQL-native; zero infra management | Cost at high scan volume; ingestion latency | Teams wanting managed warehouse for feature analytics |
+| **Hive / Parquet on HDFS** | Proven at PB scale; co-located with existing Hadoop pipelines | Slow schema evolution; no ACID without Delta/Iceberg | Legacy Hadoop environments |
+
+#### Compute engine (transformations)
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Apache Spark** | Mature batch processing; rich transformations; large ecosystem | Not true streaming; micro-batch adds latency; JVM overhead | Default for batch feature computation at scale |
+| **Apache Flink** | True streaming; stateful aggregations; low latency | Steeper learning curve; smaller ecosystem than Spark | Real-time features (session aggregates, sliding windows) |
+| **dbt + SQL** | Familiar SQL; version-controlled; great for analytics engineers | Limited to batch; cannot do streaming; no complex ML transforms | Simple feature transformations on warehouse data |
+
+#### Orchestration
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Airflow** | Mature; rich operator library; DAG scheduling; large community | Scheduler bottleneck at high fan-out; UI dated | Default for batch feature pipeline scheduling |
+| **Temporal** | Durable execution; code-first workflows; retries built in | Steeper learning curve; smaller plugin ecosystem | Long-running pipelines with complex retry logic |
+| **Prefect** | Modern Python-native; good UI; easy local development | Smaller community; fewer production battle scars | Teams wanting Airflow alternative with better DX |
+
+**Our choice:** **Redis Cluster** for online serving (sub-ms p99), **Delta Lake on S3/GCS** for offline store (ACID, time travel for point-in-time joins), **Spark** for batch transformations + **Flink** for streaming features, and **Airflow** for orchestration. This gives a clean offline-to-online materialization path: Spark computes features → writes to Delta Lake → materializes to Redis for serving, while Flink handles streaming features with sub-second freshness.
+
+!!! tip
+    **Interview angle:** The hardest problem in feature platforms is **point-in-time correctness** -- ensuring training features match what was available at serving time. Mention time-travel joins and feature versioning to show production awareness.
+
 ---
 
 ## Step 2: Estimation

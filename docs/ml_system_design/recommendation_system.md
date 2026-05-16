@@ -168,6 +168,44 @@ Daily interactions: 1 billion (views, clicks, purchases)
 Recommendations served: 500 million/day
 ```
 
+### Technology Selection & Tradeoffs
+
+A recommendation system is built from **candidate generation model + ranking model + feature store + serving infrastructure**. Each choice affects recommendation quality, latency, and cold-start handling.
+
+#### Candidate generation
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Two-tower (user + item embeddings)** | Fast ANN retrieval; decoupled; scales to billions of items | Misses fine-grained interactions at retrieval | Default for large catalog retrieval |
+| **Item-based collaborative filtering** | Simple; interpretable; no training needed for item similarity | Cold-start problem; sparse for long-tail items | Complementary signal; warm items with interaction data |
+| **Content-based (embedding similarity)** | Handles cold-start items; uses item metadata | Limited to content features; misses behavioral patterns | New items without interaction history |
+| **Graph-based (PinSage, LightGCN)** | Captures multi-hop relationships; strong on social/interaction graphs | Complex training; graph must fit in memory or use sampling | Social platforms; graph-structured data (follows, shares) |
+
+#### Ranking model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Deep & Cross Network (DCN-V2)** | Explicit feature crosses + deep learning; strong on mixed features | Higher serving latency than GBT; careful tuning needed | Default for production ranking with rich feature interactions |
+| **XGBoost / LightGBM** | Fast inference (~1ms); interpretable; strong baselines | Cannot learn embeddings; manual feature engineering | Early-stage or when explainability is required |
+| **Multi-task (engagement + satisfaction)** | Optimizes multiple objectives simultaneously; balances clicks vs quality | Complex loss weighting; harder to debug | Mature systems optimizing beyond click-through rate |
+
+#### Feature store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Feast + Redis** | Open-source; online/offline separation; sub-ms reads | Limited real-time computation | Default for batch + lookup features |
+| **Tecton** | Real-time transforms; managed; streaming built in | Cost; vendor lock-in | Real-time session features critical for quality |
+
+#### Model serving
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **NVIDIA Triton** | Multi-framework; dynamic batching; ensemble pipelines; GPU metrics | Complex config; NVIDIA dependency | Multi-model pipeline (retrieval → ranking → re-ranking) |
+| **TorchServe** | Native PyTorch; simple setup; model versioning | Less batching optimization; single-framework | PyTorch-only models; simpler serving needs |
+| **TensorFlow Serving** | Mature; well-optimized for TF models; gRPC native | TensorFlow-only; less relevant as industry shifts to PyTorch | Legacy TF model stacks |
+
+**Our choice:** **Two-tower model** for candidate generation with ANN retrieval (sub-10ms from billions), **DCN-V2** for ranking (captures feature interactions), **content-based embedding** for cold-start items, **Feast + Redis** for feature serving, and **Triton** for model serving (handles the multi-stage pipeline efficiently). This delivers personalized recommendations in under 100ms end-to-end.
+
 ---
 
 ## Step 2: High-Level Architecture
