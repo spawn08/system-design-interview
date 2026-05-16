@@ -201,7 +201,7 @@ A managed ML training platform is built from **job orchestration + distributed t
 
 | Option | Strengths | Weaknesses | When to choose |
 |--------|-----------|------------|----------------|
-| **Local NVMe + async upload to S3/GCS** | Fastest write latency; zero network overhead during checkpoint | Data at risk until uploaded; requires coordination | Default hybrid: minimize training interruption, async durability |
+| **Local NVMe + async upload to S3/Google Cloud Storage (GCS)** | Fastest write latency; zero network overhead during checkpoint | Data at risk until uploaded; requires coordination | Default hybrid: minimize training interruption, async durability |
 | **Cloud object store (S3/GCS) direct** | Infinite capacity; built-in redundancy; accessible from any node | Higher latency (100ms+); throughput limited by network | Pure cloud deployments without local NVMe |
 | **Parallel filesystem (Lustre/WekaFS)** | 100+ GB/s aggregate throughput; low latency; POSIX | Expensive; fixed capacity; operational burden | On-prem with InfiniBand where checkpoint speed is critical |
 
