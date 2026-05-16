@@ -13,7 +13,7 @@ Unlike classical ML, **there is often no single correct answer**. Outputs are **
 | Challenge | Why it hurts | What “good” looks like |
 |-----------|--------------|-------------------------|
 | **No single ground truth** | Open-ended answers; multiple valid phrasings | Multi-metric rubrics + human calibration + online validation |
-| **Metric–objective mismatch** | Optimizing BLEU or LLM-judge can diverge from user value | Layered metrics; pre-registered online gates |
+| **Metric–objective mismatch** | Optimizing Bilingual Evaluation Understudy (BLEU) or LLM-judge can diverge from user value | Layered metrics; pre-registered online gates |
 | **Cost & latency** | Judges and humans don’t scale like batch scoring | Sampling, stratification, async queues, caching |
 | **Non-stationarity** | Data drift, policy changes, model updates | Versioned datasets, canaries, regression suites |
 | **Gaming & overfitting** | Teams tune to the benchmark; judges favor verbosity | Holdout sets, adversarial suites, audit trails |
@@ -85,7 +85,7 @@ flowchart LR
 
 | Task type | Metrics | Notes |
 |-----------|---------|-------|
-| **Summarization** | **BLEU**, **ROUGE-L**, **BERTScore** | N-gram overlap is weak for semantics; pair with judges |
+| **Summarization** | **BLEU**, **Recall-Oriented Understudy for Gisting Evaluation (ROUGE)-L**, **BERTScore** | N-gram overlap is weak for semantics; pair with judges |
 | **Code generation** | **pass@k**, unit tests, static analysis | Gold standard is **execution** |
 | **Information extraction** | **Precision / Recall / F1** on spans or tuples | Often needs **normalized** labels |
 

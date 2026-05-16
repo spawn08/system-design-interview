@@ -1012,7 +1012,7 @@ Attach a **RetryBudget** per **request_id** (and optionally per **tenant** globa
 
 **Telemetry:** structured logs with `trace_id`, `tenant_id`, `provider`, `model`, `route_policy_id`, `cache_status` (`hit_exact`, `hit_semantic`, `miss`), `latency_ms`, `in_tokens`, `out_tokens`, `usd_estimate`.
 
-**PII:** run **NER/regex + LLM-assisted classifiers** in an async path for full payloads; **always** run fast regex for obvious patterns on the hot path.
+**PII:** run **Named Entity Recognition (NER)/regex + LLM-assisted classifiers** in an async path for full payloads; **always** run fast regex for obvious patterns on the hot path.
 
 ```python
 import re

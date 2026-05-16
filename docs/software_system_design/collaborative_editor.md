@@ -9,7 +9,7 @@ A **multi-user collaborative document editor** where many clients edit the same 
 **Core capabilities in scope:**
 
 - Real-time propagation of edits to all active collaborators with low perceived latency
-- Conflict-free or safely resolved concurrent edits (the **OT vs CRDT** decision is central)
+- Conflict-free or safely resolved concurrent edits (the **Operational Transformation (OT) vs CRDT** decision is central)
 - Durable document storage, revision history, and restore/audit
 - Presence: active users, cursor positions, and selection ranges (ephemeral, high churn)
 - Permissions: owner, editor, commenter, viewer; link sharing; optional organization policies

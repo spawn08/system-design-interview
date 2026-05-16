@@ -689,7 +689,7 @@ Score (0-10):"""
 
 | Metric | What It Measures | Target | Method |
 |--------|-----------------|--------|--------|
-| **Faithfulness** | Is answer grounded in context? | > 95% | NLI per claim |
+| **Faithfulness** | Is answer grounded in context? | > 95% | Natural Language Inference (NLI) per claim |
 | **Answer relevance** | Does it address the query? | > 85% | LLM-as-judge |
 | **Retrieval recall@10** | Did we find the right docs? | > 85% | vs human labels |
 | **Citation precision** | Are citations accurate? | > 90% | NLI verification |

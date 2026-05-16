@@ -515,7 +515,7 @@ CREATE INDEX idx_silences_active ON silences(tenant_id, ends_at) WHERE ends_at >
 
 | Method | Path | Purpose | Auth |
 |--------|------|---------|------|
-| `POST` | `/api/v1/push` | Remote write (Prometheus-compatible protobuf) | API key / mTLS |
+| `POST` | `/api/v1/push` | Remote write (Prometheus-compatible protobuf) | API key / Mutual TLS (mTLS) |
 | `POST` | `/api/v1/otlp/v1/metrics` | OTLP metrics ingestion (gRPC or HTTP) | API key |
 | `GET` | `/metrics` | Scrape endpoint (pull model — target exposes this) | — |
 

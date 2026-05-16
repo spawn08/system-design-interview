@@ -253,7 +253,7 @@ A full **ESP / transactional platform** spans **outbound delivery** (this doc’
 |-----------|------------------|--------------|----------------|
 | **Throughput & fan-out** | Very high sustained write/read; consumer groups scale horizontally | High for typical workloads; shovel/federation for cross-DC | Managed, scales with quotas; no ordering partition like Kafka unless FIFO |
 | **Ordering & replay** | Partition-key ordering; **durable log** + offset replay for recovery | Per-queue ordering; replay is **not** a first-class log model | Standard queues best-effort; FIFO adds ordering + dedup window |
-| **Semantics** | At-least-once (exactly-once with transactions/idempotency layers) | Ack/nack, DLX for dead-letter | Visibility timeout + DLQ; at-least-once |
+| **Semantics** | At-least-once (exactly-once with transactions/idempotency layers) | Ack/nack, DLX for dead-letter | Visibility timeout + Dead Letter Queue (DLQ); at-least-once |
 | **Ops model** | Self-managed cluster or managed (MSK, Confluent) | Mature broker; many hosting options | Fully managed; regional limits and API semantics |
 | **Fit for email** | **Ideal** for **event sourcing** delivery attempts, **cross-service analytics**, **large fan-out** webhooks | **Great** for **work queues** with **priority** and **per-domain** routing rules | **Simple** ingress/drain when you want **no broker ops** and already on AWS |
 
@@ -261,7 +261,7 @@ A full **ESP / transactional platform** spans **outbound delivery** (this doc’
 
 #### Email storage — object store vs database BLOBs vs Dovecot-style mail store
 
-| Dimension | **Object store (S3, GCS, Azure Blob)** | **DB BLOBs (Postgres BYTEA, etc.)** | **Dedicated mail store (Dovecot/IMAP server + Maildir)** |
+| Dimension | **Object store (S3, Google Cloud Storage (GCS), Azure Blob)** | **DB BLOBs (Postgres BYTEA, etc.)** | **Dedicated mail store (Dovecot/IMAP server + Maildir)** |
 |-----------|------------------------------------------|--------------------------------------|-----------------------------------------------------------|
 | **Cost at scale** | **Lowest $/GB**; lifecycle tiers | **Highest** — backups and replication amplify cost | Middle — tuned for **many small files** |
 | **Access pattern** | **Write-once**, key by `message_id` / hash; range listing needs **metadata index** | Row + BLOB in one TX for **strong consistency** with metadata | **Mailbox-optimized** — flags, UID, IMAP semantics |

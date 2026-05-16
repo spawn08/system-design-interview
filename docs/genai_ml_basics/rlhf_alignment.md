@@ -16,7 +16,7 @@ Large language models (LLMs) are trained primarily to **predict the next token**
 |-----------|--------------------------|-----------------------------------|
 | **Training signal** | Next-token prediction on raw text | Instructions, preferences, safety exemplars |
 | **Typical UX** | Continues prose; may ramble or comply with harmful prompts if completion is “likely” | Follows chat format; more refusals; more “assistant-like” tone |
-| **Tool use** | Weak unless fine-tuned | Stronger after SFT + RLHF/DPO on tool traces |
+| **Tool use** | Weak unless fine-tuned | Stronger after Supervised Fine-Tuning (SFT) + RLHF/DPO on tool traces |
 | **Honesty** | May confabulate confidently | Often better calibrated *if* trained with feedback—but not guaranteed |
 | **Deployment readiness** | Low for consumer chat | Higher, but still needs guardrails + monitoring |
 

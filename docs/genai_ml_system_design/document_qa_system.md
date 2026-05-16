@@ -408,7 +408,7 @@ flowchart TB
 | **Retrieval Service** | Hybrid dense + BM25, ANN top-20, ACL-aware filtering, optional query expansion |
 | **Re-ranker** | Cross-encoder scores candidates → top-5 for context window |
 | **Generation Service** | Prompt assembly, LLM call, streaming optional |
-| **Citation Extractor** | Validates `[n]` references, maps to chunk metadata; optional NLI grounding check |
+| **Citation Extractor** | Validates `[n]` references, maps to chunk metadata; optional Natural Language Inference (NLI) grounding check |
 
 ### Document Ingestion Pipeline
 
@@ -757,7 +757,7 @@ func RetrieveParallel(ctx context.Context, subs []SubQuery, ret Retriever) ([]Ch
 | Modality | Strategy | Embedding |
 |----------|----------|-----------|
 | **Tables** | HTML/Markdown serialization + row IDs; optional row-level chunks for wide tables | Same bi-encoder on text; or **late interaction** for large tables |
-| **Images / charts** | VLM caption → text chunk; or **image embedding** (CLIP) in separate index with fusion | Dual index + score fusion at query time |
+| **Images / charts** | VLM caption → text chunk; or **image embedding** (Contrastive Language-Image Pre-Training (CLIP)) in separate index with fusion | Dual index + score fusion at query time |
 
 !!! warning
     **Caption-only** approaches hallucinate chart values. For numeric Q&A, prefer **extracted table cells** or **tool-assisted** chart parsing (e.g., plot data extraction) when accuracy is critical.

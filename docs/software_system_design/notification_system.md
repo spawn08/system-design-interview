@@ -115,8 +115,8 @@ User preferences: 500M users × 200 bytes = 100 GB
 
 | Provider | Rate Limit | Our Peak Demand | Instances Needed |
 |----------|-----------|----------------|-----------------|
-| FCM (Push) | 500 msg/sec per connection | 3,480/sec peak | 7 connections |
-| APNS | 5,000 msg/sec per connection | ~1,740/sec peak | 1 connection |
+| Firebase Cloud Messaging (FCM) (Push) | 500 msg/sec per connection | 3,480/sec peak | 7 connections |
+| Apple Push Notification Service (APNS) | 5,000 msg/sec per connection | ~1,740/sec peak | 1 connection |
 | SES (Email) | 500 emails/sec (default) | 1,450/sec peak | 3 accounts or limit increase |
 | Twilio (SMS) | 100 msg/sec | 580/sec peak | 6 accounts or upgrade |
 
@@ -134,7 +134,7 @@ A notification system touches many infrastructure components. This section expla
 | Option | Strengths | Weaknesses | When to choose |
 |--------|-----------|------------|----------------|
 | **Kafka** | High throughput; durable log; replay capability; partition-based parallelism; exactly-once semantics | Operational overhead (KRaft/ZooKeeper); higher latency than in-memory queues; overkill for low-volume channels | High-throughput channels (push, email); need replay for reprocessing failed batches; multiple consumer groups (delivery + analytics) |
-| **SQS** | Managed; auto-scaling; built-in DLQ; no ops burden; FIFO queues for ordering | Limited throughput per FIFO queue (300 msg/s); standard queues have no ordering; vendor lock-in; no replay | AWS-native; moderate volume; team prefers managed services |
+| **SQS** | Managed; auto-scaling; built-in Dead Letter Queue (DLQ); no ops burden; FIFO queues for ordering | Limited throughput per FIFO queue (300 msg/s); standard queues have no ordering; vendor lock-in; no replay | AWS-native; moderate volume; team prefers managed services |
 | **RabbitMQ** | Low latency; flexible routing (topic, fanout, headers); priority queues native; mature | Less throughput than Kafka; clustering is fragile; no built-in replay | Low-latency priority-based routing; complex routing topologies; moderate scale |
 | **Redis Streams** | Sub-ms latency; consumer groups; acknowledgment; already in stack if using Redis | Memory-bound; less durable than Kafka; limited ecosystem for stream processing | Simple queuing needs; already running Redis; want to avoid adding another system |
 

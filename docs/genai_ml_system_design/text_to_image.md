@@ -82,7 +82,7 @@ Train the model **with conditioning dropout** so it can run **conditional** and 
 
 | Component | Role |
 |-----------|------|
-| **CLIP text encoder** | Strong **image–text alignment** signal; good for short prompts |
+| **Contrastive Language-Image Pre-Training (CLIP) text encoder** | Strong **image–text alignment** signal; good for short prompts |
 | **T5 / UL2-style encoder** | Better **long-form** and **linguistic** structure; used in many production stacks |
 | **Cross-attention** | U-Net/DiT blocks **attend to token embeddings** — injects prompt into spatial denoising |
 
@@ -192,7 +192,7 @@ The text-to-image system is assembled from a **diffusion backbone + text conditi
 
 ### GPU Compute per Image (Back-of-Envelope)
 
-Assume **latent diffusion** with a **2B-class U-Net**, **FP16**, **1024×1024 effective** after **VAE decode + SR** path:
+Assume **latent diffusion** with a **2B-class U-Net**, **16-bit floating point (FP16)**, **1024×1024 effective** after **VAE decode + SR** path:
 
 | Stage | Approx. time (single A100-class, indicative) |
 |-------|---------------------------------------------|
@@ -563,7 +563,7 @@ def latency_knobs() -> Dict[str, str]:
 
 **Text safety (embedding + similarity to known-bad clusters).** Encode the prompt with a **frozen sentence encoder** (e.g. E5-style or a small transformer exported to ONNX). Compare **cosine similarity** to **centroids** of **prohibited intent clusters** (CSAM, sexual violence, terror, self-harm recipes) maintained offline. **Thresholds** are per-cluster and calibrated on **precision/recall** curves; borderline hits route to **human review** instead of silent allow.
 
-**Image safety (NSFW / gore).** Run a **binary or multi-head** classifier (often **EfficientNet / ViT** backbone) trained on **policy-violating** vs **safe** images. Typical pattern: logits → **sigmoid** → **max probability** over {explicit, graphic violence, …}. **Dual thresholds**: **block** if \\(p > \tau_{\text{block}}\\), **review** if \\(\tau_{\text{review}} < p \le \tau_{\text{block}}\\).
+**Image safety (NSFW / gore).** Run a **binary or multi-head** classifier (often **EfficientNet / Vision Transformer (ViT)** backbone) trained on **policy-violating** vs **safe** images. Typical pattern: logits → **sigmoid** → **max probability** over {explicit, graphic violence, …}. **Dual thresholds**: **block** if \\(p > \tau_{\text{block}}\\), **review** if \\(\tau_{\text{review}} < p \le \tau_{\text{block}}\\).
 
 **Faces / deepfakes.** **Face detection** (e.g. SCRFD / RetinaFace-style) yields **bounding boxes**. If **faces present**, run **face embedding** (ArcFace-class) and compare to **celebrity / policy** galleries; **high similarity + disallowed use** → block. **Deepfake heuristics:** frequency-domain artifacts are brittle; production stacks increasingly use **lightweight** deepfake detectors (binary or embedding distance to **synthetic** clusters) with **human escalation** on high-risk slices.
 
@@ -998,7 +998,7 @@ def online_rating_feedback_loop(ratings: List[int]) -> float:
 
 **Preference alignment (image).** Train a **reward model** (often **CLIP + human ratings** or a **ViT head**) on pairwise **which image is better** data. Optimize with **RL** (policy gradient on denoising — expensive) or **DPO**-style **direct preference** losses on **completed samples** or **last-step** latents depending on setup — product stacks often use **offline** preference batches + **KL** to a **reference** model.
 
-**Compute & distributed training.** **Multi-GPU** data parallel for throughput; **FSDP / ZeRO** for **large** U-Nets/DiTs; **gradient checkpointing** to fit **activation** memory. **BF16** mixed precision; **EMA** weights for evaluation. Typical **cluster**: hundreds–thousands of **A100/H100** GPU-hours per **large** run — **checkpoint** to object storage every **N** thousand steps.
+**Compute & distributed training.** **Multi-GPU** data parallel for throughput; **Fully Sharded Data Parallel (FSDP) / Zero Redundancy Optimizer (ZeRO)** for **large** U-Nets/DiTs; **gradient checkpointing** to fit **activation** memory. **BFloat16 (BF16)** mixed precision; **EMA** weights for evaluation. Typical **cluster**: hundreds–thousands of **A100/H100** GPU-hours per **large** run — **checkpoint** to object storage every **N** thousand steps.
 
 ```mermaid
 flowchart TB

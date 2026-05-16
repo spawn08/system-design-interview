@@ -12,7 +12,7 @@ Generative models produce **open-ended text** — there is rarely a single “co
 |-----------|---------------------------|-------------------------------|
 | **Target** | Fixed label or score | Free-form tokens, reasoning chains, tool calls |
 | **Gold standard** | Often a single label per example | Multiple valid references; “best” answer may not exist |
-| **Common metrics** | Accuracy, precision/recall, F1, AUC-ROC | BLEU/ROUGE (n-gram overlap), LLM-as-judge, human ratings, task success |
+| **Common metrics** | Accuracy, precision/recall, F1, AUC-ROC | Bilingual Evaluation Understudy (BLEU)/Recall-Oriented Understudy for Gisting Evaluation (ROUGE) (n-gram overlap), LLM-as-judge, human ratings, task success |
 | **Error shape** | Wrong class vs right class | Irrelevant, unsafe, unfaithful, verbose, wrong tone, partial correctness |
 | **Data needs** | Labeled dataset | References, rubrics, human panels, online signals |
 | **Stability** | Metric stable across small model changes | Small prompt/model changes can reorder rankings |
@@ -450,7 +450,7 @@ R_A' = R_A + K \cdot (S_A - E_A)
 | Benchmark | Format | Primary signal | Typical metric |
 |-----------|--------|----------------|----------------|
 | MMLU | Multi-choice | Broad knowledge | Accuracy by subject / macro avg |
-| HellaSwag | Multi-choice | Commonsense NLI/continuation | Accuracy |
+| HellaSwag | Multi-choice | Commonsense Natural Language Inference (NLI)/continuation | Accuracy |
 | ARC | Multi-choice | Science reasoning | Accuracy (Challenge) |
 | TruthfulQA | MC or open | Honesty vs myths | MC accuracy or BLEU-like with judge |
 | HumanEval | Code + tests | Functional correctness | pass@1 / pass@10 |

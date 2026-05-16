@@ -22,7 +22,7 @@ Design training infrastructure that scales deep learning across hundreds of GPUs
 | **Data parallelism** | Same model on each GPU, different data shards |
 | **Model parallelism** | Split model layers/tensors across GPUs |
 | **Pipeline parallelism** | Split model into stages, process micro-batches concurrently |
-| **Mixed precision** | FP16/BF16 forward pass with FP32 master weights |
+| **Mixed precision** | 16-bit floating point (FP16)/BFloat16 (BF16) forward pass with FP32 master weights |
 | **Checkpointing** | Save and resume training from any point |
 | **Fault tolerance** | Continue training when workers fail |
 | **Experiment tracking** | Log metrics, hyperparameters, and artifacts |
@@ -170,7 +170,7 @@ graph TB
     AR -->|averaged gradients| W4
 ```
 
-### PyTorch DDP Implementation
+### PyTorch Distributed Data Parallel (DDP) Implementation
 
 ```python
 import torch

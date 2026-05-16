@@ -829,7 +829,7 @@ class DynamicBatcher:
 
 | Technique | Latency Reduction | Trade-off |
 |-----------|------------------|-----------|
-| **Quantization (INT8)** | 2-4x speedup | ~1% accuracy loss |
+| **Quantization (8-bit integer (INT8))** | 2-4x speedup | ~1% accuracy loss |
 | **ONNX Runtime** | 1.5-3x speedup | Conversion complexity |
 | **TensorRT** | 2-6x speedup | NVIDIA-only, compile step |
 | **Dynamic batching** | Higher throughput | Slight per-request wait |

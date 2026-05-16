@@ -8,9 +8,9 @@ A **payment system** lets customers pay merchants for goods or services using ca
 
 - Accept payment instructions from clients (web, mobile, partner APIs).
 - Move money safely between buyers, your platform, and sellers.
-- Stay consistent with external networks (card schemes, banks, PSPs such as Stripe or PayPal).
+- Stay consistent with external networks (card schemes, banks, Payment Service Providers (PSPs) such as Stripe or PayPal).
 - Support refunds, disputes (chargebacks), reconciliation, and fraud controls.
-- Meet regulatory and industry rules, especially **PCI-DSS** for card data.
+- Meet regulatory and industry rules, especially **Payment Card Industry Data Security Standard (PCI-DSS)** for card data.
 
 Real-world examples include Stripe Connect, Adyen for Platforms, PayPal Commerce, and in-house systems at marketplaces and SaaS billing engines.
 
@@ -167,7 +167,7 @@ Both can run ACID transactions, but defaults and ecosystem differ in ways that m
 | **Stripe** | Developer experience, global cards, Connect/marketplaces, Radar, documentation | Pricing; some advanced acquiring features via partners |
 | **Adyen** | Unified omnichannel, large-enterprise acquiring, rich routing | Integration complexity; often enterprise-led |
 | **PayPal / Braintree** | Huge wallet user base, buyer trust | UX and settlement model differ; integration quirks |
-| **Direct bank / ACH / RTP** | Lower fees at scale, full control | **Heavy compliance** (returns, NACHA, SEPA), slower iteration, more operational burden |
+| **Direct bank / Automated Clearing House (ACH) / RTP** | Lower fees at scale, full control | **Heavy compliance** (returns, NACHA, Single Euro Payments Area (SEPA)), slower iteration, more operational burden |
 
 **Direct bank integration** is rarely “drop in a REST call”—it implies **sponsor banks**, **KYC/KYB**, exception handling for returns, and often longer settlement cycles. Interviews reward saying you’d **start with a PSP** to shrink PCI and network scope, then add rails as volume justifies.
 

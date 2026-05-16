@@ -41,7 +41,7 @@ This section is the **backbone** of the interview: you must explain **embeddings
 
 ### Vector Embeddings: Meaning as Geometry
 
-A **vector embedding** is a fixed-length array of floats \\(\mathbf{x} \in \mathbb{R}^d\\) produced by an encoder (e.g., transformer pooling, CLIP image tower). **Semantically similar** inputs map to **nearby** points under a chosen distance — not because the model “stores meaning” literally, but because training (contrastive, supervised, or generative) **aligns geometry** with downstream similarity tasks.
+A **vector embedding** is a fixed-length array of floats \\(\mathbf{x} \in \mathbb{R}^d\\) produced by an encoder (e.g., transformer pooling, Contrastive Language-Image Pre-Training (CLIP) image tower). **Semantically similar** inputs map to **nearby** points under a chosen distance — not because the model “stores meaning” literally, but because training (contrastive, supervised, or generative) **aligns geometry** with downstream similarity tasks.
 
 | Topic | Detail |
 |-------|--------|

@@ -43,9 +43,9 @@ Session-based models treat a user’s interaction sequence as ordered events (e.
 
 | Family | Examples | Strengths | Trade-offs |
 |--------|----------|------------|------------|
-| **RNN** | GRU4Rec | Strong sequential bias, mature | Harder to parallelize; long sessions can vanish gradients |
+| **Recurrent Neural Network (RNN)** | GRU4Rec | Strong sequential bias, mature | Harder to parallelize; long sessions can vanish gradients |
 | **Transformer / self-attention** | SASRec, BST | Long-range dependencies; parallelizable | More data-hungry; latency vs depth |
-| **Graph** | Session graphs, GNN extensions | Cross-session / item graph structure | Heavier to serve; engineering complexity |
+| **Graph** | Session graphs, Graph Neural Network (GNN) extensions | Cross-session / item graph structure | Heavier to serve; engineering complexity |
 
 ```mermaid
 flowchart LR
@@ -112,7 +112,7 @@ Bandits formalize **exploration vs. exploitation**: show items likely to reward 
 ### Metrics
 
 **Online (production):**
-- **CTR**, **conversion rate**, **revenue per session**
+- **Click-Through Rate (CTR)**, **conversion rate**, **revenue per session**
 - **Engagement time**, **session depth** (items per session)
 - **Unsubscribe / churn** proxies for bad personalization
 

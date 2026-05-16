@@ -200,7 +200,7 @@ A production AI code assistant requires choosing across **completion model + cod
 | **StarCoder2 (3B/7B/15B)** | Open-weight; strong fill-in-the-middle (FIM) support; trained on permissive licenses | Smaller context than proprietary models; weaker on rare languages | Default for inline completions; on-prem deployment needed |
 | **CodeLlama (7B/13B/34B)** | Excellent infilling via FIM training; long context (100K) | Meta license restrictions at scale; 34B too slow for inline | Long-context understanding; licensing acceptable |
 | **GPT-4o / Claude (API)** | Highest reasoning quality; broad language coverage | Latency too high for inline (300ms+); cost; privacy concerns | Chat surface only; enterprises accepting cloud inference |
-| **DeepSeek-Coder-V2** | State-of-the-art benchmarks; MoE reduces active parameters | Large download; MoE inference needs careful memory management | Benchmark accuracy over operational simplicity |
+| **DeepSeek-Coder-V2** | State-of-the-art benchmarks; Mixture of Experts (MoE) reduces active parameters | Large download; MoE inference needs careful memory management | Benchmark accuracy over operational simplicity |
 
 #### Code parsing & indexing
 
