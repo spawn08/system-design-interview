@@ -134,6 +134,37 @@ Goal: Optimize the business trade-off ($ fraud prevented - $ customer loss)
 | **Accuracy** | >95% recall, <1% FPR | Balance fraud/customer |
 | **Explainability** | Required | Regulatory, disputes |
 
+### Technology Selection & Tradeoffs
+
+A real-time fraud detection system is built from **ML model + feature store + streaming engine + model serving layer**. Each choice affects detection latency, accuracy, and explainability.
+
+#### ML model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Gradient Boosted Trees (XGBoost/LightGBM)** | Fast inference (~1ms); excellent on tabular features; interpretable with SHAP | Cannot learn from raw sequences; feature engineering required | Default for transaction fraud with engineered features; regulatory explainability |
+| **Neural network (MLP / Transformer)** | Learns complex patterns; handles sequential data; higher ceiling | Slower inference; less interpretable; needs more training data | Large-scale with rich sequential signals (session sequences, click streams) |
+| **Ensemble (GBT + neural)** | Best accuracy; GBT handles tabular, neural handles sequences | Complex serving; two models to maintain; longer latency | When marginal accuracy gains justify operational complexity |
+| **Rules engine (first layer)** | Sub-ms; deterministic; handles known patterns; fully explainable | Cannot generalize; maintenance burden grows with rule count | Always as first layer; catches obvious fraud before ML |
+
+#### Feature store
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Feast** | Open-source; supports online/offline stores; good community | Limited real-time feature computation; needs separate streaming infra | Default open-source choice; batch + real-time features |
+| **Tecton** | Purpose-built for real-time ML; streaming feature computation; managed | Cost; vendor lock-in; opinionated architecture | When real-time feature freshness is critical and budget allows |
+| **Redis + custom pipeline** | Sub-ms reads; full control; simple for point lookups | Must build feature computation, versioning, monitoring yourself | Simple feature sets; teams preferring custom infra |
+
+#### Streaming engine
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **Apache Flink** | True streaming; exactly-once; complex event processing; state management | Operational complexity; steep learning curve | Default for real-time fraud where stateful window aggregates matter |
+| **Kafka Streams** | Lightweight; embedded in app; no separate cluster | Less powerful CEP; limited state management at scale | Simpler streaming needs; teams already deep in Kafka |
+| **Spark Structured Streaming** | Unified batch + stream; familiar Spark API | Micro-batch adds latency (100ms+); not true streaming | When unified batch/stream processing outweighs latency needs |
+
+**Our choice:** **Rules engine** as first layer (catches known patterns at sub-ms), followed by **XGBoost/LightGBM** on engineered features for the primary ML scorer (fast inference, SHAP explainability for regulatory compliance). **Feast** for feature store with Redis online backend. **Apache Flink** for real-time feature aggregation (transaction velocity, rolling sums). This stack delivers sub-100ms end-to-end latency with the explainability that regulations demand.
+
 ---
 
 ## Step 2: High-Level Architecture

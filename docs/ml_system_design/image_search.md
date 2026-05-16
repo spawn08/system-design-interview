@@ -128,6 +128,36 @@ Design a visual search system for an e-commerce platform with:
 | **Recall@100** | > 90% | Find most relevant items |
 | **Index freshness** | < 1 hour | New products searchable |
 
+### Technology Selection & Tradeoffs
+
+An image search system is built from **embedding model + vector index + image processing pipeline + serving infrastructure**. Each choice affects recall, latency, and cost at scale.
+
+#### Embedding model
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **CLIP (ViT-L/14)** | Shared text-image space; strong zero-shot; well-understood | 768 dims limits expressiveness; weaker on fine-grained attributes | Default for text-to-image and image-to-image search |
+| **DINOv2** | Excellent visual features without text alignment; self-supervised | No text-image alignment; text queries need separate encoder | Image-only similarity (visual duplicates, style matching) |
+| **Domain fine-tuned (OpenCLIP + contrastive)** | Highest accuracy on target domain; encodes domain attributes | Training cost; data collection; maintenance | E-commerce, medical imaging where domain attributes matter |
+
+#### Vector index
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **FAISS (IVF-PQ)** | Handles billions; product quantization compresses memory; GPU support | Careful tuning needed; offline training required | Billion-scale with memory efficiency as priority |
+| **HNSW (Milvus/Qdrant)** | Best recall/latency; no training; incremental insert | High memory (2-10x vector size); degrades with scale | Hot index where p99 latency matters and RAM allows |
+| **ScaNN (Google)** | Highly optimized ANN; strong recall/latency tradeoff | Less ecosystem support; limited distributed story | Maximum recall at minimum latency |
+
+#### Image processing
+
+| Option | Strengths | Weaknesses | When to choose |
+|--------|-----------|------------|----------------|
+| **GPU batch pipeline (Ray/Spark)** | High throughput; parallel processing; GPU for encode | Infrastructure complexity; cost at idle | Large catalog re-indexing; batch updates |
+| **Serverless (Lambda + SQS)** | Pay-per-use; auto-scaling; simple ops | Cold starts; GPU support limited; per-invoke cost at volume | Low/bursty ingestion; event-driven updates |
+| **Streaming (Kafka + Flink)** | Real-time; exactly-once semantics; handles backpressure | More infra to operate; overkill for batch-only | Near-real-time index updates (new products searchable in minutes) |
+
+**Our choice:** **CLIP** (or fine-tuned OpenCLIP) for embeddings, **FAISS with IVF-PQ** for billion-scale vector search (compresses 768-dim floats to ~64 bytes per vector), and a **Kafka + GPU batch pipeline** for indexing new images. This stack delivers sub-100ms search latency at billion-scale while keeping memory feasible through product quantization.
+
 ---
 
 ## Step 2: High-Level Architecture
