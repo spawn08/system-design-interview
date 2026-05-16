@@ -41,19 +41,19 @@ This section is the **backbone** of the interview: you must explain **embeddings
 
 ### Vector Embeddings: Meaning as Geometry
 
-A **vector embedding** is a fixed-length array of floats \\(\mathbf{x} \in \mathbb{R}^d\\) produced by an encoder (e.g., transformer pooling, Contrastive Language-Image Pre-Training (CLIP) image tower). **Semantically similar** inputs map to **nearby** points under a chosen distance — not because the model “stores meaning” literally, but because training (contrastive, supervised, or generative) **aligns geometry** with downstream similarity tasks.
+A **vector embedding** is a fixed-length array of floats \(\mathbf{x} \in \mathbb{R}^d\) produced by an encoder (e.g., transformer pooling, Contrastive Language-Image Pre-Training (CLIP) image tower). **Semantically similar** inputs map to **nearby** points under a chosen distance — not because the model “stores meaning” literally, but because training (contrastive, supervised, or generative) **aligns geometry** with downstream similarity tasks.
 
 | Topic | Detail |
 |-------|--------|
-| **Dimensionality \\(d\\)** | Higher \\(d\\) can separate finer concepts but increases **storage**, **compute per distance**, and **curse of dimensionality** for naive structures |
+| **Dimensionality \(d\)** | Higher \(d\) can separate finer concepts but increases **storage**, **compute per distance**, and **curse of dimensionality** for naive structures |
 | **Normalization** | Many text embeddings are **L2-normalized** so **cosine distance** relates to Euclidean geometry on the sphere |
 | **Model coupling** | Vectors from **different models** are generally **not comparable** — index is tied to **one embedding contract** per collection |
 
-**Trade-off (interview soundbite):** *“We pick \\(d\\) from the model card and capacity planning — not from the database. The DB must handle 128–4096 dims efficiently.”*
+**Trade-off (interview soundbite):** *“We pick \(d\) from the model card and capacity planning — not from the database. The DB must handle 128–4096 dims efficiently.”*
 
 ### Distance Metrics: Cosine, L2, Inner Product
 
-Let \\(\mathbf{x}, \mathbf{y} \in \mathbb{R}^d\\). Common choices:
+Let \(\mathbf{x}, \mathbf{y} \in \mathbb{R}^d\). Common choices:
 
 **1. Cosine similarity** (for L2-normalized vectors, often **dot product** suffices):
 
@@ -61,7 +61,7 @@ Let \\(\mathbf{x}, \mathbf{y} \in \mathbb{R}^d\\). Common choices:
 \text{cos\_sim}(\mathbf{x}, \mathbf{y}) = \frac{\mathbf{x} \cdot \mathbf{y}}{\|\mathbf{x}\| \, \|\mathbf{y}\|}
 \]
 
-**Cosine distance** (not a metric in strict sense but used): \\(1 - \text{cos\_sim}\\).
+**Cosine distance** (not a metric in strict sense but used): \(1 - \text{cos\_sim}\).
 
 **2. Squared Euclidean (L2²)** — avoids `sqrt` and preserves ordering vs L2:
 
@@ -111,9 +111,9 @@ def inner_product(x: np.ndarray, y: np.ndarray) -> float:
 
 ### Exact vs Approximate Nearest Neighbor (ANN)
 
-**Exact k-NN:** return the \\(k\\) true nearest neighbors — typically **O(nd)** per query with a linear scan, or heavy structures that **do not scale** to billions of points in high \\(d\\).
+**Exact k-NN:** return the \(k\) true nearest neighbors — typically **O(nd)** per query with a linear scan, or heavy structures that **do not scale** to billions of points in high \(d\).
 
-**ANN:** return **approximate** neighbors **much faster** by **pruning** the search space. You trade **recall** (fraction of true top-\\(k\\) found) for **latency** and **index size**.
+**ANN:** return **approximate** neighbors **much faster** by **pruning** the search space. You trade **recall** (fraction of true top-\(k\) found) for **latency** and **index size**.
 
 ```python
 import numpy as np
@@ -158,7 +158,7 @@ def brute_force_topk(
 
 | Idea | Role |
 |------|------|
-| **Layer assignment** | Each node gets a **random level** \\(l\\) (geometric distribution) — few nodes in high layers |
+| **Layer assignment** | Each node gets a **random level** \(l\) (geometric distribution) — few nodes in high layers |
 | **Greedy search** | At each layer, walk to **closer** neighbors until no improvement |
 | **ef_construction / ef_search** | **Beam width** for candidate list — higher → better graph / recall, more CPU |
 
@@ -172,7 +172,7 @@ Layer 1:       [C]---[D]-----[E]                (medium density)
 Layer 0:   ... [F][G][H][I][J][K][L] ...         (all nodes, short edges)
 ```
 
-**Traversal (simplified):** enter at **entry point** at top layer; at layer \\(L\\), greedy descend; at layer 0, maintain **dynamic list** of `ef` closest candidates using the neighbor graph.
+**Traversal (simplified):** enter at **entry point** at top layer; at layer \(L\), greedy descend; at layer 0, maintain **dynamic list** of `ef` closest candidates using the neighbor graph.
 
 ```python
 from __future__ import annotations
@@ -269,8 +269,8 @@ def search_layer_ef(
 
 | Concept | Description |
 |---------|-------------|
-| **Centroids** | \\(n_{\text{list}}\\) cluster centers \\(\{\mu_j\}\\) |
-| **Inverted lists** | Each cluster \\(j\\) stores **ids** of vectors assigned to it |
+| **Centroids** | \(n_{\text{list}}\) cluster centers \(\{\mu_j\}\) |
+| **Inverted lists** | Each cluster \(j\) stores **ids** of vectors assigned to it |
 | **nprobe** | How many lists to visit — **higher** → better recall, slower |
 
 ```python
@@ -323,19 +323,19 @@ def query_ivf_lists(
 
 **Encoding:** each subvector is replaced by the **nearest codebook entry index** (1 byte if k=256).
 
-**Asymmetric distance query (ADC):** for query \\(\mathbf{q}\\), precompute **partial distances** to **all codebook entries** per subspace, then approximate:
+**Asymmetric distance query (ADC):** for query \(\mathbf{q}\), precompute **partial distances** to **all codebook entries** per subspace, then approximate:
 
 \[
 \|\mathbf{q} - \mathbf{x}\|^2 \approx \sum_{s=1}^{m} \| \mathbf{q}_s - \mathbf{c}_{s, b_s(\mathbf{x})} \|^2
 \]
 
-where \\(b_s(\mathbf{x})\\) is the PQ code in subspace \\(s\\).
+where \(b_s(\mathbf{x})\) is the PQ code in subspace \(s\).
 
 **Worked micro-example (numbers):**
 
-- \\(d=4\\), **m=2** subspaces, **k=2** codes per subspace (toy).
-- Codebook 0: centroids \\((0,0)\\), \\((1,0)\\); Codebook 1: \\((0,1)\\), \\((1,1)\\).
-- Vector \\(\mathbf{x}=(0.1, 0.1, 0.9, 0.8)\\): sub0 \\((0.1,0.1)\\) → nearest \\((0,0)\\); sub1 \\((0.9,0.8)\\) → nearest \\((1,1)\\) → codes \\((0,1)\\).
+- \(d=4\), **m=2** subspaces, **k=2** codes per subspace (toy).
+- Codebook 0: centroids \((0,0)\), \((1,0)\); Codebook 1: \((0,1)\), \((1,1)\).
+- Vector \(\mathbf{x}=(0.1, 0.1, 0.9, 0.8)\): sub0 \((0.1,0.1)\) → nearest \((0,0)\); sub1 \((0.9,0.8)\) → nearest \((1,1)\) → codes \((0,1)\).
 
 ```python
 import numpy as np
@@ -432,7 +432,7 @@ flowchart TB
 |---------------|--------|
 | **Vector CRUD** | Insert, update, delete vectors with stable **string IDs** |
 | **Batch upsert** | High-throughput **bulk** loads for embedding pipelines |
-| **ANN query** | top-\\(k\\) with **metric** (cosine / L2 / IP), **ef**, **nprobe** |
+| **ANN query** | top-\(k\) with **metric** (cosine / L2 / IP), **ef**, **nprobe** |
 | **Metadata filters** | Equality, range, **AND/OR** — combined with vector search |
 | **Multi-tenancy** | **Tenant isolation** — logical namespaces / collections |
 | **Namespaces** | Per-tenant **logical partitions** (projects, environments) |
@@ -495,8 +495,8 @@ A vector database is built from an **ANN index structure + storage engine + dist
 
 | Component | Calculation | Example @ 4096 dims |
 |-----------|-------------|---------------------|
-| **Raw fp32 vector** | \\(d \times 4\\) bytes | \\(4096 \times 4 = 16\\) KB |
-| **fp16 vector** | \\(d \times 2\\) | 8 KB |
+| **Raw fp32 vector** | \(d \times 4\) bytes | \(4096 \times 4 = 16\) KB |
+| **fp16 vector** | \(d \times 2\) | 8 KB |
 | **Metadata** | ~64–256 B + variable payload | Depends on schema |
 | **HNSW graph** | **M** edges/node × pointers + levels | Often **multiple ×** raw vector RAM |
 
@@ -573,7 +573,7 @@ sequenceDiagram
   G-->>C: JSON response
 ```
 
-**Flow:** **Writes** → ingestion → **WAL** → memtable → flushed **immutable segments** in **object storage** with background index **merge**; **reads** → **Query Coordinator** → parallel per-shard **ANN** → **merge-heap** for global top-\\(k\\).
+**Flow:** **Writes** → ingestion → **WAL** → memtable → flushed **immutable segments** in **object storage** with background index **merge**; **reads** → **Query Coordinator** → parallel per-shard **ANN** → **merge-heap** for global top-\(k\).
 
 !!! note
     Separate **write path** (optimized for throughput + sequential I/O) from **read path** (optimized for **latency** + **parallelism**).

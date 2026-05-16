@@ -126,19 +126,19 @@ write_sft_jsonl(example_rows, Path("data/sft/train.jsonl"))
 
 ### Stage 2: Reward Model (RM) Training
 
-**Goal:** Learn a **scalar reward function** \\( r_\phi(x, y) \\) that scores a completion \\( y \\) given prompt \\( x \\), aligned with human preferences.
+**Goal:** Learn a **scalar reward function** \( r_\phi(x, y) \) that scores a completion \( y \) given prompt \( x \), aligned with human preferences.
 
-**Data:** **Pairwise preferences**—for the same prompt \\( x \\), annotators pick **chosen** \\( y_w \\) over **rejected** \\( y_l \\).
+**Data:** **Pairwise preferences**—for the same prompt \( x \), annotators pick **chosen** \( y_w \) over **rejected** \( y_l \).
 
 #### Bradley–Terry model
 
 A standard preference model assumes:
 
-\\[
+\[
 \mathbb{P}(y_w \succ y_l \mid x) = \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)
-\\]
+\]
 
-where \\( \sigma \\) is the logistic function. Intuitively: the **margin** in reward predicts the probability that humans prefer \\( y_w \\).
+where \( \sigma \) is the logistic function. Intuitively: the **margin** in reward predicts the probability that humans prefer \( y_w \).
 
 #### Reward model architecture (typical)
 
@@ -151,13 +151,13 @@ where \\( \sigma \\) is the logistic function. Intuitively: the **margin** in re
 
 #### Training objective (binary cross-entropy on preferences)
 
-Given a dataset \\( \mathcal{D} = \{(x, y_w, y_l)\} \\):
+Given a dataset \( \mathcal{D} = \{(x, y_w, y_l)\} \):
 
-\\[
+\[
 \mathcal{L}_{\text{RM}}(\phi) = - \mathbb{E}_{(x,y_w,y_l)\sim\mathcal{D}}\Big[
 \log \sigma\big(r_\phi(x,y_w) - r_\phi(x,y_l)\big)
 \Big]
-\\]
+\]
 
 #### Python: reward model loss (conceptual, PyTorch-style)
 
@@ -203,7 +203,7 @@ class PairwiseRewardModel(nn.Module):
 
 ### Stage 3: RLHF with PPO
 
-**Goal:** Adjust the policy \\( \pi_\theta \\) to **maximize expected reward** from the RM while staying close to a **reference policy** \\( \pi_{\text{ref}} \\) (often the SFT model) to avoid collapsing into degenerate high-reward text.
+**Goal:** Adjust the policy \( \pi_\theta \) to **maximize expected reward** from the RM while staying close to a **reference policy** \( \pi_{\text{ref}} \) (often the SFT model) to avoid collapsing into degenerate high-reward text.
 
 **Why RL?** The RM is not differentiable through the entire autoregressive generation process in a clean end-to-end way for arbitrary decoding; **policy gradient** methods estimate gradients from sampled completions.
 
@@ -211,9 +211,9 @@ class PairwiseRewardModel(nn.Module):
 
 A common surrogate objective uses:
 
-\\[
+\[
 R_{\text{total}}(x, y) = r_\phi(x, y) - \beta \, D_{\text{KL}}\!\big(\pi_\theta(\cdot \mid x) \,\|\, \pi_{\text{ref}}(\cdot \mid x)\big)
-\\]
+\]
 
 In practice, KL is estimated from token-level contributions or added as a penalty term in the loss.
 
@@ -221,11 +221,11 @@ In practice, KL is estimated from token-level contributions or added as a penalt
 
 **GAE (Generalized Advantage Estimation)** is widely used to reduce variance:
 
-\\[
+\[
 \hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \, \delta_{t+l},
 \quad
 \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)
-\\]
+\]
 
 For LLMs, implementations map “states” to prefixes; many systems use **token-level rewards** (e.g., reward only at EOS) or **sequence-level reward** with careful baseline subtraction.
 
@@ -233,16 +233,16 @@ For LLMs, implementations map “states” to prefixes; many systems use **token
 
 PPO’s clipped objective limits policy updates:
 
-\\[
+\[
 L^{\text{CLIP}}(\theta) = \mathbb{E}_t\left[
 \min\left(
 \rho_t(\theta)\hat{A}_t,\;
 \text{clip}(\rho_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t
 \right)
 \right]
-\\]
+\]
 
-where \\( \rho_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)} \\).
+where \( \rho_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)} \).
 
 **Why PPO for LLMs?** Stable-ish updates, off-policy-ish reuse of samples with clipping, and practical engineering support in frameworks—though training can still be **brittle** (entropy collapse, mode collapse, reward hacking).
 
@@ -386,11 +386,11 @@ flowchart LR
 
 ### How DPO eliminates the reward model
 
-Classical RLHF: learn \\( r_\phi \\), then optimize policy to maximize \\( \mathbb{E}[r] - \beta \text{KL} \\). DPO shows you can **reparameterize** the optimal closed-form solution under the KL constraint so that **preference likelihood** depends only on:
+Classical RLHF: learn \( r_\phi \), then optimize policy to maximize \( \mathbb{E}[r] - \beta \text{KL} \). DPO shows you can **reparameterize** the optimal closed-form solution under the KL constraint so that **preference likelihood** depends only on:
 
-- Current policy \\( \pi_\theta \\)
-- Reference policy \\( \pi_{\text{ref}} \\) (typically SFT)
-- Preference pairs \\( (x, y_w, y_l) \\)
+- Current policy \( \pi_\theta \)
+- Reference policy \( \pi_{\text{ref}} \) (typically SFT)
+- Preference pairs \( (x, y_w, y_l) \)
 
 You directly minimize a **binary cross-entropy**-style objective comparing **implicit rewards** constructed from log-probability ratios.
 
@@ -398,17 +398,17 @@ You directly minimize a **binary cross-entropy**-style objective comparing **imp
 
 Define an implicit reward:
 
-\\[
+\[
 r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
-\\]
+\]
 
-The partition-like term \\( Z(x) \\) cancels in pairwise comparisons, yielding a tractable preference loss.
+The partition-like term \( Z(x) \) cancels in pairwise comparisons, yielding a tractable preference loss.
 
 ### DPO loss (canonical form)
 
 For a dataset of preferences:
 
-\\[
+\[
 \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) =
 - \mathbb{E}_{(x,y_w,y_l)\sim \mathcal{D}}
 \left[
@@ -420,10 +420,10 @@ For a dataset of preferences:
 \Big)
 \right)
 \right]
-\\]
+\]
 
 !!! note
-    In code, compute **sum of log-probs over completion tokens** (with prompt masked out) for each of \\( y_w, y_l \\) under both policies.
+    In code, compute **sum of log-probs over completion tokens** (with prompt masked out) for each of \( y_w, y_l \) under both policies.
 
 ### Python: DPO loss (token-level log-prob sums)
 
@@ -844,14 +844,14 @@ What strong candidates demonstrate:
 
 | Symbol | Meaning |
 |--------|---------|
-| \\(x\\) | Prompt / context |
-| \\(y\\) | Completion |
-| \\(y_w, y_l\\) | Chosen / rejected |
-| \\(r_\phi\\) | Parametric reward model |
-| \\(\pi_\theta\\) | Policy (LLM) |
-| \\(\pi_{\text{ref}}\\) | Reference policy (often SFT) |
-| \\(\beta\\) | KL / DPO temperature controlling deviation strength |
-| \\(\sigma\\) | Logistic function |
+| \(x\) | Prompt / context |
+| \(y\) | Completion |
+| \(y_w, y_l\) | Chosen / rejected |
+| \(r_\phi\) | Parametric reward model |
+| \(\pi_\theta\) | Policy (LLM) |
+| \(\pi_{\text{ref}}\) | Reference policy (often SFT) |
+| \(\beta\) | KL / DPO temperature controlling deviation strength |
+| \(\sigma\) | Logistic function |
 
 ---
 

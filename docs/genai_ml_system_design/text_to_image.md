@@ -39,29 +39,29 @@ We are designing a **production text-to-image system** comparable to **Google Im
 
 ### Diffusion Models (Forward / Reverse, Noise Schedules)
 
-**Forward process:** gradually add Gaussian noise to data \\(x_0\\) until it becomes nearly pure noise \\(x_T\\).
+**Forward process:** gradually add Gaussian noise to data \(x_0\) until it becomes nearly pure noise \(x_T\).
 
-\\[
+\[
 q(x_t \mid x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}\, x_{t-1}, \beta_t I)
-\\]
+\]
 
-**Reverse process:** learn \\(p_\theta(x_{t-1} \mid x_t)\\) (or noise \\(\epsilon_\theta\\)) to denoise.
+**Reverse process:** learn \(p_\theta(x_{t-1} \mid x_t)\) (or noise \(\epsilon_\theta\)) to denoise.
 
-**Noise schedule:** choices of \\(\\beta_t\\) or \\(\\alpha_t\\) (e.g. linear, cosine) control **how fast** information is destroyed/reconstructed — affects **sample quality vs step count**.
+**Noise schedule:** choices of \(\\beta_t\) or \(\\alpha_t\) (e.g. linear, cosine) control **how fast** information is destroyed/reconstructed — affects **sample quality vs step count**.
 
-**Training objective (common):** predict noise \\(\epsilon\\) given \\(x_t\\) and conditioning \\(c\\):
+**Training objective (common):** predict noise \(\epsilon\) given \(x_t\) and conditioning \(c\):
 
-\\[
+\[
 L = \mathbb{E}_{t,\epsilon}\big[\lVert \epsilon - \epsilon_\theta(x_t, t, c) \rVert^2\big]
-\\]
+\]
 
 ### Latent Diffusion (LDM)
 
-**Idea:** Diffuse in a **lower-dimensional latent** \\(z\\) from a VAE encoder, not in pixel space.
+**Idea:** Diffuse in a **lower-dimensional latent** \(z\) from a VAE encoder, not in pixel space.
 
-- **Encoder** \\(E\\): image \\(x \mapsto z\\)
-- **Diffusion** on \\(z\\): cheaper per step than full-resolution pixels
-- **Decoder** \\(D\\): \\(z \mapsto \hat{x}\\)
+- **Encoder** \(E\): image \(x \mapsto z\)
+- **Diffusion** on \(z\): cheaper per step than full-resolution pixels
+- **Decoder** \(D\): \(z \mapsto \hat{x}\)
 
 **Why:** Fewer tokens than pixels → **U-Net/DiT is tractable** at 512–1024.
 
@@ -69,14 +69,14 @@ L = \mathbb{E}_{t,\epsilon}\big[\lVert \epsilon - \epsilon_\theta(x_t, t, c) \rV
 
 Train the model **with conditioning dropout** so it can run **conditional** and **unconditional** in one forward pass.
 
-**Guidance scale** \\(w > 1\\) sharpens prompt adherence (often at diversity cost):
+**Guidance scale** \(w > 1\) sharpens prompt adherence (often at diversity cost):
 
-\\[
+\[
 \tilde{\epsilon}_\theta = \epsilon_\theta(x_t, t, \varnothing) + w \cdot \big(\epsilon_\theta(x_t, t, c) - \epsilon_\theta(x_t, t, \varnothing)\big)
-\\]
+\]
 
 !!! warning
-    CFG increases **compute** (two forward passes) and can amplify **artifacts** or **oversaturated** looks at extreme \\(w\\).
+    CFG increases **compute** (two forward passes) and can amplify **artifacts** or **oversaturated** looks at extreme \(w\).
 
 ### Text Conditioning (CLIP, T5, Cross-Attention)
 
@@ -212,9 +212,9 @@ Let **steady throughput** require **1000 images/min** ≈ **16.7 images/s**.
 
 If one GPU serves **0.15–0.30 images/s** (varies by resolution, batching, and steps):
 
-\\[
+\[
 \text{GPUs} \approx \frac{16.7}{0.2} \approx 84 \quad (\text{round up with }30\text{–}50\% \text{ headroom})
-\\]
+\]
 
 **Real fleets** add: **multi-region**, **canary**, **blue/green**, **failure domains** → **120–200+ GPUs** as an **order-of-magnitude** answer.
 
@@ -343,27 +343,27 @@ def inject_cross_attention(unet_block: nn.Module, text_ctx: torch.Tensor) -> tor
 
 ### 4.2 Diffusion Sampling Pipeline
 
-**Noise prediction objective.** The model predicts **noise** \\(\epsilon_\theta(x_t, t, c)\\) such that the forward noising identity holds:
+**Noise prediction objective.** The model predicts **noise** \(\epsilon_\theta(x_t, t, c)\) such that the forward noising identity holds:
 
-\\[
+\[
 x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1-\bar{\alpha}_t}\, \epsilon,\quad \epsilon \sim \mathcal{N}(0, I)
-\\]
+\]
 
-where \\(\bar{\alpha}_t = \prod_{s=1}^{t}(1-\beta_s)\\) is the **cumulative alpha** from the variance schedule \\(\beta_t\\).
+where \(\bar{\alpha}_t = \prod_{s=1}^{t}(1-\beta_s)\) is the **cumulative alpha** from the variance schedule \(\beta_t\).
 
-**Predicted clean sample (\\(x_0\\)) from \\(\epsilon_\theta\\).** Rearranging the forward identity,
+**Predicted clean sample (\(x_0\)) from \(\epsilon_\theta\).** Rearranging the forward identity,
 
-\\[
+\[
 \hat{x}_{0,t} = \frac{x_t - \sqrt{1-\bar{\alpha}_t}\, \epsilon_\theta(x_t,t,c)}{\sqrt{\bar{\alpha}_t}}.
-\\]
+\]
 
-**DDIM deterministic update (\\(\eta=0\\)).** Let \\(\bar{\alpha}_t\\) and \\(\bar{\alpha}_{t-1}\\) denote cumulative alphas at the current and previous timestep indices. The DDIM paper shows an **ancestral** update that interpolates between **direct \\(x_0\\) prediction** and a **direction toward \\(x_t\\)**. With **\\(\eta=0\\)** (fully deterministic, no extra Gaussian noise), one common closed form is:
+**DDIM deterministic update (\(\eta=0\)).** Let \(\bar{\alpha}_t\) and \(\bar{\alpha}_{t-1}\) denote cumulative alphas at the current and previous timestep indices. The DDIM paper shows an **ancestral** update that interpolates between **direct \(x_0\) prediction** and a **direction toward \(x_t\)**. With **\(\eta=0\)** (fully deterministic, no extra Gaussian noise), one common closed form is:
 
-\\[
+\[
 x_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\, \hat{x}_{0,t} + \underbrace{\sqrt{1-\bar{\alpha}_{t-1}}\, \epsilon_\theta}_{\text{component parallel to noise direction}}.
-\\]
+\]
 
-Equivalently, implementations often compute an **epsilon direction** that points from the predicted \\(x_0\\) toward \\(x_t\\) (the "pointing to \\(x_t\\)" term in DDIM-style code paths) and combine with \\(\sqrt{\bar{\alpha}_{t-1}}\\hat{x}_0\\). The key interview facts: **(1)** \\(\bar{\alpha}\\) schedule is precomputed once from \\(\beta\\); **(2)** **CFG** is applied to \\(\epsilon\\) **before** the DDIM algebra; **(3)** fewer steps = **subsample** a decreasing sequence \\(t_K,\ldots,t_0\\) with the same formulas.
+Equivalently, implementations often compute an **epsilon direction** that points from the predicted \(x_0\) toward \(x_t\) (the "pointing to \(x_t\)" term in DDIM-style code paths) and combine with \(\sqrt{\bar{\alpha}_{t-1}}\\hat{x}_0\). The key interview facts: **(1)** \(\bar{\alpha}\) schedule is precomputed once from \(\beta\); **(2)** **CFG** is applied to \(\epsilon\) **before** the DDIM algebra; **(3)** fewer steps = **subsample** a decreasing sequence \(t_K,\ldots,t_0\) with the same formulas.
 
 ```python
 from typing import Callable, List, Tuple
@@ -486,7 +486,7 @@ def reduce_steps_teacher_student(
 ```
 
 !!! note
-    In **production**, you also **clip** \\(\hat{x}_0\\) to a sensible latent range before the DDIM update to avoid **exploding** latents when \\(\bar{\alpha}_t\\) is tiny — HuggingFace schedulers call this `pred_original_sample` clipping.
+    In **production**, you also **clip** \(\hat{x}_0\) to a sensible latent range before the DDIM update to avoid **exploding** latents when \(\bar{\alpha}_t\) is tiny — HuggingFace schedulers call this `pred_original_sample` clipping.
 
 **Step-reduction techniques:** distilled models, **consistency models**, **solver order** (DPM-Solver++), **timestep skipping**, **progressive growing** (coarse then refine).
 
@@ -563,7 +563,7 @@ def latency_knobs() -> Dict[str, str]:
 
 **Text safety (embedding + similarity to known-bad clusters).** Encode the prompt with a **frozen sentence encoder** (e.g. E5-style or a small transformer exported to ONNX). Compare **cosine similarity** to **centroids** of **prohibited intent clusters** (CSAM, sexual violence, terror, self-harm recipes) maintained offline. **Thresholds** are per-cluster and calibrated on **precision/recall** curves; borderline hits route to **human review** instead of silent allow.
 
-**Image safety (NSFW / gore).** Run a **binary or multi-head** classifier (often **EfficientNet / Vision Transformer (ViT)** backbone) trained on **policy-violating** vs **safe** images. Typical pattern: logits → **sigmoid** → **max probability** over {explicit, graphic violence, …}. **Dual thresholds**: **block** if \\(p > \tau_{\text{block}}\\), **review** if \\(\tau_{\text{review}} < p \le \tau_{\text{block}}\\).
+**Image safety (NSFW / gore).** Run a **binary or multi-head** classifier (often **EfficientNet / Vision Transformer (ViT)** backbone) trained on **policy-violating** vs **safe** images. Typical pattern: logits → **sigmoid** → **max probability** over {explicit, graphic violence, …}. **Dual thresholds**: **block** if \(p > \tau_{\text{block}}\), **review** if \(\tau_{\text{review}} < p \le \tau_{\text{block}}\).
 
 **Faces / deepfakes.** **Face detection** (e.g. SCRFD / RetinaFace-style) yields **bounding boxes**. If **faces present**, run **face embedding** (ArcFace-class) and compare to **celebrity / policy** galleries; **high similarity + disallowed use** → block. **Deepfake heuristics:** frequency-domain artifacts are brittle; production stacks increasingly use **lightweight** deepfake detectors (binary or embedding distance to **synthetic** clusters) with **human escalation** on high-risk slices.
 
@@ -860,23 +860,23 @@ def upscale_cascade(latent_small, sr64: nn.Module, sr256: nn.Module) -> torch.Te
 
 ### 4.6 Evaluation and Feedback
 
-**FID (Fréchet Inception Distance).** Pool **real** images and **generated** images through a **frozen Inception-v3** (or similar) up to **2048-d** pooled features (often before softmax). Let **real** features be \\(X \in \mathbb{R}^{n \times d}\\) and **generated** be \\(Y \in \mathbb{R}^{m \times d}\\). Compute **sample mean** \\(\mu_X, \mu_Y\\) and **covariance** \\(\Sigma_X, \Sigma_Y\\):
+**FID (Fréchet Inception Distance).** Pool **real** images and **generated** images through a **frozen Inception-v3** (or similar) up to **2048-d** pooled features (often before softmax). Let **real** features be \(X \in \mathbb{R}^{n \times d}\) and **generated** be \(Y \in \mathbb{R}^{m \times d}\). Compute **sample mean** \(\mu_X, \mu_Y\) and **covariance** \(\Sigma_X, \Sigma_Y\):
 
-\\[
+\[
 \text{FID} = \lVert \mu_X - \mu_Y \rVert_2^2 + \operatorname{Tr}\!\left(\Sigma_X + \Sigma_Y - 2(\Sigma_X \Sigma_Y)^{1/2}\right).
-\\]
+\]
 
 Lower is better (distributions more similar). **Square root of matrix product** uses **matrix square root** via eigendecomposition in stable implementations.
 
-**CLIP score (text–image alignment).** Encode **images** and **matching captions** with **CLIP** (same model, dual towers). With **L2-normalized** embeddings \\(v_i, t_i\\):
+**CLIP score (text–image alignment).** Encode **images** and **matching captions** with **CLIP** (same model, dual towers). With **L2-normalized** embeddings \(v_i, t_i\):
 
-\\[
+\[
 s_i = \langle v_i, t_i \rangle,\quad \text{CLIPScore} = \frac{1}{N}\sum_i s_i \quad \text{(often reported as average cosine similarity).}
-\\]
+\]
 
 Variants multiply by **100** or use **exp** scaling for reporting; the interview point is **alignment** vs **diversity** (FID) — use **both**.
 
-**Human preference (Elo).** Present **pairwise** A/B images from two models (or same model, two samplers). When a judge picks **A** over **B**, update ratings \\(R_A, R_B\\) with the **Elo** rule (expected score \\(E_A = 1/(1+10^{(R_B-R_A)/400})\\), \\(K\\)-factor update on surprise). Aggregate **leaderboards** per **slice** (photoreal, illustration, text rendering).
+**Human preference (Elo).** Present **pairwise** A/B images from two models (or same model, two samplers). When a judge picks **A** over **B**, update ratings \(R_A, R_B\) with the **Elo** rule (expected score \(E_A = 1/(1+10^{(R_B-R_A)/400})\), \(K\)-factor update on surprise). Aggregate **leaderboards** per **slice** (photoreal, illustration, text rendering).
 
 **A/B testing (online).** Randomize **user/session** to **model version** or **sampler**; track **engagement** (downloads, edits), **safety blocks**, **latency**. Use **CUPED** or **stratification** on **country/tier** to reduce variance.
 
@@ -992,7 +992,7 @@ def online_rating_feedback_loop(ratings: List[int]) -> float:
 
 **Data collection (LAION-style).** Harvest **image–text pairs** from the web at **billions** of scale; store **URLs**, **metadata**, **alt text**, and **perceptual hashes** (pHash) for **deduplication**. Run **NSFW / watermark / text quality** filters; **CLIP-based** dedup against **training centroids** to drop **near-duplicates**. Maintain **opt-out** and **do-not-train** lists where **policy** requires.
 
-**Training objective.** Standard **epsilon prediction** loss (Section “Key Concepts Primer”) on latents \\(z_t\\). **v-prediction** parameterization predicts \\(v = \sqrt{\bar{\alpha}_t}\,\epsilon - \sqrt{1-\bar{\alpha}_t}\, z_0\\), which can **stabilize** training at low noise levels. **Min-SNR weighting** reweights timesteps to balance **high- vs low-noise** difficulty.
+**Training objective.** Standard **epsilon prediction** loss (Section “Key Concepts Primer”) on latents \(z_t\). **v-prediction** parameterization predicts \(v = \sqrt{\bar{\alpha}_t}\,\epsilon - \sqrt{1-\bar{\alpha}_t}\, z_0\), which can **stabilize** training at low noise levels. **Min-SNR weighting** reweights timesteps to balance **high- vs low-noise** difficulty.
 
 **Fine-tuning.** **LoRA**: low-rank updates to attention/MLP weights for **cheap** style adapters. **DreamBooth**: few images of a subject + rare token for **identity** without full retrain. **Textual inversion**: learn **pseudo-tokens** in embedding space for **new concepts**.
 
@@ -1106,7 +1106,7 @@ flowchart TB
 
 **Interviewer:** Walk through **one** denoising step at the math level.
 
-**Candidate:** The model predicts **noise** \\(\epsilon_\theta(z_t, t, c)\\). From \\(\bar{\alpha}_t\\) and \\(\epsilon_\theta\\) I reconstruct **predicted** \\( \hat{z}_0 \\). A **DDIM-style** scheduler maps \\((z_t, \hat{z}_0, \epsilon_\theta)\\) to **\\(z_{t-1}\\)** using **precomputed** \\(\bar{\alpha}\\) schedules — deterministic with **\\(\eta=0\\)**. **CFG** runs **conditional** and **unconditional** forwards and **mixes** \\(\epsilon\\) **before** the scheduler algebra.
+**Candidate:** The model predicts **noise** \(\epsilon_\theta(z_t, t, c)\). From \(\bar{\alpha}_t\) and \(\epsilon_\theta\) I reconstruct **predicted** \( \hat{z}_0 \). A **DDIM-style** scheduler maps \((z_t, \hat{z}_0, \epsilon_\theta)\) to **\(z_{t-1}\)** using **precomputed** \(\bar{\alpha}\) schedules — deterministic with **\(\eta=0\)**. **CFG** runs **conditional** and **unconditional** forwards and **mixes** \(\epsilon\) **before** the scheduler algebra.
 
 **Interviewer:** How does **CFG** change **cost**?
 
